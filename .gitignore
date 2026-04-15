@@ -1,0 +1,20 @@
+﻿# build dirs
+bin/
+build/
+dist/
+doc/
+lib/
+target/
+node_modules/
+__pycache__/
+npm2/
+out/
+.npm/
+
+.gradle/
+
+.idea/*
+**/.idea/
+
+cyclonedx.json
+package.json.backup

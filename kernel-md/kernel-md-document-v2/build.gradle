@@ -1,0 +1,27 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "Document API V2 interfaces & impl. Some service impls are not contained, in order to keep dependencies minimal"
+
+configurations {
+}
+
+dependencies {
+    // NOTE: keep the dependencies of this subproject small - subprojects that use DocumentV2 et al in their APIs must depend on it
+
+    api project(':kernel-md-document-api')
+    api libs.jacksonDatabind // api for JsonNode deserialization method
+    api libs.baseModelConsistency
+    api project(':kernel-conversion-java') // e.g. for InstantRange. Technically this might not be needed at compile time, because
+    // static type is "Object" in many places, but logically this is an api dependency; and users would need this in order to e.g.
+    // create an InstantRange field value
+
+    implementation libs.commonsLang3
+
+    compileOnly libs.baseModelUtils // Only annotations
+
+
+}
+

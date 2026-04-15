@@ -1,0 +1,18 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "Generating structural mapping models as code"
+
+dependencies {
+    api project(":${A12_kernel_runtime_artifact_id()}")
+    api libs.st4
+    api project(':kernel-md-model-api')
+    // api e.g. because StructuralMappingCodeGenerationService::generateCode uses IValidationCodeGeneratorConfig.ProgrammingLanguage as a parameter type
+    api project(':kernel-core-codegen-base') // api e.g. because PluggableModelAdaptor extends BetterObjectModelAdaptor
+
+    implementation project(':kernel-md-model')
+    implementation project(':kernel-core-tool-api')
+    implementation libs.commonsText
+}

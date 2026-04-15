@@ -1,0 +1,51 @@
+plugins {
+    alias libs.plugins.kernelJsConventions
+}
+
+def npmWorkingDir = file(".")
+
+String osName = System.getProperty("os.name").toLowerCase()
+project.ext.npm_executable = osName.contains("windows") ? "npm.cmd" : "npm"
+def npm_groupName = "npm"
+
+tasks.register('custom_npm_install', Exec) {
+    group = npm_groupName
+    workingDir npmWorkingDir
+
+    inputs.file("${npmWorkingDir}/package.json")
+    inputs.file("${npmWorkingDir}/tsconfig.json")
+    inputs.file("${npmWorkingDir}/package-lock.json")
+
+    // the lockfile in node_modules can be used to identify if there are relevant changes,
+    // it is not necessary to check the whole node_modules directory
+    // see https://docs.npmjs.com/cli/v7/configuring-npm/package-lock-json#hidden-lockfiles
+    outputs.file("${npmWorkingDir}/node_modules/.package-lock.json")
+
+    // don't cache anything (node_modules etc.) as it is not enough to just get the package-lock from cache
+    // see https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure
+    outputs.cacheIf { false }
+
+    commandLine npm_executable, "install", "--loglevel", "warn", "--no-progress"
+}
+
+tasks.named('npm_install') {
+    dependsOn tasks.named('custom_npm_install')
+}
+
+tasks.named('npm_compile') {
+    dependsOn tasks.named('custom_npm_install')
+}
+
+tasks.named('test') {
+    enabled = false
+}
+tasks.named('npm_test') {
+    enabled = false
+}
+
+
+tasks.named('npm_cyclonedx') {
+    enabled = false
+}
+
+description = "codemod for the kernel modules"

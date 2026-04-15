@@ -1,0 +1,477 @@
+{	
+	"CustomCondition": {
+	"text": "If a condition or partial condition cannot be formulated in the A12 validation language, _CustomCondition_ can be used.  Every custom condition must have a name. The evaluation must be implemented by the system calling this condition.",
+	"title": "CustomCondition _Name_)"
+    },
+	"ValueAsDate": {
+	"text": "Returns a specific date corresponding to the DateSpecification of a partially known date.",
+	"title": "ValueAsDate(_Field_, _DateSpecification_)"
+    },
+	
+    "CurrentRepetition": {
+	"text": "If the rule iterates over _group_, the operator returns the respective repetition index of the group. If _group_ is used with a semantic index, the repetition which correspondes to the value of the index field is returned.",
+	"title": "CurrentRepetition(_Group_)"
+    },
+
+    "DiffersWithToleranceRange5": {
+	"text": "_Field1_ differs from _Field2_ with a tolerance of 5, i.e. the absolute value of [Field1] minus [Field2] is greater than 5",
+	"title": "[_Field1_] DiffersWithToleranceRange5 [_Field2_]"
+    },
+
+    "DiffersWithToleranceRange10": {
+	"text": "_Field1_ differs from _Field2_ with a tolerance of 10, i.e. the absolute value of [Field1] minus [Field2] is greater than 10",
+	"title": "[_Field1_] DiffersWithToleranceRange10 [_Field2_]"
+    },
+    
+    "DiffersWithToleranceRange1": {
+	"text": "_Field1_ differs from _Field2_ with a tolerance of 1, i.e. the absolute value of [Field1] minus [Field2] is greater than 1",
+	"title": "[_Field1_] DiffersWithToleranceRange1 [_Field2_]"
+    },
+    
+    "DiffersWithToleranceRange2": {
+	"text": "_Field1_ differs from _Field2_ with a tolerance of 2, i.e. the absolute value of [Field1] minus [Field2] is greater than 2",
+	"title": "[_Field1_] DiffersWithToleranceRange2 [_Field2_]"
+    },
+
+    "PatternMatched": {
+	"text": "The value of _StringField_ matches the regular expression _RegExp_.",
+	"title": "_StringField_ PatternMatched _RegExpr_"
+    },
+
+    "False": {
+	"text": "The Boolean value _False_ as a constant.",
+	"title": "False"	
+	},
+	
+    "FirstDay": {
+	"text": "A specification that indicates that, using _ValueAsDate_ a partially known date should be replaced with the earliest possible date.",
+	"title": "FirstDay"	
+	},
+	
+	"LastDay": {
+	"text": "A specification that indicates that, using _ValueAsDate_, a partially known date should be replaced with the latest possible date.",
+	"title": "LastDay"	
+	},
+
+	"Valid": {
+	"text": "If the parameter _CustomType_ is specified, the evaluation checks if the value of _Field_ is valid in relation to the CustomType. Otherwise, the evaluation ensures that Field is a valid date.",
+	"title": "Valid(_Field_, _CustomType_)"	
+	},
+	
+	"ValueNotConsistent": {
+	"text": "The value of _Field_ does not match the values in _ValueList_.",
+	"title": "ValueNotConsistent(_Field_ TO _ValueList_)"	
+	},
+	
+    "Invalid": {
+	"text": "If the parameter _CustomType_ is specified, the evaluation checks if the value of _Field_ is invalid in relation to the CustomType. Otherwise, the evaluation ensures that Field is a invalid date.",
+	"title": "Invalid(_Field_, _CustomType_)"	
+	},
+	
+    "True": {
+	"text": "The Boolean value _True_ as a constant.",
+	"title": "True"	
+	},
+	
+    "PatternViolated": {
+	"text": "The value of _StringField_ violates the regular expression _RegExp_.",
+	"title": "_StringField_ PatternViolated _RegExp_"
+    },
+
+    "FieldFilled": {
+	"text": "For _Field_, a value is given.",
+	"title": "FieldFilled(_Field_)"
+    },
+    
+    "FieldNotFilled": {
+	"text": "For _Field_, no value is given.",
+	"title": "FieldNotFilled(_Field_)"
+    },
+    
+    "FieldValueIncludedInValueList": {
+	"text": "_Field_ is filled and its value is included in _ValueList_; here, __ValueList__ is either a list of constants or a list of Field values like [F1], [F2], [F3].",
+	"title": "FieldValueIncludedInValueList(_Field_, _ValueList_)"
+    },
+
+    "FieldValueNotIncludedInValueList": {
+	"text": "_Field_ is filled and its value is not included in _ValueList_; here, __ValueList__ is either a list of constants or a list of Field values like [F1], [F2], [F3].",
+	"title": "FieldValueNotIncludedInValueList(_Field_, _ValueList_)"
+    },
+
+
+    "NoFieldFilled": {
+	"text": "No value is given for any of the fields in _FieldList_.",
+	"title": "NoFieldFilled(_FieldList_)"
+    },
+
+    "AtLeastOneFieldFilled": {
+	"text": "For at least one field in _FieldList_ a value is given.",
+	"title": "AtLeastOneFieldFilled(_FieldList_)"
+    },
+    
+    "NotExactlyOneFieldFilled": {
+	"text": "Either none or else more than one of the fields in _FieldList_ are filled.",
+	"title": "NotExactlyOneFieldFilled(_FieldList_)"
+    },
+    
+    "MoreThanOneFieldFilled": {
+	"text": "For more than one field in _FieldList_ a value is given.",
+	"title": "MoreThanOneFieldFilled(_FieldList_)"
+    },
+    
+    "NotAllFieldsFilled": {
+	"text": "A value is not given for all fields in _FieldList_.",
+	"title": "NotAllFieldsFilled(_FieldList_)"
+    },
+
+    "FieldsNotCollectivelyFilled": {
+	"text": "For at least one field but not for all fields in _FieldList_ a value is given.",
+	"title": "FieldsNotCollectivelyFilled(_FieldList_)"
+    },
+    
+    "AllFieldsFilled": {
+	"text": "For all fields in _FieldList_ a value is given.",
+	"title": "AllFieldsFilled(_FieldList_)"
+    },
+
+    "RepetitionNotUnique": {
+	"text": "There are at least two instances of the rule iteration for which the fields in _FieldList_ have the same values.",
+	"title": "RepetitionNotUnique(_FieldList_)"
+    },
+
+    "FieldValuesNotUnique": {
+	"text": "At least two fields in _FieldList_ share the same value.",
+	"title": "FieldValuesNotUnique(_FieldList_)"
+    },
+    
+    "NoFieldValueIncludedInValueList": {
+	"text": "No field value in _FieldList_ is contained in _ValueList_; here, _ValueList_ is either a list of constants or a Field list.",
+	"title": "NoFieldValueIncludedInValueList(_FieldList_ IN _ValueList_)"
+    },
+    
+    "AtLeastOneFieldValueIncludedInValueList": {
+	"text": "One or more field values in _FieldList_ are included in _ValueList_; here, _ValueList_ is either a list of constants or a Field list.",
+	"title": "AtLeastOneFieldValueIncludedInValueList(_FieldList_ IN _ValueList_)"
+    },
+
+    "NotAllFieldValuesIncludedInValueList": {
+	"text": "For at least one field in _FieldList_, a value is given but this value is not included in _ValueList_; here, _ValueList_ is either a list of constants or a Field list.",
+	"title": "NotAllFieldValuesIncludedInValueList(_FieldList_ IN _ValueList_)"
+    },
+
+    "GroupFilled": {
+	"text": "For at least one field of _Group_ a value is given.",
+	"title": "GroupFilled(_Group_)"
+    },
+
+    "GroupNotFilled": {
+	"text": "No value is given for any field of _Group_.",
+	"title": "GroupNotFilled(_Group_)"
+    },
+
+    "NoGroupFilled": {
+	"text": "No group in _GroupList_ contains a field that is filled.",
+	"title": "NoGroupFilled(_GroupList_)"
+    },
+    
+    "AtLeastOneGroupFilled": {
+	"text": "There is a group in _GroupList_ that contains a field which is filled.",
+	"title": "AtLeastOneGroupFilled(_GroupList_)"
+    },
+
+    "NotAllGroupsFilled": {
+	"text": "There is a group in _GroupList_ that is not filled.",
+	"title": "NotAllGroupsFilled(_GroupList_)"
+    },
+
+    "GroupsNotCollectivelyFilled": {
+	"text": "At least one but not all groups in _GroupList_ are filled.",
+	"title": "GroupsNotCollectivelyFilled(_GroupList_)"
+    },
+
+    "AllGroupsFilled": {
+	"text": "Each group in _GroupList_ is filled.",
+	"title": "AllGroupsFilled(_GroupList_)"
+    },
+
+    "FieldValueAsString": {
+	"text": "Returns the value of _Field_ as a string.",
+	"title": "FieldValueAsString(_Field_)"
+    },
+    
+    "FieldValueAsNumber": {
+	"text": "Returns the value of _Field_ as a number.",
+	"title": "FieldValueAsNumber(_Field_)"
+    },
+    
+    "RangeAsString": {
+	"text": "Returns the substring of _Field_ given by _Start_ and _End_ as a string.",
+	"title": "RangeAsString(_Field_, _Start_, _End_)"
+    },
+
+    "RangeAsNumber": {
+	"text": "Returns  the substring of _Field_ given by _Start_ and _End_ as a number.",
+	"title": "RangeAsNumber(_Field_, _Start_, _End_)"
+    },
+
+    "NumberOfFilledFields": {
+	"text": "Returns the number of filled fields in _FieldList_.",
+	"title": "NumberOfFilledFields(_FieldList_)"
+    },
+
+    "NumberOfFilledGroups": {
+	"text": "Returns the number of filled groups in _GroupList_.",
+	"title": "NumberOfFilledGroups(_GroupList_)"
+    },
+    
+    "NumberOfDifferentValues": {
+	"text": "Returns the number of different values of the fields in _FieldList_.",
+	"title": "NumberOfDifferentValues(_FieldList_)"
+    },
+
+    "FirstFilledValue": {
+	"text": "Returns the value of the first filled field in _FieldList_.",
+	"title": "FirstFilledValue(_FieldList_)"
+    },
+    
+    "NumberOfValueInFields": {
+	"text": "Returns the number of fields in _FieldList_ with value _Constant_.",
+	"title": "NumberOfValueInFields(_Constant_ IN _FieldList_)"
+    },
+    
+    "RoundDown": {
+	"text": "Returns _Value_, rounded down to _DecimalPlaces_ decimal places. The parameter _DecimalPlaces_ is optional.",
+	"title": "RoundDown(_Value_, _DecimalPlaces_)"
+    },
+
+    "RoundUp": {
+	"text": "Returns _Value_, rounded up to _DecimalPlaces_ decimal places. The parameter _DecimalPlaces_ is optional.",
+	"title": "RoundUp(_Value_, _DecimalPlaces_)"
+    },
+
+    "RoundAccounting": {
+	"text": "Returns _Value_, rounded to the nearest number with _DecimalPlaces_ decimal places. The parameter _DecimalPlaces_ is optional.",
+	"title": "RoundAccounting(_Value_, _DecimalPlaces_)"
+    },
+
+    "RoundDownValue": {
+	"text": "Returns the value of _Field_, rounded down to _DecimalPlaces_ decimal places. The parameter _DecimalPlaces_ is optional.",
+	"title": "RoundDown(_Field_, _DecimalPlaces_)"
+    },
+
+    "RoundUpValue": {
+	"text": "Returns the value of _Field_, rounded up to _DecimalPlaces_ decimal places. The parameter _DecimalPlaces_ is optional.",
+	"title": "RoundUp(_Field_, _DecimalPlaces_)"
+    },
+
+    "RoundAccountingValue": {
+	"text": "Returns the value of _Field_, rounded to the nearest number with _DecimalPlaces_ decimal places. The parameter _DecimalPlaces_ is optional.",
+	"title": "RoundAccounting(_Field_, _DecimalPlaces_)"
+    },
+    
+    "Abs": {
+	"text": "Returns the absolute value of _Value_.",
+	"title": "Abs(_Value_)"
+    },
+    
+    "AbsValue": {
+	"text": "Returns the absolute value of _Field_.",
+	"title": "AbsValue(_Field_)"
+    },
+    
+    "Length": {
+	"text": "Returns the number of characters of the value of _Field_.",
+	"title": "Length(_Field_)"
+    },
+    
+    "Max": {
+	"text": "Returns the maximum of the values in _ValueList_.",
+	"title": "Max(_ValueList_)"
+    },
+    
+    "Min": {
+	"text": "Returns the minimum of the values in _ValueList_.",
+	"title": "Min(_ValueList_)"
+    },
+    
+    "MaxValue": {
+	"text": "Returns the maximum value of the fields in _FieldList_.",
+	"title": "MaxValue(_FieldList_)"
+    },
+
+    "MinValue": {
+	"text": "Returns the minimum value of the fields in _FieldList_.",
+	"title": "MaxValue(_FieldList_)"
+    },
+
+    "Sum": {
+	"text": "Returns the sum of the values of the filled fields in _FieldList_.",
+	"title": "Sum(_FieldList_)"
+    },
+
+    "SumOfProducts": {
+	"text": "For each repetition, the product of two repeatable fields is calculated. The results are summed up.",
+	"title": "SumOfProducts(_Field1_, _Field2_)"
+    },
+    
+    "DifferenceInYears": {
+	"text": "Returns the difference of the two date values in years.",
+	"title": "DifferenceInYears(_Date1_, _Date2_)"
+    },
+
+    "DifferenceInMonths": {
+	"text": "Returns the difference of the two date values in months.",
+	"title": "DifferenceInMonths(_Date1_, _Date2_)"
+    },
+
+    "DifferenceInDays": {
+	"text": "Returns the difference of the two date values in days.",
+	"title": "DifferenceInDays(_Date1_, _Date2_)"
+    },
+
+    "DifferenceInHours": {
+	"text": "Returns the difference of the two date values in hours.",
+	"title": "DifferenceInHours(_DateTime1_, _DateTime2_)"
+    },
+
+    "DifferenceInMinutes": {
+	"text": "Returns the difference of the two date values in minutes.",
+	"title": "DifferenceInMinutes(_DateTime1_, _DateTime2_)"
+    },
+
+    "DifferenceInSeconds": {
+	"text": "Returns the difference of the two date values in seconds.",
+	"title": "DifferenceInSeconds(_DateTime1_, _DateTime2_)"
+    },
+
+    "AddYears": {
+	"text": "Returns _Date_ plus _Integer_ years. _Integer_ may be negative.",
+	"title": "AddYears(_Date_, _Integer_)"
+    },
+    
+    "AddMonths": {
+	"text": "Returns _Date_ plus _Integer_ months. _Integer_ may be negative.",
+	"title": "AddMonths(_Date_, _Integer_)"
+    },
+    
+    "AddDays": {
+	"text": "Returns _Date_ plus _Integer_ days. _Integer_ may be negative.",
+	"title": "AddDays(_Date_, _Integer_)"
+    },
+    
+    "AddHours": {
+	"text": "Returns _Date_ plus _Integer_ hours. _Integer_ may be negative.",
+	"title": "AddHours(_DateTime_, _Integer_)"
+    },
+    
+    "AddMinutes": {
+	"text": "Returns _Date_ plus _Integer_ minutes. _Integer_ may be negative.",
+	"title": "AddMinutes(_DateTime_, _Integer_)"
+    },
+
+    "AddSeconds": {
+	"text": "Returns _Date_ plus _Integer_ seconds. _Integer_ may be negative.",
+	"title": "AddSeconds(_DateTime_, _Integer_)"
+    },
+    
+    "DayFromDate": {
+	"text": "X can be Date or DateTime. Returns the day of the date value as a number.",
+	"title": "DayFromDate(_X_)"
+    },
+    
+    "MonthFromDate": {
+	"text": "X can be Date or DateTime. Returns the month of the date value as a number.",
+	"title": "MonthFromDate(_X_)"
+    },
+
+    "YearFromDate": {
+	"text": "X can be Date or DateTime. Returns the year of the date value as a number.",
+	"title": "YearFromDate(_X_)"
+    },
+
+    "QuarterFromDate": {
+	"text": "X can be Date or DateTime. Returns the year of the date value as a number. Returns the quarter of the date value as a number between 1 and 4.",
+	"title": "QuarterFromDate(_X_)"
+    },
+
+    "HoursFromTime": {
+	"text": "X can be Time or DateTime. Returns the hours of the date value as a number.",
+	"title": "HoursFromTime(_X_)"
+    },
+
+    "MinutesFromTime": {
+	"text": "X can be Time or DateTime. Returns the minutes of the date value as a number.",
+	"title": "MinutesFromTime(_X_)"
+    },
+
+    "SecondsFromTime": {
+	"text": "X can be Time or DateTime. Returns the seconds of the date value as a number.",
+	"title": "SecondsFromTime(_X_)"
+    },
+
+    "DateFromDateTime": {
+	"text": "Returns the date of  _DateTime_.",
+	"title": "DateFromDateTime(_DateTime_)"
+    },
+
+    "TimeFromDateTime": {
+	"text": "Returns the time of _DateTime_.",
+	"title": "TimeFromDateTime(_DateTime_)"
+    },
+
+
+	"DateRange": {
+		"text": "Returns the date range which starts with _Date1_ and ends with _Date2_.",
+		"title": "DateRange(_Date1_, _Date2_)"
+	},
+
+	"StartOfDateRange": {
+	"text": "Returns the start date of the date range.",
+	"title": "StartOfDateRange(_DateRange_)"
+    },
+
+    "EndOfDateRange": {
+	"text": "Returns the end date of the date range.",
+	"title": "EndOfDateRange(_DateRange_)"
+    },
+
+    "Date": {
+	"text": "Combines the parameters and returns the corresponding constant of type Date. The parameter _Century_ is optional.",
+	"title": "Date(_Day_, _Month_, _Century_, _Year_)"
+    },
+
+    "Time": {
+	"text": "Combines the parameters and returns the corresponding constant of type Time.",
+	"title": "Time(_Hours_, _Minutes_, _Seconds_)"
+    },
+    
+    "DateTime": {
+	"text": "Combines the parameters and returns the corresponding constant of type DateTime.",
+	"title": "DateTime(_Date_, _Time_)"
+    },
+    
+    "Today": {
+	"text": "Returns the current date.",
+	"title": "Today"
+    },
+    
+    "Now": {
+	"text": "Returns the current date and the current time.",
+	"title": "Now"
+    },
+    
+    "BaseYear": {
+	"text": "Returns the base year set for the model. For example, using ``YearFromDate(BaseYear)`` in a model with base year 2021, the number 2021 would be returned.",
+	"title": "BaseYear"
+    },
+    
+    "DateRangesOverlap": {
+	"text": "The date ranges specified by _FieldList_ overlap.",
+	"title": "DateRangesOverlap(_FieldList_)"
+    },
+    
+    "AtLeastOneDateRangeOverlaps": {
+	"text": "The date range of _Field_ overlaps with the date range of at least one field in _FieldList_.",
+	"title": "AtLeastOneDateRangeOverlaps(_Field_ IN _FieldList_)"
+    }
+}

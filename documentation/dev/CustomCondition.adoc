@@ -1,0 +1,118 @@
+//// 
+SPDX-License-Identifier: EUPL-1.2 OR LicenseRef-commercial
+Copyright (c) 2012-2026 mgm technology partners GmbH
+Dual License
+This source file is part of the mgm A12 Platform and available under a choice of two different licenses:
+1. Open-Source License – EUPL v1.2
+You may redistribute and/or modify this file under the terms of the European Union Public License, version 1.2 - see https://eupl.eu/.
+2. Commercial License
+Alternatively, you may obtain a commercial license from mgm technology partners GmbH, that permits use of this software under different terms (including support and maintenance services).
+
+Please contact a12-license@mgm-tp.com for more information.
+    
+You must select and comply with exactly one of the above license options.
+
+Warranty Disclaimer (applies to either option)
+THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS. 
+////
+
+:snippetBaseDir: ./assets/snippets
+// NOTE: the paths in these variables get replaced by the build system when both the adoc file and the source files
+// get copied to the ./build directory. The variables must be defined between the "// SNIPPET_START" and "// SNIPPET_END"
+// markers, and each must follow the format: ":<name>: {snippetBaseDir}/<path>".
+// SNIPPET_START
+:codeSnippetsCustomConditionTS: {snippetBaseDir}/custom-condition.ts
+:codeSnippetsCustomConditionJava: {snippetBaseDir}/TestCustomConditionSnippetsForDocs.java
+// SNIPPET_END
+
+= Custom Condition
+
+If the validation language does not provide the power to express the desired validation rule, _CustomCondition_ may be used in the condition text instead.
+If a _custom condition_ is used in a condition text, an implementation of the interface _ICustomConditionFactory_ must be provided by the user.
+Please use _CustomCondition_ only after careful consideration.
+If exactly one field is relevant for the condition then use <<_custom_field_type,Custom Field Type>> instead.
+
+*Attention:*
+The Kernel validation and thus especially _Custom Condition_ (as part of it) are designed exclusively for the validation of values of a document.
+Further validations should be implemented at the appropriate extension point (e.g. see the documentation of Data Services for the backend or Form Engine for the frontend).
+The interface is intended for fast, synchronous validations.
+More time-consuming validations or those that require access to third-party systems should not be placed here.
+
+[IMPORTANT]
+====
+The _CustomCondition_ is always exactly adapted to the specific case as it is not possible to pass parameters to the
+_CustomCondition_.
+Therefore the _CustomCondition_ has to know which fields/groups are relevant to check.
+The implementation must be provided by the user for Java *AND* TypeScript.
+====
+
+== Create a rule that specifies the _custom condition_
+
+[source]
+----
+FieldFilled(id) AND CustomCondition NotReverse
+----
+
+[IMPORTANT]
+====
+When a `CustomCondition` is used in the error conditions then the name of the custom condition might be inverted and describes when an error should be displayed.
+
+Thus, if we want to check if a string is reversed then the custom error condition could be called "NotReverse".
+====
+
+== Implement your _Custom Condition_
+
+In Java (on the example `"NotReverse"`):
+
+[source,java]
+----
+include::{codeSnippetsCustomConditionJava}[tags=IsNotReverseCustomCondition,indent=0;!exclude]
+----
+
+In TypeScript:
+
+[source,javascript,indent=0]
+----
+include::{codeSnippetsCustomConditionTS}[tags=IsNotReverseCustomCondition;!exclude]
+----
+
+[NOTE]
+====
+It is necessary to implement similar logic in Java and TypeScript to support fast data validation in the user frontend (with TypeScript) and a _final_ check in the Java server.
+====
+
+== Implement your _Custom Condition Factory_
+
+In Java:
+
+[source,java]
+----
+include::{codeSnippetsCustomConditionJava}[tags=CustomConditionFactory,indent=0;!exclude]
+
+include::{codeSnippetsCustomConditionJava}[tags=CustomConditionFactoryFromMap,indent=0;!exclude]
+----
+
+In TypeScript:
+
+[source,javascript,indent=0]
+----
+include::{codeSnippetsCustomConditionTS}[tags=IsNotReverseCustomConditionFactory;!exclude]
+----
+
+== Provide your implementation of _ICustomConditionFactory_
+
+To provide access to your custom condition implementation at runtime, the custom condition factory must be provided to the respective APIs.
+
+In Java:
+
+[source,java]
+----
+include::{codeSnippetsCustomConditionJava}[tags=provideCustomCode,indent=0]
+----
+
+In TypeScript:
+
+[source,javascript,indent=0]
+----
+include::{codeSnippetsCustomConditionTS}[tags=registerCustomConditions]
+----

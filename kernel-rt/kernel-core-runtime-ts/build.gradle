@@ -1,0 +1,12 @@
+plugins {
+    alias libs.plugins.kernelJsConventions
+
+}
+
+description = "contains the implementation of the predicates of the condition text language, of error handling, etc. and is used by generated code in JAVA and JavaScript"
+
+
+tasks.named('npm_compile') {
+    addBuildTaskDependency(it, ':kernel-core-runtime-api-ts')
+
+}

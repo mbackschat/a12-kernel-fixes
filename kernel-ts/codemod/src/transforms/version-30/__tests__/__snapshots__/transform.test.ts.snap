@@ -1,0 +1,455 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod. should work: \\nFixture: .keep\\n---\\n\\n---\\n 1`] = ``;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.CustomConditionService check should work: \\nFixture: 1.ts\\n---\\n\\r\\nimport { CustomConditionService } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal";\\r\\n\\r\\nfunction test() {\\r\\n  const instance = CustomConditionService.getInstanceV2();\\r\\n}\\r\\n\\n---\\n 1`] = `
+import { CustomConditionService } from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal";
+
+function test() {
+  const instance = // FIXME: This service is deprecated. Provide the custom conditions to the validation call directly instead (see GeneratedCodeRtConfig.customConditionFactory or ValidationMode.customConditionFactory).
+  CustomConditionService.getInstance();
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.CustomConditionService check should work: \\nFixture: 2.ts\\n---\\n\\r\\nimport { CustomFieldTypeService } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";\\r\\n\\r\\nfunction test() {\\r\\n  const instance = CustomFieldTypeService.getInstanceV2();\\r\\n}\\r\\n\\n---\\n 1`] = `
+import { CustomFieldTypeService } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+
+function test() {
+  const instance = // FIXME: This service is deprecated. Provide the custom field types to the Kernel APIs directly instead (see e.g. GeneratedCodeRtConfig.customFieldTypeFactory).
+  CustomFieldTypeService.getInstance();
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.Deprecation of CustomConditionService (a12internal) should work: \\nFixture: 14.ts\\n---\\nimport type {\\n  ICustomCondition,\\n  ICustomConditionFactory\\n} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal";\\nimport { CustomConditionService } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal";\\n\\nconst alwaysValidCustomCondition: ICustomCondition = {\\n  check: () => false\\n};\\n\\nconst customConditionFactory: ICustomConditionFactory = {\\n  createCustomCondition: () => alwaysValidCustomCondition\\n};\\n\\nexport function registerCustomConditions(): void {\\n  CustomConditionService.getInstance().register(customConditionFactory);\\n}\\n---\\n 1`] = `
+import type {
+  ICustomCondition,
+  ICustomConditionFactory
+} from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal";
+import { CustomConditionService } from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal";
+
+const alwaysValidCustomCondition: ICustomCondition = {
+  check: () => false
+};
+
+const customConditionFactory: ICustomConditionFactory = {
+  createCustomCondition: () => alwaysValidCustomCondition
+};
+
+export function registerCustomConditions(): void {
+  // FIXME: This service is deprecated. Provide the custom conditions to the validation call directly instead (see GeneratedCodeRtConfig.customConditionFactory or ValidationMode.customConditionFactory).
+  CustomConditionService.getInstance().register(customConditionFactory);
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.Deprecation of CustomFieldTypeService (a12internal) should work: \\nFixture: 13.ts\\n---\\nimport { CustomFieldTypeService } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/custom/impl/CustomFieldTypeService.js";\\n\\n\\nimport { customFieldTypeFactory } from "./custom-field-type.js";\\n\\nexport function registerDevappCustomizations(): void {\\n  CustomFieldTypeService.getInstance().register(customFieldTypeFactory);\\n}\\n---\\n 1`] = `
+import { CustomFieldTypeService } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+
+
+import { customFieldTypeFactory } from "./custom-field-type.js";
+
+export function registerDevappCustomizations(): void {
+  // FIXME: This service is deprecated. Provide the custom field types to the Kernel APIs directly instead (see e.g. GeneratedCodeRtConfig.customFieldTypeFactory).
+  CustomFieldTypeService.getInstance().register(customFieldTypeFactory);
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.Deprecation of DocumentRtCustomExtensionService.registerCustomConditions should work: \\nFixture: 12.ts\\n---\\nimport { DocumentRtCustomExtensionService } from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/api.js";\\n\\n\\nimport { customConditionsFactory } from "./custom-conditions.js";\\n\\nexport function registerDevappCustomizations(): void {\\n  DocumentRtCustomExtensionService.registerCustomConditions(customConditionsFactory);\\n}\\n---\\n 1`] = `
+import { DocumentRtCustomExtensionService } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+
+
+import { customConditionsFactory } from "./custom-conditions.js";
+
+export function registerDevappCustomizations(): void {
+  // FIXME: This service is deprecated. Provide the custom conditions to the validation call directly instead (see GeneratedCodeRtConfig.customConditionFactory).
+  DocumentRtCustomExtensionService.registerCustomConditions(customConditionsFactory);
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.Deprecation of DocumentRtCustomExtensionService.registerCustomFieldTypes should work: \\nFixture: 11.ts\\n---\\nimport { DocumentRtCustomExtensionService } from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/api.js";\\n\\n\\nimport { customFieldTypeFactory } from "./custom-field-types.js";\\n\\nexport function registerDevappCustomizations(): void {\\n  DocumentRtCustomExtensionService.registerCustomFieldTypes(customFieldTypeFactory);\\n}\\n---\\n 1`] = `
+import { DocumentRtCustomExtensionService } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+
+
+import { customFieldTypeFactory } from "./custom-field-types.js";
+
+export function registerDevappCustomizations(): void {
+  // FIXME: This service is deprecated. Provide the custom field types to the Kernel APIs directly instead (see GeneratedCodeRtConfig.customFieldTypeFactory).
+  DocumentRtCustomExtensionService.registerCustomFieldTypes(customFieldTypeFactory);
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.Deprecation of RtCustomExtensionService.registerCustomConditions should work: \\nFixture: 10.ts\\n---\\nimport {\\n  getCodeEditorErrors,\\n  getValidationState,\\n  ValidationStatus\\n} from "@com.mgmtp.a12.antlrcodeeditor/antlrcodeeditor-core";\\nimport { ICustomCondition } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal/index.js";\\nimport { RtCustomExtensionService } from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/a12internal/RtCustomExtensionService.js";\\n\\n\\nexport function registerCustomConditions() {\\n  const conditionsMap: Record<string, ICustomCondition> = {\\n    CodeEditorCondition: {\\n      check(data, relevantEntities, formallyIncorrectFields, errorField) {\\n        const fieldContent = data.getValue(errorField);\\n        if (fieldContent) {\\n          const errors = getCodeEditorErrors("example");\\n          return errors.length > 0;\\n        }\\n\\n        return false;\\n      }\\n    },\\n    CodeEditorPendingValidation: {\\n      check(data, relevantEntities, formallyIncorrectFields, errorField) {\\n        const fieldContent = data.getValue(errorField);\\n        if (fieldContent) {\\n          const pendingValidations = getValidationState({\\n            owner: "example",\\n            status: ValidationStatus.CHECKING\\n          });\\n          return pendingValidations.length > 0;\\n        }\\n\\n        return false;\\n      }\\n    },\\n    ProjectConditionWarning: {\\n      check(data, relevantEntities, formallyIncorrectFields, errorField) {\\n        const fieldContent = data.getValue(errorField);\\n        if (fieldContent) {\\n          const regex = ".*warning.*";\\n          return new RegExp(regex, "m").test(fieldContent);\\n        }\\n\\n        return false;\\n      }\\n    },\\n    ProjectConditionError: {\\n      check(data, relevantEntities, formallyIncorrectFields, errorField) {\\n        const fieldContent = data.getValue(errorField);\\n        if (fieldContent) {\\n          const regex = ".*error.*";\\n          return new RegExp(regex, "m").test(fieldContent);\\n        }\\n\\n        return false;\\n      }\\n    }\\n  };\\n\\n  RtCustomExtensionService.registerCustomConditions({\\n    createCustomCondition(name: string) {\\n      return conditionsMap[name];\\n    }\\n  });\\n}\\n---\\n 1`] = `
+import {
+  getCodeEditorErrors,
+  getValidationState,
+  ValidationStatus
+} from "@com.mgmtp.a12.antlrcodeeditor/antlrcodeeditor-core";
+import { ICustomCondition } from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal";
+import { RtCustomExtensionService } from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal";
+
+
+export function registerCustomConditions() {
+  const conditionsMap: Record<string, ICustomCondition> = {
+    CodeEditorCondition: {
+      check(data, relevantEntities, formallyIncorrectFields, errorField) {
+        const fieldContent = data.getValue(errorField);
+        if (fieldContent) {
+          const errors = getCodeEditorErrors("example");
+          return errors.length > 0;
+        }
+
+        return false;
+      }
+    },
+    CodeEditorPendingValidation: {
+      check(data, relevantEntities, formallyIncorrectFields, errorField) {
+        const fieldContent = data.getValue(errorField);
+        if (fieldContent) {
+          const pendingValidations = getValidationState({
+            owner: "example",
+            status: ValidationStatus.CHECKING
+          });
+          return pendingValidations.length > 0;
+        }
+
+        return false;
+      }
+    },
+    ProjectConditionWarning: {
+      check(data, relevantEntities, formallyIncorrectFields, errorField) {
+        const fieldContent = data.getValue(errorField);
+        if (fieldContent) {
+          const regex = ".*warning.*";
+          return new RegExp(regex, "m").test(fieldContent);
+        }
+
+        return false;
+      }
+    },
+    ProjectConditionError: {
+      check(data, relevantEntities, formallyIncorrectFields, errorField) {
+        const fieldContent = data.getValue(errorField);
+        if (fieldContent) {
+          const regex = ".*error.*";
+          return new RegExp(regex, "m").test(fieldContent);
+        }
+
+        return false;
+      }
+    }
+  };
+
+  // FIXME: This service is deprecated. Provide the custom conditions to the validation call directly instead (see GeneratedCodeRtConfig.customConditionFactory or ValidationMode.customConditionFactory).
+  RtCustomExtensionService.registerCustomConditions({
+    createCustomCondition(name: string) {
+      return conditionsMap[name];
+    }
+  });
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.Deprecation of RtCustomExtensionService.registerCustomFieldTypes should work: \\nFixture: 9.ts\\n---\\n\\nimport { RtCustomExtensionService } from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/a12internal/RtCustomExtensionService.js";\\n\\nimport { PrintDateTimeFormatFactory } from "../../internal/validation/print-date-time-format-type/index.js";\\n\\nRtCustomExtensionService.registerCustomFieldTypes(new PrintDateTimeFormatFactory());\\n\\n\\n---\\n 1`] = `
+import { RtCustomExtensionService } from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal";
+
+import { PrintDateTimeFormatFactory } from "../../internal/validation/print-date-time-format-type/index.js";
+
+// FIXME: This service is deprecated. Provide the custom field types to the Kernel APIs directly instead (see e.g. GeneratedCodeRtConfig.customFieldTypeFactory).
+RtCustomExtensionService.registerCustomFieldTypes(new PrintDateTimeFormatFactory());
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.ICustomConditionFactory check should work: \\nFixture: 3.ts\\n---\\n\\r\\nimport {\\r\\n  ICustomConditionFactory,\\r\\n  ICustomCondition,\\r\\n} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal";\\r\\n\\r\\nfunction test(factory: MyCustomConditionFactory) {\\r\\n  factory.createCustomConditionV2("Test");\\r\\n}\\r\\n\\r\\nclass MyCustomConditionFactory implements ICustomConditionFactory {\\r\\n  createCustomConditionV2(_customConditionName: string): ICustomCondition | null {\\r\\n    return null;\\r\\n  }\\r\\n}\\r\\n\\n---\\n 1`] = `
+import {
+  ICustomConditionFactory,
+  ICustomCondition,
+} from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal";
+
+function test(factory: MyCustomConditionFactory) {
+  // FIXME: Renamed, use \`createCustomCondition\` instead
+  factory.createCustomConditionV2("Test");
+}
+
+class MyCustomConditionFactory implements ICustomConditionFactory {
+  // FIXME: This method is deprecated, rename the method to \`createCustomCondition\`
+  createCustomConditionV2(_customConditionName: string): ICustomCondition | null {
+    return null;
+  }
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.ICustomFieldType -> ICustomFieldValidator (@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js//index.js) should work: \\nFixture: 8.ts\\n---\\n\\nimport {\\n  type ICustomFieldType,\\n  type ICustomFieldTypeCheckError,\\n  type ICustomFieldTypeConversionResult,\\n  type ICustomFieldTypeValidationParam\\n} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js//index.js";\\n\\nexport class EmailType implements ICustomFieldType {\\n  regex = /^\\S+@\\S+$/;\\n\\n  convertDisplay2Internal(displayValue: string): ICustomFieldTypeConversionResult {\\n    return {\\n      getConvertedValue: () => displayValue,\\n      getErrorMessage: () => undefined\\n    };\\n  }\\n\\n  convertInternal2Display(internalValue: string): ICustomFieldTypeConversionResult {\\n    return {\\n      getConvertedValue: () => internalValue,\\n      getErrorMessage: () => undefined\\n    };\\n  }\\n\\n  validate(value: string, _valParam: ICustomFieldTypeValidationParam): ICustomFieldTypeCheckError | undefined {\\n    if (!this.regex.test(value)) {\\n      return {\\n        getErrorMessage: () => {\\n          return [\\n            {\\n              key: "error.email.invalid",\\n              defaults: {\\n                de: "ungültiges Email-Format",\\n                en: "Invalid email format"\\n              }\\n            }\\n          ];\\n        },\\n        getErrorKey: () => "error.email.invalid"\\n      };\\n    }\\n    return undefined;\\n  }\\n}\\n---\\n 1`] = `
+import {
+  type ICustomFieldTypeCheckError,
+  type ICustomFieldTypeConversionResult,
+  type ICustomFieldTypeValidationParam,
+} from "@com.mgmtp.a12.kernel/kernel-md-facade";
+
+import { ICustomFieldValidator } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+
+export class EmailType implements ICustomFieldValidator {
+  regex = /^\\S+@\\S+$/;
+
+  convertDisplay2Internal(displayValue: string): ICustomFieldTypeConversionResult {
+    return {
+      getConvertedValue: () => displayValue,
+      getErrorMessage: () => undefined
+    };
+  }
+
+  convertInternal2Display(internalValue: string): ICustomFieldTypeConversionResult {
+    return {
+      getConvertedValue: () => internalValue,
+      getErrorMessage: () => undefined
+    };
+  }
+
+  validate(value: string, _valParam: ICustomFieldTypeValidationParam): ICustomFieldTypeCheckError | undefined {
+    if (!this.regex.test(value)) {
+      return {
+        getErrorMessage: () => {
+          return [
+            {
+              key: "error.email.invalid",
+              defaults: {
+                de: "ungültiges Email-Format",
+                en: "Invalid email format"
+              }
+            }
+          ];
+        },
+        getErrorKey: () => "error.email.invalid"
+      };
+    }
+    return undefined;
+  }
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.ICustomFieldType -> ICustomFieldValidator (@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/custom) should work: \\nFixture: 7.ts\\n---\\n\\nimport { type ICustomFieldType } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/custom/ICustomFieldType.js";\\nimport { type ICustomFieldTypeCheckError } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/custom/ICustomFieldTypeCheckError.js";\\nimport { type ICustomFieldTypeConversionResult } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/custom/ICustomFieldTypeConversionResult.js";\\nimport { type ICustomFieldTypeValidationParam } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/custom/ICustomFieldTypeValidationParam.js";\\n\\nexport class EmailType implements ICustomFieldType {\\n  regex = /^\\S+@\\S+$/;\\n\\n  convertDisplay2Internal(displayValue: string): ICustomFieldTypeConversionResult {\\n    return {\\n      getConvertedValue: () => displayValue,\\n      getErrorMessage: () => undefined\\n    };\\n  }\\n\\n  convertInternal2Display(internalValue: string): ICustomFieldTypeConversionResult {\\n    return {\\n      getConvertedValue: () => internalValue,\\n      getErrorMessage: () => undefined\\n    };\\n  }\\n\\n  validate(value: string, _valParam: ICustomFieldTypeValidationParam): ICustomFieldTypeCheckError | undefined {\\n    if (!this.regex.test(value)) {\\n      return {\\n        getErrorMessage: () => {\\n          return [\\n            {\\n              key: "error.email.invalid",\\n              defaults: {\\n                de: "ungültiges Email-Format",\\n                en: "Invalid email format"\\n              }\\n            }\\n          ];\\n        },\\n        getErrorKey: () => "error.email.invalid"\\n      };\\n    }\\n    return undefined;\\n  }\\n}\\n---\\n 1`] = `
+import { ICustomFieldValidator } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { type ICustomFieldTypeCheckError } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { type ICustomFieldTypeConversionResult } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { type ICustomFieldTypeValidationParam } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+
+export class EmailType implements ICustomFieldValidator {
+  regex = /^\\S+@\\S+$/;
+
+  convertDisplay2Internal(displayValue: string): ICustomFieldTypeConversionResult {
+    return {
+      getConvertedValue: () => displayValue,
+      getErrorMessage: () => undefined
+    };
+  }
+
+  convertInternal2Display(internalValue: string): ICustomFieldTypeConversionResult {
+    return {
+      getConvertedValue: () => internalValue,
+      getErrorMessage: () => undefined
+    };
+  }
+
+  validate(value: string, _valParam: ICustomFieldTypeValidationParam): ICustomFieldTypeCheckError | undefined {
+    if (!this.regex.test(value)) {
+      return {
+        getErrorMessage: () => {
+          return [
+            {
+              key: "error.email.invalid",
+              defaults: {
+                de: "ungültiges Email-Format",
+                en: "Invalid email format"
+              }
+            }
+          ];
+        },
+        getErrorKey: () => "error.email.invalid"
+      };
+    }
+    return undefined;
+  }
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.ICustomFieldTypeFactory check should work: \\nFixture: 4.ts\\n---\\n\\r\\nimport {\\r\\n  ICustomFieldTypeFactory,\\r\\n  ICustomFieldType,\\r\\n} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/";\\r\\n\\r\\nfunction test(factory: MyCustomFieldTypeFactory) {\\r\\n  factory.createCustomFieldTypeV2("Test");\\r\\n}\\r\\n\\r\\nclass MyCustomFieldTypeFactory implements ICustomFieldTypeFactory {\\r\\n  createCustomFieldTypeV2(_customFieldTypeName: string): ICustomFieldType | null {\\r\\n    return null;\\r\\n  }\\r\\n}\\r\\n\\n---\\n 1`] = `
+import {
+  ICustomFieldTypeFactory,
+  ICustomFieldValidator,
+} from "@com.mgmtp.a12.kernel/kernel-md-facade";
+
+function test(factory: MyCustomFieldTypeFactory) {
+  // FIXME: Renamed, use \`createCustomFieldType\` instead
+  factory.createCustomFieldTypeV2("Test");
+}
+
+class MyCustomFieldTypeFactory implements ICustomFieldTypeFactory {
+  // FIXME: This method is deprecated, rename the method to \`createCustomFieldType\`
+  createCustomFieldTypeV2(_customFieldTypeName: string): ICustomFieldValidator | null {
+    return null;
+  }
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.import from sub-modules (lib) should work: \\nFixture: 6.ts\\n---\\n\\r\\nimport { arraysEqual } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal/CollectionsWrapper";\\r\\nimport { de, en, fr, nl } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal/formatdef/error/bundles";\\r\\nimport {\\r\\n	DIVISION_BY_ZERO_INVALID,\\r\\n	ERROR_DURING_DATA_CHECK_EVAL,\\r\\n	RuntimeFormalErrorEnum\\r\\n} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal/formatdef/error/keys";\\r\\nimport {\\r\\n	defaultResourceProvider,\\r\\n	ErrorLocalizationBundle,\\r\\n	StaticResourceProvider\\r\\n} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal/formatdef/error/localization";\\r\\n\\r\\nfunction test() {\\r\\n	de.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");\\r\\n	en.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");\\r\\n	fr.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");\\r\\n	nl.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");\\r\\n	const es = new ErrorLocalizationBundle("es");\\r\\n	es.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");\\r\\n\\r\\n	const customResourceProvider = new StaticResourceProvider(de, en);\\r\\n	customResourceProvider.gettext(\`kernel-formalErrors.\${DIVISION_BY_ZERO_INVALID}\`, "es");\\r\\n	defaultResourceProvider.gettext(\`kernel-formalErrors.\${ERROR_DURING_DATA_CHECK_EVAL}\`, "es");\\r\\n\\r\\n	arraysEqual([1, 2], [3, 4]); // unrelated, import should not change\\r\\n}\\n---\\n 1`] = `
+import { arraysEqual } from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal";
+import { nl } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { fr } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { en } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { de } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { ERROR_DURING_DATA_CHECK_EVAL } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { DIVISION_BY_ZERO_INVALID } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { StaticResourceProvider } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { ErrorLocalizationBundle } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { defaultResourceProvider } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+
+function test() {
+	de.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");
+	en.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");
+	fr.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");
+	nl.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");
+	const es = new ErrorLocalizationBundle("es");
+	es.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");
+
+	const customResourceProvider = new StaticResourceProvider(de, en);
+	customResourceProvider.gettext(\`kernel-formalErrors.\${DIVISION_BY_ZERO_INVALID}\`, "es");
+	defaultResourceProvider.gettext(\`kernel-formalErrors.\${ERROR_DURING_DATA_CHECK_EVAL}\`, "es");
+
+	arraysEqual([1, 2], [3, 4]); // unrelated, import should not change
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.imports from @com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal should work: \\nFixture: 5.ts\\n---\\n\\r\\nimport {\\r\\n	arraysEqual,\\r\\n	de,\\r\\n	defaultResourceProvider,\\r\\n	DIVISION_BY_ZERO_INVALID,\\r\\n	en,\\r\\n	ERROR_DURING_DATA_CHECK_EVAL,\\r\\n	ErrorLocalizationBundle,\\r\\n	fr,\\r\\n	nl,\\r\\n	RuntimeFormalErrorEnum,\\r\\n	StaticResourceProvider\\r\\n} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal";\\r\\n\\r\\nfunction test() {\\r\\n	de.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");\\r\\n	en.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");\\r\\n	fr.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");\\r\\n	nl.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");\\r\\n	const es = new ErrorLocalizationBundle("es");\\r\\n	es.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");\\r\\n\\r\\n	const customResourceProvider = new StaticResourceProvider(de, en);\\r\\n	customResourceProvider.gettext(\`kernel-formalErrors.\${DIVISION_BY_ZERO_INVALID}\`, "es");\\r\\n	defaultResourceProvider.gettext(\`kernel-formalErrors.\${ERROR_DURING_DATA_CHECK_EVAL}\`, "es");\\r\\n\\r\\n	arraysEqual([1, 2], [3, 4]); // unrelated, import should not change\\r\\n}\\n---\\n 1`] = `
+import { arraysEqual } from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal";
+
+import { nl } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { fr } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { en } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { de } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { ERROR_DURING_DATA_CHECK_EVAL } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { DIVISION_BY_ZERO_INVALID } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { StaticResourceProvider } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { ErrorLocalizationBundle } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { defaultResourceProvider } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+
+function test() {
+	de.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");
+	en.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");
+	fr.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");
+	nl.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");
+	const es = new ErrorLocalizationBundle("es");
+	es.set(RuntimeFormalErrorEnum.COMMA_PLURAL, "Kommas");
+
+	const customResourceProvider = new StaticResourceProvider(de, en);
+	customResourceProvider.gettext(\`kernel-formalErrors.\${DIVISION_BY_ZERO_INVALID}\`, "es");
+	defaultResourceProvider.gettext(\`kernel-formalErrors.\${ERROR_DURING_DATA_CHECK_EVAL}\`, "es");
+
+	arraysEqual([1, 2], [3, 4]); // unrelated, import should not change
+}
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.preferTopLevelImport - all target packages should work: \\nFixture: 19.ts\\n---\\n\\nimport { TypeA } from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/deep/path";\\nimport { TypeB } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/deep/path";\\nimport { TypeC } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl/lib/main/js/deep/path";\\nimport { TypeD } from "@com.mgmtp.a12.kernel/kernel-core-parser-web/lib/main/js/deep/path";\\n\\nconst a: TypeA = {};\\nconst b: TypeB = {};\\nconst c: TypeC = {};\\nconst d: TypeD = {};\\n\\n---\\n 1`] = `
+import { TypeA } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { TypeB } from "@com.mgmtp.a12.kernel/kernel-md-facade";
+import { TypeC } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl";
+import { TypeD } from "@com.mgmtp.a12.kernel/kernel-core-parser-web";
+
+const a: TypeA = {};
+const b: TypeB = {};
+const c: TypeC = {};
+const d: TypeD = {};
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.preferTopLevelImport - kernel-core-customfieldtype-impl should work: \\nFixture: 17.ts\\n---\\n\\nimport { TypeC } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl"; // top-level import --> should not change\\nimport { TypeE } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl/lib/main/js/a12internal/index.js"; // a12internal import\\nimport { TypeB } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl/lib/main/js/formatdef/error/keys.js"; // named import (deep)\\nimport { TypeA } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl/lib/main/js/index.js"; // named import (main index.js)\\nimport { TypeF } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl/lib/main/js/internal/yolo/SomeInternalUtil.js"; // internal import\\nimport * as TypeD from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl/lib/main/js/some/module"; // namespace import\\nimport { OtherKernel } from "@com.mgmtp.a12.kernel/kernel-other-package/lib/main/js/index"; // other kernel package --> should not change\\nimport { External } from "some-external-package/deep/path"; // other external package --> should not change\\nexport * from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl/lib/main/js/some/deep/path"; // re-export\\n\\nconst a: TypeA = {};\\nconst b: TypeB = {};\\nconst c: TypeC = {};\\nconst d = TypeD.something;\\nconst e: TypeE = {};\\nconst f: TypeF = {};\\n\\nconst external: External = {};\\nconst otherKernel: OtherKernel = {};\\n---\\n 1`] = `
+import { TypeC } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl"; // top-level import --> should not change
+import { TypeE } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl/a12internal"; // a12internal import
+import { TypeB } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl"; // named import (deep)
+import { TypeA } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl"; // named import (main index.js)
+import { TypeF } from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl/internal"; // internal import
+import * as TypeD from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl"; // namespace import
+import { OtherKernel } from "@com.mgmtp.a12.kernel/kernel-other-package/lib/main/js/index"; // other kernel package --> should not change
+import { External } from "some-external-package/deep/path"; // other external package --> should not change
+export * from "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl"; // re-export
+
+const a: TypeA = {};
+const b: TypeB = {};
+const c: TypeC = {};
+const d = TypeD.something;
+const e: TypeE = {};
+const f: TypeF = {};
+
+const external: External = {};
+const otherKernel: OtherKernel = {};
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.preferTopLevelImport - kernel-core-parser-web should work: \\nFixture: 18.ts\\n---\\n\\nimport { TypeC } from "@com.mgmtp.a12.kernel/kernel-core-parser-web"; // top-level import --> should not change\\nimport { TypeE } from "@com.mgmtp.a12.kernel/kernel-core-parser-web/lib/main/js/a12internal/index.js"; // a12internal import\\nimport { TypeB } from "@com.mgmtp.a12.kernel/kernel-core-parser-web/lib/main/js/formatdef/error/keys.js"; // named import (deep)\\nimport { TypeA } from "@com.mgmtp.a12.kernel/kernel-core-parser-web/lib/main/js/index.js"; // named import (main index.js)\\nimport { TypeF } from "@com.mgmtp.a12.kernel/kernel-core-parser-web/lib/main/js/internal/yolo/SomeInternalUtil.js"; // internal import\\nimport * as TypeD from "@com.mgmtp.a12.kernel/kernel-core-parser-web/lib/main/js/some/module"; // namespace import\\nimport { OtherKernel } from "@com.mgmtp.a12.kernel/kernel-other-package/lib/main/js/index"; // other kernel package --> should not change\\nimport { External } from "some-external-package/deep/path"; // other external package --> should not change\\nexport * from "@com.mgmtp.a12.kernel/kernel-core-parser-web/lib/main/js/some/deep/path"; // re-export\\n\\nconst a: TypeA = {};\\nconst b: TypeB = {};\\nconst c: TypeC = {};\\nconst d = TypeD.something;\\nconst e: TypeE = {};\\nconst f: TypeF = {};\\n\\nconst external: External = {};\\nconst otherKernel: OtherKernel = {};\\n---\\n 1`] = `
+import { TypeC } from "@com.mgmtp.a12.kernel/kernel-core-parser-web"; // top-level import --> should not change
+import { TypeE } from "@com.mgmtp.a12.kernel/kernel-core-parser-web/a12internal"; // a12internal import
+import { TypeB } from "@com.mgmtp.a12.kernel/kernel-core-parser-web"; // named import (deep)
+import { TypeA } from "@com.mgmtp.a12.kernel/kernel-core-parser-web"; // named import (main index.js)
+import { TypeF } from "@com.mgmtp.a12.kernel/kernel-core-parser-web/internal"; // internal import
+import * as TypeD from "@com.mgmtp.a12.kernel/kernel-core-parser-web"; // namespace import
+import { OtherKernel } from "@com.mgmtp.a12.kernel/kernel-other-package/lib/main/js/index"; // other kernel package --> should not change
+import { External } from "some-external-package/deep/path"; // other external package --> should not change
+export * from "@com.mgmtp.a12.kernel/kernel-core-parser-web"; // re-export
+
+const a: TypeA = {};
+const b: TypeB = {};
+const c: TypeC = {};
+const d = TypeD.something;
+const e: TypeE = {};
+const f: TypeF = {};
+
+const external: External = {};
+const otherKernel: OtherKernel = {};
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.preferTopLevelImport - kernel-core-runtime-api-ts should work: \\nFixture: 16.ts\\n---\\n\\nimport { TypeC } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts"; // top-level import --> should not change\\nimport { TypeE } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/a12internal/index.js"; // a12internal import\\nimport { TypeB } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/formatdef/error/keys.js"; // named import (deep)\\nimport { TypeA } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/index.js"; // named import (main index.js)\\nimport { TypeF } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/internal/yolo/SomeInternalUtil.js"; // internal import\\nimport * as TypeD from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/some/module"; // namespace import\\nimport { OtherKernel } from "@com.mgmtp.a12.kernel/kernel-other-package/lib/main/js/index"; // other kernel package --> should not change\\nimport { External } from "some-external-package/deep/path"; // other external package --> should not change\\nexport * from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/some/deep/path"; // re-export\\n\\nconst a: TypeA = {};\\nconst b: TypeB = {};\\nconst c: TypeC = {};\\nconst d = TypeD.something;\\nconst e: TypeE = {};\\nconst f: TypeF = {};\\n\\nconst external: External = {};\\nconst otherKernel: OtherKernel = {};\\n---\\n 1`] = `
+import { TypeC } from "@com.mgmtp.a12.kernel/kernel-md-facade"; // top-level import --> should not change
+import { TypeE } from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal"; // a12internal import
+import { TypeB } from "@com.mgmtp.a12.kernel/kernel-md-facade"; // named import (deep)
+import { TypeA } from "@com.mgmtp.a12.kernel/kernel-md-facade"; // named import (main index.js)
+import { TypeF } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/internal"; // internal import
+import * as TypeD from "@com.mgmtp.a12.kernel/kernel-md-facade"; // namespace import
+import { OtherKernel } from "@com.mgmtp.a12.kernel/kernel-other-package/lib/main/js/index"; // other kernel package --> should not change
+import { External } from "some-external-package/deep/path"; // other external package --> should not change
+export * from "@com.mgmtp.a12.kernel/kernel-md-facade"; // re-export
+
+const a: TypeA = {};
+const b: TypeB = {};
+const c: TypeC = {};
+const d = TypeD.something;
+const e: TypeE = {};
+const f: TypeF = {};
+
+const external: External = {};
+const otherKernel: OtherKernel = {};
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.preferTopLevelImport - kernel-md-facade should work: \\nFixture: 15.ts\\n---\\n\\nimport { TypeC } from "@com.mgmtp.a12.kernel/kernel-md-facade"; // top-level import --> should not change\\nimport { TypeE } from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/a12internal/index.js"; // a12internal import\\nimport { TypeB } from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/formatdef/error/keys.js"; // named import (deep)\\nimport { TypeA } from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/index.js"; // named import (main index.js)\\nimport { TypeF } from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/internal/yolo/SomeInternalUtil.js"; // internal import\\nimport * as TypeD from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/some/module"; // namespace import\\nimport { OtherKernel } from "@com.mgmtp.a12.kernel/kernel-other-package/lib/main/js/index"; // other kernel package --> should not change\\nimport { External } from "some-external-package/deep/path"; // other external package --> should not change\\nexport * from "@com.mgmtp.a12.kernel/kernel-md-facade/lib/main/js/some/deep/path"; // re-export\\n\\nconst a: TypeA = {};\\nconst b: TypeB = {};\\nconst c: TypeC = {};\\nconst d = TypeD.something;\\nconst e: TypeE = {};\\nconst f: TypeF = {};\\n\\nconst external: External = {};\\nconst otherKernel: OtherKernel = {};\\n---\\n 1`] = `
+import { TypeC } from "@com.mgmtp.a12.kernel/kernel-md-facade"; // top-level import --> should not change
+import { TypeE } from "@com.mgmtp.a12.kernel/kernel-md-facade/a12internal"; // a12internal import
+import { TypeB } from "@com.mgmtp.a12.kernel/kernel-md-facade"; // named import (deep)
+import { TypeA } from "@com.mgmtp.a12.kernel/kernel-md-facade"; // named import (main index.js)
+import { TypeF } from "@com.mgmtp.a12.kernel/kernel-md-facade/internal"; // internal import
+import * as TypeD from "@com.mgmtp.a12.kernel/kernel-md-facade"; // namespace import
+import { OtherKernel } from "@com.mgmtp.a12.kernel/kernel-other-package/lib/main/js/index"; // other kernel package --> should not change
+import { External } from "some-external-package/deep/path"; // other external package --> should not change
+export * from "@com.mgmtp.a12.kernel/kernel-md-facade"; // re-export
+
+const a: TypeA = {};
+const b: TypeB = {};
+const c: TypeC = {};
+const d = TypeD.something;
+const e: TypeE = {};
+const f: TypeF = {};
+
+const external: External = {};
+const otherKernel: OtherKernel = {};
+`;
+
+exports[`com.mgmtp.a12.kernel.kernel-codemod.rename imports of kernel-core-parser-web resource files should work: \\nFixture: 20.ts\\n---\\n\\nimport helpTexts_DE from "@com.mgmtp.a12.kernel/kernel-core-parser-web/lib/main/resources/validation_language_tooltip_de.json";\\nimport helpTexts_EN from "@com.mgmtp.a12.kernel/kernel-core-parser-web/lib/main/resources/validation_language_tooltip_en.json";\\n\\nhelpTexts_DE.Abrunden\\nhelpTexts_EN.RoundDown\\n---\\n 1`] = `
+import helpTexts_DE from "@com.mgmtp.a12.kernel/kernel-core-parser-web/resources/validation_language_tooltip_de.json";
+import helpTexts_EN from "@com.mgmtp.a12.kernel/kernel-core-parser-web/resources/validation_language_tooltip_en.json";
+
+helpTexts_DE.Abrunden
+helpTexts_EN.RoundDown
+`;

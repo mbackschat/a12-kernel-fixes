@@ -1,0 +1,49 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.30.A12K-3464
+displayName: Migration for A12K-3464
+description: Migration for A12K-3464.
+recipeList:
+  # Deprecate CustomFieldTypeService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.core.customfieldtype.CustomFieldTypeService'
+      comment: 'Inject your `ICustomFieldValidator`s into the runtime using `DocumentProcessingConfig` instead (see `IDocumentRtService` and `IMappingService` for details)'
+  # Deprecate CustomConditionService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.impl.CustomConditionService'
+      comment: 'Inject your `ICustomCondition`s into the runtime using `DocumentProcessingConfig` instead (see `IDocumentRtService` and `IMappingService` for details)'
+  # Deprecate DocumentRtCustomExtensionService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.facade.DocumentRtCustomExtensionService'
+      comment: 'Inject your `ICustomFieldValidator`s or `ICustomCondition`s into the runtime using `DocumentProcessingConfig` instead (see `IDocumentRtService` and `IMappingService` for details)'
+  # Rename all references of MappingConfig to DocumentProcessingConfig
+  - org.openrewrite.java.ChangeType:
+    oldFullyQualifiedTypeName: 'com.mgmtp.a12.kernel.mapping.rt.api.MappingConfig'
+    newFullyQualifiedTypeName: 'com.mgmtp.a12.kernel.md.rt.api.DocumentProcessingConfig'
+  # Deprecate methods in IDocumentRtService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService validateFull(com.mgmtp.a12.kernel.md.document.api.IDocument, java.util.Locale)'
+      comment: 'Set the locale in DocumentProcessingConfig by using DocumentProcessingConfig.builder(locale).build(), and then call the corresponding method instead.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService validateFull(com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2, java.util.Locale)'
+      comment: 'Set the locale in DocumentProcessingConfig by using DocumentProcessingConfig.builder(locale).build(), and then call the corresponding method instead.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService validatePart(com.mgmtp.a12.kernel.md.document.api.IDocument, java.util.Set<com.mgmtp.a12.kernel.md.document.api.IEntityInstance>, java.util.Locale)'
+      comment: 'Set the locale in DocumentProcessingConfig by using DocumentProcessingConfig.builder(locale).build(), and then call the corresponding method instead.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService validatePart(com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2, java.util.Set<com.mgmtp.a12.kernel.md.document.api.IEntityInstance>, java.util.Locale)'
+      comment: 'Set the locale in DocumentProcessingConfig by using DocumentProcessingConfig.builder(locale).build(), and then call the corresponding method instead.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService compute(com.mgmtp.a12.kernel.md.document.api.IDocument, java.util.Locale)'
+      comment: 'Set the locale in DocumentProcessingConfig by using DocumentProcessingConfig.builder(locale).build(), and then call the corresponding method instead.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService compute(com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2, java.util.Locale)'
+      comment: 'Set the locale in DocumentProcessingConfig by using DocumentProcessingConfig.builder(locale).build(), and then call the corresponding method instead.'
+  # Rename all references of ICustomFieldType to ICustomFieldValidator
+  - org.openrewrite.java.ChangeType:
+    oldFullyQualifiedTypeName: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldType'
+    newFullyQualifiedTypeName: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator'
+  # Use method to obtain an ICustomFieldValidator
+  - org.openrewrite.java.ChangeMethodName:
+    methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory createCustomFieldTypeV2(String)'
+    newName: 'createCustomFieldValidator(String)'

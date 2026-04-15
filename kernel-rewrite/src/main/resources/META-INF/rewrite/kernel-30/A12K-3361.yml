@@ -1,0 +1,34 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.30.A12K-3361
+displayName: Migration for A12K-3361
+description: Migration for A12K-3361.
+recipeList:
+  # BasicTypeV1V2Conversion
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion'
+      comment: 'Use methods that expect `DocumentV2` instead of `IDocument`. If there are some methods missing, then get in contact with the kernel team.'
+      findReturnType: true
+
+  # EmptyDocumentFactory
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.a12internal.services.EmptyDocumentFactory'
+      alternativeTypeName: 'DocumentV2#empty'
+      findReturnType: true
+
+  # DocumentServiceFactory
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.facade.DocumentServiceFactory createDocumentSerializer()'
+        newMethodName: 'createDocumentV2Serializer'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.facade.DocumentServiceFactory createDocumentService(com.mgmtp.a12.kernel.md.document.api.IDocument)'
+        newMethodName: 'createDmAwareDocService'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.facade.DocumentServiceFactory createDocumentV1V2Converter()'
+        commentForInvocation: 'Use methods that expect DocumentV2 instead of IDocument.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.facade.DocumentServiceFactory createDocumentSearchService(com.mgmtp.a12.kernel.md.document.api.IDocument)'
+        commentForInvocation: 'Use methods of DocumentV2, DocumentV2Utils and IDmAwareDocService instead.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.facade.DocumentServiceFactory createDocumentFactory(com.mgmtp.a12.kernel.md.document.api.IDocument)'
+        commentForInvocation: 'Use methods of DocumentV2 and DocumentV2Utils instead. See deprecation information of IDocumentFactory for details.'

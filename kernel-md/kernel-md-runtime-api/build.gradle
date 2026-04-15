@@ -1,0 +1,19 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "External interface for runtime services like validation or computation."
+
+dependencies {
+    api project(':kernel-md-document-api')
+    api project(':kernel-md-document-v2')
+    api project(':kernel-md-model-api')
+    api libs.baseModelConsistency
+    api libs.kernelCoreCustomfieldtypeApi
+
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation project(':kernel-md-a12internal')
+    implementation libs.kernelCoreRuntimeApi
+}

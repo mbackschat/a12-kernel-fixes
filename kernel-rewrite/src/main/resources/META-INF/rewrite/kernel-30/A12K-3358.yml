@@ -1,0 +1,131 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.30.A12K-3358
+displayName: Migration for A12K-3358
+description: Migration for A12K-3358.
+recipeList:
+  # IDocumentV2Visitor
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.apiV2.immutable.utils.IDocumentV2Visitor visitRepetitions(com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer, com.mgmtp.a12.kernel.md.document.apiV2.immutable.RepetitionsV2)'
+      commentForDeclaration: 'The return type changed, use `IDocumentV2Visitor.RepetitionDescendType`'
+      commentForInvocation: ''
+
+  # DocumentDeserializationConfig
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.DocumentDeserializationConfig.DocumentDeserializationConfigBuilder documentFactory(com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory)'
+
+  # IDocumentFactory
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory'
+      comment: 'No longer needed, use DocumentV2, GroupInstanceV2, and FieldInstanceV2 instead.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory createDocument(String)'
+      newMethodName: 'DocumentV2#withId'
+      commentForDeclaration: 'this method is deprecated and should no longer be implemented, use `DocumentV2#withId` instead'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory createGroupInstance(String, int[])'
+      newMethodName: 'DocumentV2#withGroup'
+      commentForDeclaration: 'this method is deprecated and should no longer be implemented, use the document API V2 instead, e.g. `DocumentV2#withGroup`'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory createFieldInstance(String, int[])'
+      newMethodName: 'DocumentV2#withField'
+      commentForDeclaration: 'this method is deprecated and should no longer be implemented, use the document API V2 instead, e.g. `DocumentV2#withField`'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory createFieldInstance(String, int[], Object)'
+      newMethodName: 'DocumentV2#withFieldValue'
+      commentForDeclaration: 'this method is deprecated and should no longer be implemented, use the document API V2 instead, e.g. `DocumentV2#withFieldValue`'
+
+  # IDocumentSearchService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService'
+      alternativeTypeName: 'IDmAwareDocService'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService getById(String)'
+      newMethodName: "IDmAwareDocService#getGroupInstancesById' or 'IDmAwareDocService#getFieldInstancesById"
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService get(String, int[])'
+      commentForInvocation: 'use either GroupInstanceV2#group/GroupInstanceV2#field with a concrete repetition or DocumentV2Utils#getGroupInstances/DocumentV2Utils#getFieldInstances'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService getFieldInstance(String, int[])'
+      commentForInvocation: 'use either GroupInstanceV2#field with a concrete repetition or DocumentV2Utils#getFieldInstances'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService getGroupInstance(String, int[])'
+      commentForInvocation: 'use either GroupInstanceV2#group with a concrete repetition or DocumentV2Utils#getGroupInstances'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService getDescendants(String, int[])'
+      commentForInvocation: 'see the JavaDoc for replacements'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService getChildren(String, int[])'
+      commentForInvocation: 'use GroupInstanceV2#directSubgroups or GroupInstanceV2#directFields instead'
+
+  # IDocumentSerializer
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentSerializer'
+      alternativeTypeName: 'IDocumentV2Serializer'
+
+  # IDocumentService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.services.IDocumentService'
+      comment: 'use the replacements described in the JavaDoc of each method'
+
+  # IEntityInstanceChangeInfo
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.services.IEntityInstanceChangeInfo'
+      alternativeTypeName: 'com.mgmtp.a12.kernel.md.document.apiV2.documentchanges.Change'
+
+  # IDocument
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.IDocument'
+      alternativeTypeName: 'DocumentV2'
+
+  # IDocumentIndexed
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.IDocumentIndexed'
+      alternativeTypeName: 'DocumentV2'
+
+  # IEntityInstance
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.IEntityInstance'
+      alternativeTypeName: 'DocumentPointer'
+
+  # IEntityInstanceDerivable
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.IEntityInstanceDerivable'
+      alternativeTypeName: 'DocumentPointer'
+
+  # IFieldInstance
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.IFieldInstance'
+      alternativeTypeName: 'FieldInstanceV2'
+
+  # IGroupInstance
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.api.IGroupInstance'
+      alternativeTypeName: 'GroupInstanceV2'
+
+  # PathPart
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: 'com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer.PathPart'
+      newFullyQualifiedTypeName: 'com.mgmtp.a12.kernel.md.document.apiV2.PathPart'
+
+  # DocumentPointer
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer toFullName()'
+      newMethodName: 'fullName'
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer toRepetitionIndices()'
+      newMethodName: 'repetitionIndexes'
+
+  # CauseEntityInstance
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.apiV2.CauseEntityInstance asDocumentPointer()'
+      newMethodName: 'toDocumentPointer'
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.apiV2.CauseEntityInstance toFullName()'
+      newMethodName: 'fullName'
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.apiV2.CauseEntityInstance toRepetitions()'
+      newMethodName: 'repetitionIndexes'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.apiV2.CauseEntityInstance convertibleToDocumentPointer(com.mgmtp.a12.kernel.md.document.api.IEntityInstance)'
+      comment: 'Is no longer necessary, as `toDocumentPointer` checks if a `DocumentPointer` can be created and returns an Optional.'

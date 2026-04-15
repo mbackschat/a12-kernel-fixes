@@ -1,0 +1,12 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.30.A12K-3360
+displayName: Migration for A12K-3360
+description: Migration for A12K-3360.
+recipeList:
+  # IDocumentV1V2Converter
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.document.apiV2.services.IDocumentV1V2Converter'
+      comment: 'Use methods that expect `DocumentV2` instead of `IDocument`. If there are some methods missing, then get in contact with the kernel team.'
+      findReturnType: true
+

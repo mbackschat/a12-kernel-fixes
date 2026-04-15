@@ -1,0 +1,3 @@
+SemanticIndexConst(t) ::= <<
+<t.withBackslashesEscaped>
+>>

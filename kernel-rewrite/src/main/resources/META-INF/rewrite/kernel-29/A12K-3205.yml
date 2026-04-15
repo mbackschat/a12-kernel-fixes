@@ -1,0 +1,22 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.29.A12K-3205
+displayName: Migration for A12K-3205
+description: Migration for A12K-3205.
+recipeList:
+  # ICustomFieldTypeService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeService'
+      comment: 'deprecated interface ICustomFieldTypeService, use the class com.mgmtp.a12.kernel.md.facade.DocumentRtCustomExtensionService to register `CustomFieldTypeFactory`s instead'
+  # CustomFieldTypeService
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.CustomFieldTypeService getInstance()'
+      newMethodName: 'getInstanceV2'
+  # ICustomConditionService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionService'
+      comment: 'deprecated interface ICustomConditionService, use the class com.mgmtp.a12.kernel.md.facade.DocumentRtCustomExtensionService to register `CustomConditionFactory`s instead'
+  # CustomFieldTypeService
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.impl.CustomConditionService getInstance()'
+      newMethodName: 'getInstanceV2'

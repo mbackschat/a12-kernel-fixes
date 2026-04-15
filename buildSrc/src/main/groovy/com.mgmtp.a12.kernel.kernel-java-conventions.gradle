@@ -1,0 +1,141 @@
+plugins {
+    id 'java-library'
+    id 'com.mgmtp.a12.kernel.kernel-base-conventions'
+    id 'idea'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+static void setSystemPropertyIfDefined(String prop, Task t) {
+    if (System.properties.containsKey(prop)) {
+        t.systemProperty(prop, System.getProperty(prop))
+    }
+}
+
+idea {
+    module {
+        excludeDirs += [project.layout.buildDirectory.asFile.get(), file('bin')]
+    }
+}
+
+java {
+    withSourcesJar()
+}
+
+
+java {
+    withJavadocJar()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(java_language_version))
+    }
+}
+
+tasks.withType(JavaExec).configureEach { // see also https://github.com/gradle/gradle/issues/16791#issue-855982209
+    javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+}
+
+tasks.withType(Javadoc).configureEach {
+    // can be used to ignore warnings
+    failOnError = false
+
+    exclude('**/internal', '**/a12internal')
+
+    options {
+        encoding 'UTF-8'
+        bottom '<![CDATA[Copyright (c) 2025 mgm technology partners GmbH]]>'
+        links 'https://docs.oracle.com/en/java/javase/21/docs/api/'
+
+        memberLevel = JavadocMemberLevel.PUBLIC
+        locale = Locale.US.getLanguage()
+
+        // disable this if you want recommendations
+        quiet()
+        addBooleanOption('Xdoclint:none', true)
+
+        addStringOption(
+                '-snippet-path', // Use a single '-' here because Gradle adds one automatically
+                project.layout.getProjectDirectory().file("src/snippets/java/javadocsnippets").toString()
+        )
+    }
+}
+
+sourceSets {
+    test {
+        java {
+            // the snippets cannot be compiled and run in the os repo, because the test dependencies are missing ->
+            // don't add them to the test source set in OS
+        }
+    }
+}
+
+tasks.withType(Jar).configureEach {
+    manifest {
+        attributes['Manifest-Version'] = '1.0'
+        attributes['Build-Jdk'] = JavaVersion.current()
+        attributes['Specification-Title'] = getDisplayName().replace('project ', '').replaceAll('"', '').replace(':', '')
+        attributes['Specification-Version'] = A12_kernel_version().substring(0, 4)
+        attributes['Specification-Vendor'] = 'mgm technology partners'
+        attributes['Implementation-Title'] = getDisplayName().replace('project ', '').replaceAll('"', '').replace(':', '')
+        attributes['Implementation-Version'] = A12_kernel_version()
+        attributes['Implementation-Vendor-Id'] = 'com.mgmtp.a12.kernel'
+        attributes['Implementation-Vendor'] = 'mgm technology partners'
+    }
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    // reproducible archives:
+    it.preserveFileTimestamps = false
+    it.reproducibleFileOrder = true
+    // Use permissions from the file system - we probably want this set to false for reproducibility, but it is only available in gradle 9
+    // useFileSystemPermissions()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+        }
+    }
+    // repository defined in base-conventions
+}
+
+tasks.build {
+    dependsOn(javadocJar)
+}
+
+static void compile_with_java_version_for_rt_deps(Project proj) {
+    proj.java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(proj.property('java_language_version_for_rt_deps')))
+        }
+    }
+}
+
+/**
+ * Sort the given classpath entries by reverse path (to make the ordering reproducible and
+ * independent of the local workspace's directroy prefix, in order to facilitate reproducible builds)
+ * and converts all jars to zipTree, while keeping file system directories unchanged.
+ * example:
+ * //... with a Jar task
+ * from {
+ *     prepareInputsForFatJar(sourceSets.main.output + configurations.runtimeClasspath + configurations.extraDepsForCliFatJars)
+ * }
+ */
+def sortAndConvertClasspathEntriesForFatJar(classpaths) {
+    return classpaths.stream()
+        .sorted(Comparator.comparing(jar -> {
+                def pp = jar.getPath().split('/') as List
+                Collections.reverse(pp)
+                return String.join("/", pp)  // Comparable result
+        }))
+        .map(jarOrDir ->  jarOrDir.name.endsWith("jar") ? zipTree(jarOrDir) : jarOrDir)
+        .toList()
+}
+
+ext { // make this available to the subproject build scripts
+    setSystemPropertyIfDefined = this.&setSystemPropertyIfDefined
+    compile_with_java_version_for_rt_deps = this.&compile_with_java_version_for_rt_deps
+    sortAndConvertClasspathEntriesForFatJar = this.&sortAndConvertClasspathEntriesForFatJar
+}

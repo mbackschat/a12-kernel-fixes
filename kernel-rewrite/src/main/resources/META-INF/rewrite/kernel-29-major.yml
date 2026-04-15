@@ -1,0 +1,13 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.29.UpgradeMajor
+displayName: Migrate to Kernel 29
+description: Migrate applications to the Kernel 29 release. This recipe will modify application's build files, make changes 
+  to deprecated/preferred APIs, and migrate configuration settings that have changed between versions.
+recipeList:
+  # executes all minor scripts of previous release line, to make sure we have the expected state
+  - com.mgmtp.a12.kernel.28.UpgradeMinor
+  - com.mgmtp.a12.kernel.29.A12K-2711
+  - com.mgmtp.a12.kernel.29.A12K-2714
+  - com.mgmtp.a12.kernel.29.A12K-2679
+---

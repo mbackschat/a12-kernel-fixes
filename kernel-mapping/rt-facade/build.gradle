@@ -1,0 +1,33 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "External interface for working with the A12/A12 mapping solution."
+
+dependencies {
+    api libs.kernelCoreRuntimeApi
+    api project(':kernel-mapping-rt-api')
+    api project(':kernel-md-document-v2')
+    api project(':kernel-md-runtime-api')
+    api project(':kernel-md-runtime-service')
+    api project(':kernel-md-model-api')
+    api libs.baseModelConsistency
+    api libs.kernelMmMappingModel2Typings
+    api libs.kernelMmStructuralMappingModel1Typings
+
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation libs.groovy
+    runtimeOnly libs.jacksonCore
+
+    implementation project(':kernel-md-facade')
+    implementation project(':kernel-core-tool-api')
+    implementation project(':kernel-md-datatransfer-codegen')
+    implementation project(':kernel-md-combination-model')
+    implementation project(':kernel-core-codegen-base')
+    implementation project(':kernel-md-a12internal')
+    implementation project(':kernel-md-document-api')
+    implementation project(':kernel-md-serializer')
+    implementation project(':kernel-md-structuralmapping-tool')
+}

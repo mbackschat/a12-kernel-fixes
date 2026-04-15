@@ -1,0 +1,16 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.29.A12K-2818
+displayName: Migration for A12K-2818
+description: Migration for A12K-2818.
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.visitor.DocumentModelVisitor enter(com.mgmtp.a12.kernel.md.model.api.IElement)'
+      newMethodName: 'enterElement'
+      matchOverrides: true
+      ignoreDefinition: false
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.visitor.DocumentModelVisitor leave(com.mgmtp.a12.kernel.md.model.api.IElement)'
+      newMethodName: 'leaveElement'
+      matchOverrides: true
+      ignoreDefinition: false

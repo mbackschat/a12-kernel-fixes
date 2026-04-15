@@ -1,0 +1,18 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.30.A12K-3359
+displayName: Migration for A12K-3359
+description: Migration for A12K-3359.
+recipeList:
+  # DataDocumentConversionUtils
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.a12internal.service.DataDocumentConversionUtils createDocument(com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData, String, com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel, com.mgmtp.a12.kernel.core.rt.a12internal.validation.IResult, com.mgmtp.a12.kernel.core.rt.a12internal.PresentationInformation)'
+        newMethodName: 'createDocumentV2'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.a12internal.service.DataDocumentConversionUtils createData(com.mgmtp.a12.kernel.md.document.api.IDocument, com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel, java.util.Locale, com.mgmtp.a12.kernel.core.rt.a12internal.validation.IResult)'
+        newMethodName: 'createData(DocumentV2, IMetaModel, Locale, IResult)'
+
+  # DocumentComputationResultImpl
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.a12internal.service.DocumentComputationResultImpl <constructor>(com.mgmtp.a12.kernel.md.document.api.IDocument, com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData, java.util.List, com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel)'
+        newMethodName: 'new DocumentComputationResultImpl(DocumentV2, IData, List<IMessage>, IMetaModel)'

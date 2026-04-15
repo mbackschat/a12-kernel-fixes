@@ -1,0 +1,20 @@
+pluginManagement {
+    plugins {
+        id 'io.freefair.lombok' version '8.11'
+    }
+}
+
+rootProject.name = 'kernel-core-runtime-api'
+
+// should always be compatible to the local customfieldtype-api
+if (settings.hasProperty('a12.kernel.include.customfieldtype.api') ? settings['a12.kernel.include.customfieldtype.api']?.toBoolean() : false) {
+    includeBuild '../kernel-core-customfieldtype-api'
+}
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
+}

@@ -1,0 +1,25 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "Implementation of migration services for document model files"
+
+dependencies {
+    api project(':kernel-core-base-utils')
+    api project(':kernel-core-tool-api')
+    api project(':kernel-md-model-api')
+    api libs.baseModelMigrationApi // because of DocumentModelMigrator::migrate
+    api libs.jacksonAnnotations
+    api libs.jacksonDatabind
+    api libs.slf4jApi
+
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation project(':kernel-md-a12internal')
+    implementation project(':kernel-md-serializer')
+    implementation libs.baseModelApi
+    implementation libs.commonsIo
+    implementation libs.commonsLang3
+
+}

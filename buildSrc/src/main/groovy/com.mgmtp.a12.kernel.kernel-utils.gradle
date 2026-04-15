@@ -1,0 +1,34 @@
+plugins {
+    id("base")
+}
+
+/**
+ * adds entries that have a classifier or non-default type (e.g "zip") to a bom. This might be necessary to make downstream maven builds happy
+ */
+def addToPomDependencyManagement(Node pomAsNode, String groupId, String artifactId, String classifier, String version, String type = null) {
+    Node dependencies = pomAsNode.dependencyManagement.dependencies.get(0)
+    _addDependency(dependencies, groupId, artifactId, classifier, version, type)
+}
+
+def _addDependency(Node parent, String groupId, String artifactId, String classifier, String version, String type = null) {
+    Node dep = new Node(parent, "dependency")
+    _addNode(dep, "groupId", groupId)
+    _addNode(dep, "artifactId", artifactId)
+    if (classifier != null) {
+        _addNode(dep, "classifier", classifier)
+    }
+    _addNode(dep, "version", version)
+    if (type != null) {
+        _addNode(dep, "type", type)
+    }
+}
+
+def _addNode(Node parent, String name, String value) {
+    Node node = new Node(parent, name, new NodeList())
+    node.value().add(value)
+}
+
+// make the method available to users of this plugin/conventions script: https://stackoverflow.com/questions/18715137/extract-common-methods-from-gradle-build-script
+ext {
+    addToPomDependencyManagement = this.&addToPomDependencyManagement
+}

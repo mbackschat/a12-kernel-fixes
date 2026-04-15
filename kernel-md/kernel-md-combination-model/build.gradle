@@ -1,0 +1,37 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+dependencies {
+    api project(':kernel-md-a12internal')
+    api project(':kernel-md-model-api')
+    api project(':kernel-core-tool-api')
+    api project(':kernel-md-document-v2')
+    api libs.kernelMmCombinationModel1Typings
+    api libs.kernelMmSelectionModel2Typings
+    api libs.kernelCtSelection1Typings
+    api libs.jacksonDatabind
+    api libs.baseModelConsistency
+
+    implementation project(':kernel-core-base-utils')
+    implementation project(':kernel-md-join')
+    implementation project(':kernel-md-runtime-service')
+    implementation project(':kernel-md-document-api')
+    implementation project(':kernel-md-model')
+    implementation project(':kernel-md-runtime-api')
+    implementation project(':kernel-md-serializer')
+    implementation libs.baseModelApi
+    implementation libs.commonsLang3
+    implementation libs.kernelCoreRuntimeApi
+    implementation libs.kernelMmCombinationModel1CodegenValidators
+    implementation libs.kernelMmSelectionModel2CodegenValidators
+
+    compileOnly libs.baseModelUtils // Only annotations
+    runtimeOnly libs.kernelMmCombinationModel1NoneDmjsons
+    runtimeOnly libs.kernelMmCombinationModel1CodegenDmjsons
+    runtimeOnly libs.kernelMmSelectionModel2NoneDmjsons
+    runtimeOnly libs.kernelMmSelectionModel2CodegenDmjsons
+
+
+}

@@ -1,0 +1,2 @@
+# jest always outputs snapshots with lf line ending
+* text eol=lf

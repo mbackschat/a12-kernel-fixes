@@ -1,0 +1,177 @@
+{
+  "migrationSteps": [
+    {
+      "sourceModelVersion": "24.0.0",
+      "targetModelVersion": "24.1.0",
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.NoMigrationNecessaryStep"
+      }
+    },
+    {
+      "sourceModelVersion": "24.1.0",
+      "targetModelVersion": "24.2.0",
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.NoMigrationNecessaryStep"
+      }
+    },
+    {
+      "sourceModelVersion": "24.2.0",
+      "targetModelVersion": "25.0.0",
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.ConvertEnumValuesMapToListStep"
+      }
+    },
+    {
+      "sourceModelVersion": "25.0.0",
+      "targetModelVersion": "25.1.0",
+      "isInternalVersion": true,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.AddTimezoneStep"
+      }
+    },
+    {
+      "sourceModelVersion": "25.1.0",
+      "targetModelVersion": "25.2.0",
+      "isInternalVersion": true,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.CorrectCustomFieldTypeStep"
+      }
+    },
+    {
+      "sourceModelVersion": "25.2.0",
+      "targetModelVersion": "26.0.0",
+      "isInternalVersion": false,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.LocalizedTextToListStep"
+      }
+    },
+    {
+      "sourceModelVersion": "26.0.0",
+      "targetModelVersion": "26.1.0",
+      "isInternalVersion": false,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.NoMigrationNecessaryStep"
+      }
+    },
+    {
+      "sourceModelVersion": "26.1.0",
+      "targetModelVersion": "26.1.1",
+      "isInternalVersion": false,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.RemoveModelAliasSuffix"
+      }
+    },
+    {
+      "sourceModelVersion": "26.1.1",
+      "targetModelVersion": "26.2.0",
+      "isInternalVersion": true,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.RemoveSavedAtAnnotationStep"
+      }
+    },
+    {
+      "sourceModelVersion": "26.2.0",
+      "targetModelVersion": "26.2.1",
+      "isInternalVersion": true,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.AddConditionLanguageStep"
+      }
+    },
+    {
+      "sourceModelVersion": "26.2.1",
+      "targetModelVersion": "27.0.0",
+      "isInternalVersion": true,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.ReferenceDmsByIdStep"
+      }
+    },
+    {
+      "sourceModelVersion": "27.0.0",
+      "targetModelVersion": "27.0.1",
+      "isInternalVersion": true,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.FillGapsInEnumDisplayValuesStep"
+      }
+    },
+    {
+      "sourceModelVersion": "27.0.1",
+      "targetModelVersion": "27.0.2",
+      "isInternalVersion": false,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.typeDefs.UseUuidInTypeDefsStep"
+      }
+    },
+    {
+      "sourceModelVersion": "27.0.2",
+      "targetModelVersion": "27.1.0",
+      "isInternalVersion": false,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.NoMigrationNecessaryStep"
+      }
+    },
+    {
+      "sourceModelVersion": "27.1.0",
+      "targetModelVersion": "28.0.0",
+      "isInternalVersion": true,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.ChangeAnnotationStructureStep"
+      }
+    },
+    {
+      "sourceModelVersion": "28.0.0",
+      "targetModelVersion": "28.0.1",
+      "isInternalVersion": true,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.ReferenceViaPathStep"
+      }
+    },
+    {
+      "sourceModelVersion": "28.0.1",
+      "targetModelVersion": "28.0.2",
+      "isInternalVersion": false,
+      "bean": {
+        "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.AddRequirednessConfigStep"
+      }
+    },
+    {
+     "sourceModelVersion": "28.0.2",
+     "targetModelVersion": "28.1.0",
+     "isInternalVersion": false,
+     "bean": {
+       "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.NoMigrationNecessaryStep"
+     }
+    },
+    {
+     "sourceModelVersion": "28.1.0",
+     "targetModelVersion": "28.1.1",
+     "isInternalVersion": true,
+     "bean": {
+       "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.SimplifyCharsetStep"
+     }
+    },
+    {
+     "sourceModelVersion": "28.1.1",
+     "targetModelVersion": "28.2.0",
+     "isInternalVersion": false,
+     "bean": {
+       "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.NoMigrationNecessaryStep"
+     }
+    },
+    {
+     "sourceModelVersion": "28.2.0",
+     "targetModelVersion": "28.3.0",
+     "isInternalVersion": false,
+     "bean": {
+       "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.NoMigrationNecessaryStep"
+     }
+    },
+        {
+         "sourceModelVersion": "28.3.0",
+         "targetModelVersion": "28.4.0",
+         "isInternalVersion": false,
+         "bean": {
+           "internalClazz": "com.mgmtp.a12.kernel.md.model.migration.internal.json.step.RewriteToReferenzjahrStep"
+         }
+        }
+  ]
+}

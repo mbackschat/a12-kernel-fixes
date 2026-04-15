@@ -1,0 +1,3 @@
+CompositeOperation(t) ::= <<
+<t.feldOperationCodeJava>
+>>

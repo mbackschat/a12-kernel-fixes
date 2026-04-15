@@ -1,0 +1,9 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.29.A12K-2934
+displayName: Migration for A12K-2934
+description: Migration for A12K-2934.
+recipeList:
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelCodeGeneratorParameters restrictedValidCharacterSet()'
+      newMethodName: 'restrictedValidGraphemeSet'

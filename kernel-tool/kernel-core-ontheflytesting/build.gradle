@@ -1,0 +1,29 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+}
+
+description = "services for on-the-fly testing of rule or field validation"
+
+dependencies {
+    api project(':kernel-core-base-utils')
+    api libs.kernelCoreRuntimeApi
+    api project(':kernel-core-tool-api')
+    api libs.kernelCoreCustomfieldtypeApi
+
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation libs.baseModelConsistency
+    implementation project(':kernel-core-parser')
+    implementation project(':kernel-core-parsetree-api')
+    implementation project(':kernel-core-service')
+    implementation project(':kernel-core-codegen')
+    implementation libs.commonsLang3
+    implementation libs.groovy
+    implementation libs.slf4jApi
+
+    // is this an indication that the generated code needs some extra (api?) dependency?
+    runtimeOnly project(":${A12_kernel_runtime_artifact_id()}")
+
+
+}
+

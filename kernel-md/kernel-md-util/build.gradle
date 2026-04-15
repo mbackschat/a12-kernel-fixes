@@ -1,0 +1,9 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+}
+
+dependencies {
+    // NOTE: this module should only have test dependencies
+}
+
+description = "dependency-less utils for kernel md modules"

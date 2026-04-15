@@ -1,0 +1,81 @@
+/*
+ * SPDX-License-Identifier: EUPL-1.2 OR LicenseRef-commercial
+ *
+ * Copyright (c) 2012-2026 mgm technology partners GmbH
+ *
+ * Dual License
+ * ------------
+ * This source file is part of the mgm A12 Platform and available under
+ * a choice of two different licenses:
+ *
+ * 1. Open-Source License – EUPL v1.2
+ *    You may redistribute and/or modify this file under the terms of the
+ *    European Union Public License, version 1.2 - see https://eupl.eu/.
+ *
+ * 2. Commercial License
+ *    Alternatively, you may obtain a commercial license from
+ *    mgm technology partners GmbH, that permits use of this software
+ *    under different terms (including support and maintenance services).
+ *
+ *    Please contact a12-license@mgm-tp.com for more information.
+ *
+ * You must select and comply with exactly one of the above license options.
+ *
+ * Warranty Disclaimer (applies to either option)
+ * ----------------------------------------------
+ * THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND,
+ * WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
+ * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
+ */
+
+package com.mgmtp.a12.kernel.core.rt._30_8.internal.formatdef;
+
+import java.util.Locale;
+import java.util.Map;
+
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
+import com.mgmtp.a12.kernel.core.rt._30_8.internal.util.DarstellungsInformationIntern;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IResult;
+
+import lombok.NonNull;
+
+public interface IValidierungParam {
+
+	@NonNull String getWert();
+
+	@NonNull IIdentifier getIdentifier();
+
+	@NonNull IResult getErgebnis();
+
+	boolean isNurPruefen();
+
+	@NonNull DarstellungsInformationIntern getDarstellungsInfo();
+
+	@NonNull IData getDaten();
+
+	@NonNull Locale getSprache();
+
+	/**
+	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use customConditions() or customFieldTypes() instead. In
+	 * 		your implementation of ICustomFieldTypeFactory or ICustomConditionFactory you can already create the objects in the
+	 * 		suitable configuration. Therefore, it is not necessary to pass this data all the way through any longer.
+	 */
+	@Deprecated(since = "30.6.0")
+	Object getAdditionalInformation(String key);
+
+	/**
+	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use customConditions() or customFieldTypes() instead. In
+	 * 		your implementation of ICustomFieldTypeFactory or ICustomConditionFactory you can already create the objects in the
+	 * 		suitable configuration. Therefore, it is not necessary to pass this data all the way through any longer.
+	 */
+	@Deprecated(since = "30.6.0")
+	@NonNull Map<String, Object> getAllAdditionalInformation();
+
+	boolean isExtmp();
+
+	ICustomFieldTypeFactory getCustomFieldTypeFactory();
+}

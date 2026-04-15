@@ -1,0 +1,15 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.29.A12K-2939
+displayName: Migration for A12K-2739
+description: Migration for A12K-2739.
+recipeList:
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IMessage getErrorFieldAsPointer()'
+      newMethodName: 'getErrorFieldAsCauseEntityInstance'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IMessage getReferencedFieldsAsPointers()'
+      newMethodName: 'getReferencedFieldsAsCauseEntityInstances'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IMessage getRefOmissionErrorResponsibleAsPointers()'
+      newMethodName: 'getRefOmissionErrorResponsibleAsCauseEntityInstances'

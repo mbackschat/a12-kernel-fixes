@@ -1,0 +1,978 @@
+//// 
+SPDX-License-Identifier: EUPL-1.2 OR LicenseRef-commercial
+Copyright (c) 2012-2026 mgm technology partners GmbH
+Dual License
+This source file is part of the mgm A12 Platform and available under a choice of two different licenses:
+1. Open-Source License – EUPL v1.2
+You may redistribute and/or modify this file under the terms of the European Union Public License, version 1.2 - see https://eupl.eu/.
+2. Commercial License
+Alternatively, you may obtain a commercial license from mgm technology partners GmbH, that permits use of this software under different terms (including support and maintenance services).
+
+Please contact a12-license@mgm-tp.com for more information.
+    
+You must select and comply with exactly one of the above license options.
+
+Warranty Disclaimer (applies to either option)
+THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS. 
+////
+
+// NOTE: this file is used as an include in Readme.adoc, rather than beeing pulished independently
+// NOTE that the include's level-offset is 2, so excessively-nested subsections might not be rendered
+// well in the resulting html.
+
+:imagesdir: ./assets/images
+:snippetBaseDir: ./assets/snippets
+
+// NOTE: the paths in these variables get replaced by the build system when both the adoc file and the source files
+// get copied to the ./build directory. The variables must be defined between the "// SNIPPET_START" and "// SNIPPET_END"
+// markers, and each must follow the format: ":<name>: {snippetBaseDir}/<path>".
+// SNIPPET_START
+:codeSnippetsExampleFile: {snippetBaseDir}/TestDocumentV2CodeSnippetsForDocs.java
+:gradleConfigExampleFile: {snippetBaseDir}/typedaccessor_snippet_build.gradle
+:codeSnippetsWithTypedAccessorsFile: {snippetBaseDir}/TestTypedAccessorSnippetsForDocs.java
+// SNIPPET_END
+
+= Document API V2 (Java) [[document_api_v2_java]]
+
+== Introduction
+
+The document API V2 is a Java API for accessing and manipulating data in documents.
+It is an alternative and successor to the `+IDocument+`-based API.
+
+The main differences to the previous API and goals of the new API are:
+
+* an explicit representation of subgroups, including repeatable subgroups (tree structure)
+* provide a more coherent set of utility methods for reading and updating data in documents
+* Kernel provides the implementation - custom implementations of `+DocumentV2+` are not supported (more flexibility for future changes of the API and for the Kernel implementation)
+* immutable semantics with efficient copy-on-write updates, for a smaller API surface, clearer code and easier caching
+* compatibility with optional generated accessor classes that enable static type checks and properly typed field values for the code that accesses the documents
+
+All document related Kernel functionality support `+DocumentV2+` - in cases where it is not directly supported yet, users should utilize the conversion methods `+IDocumentV1V2Converter#toDocumentV1+` and `+IDocumentV1V2Converter#ofDocumentV1+` as needed, and tell kernel about the affected document V1 functionality and the need to support it for `+DocumentV2+`.
+
+// TODO design overview, maybe incl mention of important classes
+
+== API Guide
+
+// TODO use one unified & simplified DM for all code examples
+
+=== Obtaining a DocumentV2 [[obtaining_a_documentv2]] [[serialization_deserialization_documentv2]]
+
+`+DocumentV2+` instances can be created from scratch, converted to and from `+IDocument+`, or can be deserialized from the same string representation as a V1 `+IDocument+`.
+
+[source,java,indent=0]
+.Create an Empty Document
+----
+include::{codeSnippetsExampleFile}[tags=tagCreateDocumentEmpty]
+----
+
+[source,java,indent=0]
+.Create a Document with Subgroups
+----
+include::{codeSnippetsExampleFile}[tags=tagCreateDocumentWithSubgroups]
+----
+
+[source,java,indent=0]
+.Convert from a V1 IDocument
+----
+include::{codeSnippetsExampleFile}[tags=tagCreateDocumentConvert]
+----
+
+For details on the DM id string in the above examples, see <<note_about_dmid, the note about the DM id>>.
+
+<<create_documentv1v2converter, How to get an IDocumentV1V2Converter>> shows how to get the `+converter+` instance.
+
+[[docV2_serialize_deserialize]]
+[source,java,indent=0]
+.Serialize and Deserialize a DocumentV2
+----
+include::{codeSnippetsExampleFile}[tags=tagCreateDocumentSerialize]
+----
+
+The setup of a serializer instance is shown in the <<docV2_serialize_deserialize_setup>> code snippet.
+
+=== Reading from DocumentV2 and GroupInstanceV2
+
+[NOTE]
+====
+See the section on <<document_pointers,DocumentPointers>> for a detailed description of how subgroups and fields are addressed in documents.
+====
+
+[[read_field_value]]
+[source,java,indent=0]
+.Read the Value of a Field
+----
+include::{codeSnippetsExampleFile}[tags=tagFieldValue]
+----
+
+See the section on <<document_pointers, document pointers>> for details on the notation for path and repetition indexes.
+
+[NOTE]
+====
+Note that in `+DocumentV2+` just like in `+IDocument+`, field values have _compile-time_ type `+Object+`, because the compiler doesn't know which of the valid basic types the field has.
+Allowed _runtime_ types for field values in `+DocumentV2+` are `+String+`, `+BigDecimal+`, `+Boolean+`, `+Instant+` , `+InstantRange+` (`+com.mgmtp.a12.utils.conversion.InstantRange+`) and `+null+`.
+The surrounding code is responsible for casting correctly where necessary. +
+Also note that <<note_about_dmid, the document itself does not validate field values against a DM>>.
+====
+
+For automatic compile-time typed access, see the section about <<generated_typed_accessors, generated typed accessor classes>>.
+
+[NOTE]
+====
+In contrast to `+IDocument+` (V1), in `+DocumentV2+`, values of date and time fields are represented by `+java.time.Instant+` instead of `+java.util.Date+`, and date ranges are represented by `+InstantRange+` instead of a 2-element `+Date[]+` array.
+The conversion methods `+ofDocumentV1+` and `+toDocumentV1+`, as well as `+FieldInstanceV2.ofV1Value+` and `+FieldInstanceV2.toV1Value+` take care of this.
+====
+
+A group in the document can be fetched as follows:
+
+[source,java,indent=0]
+.Read a Subgroup
+----
+include::{codeSnippetsExampleFile}[tags=tagGroup]
+----
+
+Subsequently, the group can be read and updated independently, see <<docv2_read_from_groups>> and <<docv2_update_groups>>.
+
+All repetitions of a repeatable group can be fetched with `+groupAllRepetitions()+`:
+
+[source,java,indent=0]
+.Iterate over Repetitions of a Group
+----
+include::{codeSnippetsExampleFile}[tags=tagGroupAllRepetitions]
+----
+
+Note that `+groupAllRepetitions+`, like all methods that refer to _all_ repetitions of a group rather than a single repetition, expects the last repetition index of the pointer to be `+0+`, for wildcard.
+See also section <<wildcard_repetition_index>>.
+
+Or assigned to a variable of type `+RepetitionsV2+`:
+
+[source,java,indent=0]
+.Get all Repetitions of a Group as a RepetitionsV2 Instance
+----
+include::{codeSnippetsExampleFile}[tags=tagGroupAllRepetitionsAssign]
+----
+
+==== Read from Subgroups [[docv2_read_from_groups]]
+
+The same methods that are used to lookup (and update) subgroups and field values in _documents_ also work when a _group_ is given in place of the document, because the methods are actually defined on GroupInstanceV2 (and DocumentV2 extends GroupInstanceV2):
+
+[source,java,indent=0]
+.Work on a (Sub) Group instead of a Document
+----
+include::{codeSnippetsExampleFile}[tags=tagReadFromSubgroup]
+----
+
+In this case, the document pointer is resolved relative to the given group (not relative to the root of a here-unknown, potentially non-existent or not unique, surrounding document).
+Note that only groups can directly contain fields, documents are only allowed to contain them indirectly via subgroups (the `+withDirectField+` method is unsupported on documents). +
+See also <<docv2_update_groups>>
+
+==== Handling of Absent Field and Group Instances
+
+If the requested field is not present in the given document (or the field value is set to `+null+`), `+fieldValue()+` returns `+null+`.
+The same happens when not only the field, but also some of its ancestor groups are not present.
+
+Similarly, `+group()+` returns `+null+` if the subgroup or its ancestors are not present.
+
+`+groupAllRepetitions()+` will return an empty `+RepetitionsV2+` instance (`+groupRepetitions.size() == 0+`) if no repetitions are present or if any ancestor group is not present.
+
+[NOTE]
+====
+[[note_about_dmid]]
+A document does not know the corresponding DM (it only stores the `+dmId+` String, accessible with `+docV2.getDocumentModelId()+`.
+It is stored mostly for compatibility, because `+IDocument+` (V1) also has this attribute).
+Consequently, the document does not distinguish whether a field or subgroup is merely absent from a given document, or not at all allowed in the corresponding DM.
+Neither is there a distinction between a non-repeatable group and a repeatable group that has no more than one repetition present in the document.
+Similarly, when documents are updated, there is no check against a DM that would verify if the updated document still matches the DM - to validate this, use <<kernel_validation,Kernel validation>>, or check against the DM before updating the document.
+====
+
+If you want to distinguish between a non-present field and a present field with value `+null+`, use `+DocumentV2#field()+` instead of `+DocumentV2#fieldValue()+` to first obtain the `+FieldInstanceV2+`, check if that is `+null+`, and if not, check if the field's value is `+null+` (`+FieldInstanceV2#value()+`).
+This distinction is mainly made possible for better compatibility with IDocument, and is likely not relevant in most cases.
+
+=== Updating Documents and Groups
+
+In document API V2, documents are immutable - update operations don't modify the document in-place, instead they return a reference to an updated document, leaving the original unchanged.
+Nonetheless, the API provides a set of methods that make it easy to update documents and subgroups efficiently.
+
+The main reasons for this immutable design are to help avoid unintended or hard to understand side effects in code that works with documents, avoid the need for wasteful defensive copies and to achieve better implementation flexibility for the document API itself.
+
+Performance-wise, the update operations are implemented with a copy-on-write approach, so that only very little data gets copied even when large documents are updated.
+If your code performs a very large number of subsequent update operations on a single document, have a look at <<with_batch_updates,`+GroupInstanceV2#withBatchUpdates+`>>, which provides an operation that is specifically optimized for this particular pattern.
+
+==== Updating Fields
+
+A field value can be set or replaced with
+
+[source,java,indent=0]
+.Update or Set a Field Value
+----
+include::{codeSnippetsExampleFile}[tags=tagWithFieldValue]
+----
+
+If the field or any ancestor group of the field did not previously exist in `+docV2+`, it will be created.
+
+[NOTE]
+====
+See <<read_field_value, Read the Value of a Field>> for types of values that are allowed.
+====
+
+[NOTE]
+====
+The document is independent of any DM, consequently, document updates do not perform validation against a model, see <<note_about_dmid, this note>> for details.
+====
+
+If you want to keep the reference to the original unmodified document:
+
+[source,java,indent=0]
+.Update or Set a Field Value
+----
+include::{codeSnippetsExampleFile}[tags=tagWithFieldValueNewVariable]
+----
+
+The graphic shows what parts of the document are new (green) when applying the method.
+
+image::withFieldValue.svg[Static]
+
+To add an empty field (with value `+null+`) to the document explicitly, use `+withField+` instead of `+withFieldValue+` (this method is provided primarily for compatibility with document api V1, and may be rarely useful in practice).
+
+==== Updating Subgroups
+
+[NOTE]
+====
+The section <<create_group_rep_fields,creating group instances and repetitions>> shows how the `+newGroup+` and `+myRepetitions+` instances for the examples below can be created if they are not obtained from an existing document.
+====
+
+[NOTE]
+====
+The section on <<theory_representation_of_repeatable_groups,representation of groups>> describes background information that might be helpful in order to better understand some details about updates of subgroups and repetitions.
+====
+
+[source,java,indent=0]
+.Set or Replace the Single Repetition of a Non-Repeatable Group or First Repetition of a Repeatable Group
+----
+include::{codeSnippetsExampleFile}[tags=tagWithGroup]
+----
+
+Note that adding or replacing the first repetition of a repeatable group is the same as adding/replacing the single repetition of a non-repeatable group (the document does not know if a given group is repeatable in the DM).
+
+[source,java,indent=0]
+.Set or Replace the Second Repetition of a _Group With Multiple Repetitions_
+----
+include::{codeSnippetsExampleFile}[tags=tagWithGroup2]
+----
+
+[source,java,indent=0]
+.Insert a Group Repetition
+----
+include::{codeSnippetsExampleFile}[tags=tagWithGroupRepetitionInserted]
+----
+
+Here, the difference to `+withGroup()+` is that if there is already a group present at the specified repetition index, it will not be replaced, but instead the new repetition will be inserted, and all repetitions >= the specified one will be moved to the next higher repetition index (like an insert into a list).
+
+[source,java,indent=0]
+.Append a Group Repetition (Automatically Add After Last Filled Repetition Index)
+----
+include::{codeSnippetsExampleFile}[tags=tagWithGroupRepetitionAppended]
+----
+
+Here, we specify a repetition index of `0` ("all repetitions"), because the append-operation determines the next free index (where `newGroup` will be put) by itself, taking all currently present repetitions into account.
+See also section <<wildcard_repetition_index>>.
+
+[source,java,indent=0]
+.Set or Replace all Repetitions of a Group
+----
+include::{codeSnippetsExampleFile}[tags=tagWithGroupAllRepetitions]
+----
+
+(this only makes sense for a repeatable group, but it can technically also be used with a single-element RepetitionsV2 in case of a non-repeatable group)
+
+==== Updating _Groups_ Instead of Whole _Documents_ [[docv2_update_groups]]
+
+The methods that read and update subgroups and fields in documents also work on groups (See also <<docv2_read_from_groups>>):
+
+[source,java,indent=0]
+.Example of Some Method that Works on a Subgroup
+----
+include::{codeSnippetsExampleFile}[tags=tagGroupProcessingMethodExample]
+----
+
+Note that as the update is not in-place, you may want to subsequently insert the updated group back into an overall document:
+
+[source,java,indent=0]
+.Example usage of a Method that Works on a Subgroup
+----
+include::{codeSnippetsExampleFile}[tags=tagExampleUseGroupUpdatingMethod]
+----
+
+==== Automatic Insertion of Missing Ancestor Groups and Repetitions
+
+The above methods (`+withFieldValue+`, `+withGroup+`, `+withGroupAllRepetitions+`, etc.) will create all ancestor groups of the added field or group, in case they are not already present in the document.
+Lower repetitions of repeatable groups will also be filled with empty groups (e.g. if an insertion happens for `+/a/b[3]/f1+` and currently `+b+` has only the first repetition present, then an empty second repetition will be added for `+b+`, so that `+b[3]+` can successfully be added at (one-based) repetition index `+3+` without a gap).
+
+[source,java,indent=0]
+.Missing Ancestor Groups and Repetitions are Created Automatically
+----
+include::{codeSnippetsExampleFile}[tags=tagAddMissingAncestors]
+----
+
+==== Deletions
+
+[source,java,indent=0]
+.Remove a Field
+----
+include::{codeSnippetsExampleFile}[tags=tagWithFieldRemoved]
+----
+
+[source,java,indent=0]
+.Remove the Single Repetition of a Non-Repeatable Group
+----
+include::{codeSnippetsExampleFile}[tags=tagWithGroupRemoved]
+----
+
+[source,java,indent=0]
+.Remove a Particular Repetition of a Group that has Multiple Repetitions
+----
+include::{codeSnippetsExampleFile}[tags=tagWithGroupRemoved2]
+----
+
+If there are entries for higher repetitions of `+myRepeatableGroup+`, they will shift one repetition index downward to fill the gap that was left by the removed repetition. i.e. the subgroup that was previously at `+/myRepeatableGroup[3]+` will end up at `+/myRepeatableGroup[2]+`, etc.
+
+Note that a subgroup that has only an empty repeatability (no repetitions present) is equivalent to a subgroup that is not present, therefore removing the last remaining repetition of a repeatable group (always at index 1) is the same as removing the single repetition of a non-repeatable group.
+
+To remove a repetition of a group _without shifting higher repetitions downward_ (Note that no gaps in Repetitions are allowed), use
+
+[source,java,indent=0]
+.Empty a Group Repetition without Removing
+----
+include::{codeSnippetsExampleFile}[tags=tagWithGroupEmptiedButNotRemoved]
+----
+
+This replaces the repetition with an empty group.
+
+[source,java,indent=0]
+.Remove All Repetitions of a Group
+----
+include::{codeSnippetsExampleFile}[tags=tagWithGroupAllRepetitionsRemoved]
+----
+
+If the removed group has only one repetition, `+withGroupAllRepetitionsRemoved+` has the same effect as `+withGroupRemoved+`.
+
+If the removed field or group (or any of its ancestor groups) is not present in the document prior to the remove operation, the operation returns the unmodified document.
+(This is why there are explicit methods for removal, rather than relying on the regular `+with...+` methods with `+null+` or empty update values, as those methods would add missing parent groups even if an empty or null group or field is given.)
+
+==== Batch Updates [[with_batch_updates]]
+
+The method `+GroupInstanceV2#withBatchUpdates+` can be used when a very large number of subsequent modifications is done and the intermediary versions of the document or group are not needed.
+Because no references to intermediary results are required, this operation can be implemented with optimized asymptotic performance.
+It is used internally when documents are converted from V1 documents or deserialized, but is likely not necessary in most situations in practice.
+Currently, only _additions/replacements_ of groups and fields are supported - deletions could be implemented in the future if needed.
+// NOTE: links to generated files will only resolve from the copied version of the .adoc file inside the build folder,
+// after javadoc has been generated and copied to the subfolders below ./build
+See the link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/immutable/GroupInstanceV2.html#withBatchUpdates(java.util.Collection)[`+withBatchUpdates+` javadoc] for details before using this method.
+
+[source,java,indent=0]
+.Batch Update of Documents or Groups
+----
+include::{codeSnippetsExampleFile}[tags=tagWithBatchUpdates]
+----
+
+==== Converting between DocumentV2 and GroupInstanceV2
+
+A `+DocumentV2+` instance can be converted to a `+GroupInstanceV2+` so that the document's root groups become the subgroups of the returned group instance.
+This can be useful if the document is to be inserted as a subgroup of another document, e.g. corresponding to includes in the DM.
+
+[source,java,indent=0]
+.Convert a Document to a Group
+----
+include::{codeSnippetsExampleFile}[tags=tagConvertDocumentToGroup]
+----
+
+The reverse is also possible: Create a DocumentV2 from a "root of rootgroups" GroupInstanceV2. Note that the group must not contain direct fields, because direct fields are not allowed in documents.
+
+[source,java,indent=0]
+.Convert a Group to a Document
+----
+include::{codeSnippetsExampleFile}[tags=tagConvertGroupToDocument]
+----
+
+==== Merging Documents or Groups
+
+[source,java,indent=0]
+.Merge Two Documents With no Repeatable Groups or Without Concatenating Repetitions
+----
+include::{codeSnippetsExampleFile}[tags=tagMergeSimple]
+----
+
+If a field exists with a non-null value in both documents, the one from otherDocV2 will overwrite the value from docV2.
+
+By default, subgroups that have more than one repetition will be merged by recursively merging the subgroup repetitions with the same repetition index from both documents.
+If the repetitions of (some) repeatable groups should instead be concatenated, this can be controlled with the following overload of the `+withMerged+` method:
+
+[source,java,indent=0]
+.Merge Two Documents and Control which Repetitions are Concatenated
+----
+include::{codeSnippetsExampleFile}[tags=tagMergePickReps]
+----
+
+If even more fine-grained control over the merge is required, a full `+IDocumentMergeConfig+` can be passed instead of the lambda:
+
+[source,java,indent=0]
+.Merge Two Documents with Custom Merge of Repetitions
+----
+include::{codeSnippetsExampleFile}[tags=tagMergeFullConfig]
+----
+
+=== Creating Instances of GroupInstanceV2, RepetitionsV2, FieldInstanceV2 and InstantRange [[create_group_rep_fields]]
+
+[source,java,indent=0]
+.Create a Group Instance
+----
+include::{codeSnippetsExampleFile}[tags=tagCreateGroup]
+----
+
+[source,java,indent=0]
+.Create a RepetitionsV2:
+----
+include::{codeSnippetsExampleFile}[tags=tagCreateRepetitions]
+----
+
+[source,java,indent=0]
+.Create a FieldInstanceV2:
+----
+include::{codeSnippetsExampleFile}[tags=tagOfValue]
+----
+
+[source,java,indent=0]
+.Create a FieldInstanceV2 (Value from V1 IDocument):
+----
+include::{codeSnippetsExampleFile}[tags=tagOfV1Value]
+----
+
+[source,java,indent=0]
+.Create an InstantRange:
+----
+include::{codeSnippetsExampleFile}[tags=tagCreateInstantRange]
+----
+
+=== DocumentPointer: Addressing Fields and Subgroups in Documents [[document_pointers]]
+
+Within a document (both V1 or V2), each field instance and group instance is unambiguously identified by the combination of path (e.g. `+"/MyRootGroup/SubGroup/fieldA"+`) and repetitition indexes (e.g. `+[1, 2, 1]+` ).
+
+In the document API V2, this is represented by an instance of `+DocumentPointer+`
+(link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/DocumentPointer.html[javadoc])
+.
+
+A `+DocumentPointer+` can be created from a human-friendly string notation or from lists of path parts and repetition indexes.
+Most methods that expect a DocumentPointer also have an overloaded version that directly accepts the string notation of the DocumentPointer.
+
+[source,java,indent=0]
+.Defining a Document Pointer from String Notation
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentPointerConstant]
+----
+
+[NOTE]
+====
+In the String notation for `+DocumentPointer+`, repetition indexes that are 1 can be omitted because they are defined to be implicitly 1 unless specified otherwise.
+i.e. `+DocumentPointer.of("MyRootGroup/SubGroup[2]/fieldA")+` and `+DocumentPointer.of("MyRootGroup[1]/SubGroup[2]/fieldA[1]")+` are equivalent.
+====
+
+[NOTE]
+====
+In the String notation for `+DocumentPointer+`, a leading `+/+` is allowed but redundant, i.e. `+DocumentPointer.of("MyGroup/myField")+` and `+DocumentPointer.of("/MyGroup/myField")+` are the same.
+There is no distinction between absolute and relative paths: An "absolute" pointer is simply one that is used on a document rather than on a (sub)group.
+====
+
+[source,java,indent=0]
+.Defining a Document Pointer from Lists, with no String Parsing at Runtime
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentPointerProgrammatic]
+----
+
+[source,java,indent=0]
+.Example for a Method that Directly Accepts the String Notation of a DocumentPointer
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentPointerOverload]
+----
+
+Note that the last example results in repeated string parsing at runtime if the line is executed more than once.
+
+If fields are accessed, the last repetition of the document pointer must be `+1+`, because fields are never repeatable.
+
+==== Wildcard Repetition Index `+0+` [[wildcard_repetition_index]]
+
+The last repetition of a `+DocumentPointer+` can in some contexts be the special value `+0+`, which represents "all repetitions".
+(Remember that repetition indexes are 1-based, so `+0+` is not a normal index value).
+
+A wildcard repetition index is expected by methods that work with all repetitions of a group, such as `+DocumentV2#groupAllRepetitions+`.
+Those methods will typically validate that the repetition index is indeed `+0+` in order to detect possible programming errors.
+
+[NOTE]
+====
+There is *no* support for wildcard repetitions in other places than the last repetition, as those might resolve to multiple pointers.
+For such cases the <<document_multi_pointer,`+DocumentMultiPointer+`>> (link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/DocumentMultiPointer.html[javadoc]) is meant to be used.
+====
+
+==== DocumentMultiPointer [[document_multi_pointer]]
+
+The `+DocumentMultiPointer+` is similar to a DocumentPointer, but also allows a repetition index of `+0+` (wildcard) in every position.
+The pointer is used when multiple instances of a field or group are meant to be selected.
+
+.A pointer of `+/a[0]/b[3]/c[0]+` means:
+* all repetitions of `+a+`
+* only the 3rd repetition of `+b+`
+* and all repetitions of `+c+`
+
+In principle, such a pointer can be interpreted as a Set of <<document_pointers,DocumentPointers>> describing the specific repetitions.
+In the case of `+/a[0]/b[3]/c[0]+` this would include `+/a[1]/b[3]/c[1]+`, `+/a[1]/b[3]/c[2]+`, `+...+`, `+/a[n]/b[3]/c[m]+` for all `+n+` and `+m+` that are valid repetition indexes for the respective groups.
+This means that the pointer can reference any valid combination of repetitions within the specified structure.
+
+[NOTE]
+====
+While a DocumentMultiPointer can describe a single specific pointer (all repetition indexes `+>0+`), it is not interchangeable with a DocumentPointer.
+The API enforces this distinction, preventing the use of a DocumentMultiPointer where a DocumentPointer is required, and vice versa.
+However, a DocumentMultiPointer can be derived from a DocumentPointer.
+====
+
+===== Creating a DocumentMultiPointer
+
+A DocumentMultiPointer can be created of a path with explicit indexes (similar to `+DocumentPointer#of(String)+`), but allows for `+0+` (wildcard) indexes in any place.
+
+[source,java,indent=0]
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentMultiPointerCreationWithPath]
+----
+
+[source,java,indent=0]
+.A path with all repetitions set to wildcard
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentMultiPointerCreationWithAllWildcards]
+----
+
+[source,java,indent=0]
+.Convert from a DocumentPointer
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentMultiPointerCreation]
+----
+
+See <<additional_utils>> for usages of DocumentMultiPointer.
+
+==== Relation between pointers [[document_multi_pointer_relation]]
+
+The DocumentMultiPointer provides methods for checking the relation to DocumentPointers.
+
+The following DocumentMultiPointer
+
+[source,java,indent=0]
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentMultiPointerRelation]
+----
+
+has an _ancestor_ relation (for details refer to the link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/DocumentMultiPointer.html#containsAncestorOf(com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer)[`+containsAncestorOf+` javadoc]):
+
+[source,java,indent=0]
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentMultiPointerAncestor]
+----
+
+has a _descendents_ relation (link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/DocumentMultiPointer.html#containsDescendentOf(com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer)[`+containsDescendentOf+` javadoc]):
+
+[source,java,indent=0]
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentMultiPointerDescendent]
+----
+
+has an _"equals"_ relation (link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/DocumentMultiPointer.html#contains(com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer)[`+contains+` javadoc]):
+
+[source,java,indent=0]
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentMultiPointerContains]
+----
+
+Similar methods are implemented for relations of a _DocumentPointer with another DocumentPointer_ (see link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/DocumentPointer.html#isAncestorOf(com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer)[`+isAncestorOf+`], link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/DocumentPointer.html#isDescendantOf(com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer)[`+isDescendantOf+`]), but not _DocumentPointer to DocumentMultiPointer_.
+
+=== Traversing a Document or Group with IDocumentV2Visitor
+
+[NOTE]
+====
+For simple cases use link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/utils/DocumentV2Utils.html#getFieldInstances(com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2,com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer)[DocumentV2Utils#getFieldInstances] (see a <<getFieldInstance,`+getFieldInstances+`>> usage) and
+link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/utils/DocumentV2Utils.html#getGroupInstances(com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2,com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer)[DocumentV2Utils#getGroupInstances].
+====
+
+[source,java,indent=0]
+.Traverse a Document or Group to Find all Present Fields
+----
+include::{codeSnippetsExampleFile}[tags=tagTraverseField]
+----
+
+[source,java,indent=0]
+.Traverse a Document or Group (Large Example)
+----
+include::{codeSnippetsExampleFile}[tags=tagTraverseSpecific]
+----
+
+This example traverses a document and collects all groups that match the given pointer.
+It is a simplified version of link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/utils/DocumentV2Utils.html#getGroupInstances(com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2,com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer)[DocumentV2Utils#getGroupInstances], see the implementation for further optimizations.
+
+[NOTE]
+====
+All methods in IDocumentV2Visitor (link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/immutable/utils/IDocumentV2Visitor.html[javadoc]) are optional, i.e. default implementations are provided in the interface.
+====
+
+==== Traverse to every sub group of the pointer
+
+[source,java,indent=0]
+----
+include::{codeSnippetsExampleFile}[tags=tagTraverseAllSubgroups]
+----
+
+=== Additional Utilities and Functionality [[additional_utils]]
+
+In addition to the methods for link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/immutable/DocumentV2.html[DocumentV2], link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/immutable/GroupInstanceV2.html[GroupInstanceV2], link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/immutable/RepetitionsV2.html[RepetitionsV2], and link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/immutable/FieldInstanceV2.html[FieldInstanceV2], there are auxiliary utilities that provide further functionality.
+
+==== DocumentV2Utils [[documentv2_utils]]
+
+The DocumentV2Utils (link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/utils/DocumentV2Utils.html[javadoc]) provide functionality that can be used without any DocumentModel (in contrast to the utils in <<idm_aware_doc_service,IDmAwareDocService>>).
+
+[[getFieldInstance]]
+To get all field instances with a specific path the method `+getFieldInstances+` can be used.
+It returns a `+Set+` of all existing field instances in a group that match the given path and repetition indexes.
+
+[source,java,indent=0]
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentV2UtilsGetFieldInstances]
+----
+
+Two `+DocumentV2+` s can be compared using `+DocumentV2Utils.compare+` (link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/utils/DocumentV2Utils.html#compare(com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2,com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2,com.mgmtp.a12.kernel.md.document.apiV2.utils.DocumentV2Utils.CompareConfig)[javadoc]).
+
+[source,java,indent=0]
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentV2UtilsCompare]
+----
+
+Now all changed fields can be retrieved with
+
+[source,java,indent=0]
+----
+include::{codeSnippetsExampleFile}[tags=tagDocumentV2UtilsCompareFieldChanges]
+----
+
+==== IDmAwareDocService [[idm_aware_doc_service]]
+
+`+IDmAwareDocService+` (link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/services/IDmAwareDocService.html[javadoc]) provides util functionality that requires information from the `+DocumentModel+` to work with ids of fields and groups, data type conversion, and transient fields.
+
+[source,java,indent=0]
+.Remove all groups and fields that are +not+ defined in the DM
+----
+include::{codeSnippetsExampleFile}[tags=tagIDmAwareDocServiceRemoveUnknowns]
+----
+
+[NOTE]
+====
+The id has to be resolvable for this method to succeed.
+The used id does not have to be the id in the Document, as it is also possible to use a different DocumentModel which only contains a subset of the fields.
+If the DocumentModel does not match the provided DocumentV2 at all, then an empty Document is returned.
+====
+
+The method `+IDmAwareDocService.convertToJavaTypeV2+`  (link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/services/IDmAwareDocService.html#convertToJavaTypeV2(java.lang.String,java.lang.String,java.util.function.Consumer)[javadoc]) can be used to convert a string (in the format that is used in JSON- or XML-serialized documents) to the parsed value that matches the field type from the DocumentModel:
+
+[source,java,indent=0]
+.Type conversion
+----
+include::{codeSnippetsExampleFile}[tags=tagIDmAwareDocServiceConvertToJavaTypeV2]
+----
+
+
+=== Background: Representation of Repeatable and Non-Repeatable Groups, Empty and Absent Repetitions [[theory_representation_of_repeatable_groups]]
+
+==== Non-Repeatable Groups are 1-Repeatable Groups
+
+All groups, whether repeatable or not, are represented in the same way in the document.
+A non-repeatable group is simply a group that has no more than one repetition.
+
+Closely related, there is no distinction between a repeatable group for which no repetitions are present, and a non-repetable group that is not present.
+
+This design was chosen because it matches the information that is present in `+IDocument+` of the document API V1 (otherwise V1↔V2 conversion would not be possible without the DM), and because it simplifies the structure of documents.
+It is, however, slightly different to the typescript document API, which uses separate representations for repeatable and non-repeatable groups.
+
+==== `+RepetitionsV2+` and empty Repetitions
+
+The repetitions of a group are represented in a list-like structure: +
+There cannot be "gaps" between repetitions, and if a repetition is removed, all subsequent repetitions move one position closer to the start of the list.
+When a repetition is added, it can either be appended, replace an existing repetition, or it can be inserted before an existing one, which shifts all subsequent repetitions one position further from the start of the list.
+"Removing" a repetition without shifting the subsequent repetitions forward is possible by replacing the "removed" repetition with an empty group.
+
+`+RepetitionsV2+`, which represents the list of repetitions of a group, allows to add a `+GroupInstanceV2+` at a higher repetition than the current length of the list, and will automatically insert empty group repetitions before the inserted group, so that the inserted group ends up at the desired repetition index.
+Because the document is independent of the corresponding DM (if it even exists), there is no distinction between a repetition that is (currently) not present, and a repetition that is not present and that is beyond the maximum allowed repeatability in the DM (`+RepetitionsV2#get+` returns `+null+` when queried with an index greater than the maximum present repetition).
+This is analogous to `+GroupInstanceV2#directField+` which returns `+null+` if no field is present with the given name (independent of whether a field of that name is even defined in the DM or not).
+
+== Typed Accessor Classes for Compile-Time Type Checks & IDE-Autocomplete [[generated_typed_accessors]]
+
+[NOTE]
+====
+This section is relevant for users who develop code that interacts with the fields and group hierarchy of a specific Document Model or a set of specific DMs.
+It does not apply to code that processes generic documents, where the corresponding DM is not known at development time (e.g. only given at runtime).
+====
+
+The typed accessor generator creates, for a given DM, classes that enable the following features for code that interacts with the fields and group hierarchy of that DM:
+
+* compiler type checks against the group hierarchy and field types of the DM, including detecting when the DM was modified and has diverged from the (handwritten) project code
+* automatic casting of field values (so they are no longer Object, but String, BigDecimal, Boolean, Instant, InstantRange, or Enums with constants that correspond to the allowed enum values)
+* IDE-Autocomplete
+* access to the modeler-defined internal and external descriptions of groups and fields (via javadoc)
+
+This code generator has two alternative modes:
+
+<<overlay_mode,`+--mode overlay+`>> is the default and is tightly integrated with `+DocumentV2+`.
+When the classes generated by this mode are used, data does not get copied from the `+DocumentV2+`.
+The classes merely act as an overlay that enables the compile-time checks.
+This also allows to mix typed-checked and general `+DocumentV2+`-based code on the same data.
+It also means that the typed accessor classes don't necessarily need to know about the whole DM - they can also be generated just for a selection of groups and fields, or the generated classes (and the hand-written code that interacts with them) could be used for multiple different DMs that all share the selected subgroups and fields (e.g. when the DMs share the same additive model).
+
+<<pojo_mode,`+--mode pojo+`>> was an experimental, now deprecated, alternative mode intended for use cases that prefer more traditional Java Bean like mutable classes with getters and setters.
+This can be preferable e.g. when the classes should interact with other libraries or frameworks that expect Bean-Like Objects.
+The classes that are generated with this mode copy their data from a given document or group when they are instantiated, and offer a method for exporting back to `+DocumentV2+`.
+Classes from PoJo mode do not offer automatic handling e.g. of missing subgroups/parent groups or repetitions, and they always need to be generated for the whole DM, otherwise the data for the unknown subgroups would be lost.
+
+=== Typed-Overlay Classes (`+--mode overlay+`) [[overlay_mode]]
+
+==== Usage Examples of Typed Overlay Classes [[overlay_mode_usage_examples]]
+
+The following examples use the DM "DomainContact" as shown below:
+
+// 366 is currently the native width of the image, it might get blurry if we diverge from that
+image::dm_domain_contact_partially_expanded.png[,366]
+
+[source,java,indent=0]
+.Read from an Existing Document via Typed Accessors
+----
+include::{codeSnippetsWithTypedAccessorsFile}[tags=tagReadFromExistingDoc]
+----
+
+Note: the typed accessor classes do not validate the given document - it is the caller's responsibility to ensure that the document that is passed to `+_viewOf+` conforms to the same DM for which the accessor classes were generated.
+Otherwise, subgroups and fields may not be found, and field value casts can fail.
+When the shape of the document is unknown, consider checking it with Kernel validation first.
+
+[NOTE]
+====
+On typed views and pointers, the general methods, that exist independent of the DM, start with an underscore (like `+_viewOf()+`, `+_at()+`, `+_with()+`, `+_pointer()+`), to better distinguish them from the DM-derived methods that represent groups and fields (like `+contact()+`, `+address()+`, `+city()+` in the example above).
+====
+
+[source,java,indent=0]
+.Create or Update a Document via Typed Accessors
+----
+include::{codeSnippetsWithTypedAccessorsFile}[tags=tagTypedDocumentCreation]
+----
+
+The above example demonstrates the `+_withInsertedRepetitions+` method that _inserts_ rather than replaces the specified repetition.
+Alternatively, phone1 and phone2 could be set for repetitions 1 and 2 respectively via calls to `+_with+`, or an all-repetitions pointer could be used as follows:
+
+[[typed_document_with_all_repetitions_example]]
+[source,java,indent=0]
+.Usage of a Typed Pointer that Points to all Repetitions of a group
+----
+include::{codeSnippetsWithTypedAccessorsFile}[tags=tagTypedDocumentWithAllRepetitions]
+----
+
+By calling the `+.phones()+` method with no argument, we get a pointer to _all_ repetitions rather than to a specific _single_ repetition.
+
+There is also the convenience method `+_withAppendedRepetition+` which automatically appends at the end:
+[[typed_document_append_repetition_example]]
+
+[source,java,indent=0]
+.Append a Repetition to a Repeatable Group
+----
+include::{codeSnippetsWithTypedAccessorsFile}[tags=tagTypedDocumentAppendRepetition]
+----
+
+[source,java,indent=0]
+.Obtain the (untyped) DocumentPointer from a Typed Pointer
+----
+include::{codeSnippetsWithTypedAccessorsFile}[tags=tagTypedDocumentPointerUnwrap]
+----
+
+==== Architecture of Typed Overlay Classes
+// NOTE maybe use a simpler example here, the explanation is hard to follow, even without a larger-than-necessary examples
+
+In overlay mode, two sets of classes are generated for the group hierarchy of a DM: views and pointers.
+
+Views wrap instances of `+DocumentV2+` or `+GroupInstanceV2+` and typed pointers wrap instances of `+DocumentPointer+`.
+An additional kind of generated view class are enums that wrap the values of enumeration-typed fields.
+View classes correspond directly to the group (in the DM) whose instances they wrap.
+
+Pointer classes correspond to the group _to_ which the pointer points.
+The classes are specific to that group (rather than to the start of the pointer) because they have a method for each of the group's fields and subgroups, that returns an extended pointer that points to the corresponding field value or subgroup.
+Which ancestor group the pointer _starts_ at, depends on the _instance_ of the pointer class.
+For the compiler, the start of the pointer instance is represented by a generic type parameter of the pointer class.
+This type parameter is instantiated with the view class at which the pointer starts.
+
+// NOTE: don't use `+...+` for the group and DM name in the next line, to better distinguish between
+// group and DM vs the corresponding generated classes
+For example, consider the group "Address" in the "DomainContact" DM (fullName "/Contact/Address"):
+The corresponding view class is `+Address+` and the class for pointers that point to the group "Address" is `+PAddress<S>+`.
+An instance of `+PAddress+` that is relative to (i.e. starts at) the document root will have the type `+PAddress<DomainContact>+` and wrap the DocumentPointer "Contact/Address".
+An instance that is relative to the group "Contact" will have the type `+PAddress<Contact>+` and wrap the `+DocumentPointer+` "Address".
+
+Pointer classes additionally implement the interface `+TypedPointer<S, T>+`, where `+T+` is the corresponding group's view class (i.e. fixed) and `+S+` is the generic type parameter of the pointer class.
+e.g. `+PAddress<S>+` implements `+TypedPointer<S, Address>+`, and an instance with type `+PAddress<DomainContact>+` will be `+instanceof TypedPointer<DomainContact, Address>+`.
+
+Pointers to field values (as opposed to groups) do not have their own generated classes (because they need no field-specific methods), but they are instances of `+TypedPointer<S, T>+` so that `+T+` is the type of the field value and `+S+` is the view class of the group (or document root) at which the pointer instance starts.
+
+Now we know the necessary prerequisites to describe how type-checked pointer based (nested) read and update operations work: +
+Reads: Each view class implements the method `+<T> T _at(TypedPointer<S, T> pointer)+`, where `+S+` is the type of the view class and `+T+` is a generic type parameter.
+Thus, the compiler will check that only pointer instances are passed to the method that do indeed start at `+S+` (i.e. the wrapped pointer points to a valid descendent group or field).
+The compiler can also infer the concrete return type `+T+` of the subgroup instance or field value that is read, based on the pointer class. +
+Writes: View classes also implement the method `+<T> S _with(TypedPointer<S, T> pointer, T update)+`, where again `+S+` is the type of the view class and `+T+` is a generic type parameter.
+This lets the compiler check that the start of the pointer `+S+` matches the view class on which `+_with+` gets called, check the type `+T+` of the subgroup view or field value to be inserted, and infer the type of the returned updated group instance view (again `+S+`). +
+Additionally, view classes have the method `_withInsertedRepetition` which is similar to `+_with+` but only accepts pointers to repeatable groups (they must implement `+TypedRepeatableGroupPointer+`) and works semantically similar to `+GroupInstanceV2#withGroupRepetitionInserted+`.
+
+==== Creating Instances of Views and Typed Pointers
+
+Each view class has the methods `+_empty()+`, which returns a view instance that wraps an empty group or document, and `+_viewOf(groupOrDocInstance)+`, which takes the document or group instance to be wrapped as a parameter.
+
+Pointer instances are created as follows: each _view_ class has a static method `+_pointer()+`, which returns a pointer that _starts_ at the group to which the view class corresponds.
+That pointer instance itself will also _end_ at the same view class, i.e. it will have length zero, but its generated methods can be used to obtain pointers that point to subgroups and fields (and still start at the original view's group).
+e.g. `+DomainContact._pointer().contact().phones(2).phoneNumber()+` will return a typed pointer instance that is `+instanceof TypedPointer<DomainContact, String>+` (because the PhoneNumber field has type String) and that wraps the `+DocumentPointer+` `+"Contact/Phones[2]/PhoneNumber"+`.
+Note how the repetition index of the pointer instance is specified in the call to `+.phones(2)+` +
+In the case of repeatable groups, the parent group's pointer class has a one-parameter method that takes the (one-based) repetition index as a parameter and returns an instance of child group's pointer class that corresponds to a single repetition (like `+phones(2)+` in the example above).
+Additionally, there is an overload of the method that has no parameter; it returns a typed pointer that points to _all_ repetitions of the child group and implements `+TypedPointer<S, List<T>>+`.
+Consequently, that pointer can be used to read or update all repetitions of the group at once, see the corresponding <<typed_document_with_all_repetitions_example,code example>>.
+
+Note that while the type `+TypedPointer<DomainContact, List<Phones>>+` is sufficient for use in reads and updates (`+_at+` and `+_with+`), the `+phones()+` method returns a more specific type `+TypedRepetitionsPointer<DomainContact, Phones, PPhones<DomainContact>>+` that additionally provides a `+.get(oneBasedIndex)+` method which returns a pointer to the specified repetition.
+To preserve this more specific type, we declare the variable as `+var+`, alternatively we could spell out the type explicitly.
+A future version of the code generator might provide a more concisely-named type here.
+
+For more examples on how to use typed views and pointers in general, see the <<overlay_mode_usage_examples,usage examples>>.
+
+// NOTE maybe add a section on naming schema:
+// - _* for "meta" methods that are not defined by the DM
+// - names of DM-Defined classes and methods: upper/lower-casing, PViewName, ?packages?
+
+==== Manual Code-Generation via CLI
+
+[source,bash,indent=0]
+.Generate Typed Accessor Classes Manually
+----
+java -jar \
+    kernel-md-typed-accessor-gen-xx.x.x-TypedAccessorGenerator-CLI.jar \
+    --document-model-file <path-to-document-model-file> \
+    --package-prefix my.package.prefix.x.y.z \
+    --output-dir <path-to-output-directory>
+----
+
+Use the `+--help+` option of the CLI to find out about additional options.
+
+==== Generating Accessor Classses for Document Models with Includes
+
+The code generator supports DMs that use includes.
+In this case, if the same DM is included multiple times within the same root DM, the same accessor classes will be used for the multiple instances of the included DM, and thereby be assignable from each other.
+
+In order to generate accessor classes for a DM with includes, pass the path to the (unexpanded) root DM to the `+--document-model-file+` parameter, and pass the paths to all directly and indirectly included DMs via the `+--additional-models+` parameter.
+
+==== Automatic Code-Generation at Build Time
+
+It is recommended to automatically generate the accessor classes at build time of your project, based on the latest version of the DM.
+This has the advantage that the generated classes are always in sync with the DM, and if the DM has diverged from your code that interacts with the accessor classes, the inconsistency will be immediately detected during compilation of your code.
+
+[source,java,indent=0]
+.Example Gradle Config for Automatic Generation of Typed Accessor Overlays from a DM at Build Time
+----
+include::{gradleConfigExampleFile}[tags=tagGradleConfigExampleForTypedAccessorGenerator]
+----
+
+=== PoJo Classes (`+--mode pojo+`) _DEPRECATED_ [[pojo_mode]]
+
+[NOTE]
+====
+PoJo mode is deprecated and planned for removal in a future release. If you are actively using it and rely on it, please contact the A12 kernel team.
+
+PoJo mode previously was an experimental feature.
+Support for document-specific features like e.g. automatic handling of missing parent groups or repetitions during nested read and update is non-existing or extremely limited.
+====
+
+When the optional argument `+--mode pojo+` is passed to `+TypedAccessorGenerator+`, Java-Bean like PoJo classes will be generated instead of the typed views and pointers.
+
+PoJo mode classes are experimental and provide very limited document-specific support.
+They are only intended for use cases where Bean-like objects are necessary e.g. due to compatibility requirements with external frameworks.
+Projects with such use cases may test if PoJo mode would be helpful for their use case and should report to the Kernel team if they are interested in a stable version of PoJo mode.
+
+It is generally recommended to use the default `+--mode overlay+` instead.
+
+[source,java,indent=0]
+.Usage Example: Create a Document with Generated PoJo Classes
+----
+// DomainContact, Contact and Misc are generated classes that correspond
+// to the DomainContact DM and its subgroups
+DomainContact dc = new DomainContact();
+dc.setContact(new Contact());
+dc.getContact().setMisc(new Misc());
+
+DocumentV2 untyped = dc._toUntyped();
+
+Assertions.assertEquals(
+	DocumentV2.empty("DomainContact")
+		.withGroup("Contact/Misc", GroupInstanceV2.empty()),
+	untyped);
+----
+
+[source,java,indent=0]
+.Usage Example: Create PoJo Instances from an Untyped DocumentV2
+----
+DocumentV2 docV2 = DocumentV2.empty("DomainContact")
+		.withFieldValue("Contact/Misc/Type", "vip");
+
+// DomainContact, Contact, Misc and Type are generated classes/enums that
+// correspond to the DomainContact DM and its subgroups
+DomainContact typedDoc = new DomainContact(docV2);
+Type contactType = typedDoc.getContact().getMisc().getType(); // beware of
+// NullPointerExceptions when chaining getters
+
+Assertions.assertEquals(Type.vip, contactType);
+----
+
+Note that PoJo-mode classes currently need `+com.mgmpt.a12.kernel:kernel-md-util+` (in addition to `+com.mgmpt.a12.kernel:kernel-md-document-v2+`) on the compile classpath, due to the `+@Experimental+` annotation.
+
+== Further Resources
+
+* Javadoc in GetA12 (e.g. for link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/immutable/DocumentV2.html[DocumentV2], link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/immutable/GroupInstanceV2.html[GroupInstanceV2] etc)
+* Usage examples can be found in the GetA12 docs in link:/docs/overall/dev_tutorial_backend_document_access/index.html[Document Access].
+
+
+=== Miscellaneous Code Examples
+
+[source,groovy,indent=0]
+.Kernel Gradle Dependency that is used by the Code Snippets in this Guide (except Typed Accessors)
+// see docs/ci-tested-code-examples/kernel-docs-java-snippets/build.gradle
+----
+// ...
+dependencies {
+    implementation "com.mgmtp.a12.kernel:kernel-md-facade:$kernel_version"
+}
+----
+
+Note that the typed accessor classes may need additional dependencies or can be used with more fine-grained Kernel dependencies, see the corresponding gradle code snippet for details.
+
+[[create_documentv1v2converter]]
+[source,java,indent=0]
+.Get an IDocumentV1V2Converter
+----
+include::{codeSnippetsExampleFile}[tags=tagCreateIDocumentV1V2Converter]
+----
+
+[[docV2_serialize_deserialize_setup]]
+[source,java,indent=0]
+.Setup for DocumentV2 Serialization and Deserialization
+----
+include::{codeSnippetsExampleFile}[tags=tagCreateDocumentSetupForSerialization]
+----
+
+...code snippet continued in <<docV2_serialize_deserialize>>.
+[source,java,indent=0]
+.Fully Qualified Names of the Document V2 API Types
+----
+include::{codeSnippetsExampleFile}[tags=tagUntypedDocV2APIImports]
+----
+
+[source,java,indent=0]
+.Fully Qualified Names of other Types from Kernel that Occur in this Guide
+----
+include::{codeSnippetsExampleFile}[tags=tagOtherImports]
+----

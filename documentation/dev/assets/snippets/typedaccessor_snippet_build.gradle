@@ -1,0 +1,80 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+}
+// @formatter:off // disable autoformatter, because it could break code snippets that are included in the documentatiton
+
+description = "Example Gradle Config for Automatic Generation of Typed Accessor Overlays from a DM at Build Time. " +
+        "This files is included in the GetA12 Developer Documentation for Document API V2 (DocumentAPIV2Java.adoc)"
+
+// tag::tagGradleConfigExampleForTypedAccessorGenerator[]
+// ... (at minimum the java or java-library gradle plugins should be applied)
+configurations {
+    runTypedAccessorGeneratorConfig
+}
+
+def generatedTypingsOutputDir = layout.buildDirectory.dir("generatedTypings").get().asFile
+
+sourceSets {
+    generatedTypings {
+        java {
+            srcDir(generatedTypingsOutputDir)
+        }
+    }
+    test { // for prod code, configure the main source set rather than test
+        java {
+            compileClasspath += sourceSets.generatedTypings.output
+            runtimeClasspath += sourceSets.generatedTypings.output
+        }
+    }
+}
+
+dependencies {
+
+    // users outside the kernel project should declare the following instead of the project dependency:
+    // "com.mgmtp.a12.kernel:kernel-md-document-v2:${kernelVersion}"
+    generatedTypingsImplementation project(':kernel-md-document-v2')
+
+    // users outside the kernel project should declare the following
+    // instead of the project dependency:
+    // runTypedAccessorGeneratorConfig group: 'com.mgmtp.a12.kernel', name: 'kernel-md-typed-accessor-gen', version: <kernelVersion>, classifier: 'TypedAccessorGenerator-CLI'
+    runTypedAccessorGeneratorConfig project(path: ':kernel-md-typed-accessor-gen', configuration: 'typedAccessorGeneratorCLIConfig')
+
+    // note: when --mode pojo is used for the typings generator, generatedTypingsImplementation
+    // needs an additional dependency on base-model-utils (for the @Experimental annotation)
+    testImplementation project(':kernel-md-document-v2')
+
+    // kernel-md-facade is not necessary for the typed accessors or documents themselves,
+    // but used here in related code that uses the accessors.
+    // Users outside the kernel project should declare the following instead of the project dependency:
+    // "com.mgmtp.a12.kernel:kernel-md-facade:${kernelVersion}"
+    testImplementation project(':kernel-md-facade')
+
+    // not relevant for the code generation, only used to test the code examples:
+    testImplementation testLibs.junitJupiter
+    testImplementation testLibs.junitJupiterApi
+
+    testRuntimeOnly testLibs.junitPlatformLauncher
+}
+
+tasks.register('runTypedAccessorGenerator', JavaExec) {
+    // classpath contains only the executable jar
+    // kernel-md-typed-accessor-gen-xx.x.x-TypedAccessorGenerator-CLI.jar
+    classpath = configurations.runTypedAccessorGeneratorConfig
+    // specify the mainClass explicitly, because implicit spec via
+    // the executable jar's attributes can be unreliable
+    mainClass = 'com.mgmtp.a12.kernel.md.document.typed_accessor_gen.TypedAccessorGenerator'
+
+    // dmFilePath must be either a file system path, or a path that
+    // can be resolved from the classpath
+    def dmFilePath = project.projectDir.toPath().resolve(
+            "src/test/resources/document-models/domaincontact/DomainContact.json")
+    def packagePrefix = "my.generated.typings.domaincontact"
+
+    // use args '--help' for more info on the cli syntax
+    args '--document-model-file', dmFilePath,
+            '--package-prefix', packagePrefix,
+            '--output-dir', generatedTypingsOutputDir
+}
+
+tasks.compileGeneratedTypingsJava.dependsOn(runTypedAccessorGenerator)
+// end::tagGradleConfigExampleForTypedAccessorGenerator[]

@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    alias libs.plugins.lombok
+}
+
+group = 'com.mgmtp.a12.kernel'
+version = "28.2.0"
+description = 'kernel-core-customfieldtype-api'
+
+// for reproducible builds:
+tasks.withType(AbstractArchiveTask).configureEach {
+    // reproducible archives:
+    it.preserveFileTimestamps = false
+    it.reproducibleFileOrder = true
+    // Use permissions from the file system - we probably want this set to false for reproducibility, but it is only available in gradle 9
+    // useFileSystemPermissions()
+
+    //include license files as meta info
+    from("..") {
+        include "LICENSE"
+        include "NOTICE"
+        include "THIRD_PARTY_NOTICES"
+        include "licenses/**"
+        into("META-INF")
+    }
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Javadoc).configureEach {
+    // can be used to ignore warnings
+    failOnError = false
+
+    exclude("**/internal", "**/a12internal")
+
+    options {
+        encoding "UTF-8"
+        bottom "<![CDATA[Copyright (c) 2015 mgm technology partners GmbH]]>"
+        links "https://docs.oracle.com/en/java/javase/11/docs/api/"
+
+        // disable this if you want recommendations
+        quiet()
+        memberLevel = JavadocMemberLevel.PUBLIC
+        locale = Locale.US.getLanguage()
+    }
+}
+javadoc.options.addStringOption('Xdoclint:none', '-quiet')
+
+
+publishing {
+    publications {
+        maven(org.gradle.api.publish.maven.MavenPublication) {
+            from(components.java)
+        }
+    }
+}

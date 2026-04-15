@@ -1,0 +1,3 @@
+StringParameter(t) ::= <<
+"<t.value>"
+>>

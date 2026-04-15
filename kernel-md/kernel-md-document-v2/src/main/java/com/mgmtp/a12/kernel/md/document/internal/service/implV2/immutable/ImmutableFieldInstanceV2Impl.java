@@ -1,0 +1,90 @@
+/*
+ * SPDX-License-Identifier: EUPL-1.2 OR LicenseRef-commercial
+ *
+ * Copyright (c) 2012-2026 mgm technology partners GmbH
+ *
+ * Dual License
+ * ------------
+ * This source file is part of the mgm A12 Platform and available under
+ * a choice of two different licenses:
+ *
+ * 1. Open-Source License – EUPL v1.2
+ *    You may redistribute and/or modify this file under the terms of the
+ *    European Union Public License, version 1.2 - see https://eupl.eu/.
+ *
+ * 2. Commercial License
+ *    Alternatively, you may obtain a commercial license from
+ *    mgm technology partners GmbH, that permits use of this software
+ *    under different terms (including support and maintenance services).
+ *
+ *    Please contact a12-license@mgm-tp.com for more information.
+ *
+ * You must select and comply with exactly one of the above license options.
+ *
+ * Warranty Disclaimer (applies to either option)
+ * ----------------------------------------------
+ * THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND,
+ * WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
+ * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
+ */
+
+package com.mgmtp.a12.kernel.md.document.internal.service.implV2.immutable;
+
+import com.mgmtp.a12.kernel.md.document.apiV2.immutable.FieldInstanceV2;
+import com.mgmtp.a12.kernel.md.document.internal.service.implV2.DocumentV2InternalUtils;
+import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion;
+import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV2;
+
+public class ImmutableFieldInstanceV2Impl implements FieldInstanceV2 {
+	private final Object value;
+
+	private ImmutableFieldInstanceV2Impl(Object value) {
+		this.value = BasicTypeV2.checkType(value);
+	}
+
+	/**
+	 * see {@link FieldInstanceV2#ofValue(Object)}
+	 */
+	public static ImmutableFieldInstanceV2Impl ofValueInternal(Object value) {
+		return new ImmutableFieldInstanceV2Impl(value);
+	}
+
+	/**
+	 * see {@link FieldInstanceV2#ofV1Value(Object)}
+	 *
+	 * @deprecated only relevant for interoperability with the document V1 API. With {@link BasicTypeV2} values,
+	 *        {@link #ofValueInternal(Object)} can be used instead.
+	 */
+	@Deprecated(since = "30.0.0")
+	public static ImmutableFieldInstanceV2Impl ofV1ValueInternal(Object value) {
+		return ofValueInternal(BasicTypeV1V2Conversion.basicTypeV1ToV2(value));
+	}
+
+	/**
+	 * like {@link FieldInstanceV2#value()} but in case of mutable
+	 * value objects, this method will return a defensive copy of the value object. (if the value object
+	 * is of a class that is known and expected for field values.
+	 */
+	@Override public Object value() {
+		return value;
+	}
+
+	@Override public ImmutableFieldInstanceV2Impl withValue(Object value) {
+		return new ImmutableFieldInstanceV2Impl(value);
+	}
+
+	@Override public int hashCode() {
+		return DocumentV2InternalUtils.hashField(this);
+	}
+
+	@SuppressWarnings("EqualsDoesntCheckParameterClass") // is checked in equalsFields
+	@Override public boolean equals(Object obj) {
+		return DocumentV2InternalUtils.equalsField(this, obj);
+	}
+
+	@Override public String toString() {
+		return DocumentV2InternalUtils.fieldToString(this);
+	}
+}

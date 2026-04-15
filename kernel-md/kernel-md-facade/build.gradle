@@ -1,0 +1,72 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.kernelJsConventions
+    alias libs.plugins.lombok
+
+}
+
+description = "service facade for services provided by kernel, for example runtime services like validation or computation"
+
+configurations {
+}
+
+dependencies {
+    api project(':kernel-core-tool-api')
+    api project(':kernel-md-document-api') // api because of e.g. DocumentServiceFactory.createDocumentService
+    api project(":kernel-md-document-v2")
+    api project(':kernel-md-model-api')  // api because of e.g. DocumentModelServiceFactory.createDocumentModelSerializer
+    api project(':kernel-md-runtime-api') // api because of e.g. DocumentRtServiceFactory.createDocumentRtService
+    api libs.kernelCoreCustomfieldtypeApi // api because of e.g.  DocumentRtCustomExtensionService.registerCustomFieldTypes
+
+    compileOnly project(':kernel-md-util')
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation libs.baseModelApi
+    implementation libs.baseModelConsistency
+    implementation libs.commonsLang3
+    implementation libs.kernelCoreRuntimeApi
+    implementation project(':kernel-conversion-java')
+    implementation project(':kernel-core-base-utils')
+    implementation project(':kernel-md-a12internal')
+    implementation project(':kernel-md-model')
+    implementation project(':kernel-md-model-migration')
+    implementation project(':kernel-md-runtime-service')
+    implementation project(':kernel-md-serializer')
+
+
+}
+
+
+tasks.register('make_BatchDocumentModelExpanderCli', Jar) {
+    dependsOn configurations.runtimeClasspath
+    dependsOn sourceSets.main.output
+    from {
+        sortAndConvertClasspathEntriesForFatJar(
+                sourceSets.main.output
+                        + configurations.runtimeClasspath
+        )
+    }
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
+    archiveClassifier = "BatchDocumentModelExpander"
+    manifest {
+        attributes "Main-Class": "${A12_kernel_group_id}.md.facade.cli.BatchDocumentModelExpander"
+    }
+}
+
+tasks.named('npm_compile') { Task it ->
+    addBuildTaskDependency(it, ':kernel-core-runtime-api-ts', ':kernel-core-runtime-ts')
+}
+
+tasks.named('assemble') {
+    dependsOn tasks.named('make_BatchDocumentModelExpanderCli')
+}
+
+
+publishing {
+    publications {
+        maven(org.gradle.api.publish.maven.MavenPublication) {
+            // already includes sources jar and javadoc jar
+            artifact make_BatchDocumentModelExpanderCli
+        }
+    }
+}

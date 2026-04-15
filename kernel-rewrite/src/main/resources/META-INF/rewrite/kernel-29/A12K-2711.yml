@@ -1,0 +1,19 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.29.A12K-2711
+displayName: Migration for A12K-2711
+description: Migration for A12K-2711.
+recipeList:
+  # public API
+  - org.openrewrite.java.SimplifyMethodChain:
+      methodPatternChain: [
+        'com.mgmtp.a12.kernel.md.model.api.fieldtypes.ITypeDefType getTypeDefinition()',
+        'com.mgmtp.a12.kernel.md.model.api.IDocumentModelObjectReference getId()']
+      newMethodName: getId
+      matchOverrides: false
+  - org.openrewrite.java.SimplifyMethodChain:
+      methodPatternChain: [
+        'com.mgmtp.a12.kernel.md.model.api.fieldtypes.ITypeDefType getTypeDefinition()',
+        'com.mgmtp.a12.kernel.md.model.api.IDocumentModelObjectReference getDocumentModelObject()']
+      newMethodName: getTypeDefinition
+      matchOverrides: false

@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "./lib",
+    "./node_modules",
+    "./build"
+  ],
+  "compilerOptions": {
+    "outDir": "./lib",
+    "rootDir": "./src",
+    "downlevelIteration": true
+  },
+  "typedocOptions": {
+    "name": "Validation Runtime",
+    "out": "./doc",
+    "theme": "default",
+    "excludeInternal": "false",
+    "entryPointStrategy": "expand",
+    "exclude": ["**/a12internal/**/*.ts", "**/internal/**/*.ts", "**/node_modules/**"]
+  }
+}

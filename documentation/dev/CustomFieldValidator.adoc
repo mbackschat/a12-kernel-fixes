@@ -1,0 +1,110 @@
+//// 
+SPDX-License-Identifier: EUPL-1.2 OR LicenseRef-commercial
+Copyright (c) 2012-2026 mgm technology partners GmbH
+Dual License
+This source file is part of the mgm A12 Platform and available under a choice of two different licenses:
+1. Open-Source License – EUPL v1.2
+You may redistribute and/or modify this file under the terms of the European Union Public License, version 1.2 - see https://eupl.eu/.
+2. Commercial License
+Alternatively, you may obtain a commercial license from mgm technology partners GmbH, that permits use of this software under different terms (including support and maintenance services).
+
+Please contact a12-license@mgm-tp.com for more information.
+    
+You must select and comply with exactly one of the above license options.
+
+Warranty Disclaimer (applies to either option)
+THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS. 
+////
+
+:snippetBaseDir: ./assets/snippets
+// NOTE: the paths in these variables get replaced by the build system when both the adoc file and the source files
+// get copied to the ./build directory. The variables must be defined between the "// SNIPPET_START" and "// SNIPPET_END"
+// markers, and each must follow the format: ":<name>: {snippetBaseDir}/<path>".
+// SNIPPET_START
+:codeSnippetsCustomFieldTypeJava: {snippetBaseDir}/TestCustomFieldTypeSnippetsForDocs.java
+:codeSnippetsCustomFieldTypeTs: {snippetBaseDir}/custom-field-type.ts
+// SNIPPET_END
+
+= Custom Field Type
+
+_Custom Field Types_ can be used for a project-specific field validation that cannot be adequately checked using regular expressions, etc., because, for example, a check digit procedure is used.
+Examples are credit card number, insurance number, IBAN, BIC. The implementation must be provided by the user for Java and TypeScript.
+
+[NOTE]
+====
+The Kernel validation and thus especially _Custom Field Types_ (as part of it) are designed exclusively for the validation of values of a document.
+Further validations should be implemented at the appropriate extension point (e.g. see the documentation of Data Services for the backend or Form Engine for the frontend).
+The interface is intended for fast, synchronous validations.
+More time-consuming validations or those that require access to third-party systems should not be placed here.
+====
+
+*Example:*
+It is required to model a field for a credit card number with a specific validation.
+In this case you can use _Custom Field Type_ as follows:
+
+== Create a field of type _Custom_
+
+With the A12 SME, you can create a field of type _Custom_ and give it a name, e.g. "MyCreditCardNumber".
+
+== Implement your own logic
+
+In the Java-project, define the dependency to `com.mgmtp.a12.kernel:kernel-core-customfieldtype-api` and implement the validation logic
+(if your code depends on `com.mgmtp.a12.kernel:kernel-md-facade` it is already available as a transient dependency):
+
+[source,java]
+----
+include::{codeSnippetsCustomFieldTypeJava}[tags=CustomFieldValidator,indent=0;!exclude]
+----
+
+In TypeScript, implement the same validation logic as in Java (APIs are included in `@com.mgmtp.a12.kernel/kernel-md-facade`):
+
+[source,javascript]
+----
+include::{codeSnippetsCustomFieldTypeTs}[tags=implementCustomFieldType]
+----
+
+== Create your _Custom Field Type Factory_
+
+A _Custom Field Type Factory_ defines the mapping between the name specified for the _Custom Field Type_ (in this example "MyCreditCardNumber") and the corresponding _Custom Field Validator_.
+
+In Java:
+
+[source,java]
+----
+include::{codeSnippetsCustomFieldTypeJava}[tags=MyCustomFieldTypeFactory,indent=0]
+
+include::{codeSnippetsCustomFieldTypeJava}[tags=CustomFieldTypeFactoryFromMap,indent=0]
+----
+
+In TypeScript:
+
+[source,javascript]
+----
+include::{codeSnippetsCustomFieldTypeTs}[tags=MyCustomFieldTypeFactory]
+----
+
+== Provide your _Custom Field Type Factory_
+
+In Java:
+
+[source,java,indent=0]
+----
+include::{codeSnippetsCustomFieldTypeJava}[tags=registerCustomFieldTypes]
+----
+
+In TypeScript:
+
+[source,javascript,indent=0]
+----
+include::{codeSnippetsCustomFieldTypeTs}[tags=registerCustomFieldTypes]
+----
+
+*Note for validation/computation in TypeScript:* If there is a difference between the display value and the internal value for the defined custom field type and if you are working with the display value, make sure to configure the corresponding presentation information by adding one of the following keys (for more information see the documentation of the class _DataFormats_):
+
+* convertCustomFieldTypesList
+* convertCustomFieldTypesAll
+
+== Custom error messages for custom field types
+
+If custom field types provided by Kernel can be used, but associated error messages are either inappropriate for the project or do not exist in the necessary locale, they can be provided by the project.
+A description of this can be found at <<Custom Error Messages>>.

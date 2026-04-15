@@ -1,0 +1,17 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+}
+
+description = "preparation of the calculation information"
+
+dependencies {
+    api project(':kernel-core-base-utils')
+    api project(':kernel-core-parser')
+    api project(':kernel-core-parsetree-api')
+    api project(':kernel-core-tool-api')
+
+    implementation project(':kernel-core-extmpspecifics')
+    implementation libs.baseModelConsistency
+    implementation libs.commonsLang3
+
+}

@@ -1,0 +1,64 @@
+{
+  "name": "@com.mgmtp.a12.kernel/kernel-codemod",
+  "version": "30.8.1",
+  "author": "mgm technology partners",
+  "license": "(EUPL-1.2 OR LicenseRef-commercial)",
+  "scripts": {
+    "start": "tsc --watch --preserveWatchOutput --noUnusedLocals false",
+    "clean": "rimraf lib coverage",
+    "lint": "npm run compile:eslint",
+    "compile": "run-s compile:*",
+    "compile:eslint": "eslint src --quiet",
+    "compile:typescript": "tsc",
+    "test": "jest --ci",
+    "test:update": "jest -u",
+    "eslint:fix": "eslint src --quiet --fix",
+    "prepack": "node ../../scripts/prepack-clean.js",
+    "postpack": "node ../../scripts/postpack-restore.js"
+  },
+  "files": [
+    "src",
+    "lib",
+    "bin",
+    "README.md",
+    "!**/__tests__/**/*"
+  ],
+  "bin": {
+    "kernel-codemod": "./bin/kernel-codemod"
+  },
+  "dependencies": {
+    "jscodeshift": "^17.3.0",
+    "yargs": "^17.7.2"
+  },
+  "bundledDependencies": [
+    "jscodeshift",
+    "yargs"
+  ],
+  "jest-junit": {
+    "outputDirectory": "build/npm_reports",
+    "outputName": "TEST-com.mgmtp.a12.kernel-kernel-codemod.xml",
+    "suiteName": "com.mgmtp.a12.kernel.kernel-codemod"
+  },
+  "devDependencies": {
+    "@babel/helpers": "^7.28.4",
+    "@com.mgmtp.a12.devtools/tsconfig": "^1.1.0",
+    "@com.mgmtp.a12.devtools/eslint-config": "^3.1.0",
+    "@com.mgmtp.a12.devtools/prettier-config": "^1.1.0",
+    "@types/jest": "^30.0.0",
+    "@types/jscodeshift": "^17.3.0",
+    "@types/node": "^24.10.4",
+    "@types/react": "^19.2.7",
+    "@types/yargs": "^17.0.35",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-notice": "^1.0.0",
+    "jest": "^30.2.0",
+    "jest-junit": "^16.0.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.7.4",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": ">=5.9.3 <6.0.0",
+    "typescript-eslint": "^8.51.0"
+  }
+}

@@ -1,0 +1,126 @@
+plugins {
+    id("base")
+    id("maven-publish")
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+
+    //exclude any third party license files, third party license files are handled by our THIRD_PARTY_NOTICES file
+    exclude 'META-INF/*LICENSE*'
+    exclude 'META-INF/*NOTICE*'
+    exclude 'META-INF/*THIRD_PARTY_NOTICES*'
+
+    //include our licenses license files as meta info
+    from(rootProject.rootDir) {
+        include "LICENSE"
+        include "NOTICE"
+        include "THIRD_PARTY_NOTICES"
+        include "licenses/**"
+        into("META-INF")
+    }
+}
+
+ext {
+    // depend on a specific task and its outputs
+    // helps the up-to-date check to see if really up-to-date and not only the dependent task
+    dependsOnOutputs = { Task self, task ->
+        def otherTask
+        if (task instanceof Task) {
+            otherTask = task
+        } else {
+            // it's a task name
+            otherTask = tasks.getByPath(task)
+        }
+
+        self.dependsOn(otherTask)
+        self.inputs.files(otherTask.outputs.getFiles())
+    };
+
+    // capture stdout & stderr, and only print it in case of failure
+    hideExecTaskOutputUnlessFailure = { Task task, boolean printErrors = true ->
+        assert task instanceof Exec || task instanceof JavaExec:
+                "hideExecTaskOutputUnlessFailure only works for Exec or JavaExec (tasks that have the necessary properties)"
+        task.standardOutput = new ByteArrayOutputStream()
+        task.errorOutput = new ByteArrayOutputStream()
+        task.ignoreExitValue = true
+        task.doLast {
+            def stdout = task.standardOutput.toString()
+            def stderr = task.errorOutput.toString()
+
+            if (task.executionResult.get().getExitValue() > 0 && printErrors) {
+                println(task.executionResult.get().getExitValue())
+                println(stdout)
+                println(stderr)
+
+                throw new RuntimeException("Error: error during " + task.name)
+            }
+        }
+    }
+
+    // add the inputs of a task to its outputs. Is used for up-to-date checks and caching for tasks that
+    // are used to group other tasks.
+    setOutputsFromInputs = { Task task ->
+        task.outputs.files(task.inputs.files.filter { File f -> f.isFile() })
+        task.outputs.dirs(task.inputs.files.filter { File f -> !f.isFile() })
+    }
+
+    // print the inputs and outputs of a task
+    printInputsAndOutputs = { Task task ->
+        task.outputs.upToDateWhen { false }
+        task.doFirst {
+            println "=== Inputs ==="
+            inputs.files.each { println "Input file: $it" }
+
+            println "=== Outputs ==="
+            outputs.files.each { println "Output file: $it" }
+        }
+    }
+
+    // Deep copy & modify the JSON tree
+    filterJsonLeaves = { node, filterRegex  ->
+        if (node instanceof Map) {
+            // Recursively transform the map
+            node.collectEntries { k,v -> [k, filterJsonLeaves(v, filterRegex)] }
+        } else if (node instanceof List) {
+            // Recursively transform the list
+            node.collect { filterJsonLeaves(it, filterRegex) }
+        } else {
+            // node is a leaf; yield conditionally
+            def test =  (node instanceof String) && (node as String).matches(filterRegex)
+            if ( test) {
+               //To DEBUG: println "removed node ${node}"
+            } else {
+                return node
+            }
+        }
+    }
+}
+
+String A12_kernel_version() {
+    // wrap this in a method instead of a variable, because it appears we are getting "missing property" errors (sometimes?) otherwise
+    return libs.config.versions["a12KernelVersion"].version.toString();
+}
+
+String A12_kernel_runtime_artifact_id() {
+    return libs.a12KernelRuntimeArtifactId.get().module.name
+}
+
+String A12_kernel_runtime_ext_java_artifact_id() {
+    return libs.a12KernelRuntimeExtJavaArtifactId.get().module.name
+}
+
+String A12_kernel_runtime_api_version() {
+    return libs.kernelCoreRuntimeApi.get().versionConstraint.toString()
+}
+
+group = A12_kernel_group_id
+version = A12_kernel_version()
+
+ext { // make this available to the subproject build scripts
+    A12_kernel_version = this.&A12_kernel_version
+    // this is a zero-argument method, not a variable (avoid "unknown property" errors)
+    A12_kernel_runtime_artifact_id = this.&A12_kernel_runtime_artifact_id
+    A12_kernel_runtime_ext_java_artifact_id = this.&A12_kernel_runtime_ext_java_artifact_id
+    A12_kernel_runtime_api_version = this.&A12_kernel_runtime_api_version
+}
+

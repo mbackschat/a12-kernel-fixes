@@ -1,0 +1,28 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "Implementation of services to (de-) serialize documents or document models"
+
+dependencies {
+    api project(':kernel-core-tool-api')
+    api project(':kernel-md-a12internal')
+    api project(':kernel-md-document-api')
+    api project(':kernel-md-document-v2')
+    api project(':kernel-md-model-api')
+    api project(':kernel-conversion-java')
+    api libs.baseModelConsistency
+    api libs.jacksonCore
+    api libs.jacksonDatabind
+
+    compileOnly project(':kernel-md-util')
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation project(':kernel-core-base-utils')
+    implementation libs.baseModelApi
+    implementation libs.commonsLang3
+    implementation libs.jacksonAnnotations
+
+
+}

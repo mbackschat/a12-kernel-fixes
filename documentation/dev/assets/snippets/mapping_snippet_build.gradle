@@ -1,0 +1,96 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+}
+
+description = "Code snippets for mapping to be used in docs (via automatic inclusion), that are compiled & executed on every gradle build to ensure that they really work"
+
+// @formatter:off // disable autoformatter, because it could break code snippets that are included in the documentatiton
+
+// NOTE the snippet/tag below is not currently used, but might be useful for
+// the docs with some additional cleanup.
+// tag::tagGenerateAndCompileMappingCodeGradle[]
+// ...
+configurations {
+    mappingCodegenCLI
+}
+
+dependencies {
+    mappingCodegenCLI(project(":kernel-md-datatransfer-codegen"))
+    mappingCodegenCLI(project(":kernel-md-datatransfer-codegen")) {
+        artifact {
+            classifier = "MappingCodeGenerator-CLI"
+        }
+    }
+
+    // Note: replace the project dependencies with the
+    // public coordinates of the corresponding artifacts
+    testImplementation project(":kernel-mapping-rt-facade")
+    testImplementation project(":kernel-md-facade")
+    // NOTE before including any of this in the docs, we'd need a solution
+    // without kernel-internal test util classes
+    testImplementation project(":kernel-internal-test-md-utils")
+    testImplementation project(":kernel-internal-test-frame-md-rt")
+
+    // for compiling the generated code:
+    // - this could also be a separate source set, or be done
+    // independently via the bundled build.grade
+    // Outside of the kernel project, this dependency would be
+    // "com.mgmtp.a12.kernel:kernel-core-runtime-<major>-<minor>:<version>"
+    testImplementation project(":${A12_kernel_runtime_artifact_id()}")
+
+    testImplementation testLibs.junitJupiterApi
+    testImplementation libs.kernelCoreRuntimeApi
+    testImplementation project(':kernel-mapping-rt-api')
+    testImplementation project(':kernel-md-document-v2')
+    testImplementation project(':kernel-md-model-api')
+    testImplementation project(':kernel-md-runtime-api')
+
+    testRuntimeOnly testLibs.junitJupiterParams
+    testRuntimeOnly testLibs.junitJupiterEngine
+}
+
+def mappingModelName = "example_mapping_model_for_docs"
+def modelsDir = project.projectDir.toPath().resolve("src/main/resources/sample1")
+def outPath = project.buildDir.toPath().resolve("generatedMappingCode")
+def mappingCodeZipFile = outPath.resolve("${mappingModelName}.zip").toFile()
+// NOTE: the codegen CLI can also be run as an executable jar from the command line.
+// The config below is not necessarily the expected typical way to use it, but
+// is more tailored to the full automatic execution in the CI builds of the docs
+task generateMappingCode(type: JavaExec) {
+    doFirst {
+        if (mappingCodeZipFile.exists()) {
+            mappingCodeZipFile.delete()
+        }
+    }
+    inputs.dir(modelsDir)
+    classpath = configurations.mappingCodegenCLI
+    mainClass = "com.mgmtp.a12.kernel.mapping.cli.MappingModelCodegenCLI"
+    args("--mapping-model-id", mappingModelName,
+            "--models-dir", modelsDir,
+            // this is the package prefix that later needs to be passed to
+            // MappingServiceFactory.createMappingService
+            "--package-prefix", "some.packageprefix.for_the.generated.mapping_code",
+            "--output-dir", outPath.toString()
+    )
+    outputs.file(mappingCodeZipFile)
+}
+
+def extractedMapingCodeDir = project.buildDir.toPath().resolve("extractedGeneratedMappingCode")
+task extractGeneratedMappingSources(type: Copy) {
+    dependsOn(tasks.generateMappingCode)
+    from(zipTree(mappingCodeZipFile))
+    into extractedMapingCodeDir
+}
+
+sourceSets {
+    test {
+        java {
+            srcDir(extractGeneratedMappingSources)
+        }
+        resources { // also add the gencode to the resources (some generated files are not java sources)
+            srcDir(extractGeneratedMappingSources)
+        }
+    }
+}
+// end::tagGenerateAndCompileMappingCodeGradle[]
+

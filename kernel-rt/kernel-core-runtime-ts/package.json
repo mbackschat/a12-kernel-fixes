@@ -1,0 +1,65 @@
+{
+  "name": "@com.mgmtp.a12.kernel/kernel-core-runtime-ts",
+  "version": "30.8.1",
+  "description": "kernel core runtime",
+  "scripts": {
+    "lint": "npm run internal:eslint",
+    "clean": "rimraf ./lib ./doc ./LINT-com.mgmtp.a12.kernel-*.xml ./build/npm_reports/TEST-com.mgmtp.a12.kernel-*.xml",
+    "compile": "npm-run-all --parallel --max-parallel 2 internal:compile:**",
+    "doc": "npm run internal:doc:typedoc",
+    "test": "npm-run-all --parallel --max-parallel 2 internal:test:**",
+    "dev": "npm run compile",
+    "internal:doc:typedoc": "typedoc ./src/main --readme none",
+    "internal:compile:typescript": "tsc",
+    "internal:mocha": "mocha --timeout 60000 --ui tdd --sort --recursive ./lib/test",
+    "internal:test:mocha": "npm run internal:mocha -- --reporter xunit --reporter-options output=./build/npm_reports/TEST-com.mgmtp.a12.kernel-kernel-core-runtime-ts.xml",
+    "internal:eslint": "eslint \"./src/**/*.ts\" --max-warnings 0 -f junit -o build/npm_reports/TEST-eslint-report.xml",
+    "prepack": "node ../../scripts/prepack-clean.js",
+    "postpack": "node ../../scripts/postpack-restore.js"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./lib/main/js/internal/index.js",
+  "types": "./lib/main/js/internal/index.d.ts",
+  "exports": {
+    ".": "./lib/main/js/index.js",
+    "./internal": "./lib/main/js/internal/index.js",
+    "./lib/*": "./lib/*"
+  },
+  "author": "mgm technology partners",
+  "license": "(EUPL-1.2 OR LicenseRef-commercial)",
+  "dependencies": {
+    "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts": "30.8.1",
+    "big.js": "^7.0.1"
+  },
+  "devDependencies": {
+    "@com.mgmtp.a12.devtools/tsconfig": "^1.1.0",
+    "@com.mgmtp.a12.devtools/prettier-config": "^1.1.0",
+    "@com.mgmtp.a12.kernel/kernel-eslint-config": "30.8.1",
+    "@com.mgmtp.a12.utils/utils-collections": "^6.2.0",
+    "@com.mgmtp.a12.utils/utils-localization": "^7.2.0",
+    "@com.mgmtp.a12.utils/utils-logging": "^6.2.0",
+    "@cyclonedx/cyclonedx-npm": "^4.1.2",
+    "@types/big.js": "^6.2.2",
+    "@types/luxon": "^3.7.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.19.3",
+    "mocha": "^11.7.5",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.7.4",
+    "tsconfig-paths": "^4.2.0",
+    "typedoc": "^0.28.15",
+    "typescript": ">=5.9.3 <6.0.0"
+  },
+  "peerDependencies": {
+    "@com.mgmtp.a12.utils/utils-collections": "^6.2.0",
+    "@com.mgmtp.a12.utils/utils-localization": "^7.2.0",
+    "@com.mgmtp.a12.utils/utils-logging": "^6.2.0"
+  },
+  "files": [
+    "lib/main",
+    "src/main/js",
+    "tsconfig.json",
+    "cyclonedx.json"
+  ]
+}

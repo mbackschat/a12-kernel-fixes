@@ -1,0 +1,255 @@
+plugins {
+    id("com.mgmtp.a12.kernel.kernel-base-conventions")
+    id 'idea'
+}
+
+ext { // make this available to the subproject build scripts
+    npm_buildDir = "lib"
+    npm_sourceDir = "src"
+    npm_resourcesOutDir = "$npm_buildDir/main/js/internal"
+    npm_testDir = "$npm_buildDir/test"
+    npm_testResourcesOutDir = "$npm_testDir/resources"
+
+    String osName = System.getProperty("os.name").toLowerCase()
+    isWindows = {
+        return osName.contains("windows")
+    }
+    npm_executableName = { name ->
+        return name + (isWindows() ? ".cmd" : "")
+    }
+    npm_executableAbsolutePath = { name ->
+        return file(npm_executableName(name)).toString()
+    }
+
+    npm_executable = npm_executableName("npm")
+    npx_executable = npm_executableName("npx")
+
+    npm_reportDir = layout.buildDirectory.dir('npm_reports').get()
+    npm_lintOutput = "$npm_reportDir/TEST-eslint-report.xml"
+    npm_testOutput = "$npm_reportDir/TEST-${A12_kernel_group_id}-${project.name}.xml"
+    npm_cyclonedxOutput_unfiltered = "cyclonedx-unfiltered.json"
+    npm_cyclonedxOutput = "cyclonedx.json"
+
+    npm_MetaInfDir = "META-INF"
+
+    npm_packDir = layout.buildDirectory.dir('libs').get()
+    npm_packOutput = "${A12_kernel_group_id}-${project.name}-${A12_kernel_version()}.tgz"
+
+    npm_groupName = "npm"
+
+    configureSonar = { Project proj ->
+    }
+
+    addBuildTaskDependency = { Task self, String... projectNames ->
+        projectNames.each { String projectName ->
+            self.inputs.files(project(projectName).tasks.named { it == 'npm_build' })
+            self.mustRunAfter(project(projectName).tasks.named { it == 'npm_assemble' })
+            self.mustRunAfter(project(projectName).tasks.named { it == 'npm_prepareTest' })
+        }
+    }
+}
+
+idea {
+    module {
+        excludeDirs += [file('node_modules'), file(npm_buildDir)]
+    }
+}
+
+tasks.register('npm_version', Exec) {
+    group = npm_groupName
+
+    commandLine "$npm_executable", "version"
+}
+
+tasks.register('npm_clean', Delete) {
+    group = npm_groupName
+
+    doFirst {
+        println("files will be cleaned, this is NOT a call to npm run clean")
+    }
+    delete project.layout.buildDirectory
+    delete file(npm_buildDir)
+    delete file(npm_MetaInfDir)
+}
+
+tasks.register('npm_cleanNodeModules', Delete) {
+    group = npm_groupName
+    dependsOn(tasks.named('npm_clean'))
+
+    delete "node_modules"
+}
+
+// this task is only for manual use, npm_compile etc. depend directly on `:kernel-ts:npm_install`
+tasks.register('npm_install') {
+    group = npm_groupName
+
+    dependsOn project(':kernel-ts').tasks.named { it == 'npm_install' }
+}
+
+tasks.register('npm_lint', Exec) {
+    group = npm_groupName
+    // needs install for the eslint executable
+    dependsOn tasks.named('npm_install')
+    inputs.file(new File(project(":kernel-ts").getProjectDir(), "eslint-config/index.mjs"))
+    inputs.files(fileTree(npm_sourceDir))
+    inputs.files('eslintrc.config.mjs')
+    outputs.file(npm_lintOutput)
+
+    commandLine "$npm_executable", "run", "lint"
+
+    hideExecTaskOutputUnlessFailure(it)
+}
+
+tasks.register('npm_lintFix', Exec) {
+    group = npm_groupName
+    // needs install for the eslint executable
+    dependsOn tasks.named('npm_install')
+
+    inputs.file(new File(project(":kernel-ts").getProjectDir(), "eslint-config/index.mjs"))
+    inputs.files(fileTree(npm_sourceDir))
+    inputs.files('eslintrc.config.mjs')
+
+    commandLine "$npm_executable", "run", "lint", "--", "--", "--fix"
+
+    hideExecTaskOutputUnlessFailure(it)
+}
+
+tasks.named('npm_lint') {
+    mustRunAfter tasks.named('npm_lintFix')
+}
+
+tasks.register('npm_compile', Exec) {
+    group = npm_groupName
+    inputs.files(tasks.named('npm_install'))
+
+    inputs.file('tsconfig.json')
+    inputs.file('package.json')
+    inputs.files(fileTree(npm_sourceDir))
+    outputs.dir(npm_buildDir)
+
+    commandLine "$npm_executable", "run", "compile"
+
+    hideExecTaskOutputUnlessFailure(it)
+}
+
+tasks.register('npm_build') {
+    group = npm_groupName
+    inputs.files(tasks.named('npm_compile'))
+
+    setOutputsFromInputs(it)
+}
+
+static boolean isJsOptionSet(Object config, String key) {
+    config.has("js") && config.js.containsKey(key) && config.js[key]
+}
+
+tasks.register('npm_prepareTest') {
+    group = npm_groupName
+    inputs.files(tasks.named('npm_build'))
+
+    setOutputsFromInputs(it)
+}
+
+tasks.register('npm_test', Exec) {
+    group = npm_groupName
+    mustRunAfter tasks.named('npm_assemble')
+
+    inputs.files(tasks.named('npm_prepareTest'))
+    outputs.file(npm_testOutput)
+
+    commandLine "$npm_executable", "run", "test"
+
+    ignoreExitValue true
+
+    hideExecTaskOutputUnlessFailure(it, !testIgnoreFailuresProp.toBoolean())
+
+    // store the configuration for later use
+    def jsConfig = project.ext
+    doLast {
+        // if the project uses a custom test output, then don't check
+        if (!isJsOptionSet(jsConfig, "useCustomTestOutput")) {
+            // if no test output file exists, then something went wrong with the tests,
+            // but jenkins does not have an error, because there is no output file to check
+            if (!file(npm_testOutput).exists()) {
+                throw new GradleException("There is no test output file ('${npm_testOutput}')")
+            }
+        }
+    }
+}
+
+tasks.register('npm_cyclonedx', Exec) {
+    group = npm_groupName
+    dependsOn tasks.named('npm_install')
+
+    inputs.files(project(':kernel-ts').tasks.named { it == 'npm_cyclonedx_prepare_workaround' })
+    outputs.file(npm_cyclonedxOutput_unfiltered)
+
+    commandLine "${npx_executable}", "@cyclonedx/cyclonedx-npm", "--output-file", npm_cyclonedxOutput_unfiltered
+
+    hideExecTaskOutputUnlessFailure(it)
+}
+
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+
+tasks.register('npm_assemble') {
+    group = npm_groupName
+    inputs.files(tasks.named('npm_build'))
+
+    setOutputsFromInputs(it)
+}
+
+// the inputs are only an info for gradle for the up-to-date check
+// npm uses .npmignore file as a blacklist OR the whitelist "files" in package.json
+tasks.register('npm_pack', Exec) {
+    group = npm_groupName
+    inputs.files(tasks.named('npm_assemble'))
+    outputs.file("$npm_packDir/$npm_packOutput")
+    mustRunAfter(tasks.named('npm_prepareTest')) // we don't really depend on prepare test, in general (most
+    // but not all subprojects do not pack test js files), but gradle sometimes throws an error if it thinks
+    // we _might_ pack lib/test. So lets declare only mustRunAfter here in general, and maybe add full
+    // inputs/dependsOn in subprojects that actually pack test sources (if that is not an error anyway)
+
+    commandLine "${npm_executable}", "pack", "-s", "--pack-destination", "$npm_packDir"
+
+    hideExecTaskOutputUnlessFailure(it)
+}
+
+tasks.register('npm_publish', Exec) {
+    group = "publishing"
+    inputs.files(tasks.named('npm_assemble'))
+
+    commandLine "${npm_executable}", "publish"
+
+    hideExecTaskOutputUnlessFailure(it)
+}
+
+tasks.named('clean') {
+    dependsOn(tasks.named('npm_clean'))
+}
+
+
+tasks.named('check') {
+    dependsOn(tasks.named('npm_lint'))
+}
+
+tasks.named('build') {
+    dependsOn(tasks.named('npm_build'))
+}
+
+tasks.named('assemble') {
+    dependsOn(tasks.named('npm_assemble'))
+}
+
+// even an empty configuration has to be kept, as we want to use the publish task
+publishing {
+    publications {
+        maven(MavenPublication) {}
+    }
+}
+
+// the "normal" publish task is not always used, register for the specific tasks instead
+tasks.withType(PublishToMavenRepository).configureEach {
+    dependsOn(tasks.named('npm_publish'))
+}

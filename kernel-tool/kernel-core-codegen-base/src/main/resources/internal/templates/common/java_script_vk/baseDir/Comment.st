@@ -1,0 +1,5 @@
+Comment(t) ::= <<
+/**
+ * <t.comment>
+ */
+>>

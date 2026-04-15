@@ -1,0 +1,3 @@
+GroupedEntityIdList(t) ::= <<
+<t.variableName>
+>>

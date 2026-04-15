@@ -1,0 +1,762 @@
+//// 
+SPDX-License-Identifier: EUPL-1.2 OR LicenseRef-commercial
+Copyright (c) 2012-2026 mgm technology partners GmbH
+Dual License
+This source file is part of the mgm A12 Platform and available under a choice of two different licenses:
+1. Open-Source License – EUPL v1.2
+You may redistribute and/or modify this file under the terms of the European Union Public License, version 1.2 - see https://eupl.eu/.
+2. Commercial License
+Alternatively, you may obtain a commercial license from mgm technology partners GmbH, that permits use of this software under different terms (including support and maintenance services).
+
+Please contact a12-license@mgm-tp.com for more information.
+    
+You must select and comply with exactly one of the above license options.
+
+Warranty Disclaimer (applies to either option)
+THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS. 
+////
+
+:snippetBaseDir: ./assets/snippets
+// NOTE: the paths in these variables get replaced by the build system when both the adoc file and the source files
+// get copied to the ./build directory. The variables must be defined between the "// SNIPPET_START" and "// SNIPPET_END"
+// markers, and each must follow the format: ":<name>: {snippetBaseDir}/<path>".
+// SNIPPET_START
+:codeSnippetsValidatingDocumentTs: {snippetBaseDir}/validating-document.ts
+:codeSnippetsDMDeserializationJava: {snippetBaseDir}/DocumentModelDeserialization.java
+:codeSnippetsDocDeserializationJava: {snippetBaseDir}/DocumentDeserialization.java
+:codeSnippetsDMServiceJava: {snippetBaseDir}/IDocumentModelService.java
+:codeSnippetsMigrationJava: {snippetBaseDir}/DocumentModelMigrator.java
+:codeSnippetsDocumentModelConsistencyCheckJava: {snippetBaseDir}/DocumentModelConsistencyCheck.java
+// SNIPPET_END
+
+= Kernel
+
+== Mission statement
+
+* Definition of documents and document models along with modeling tools.
+* A domain specific language for model based computation and validation incl. parser, runtime components and a programming API in various languages.
+
+== Scope of this documentation
+
+This documentation is intended to make it easier for developers in projects using A12 to find their way around _JavaDoc_ or
+_TypeDoc_ of the various Kernel modules or to find a suitable entry point there.
+
+== Architecture
+
+A12 Kernel publishes several artifacts, both in Java and in TypeScript/JavaScript.
+The interfaces, classes and resources in those artifacts can be grouped in following categories:
+
+* _internal_ and _a12internal_
+** Changes (no matter if they are breaking) in this category are documented neither in the changelog nor in the migration instructions.
+** Breaking changes in this category do not necessarily lead to a new major Kernel version.
+** You can identify this category if at least one part of the source path is _internal_ or _a12internal_.
+* _public_
+** Breaking and non-breaking changes in this category are documented in the changelog and/or in the migration instructions.
+** Changes in this category follow the semantic versioning.
+
+=== Java Artifacts
+
+If you want to use Kernel in Java, you only need to define a dependency to _kernel-md-facade_ and you will get access to the whole public API and also at runtime all necessary transitive dependencies are available.
+The following artifacts contain public API:
+
+* _kernel-core-customfieldtype-api_
+* _kernel-md-document-api_
+* _kernel-md-document-v2_
+* _kernel-md-model-api_
+* _kernel-md-runtime-api_
+* _kernel-md-serializer_
+
+Also consult the link:./assets/doc/java/com/mgmtp/a12/kernel/md/facade/package-summary.html[Javadoc] of the entry points in _kernel-md-facade_.
+An overview of the Java packages containing all interfaces and classes of the Kernel API can be also found in this
+link:./assets/doc/java/index.html[Javadoc].
+
+[NOTE]
+====
+The libraries _kernel-core-customfieldtype-api_ and _kernel-core-runtime-api_ are versioned separately.
+The actual versions of these libraries are defined in the _kernel-bom pom_ that is published to artifactory.
+It is recommended to use this Kernel _pom_
+for the dependency management.
+Thus, it is sufficient to update the version of _kernel-bom pom_, when e.g. upgrading to a new Kernel version, instead of having to adapt several places.
+====
+
+=== TypeScript/JavaScript Artifacts
+
+The npm artifact `@com.mgmtp.a12.kernel/kernel-md-facade` contains all of Kernel's public APIs, including all services related to document models and documents: link:./assets/doc/typescript//modules/Document_model_and_document_facade.html[Typedoc]
+
+== Supported Languages
+
+In Kernel we distinguish between different kinds of languages:
+
+* The language of the _validation language_.
+Kernel supports following cases only:
+** English (IProjectSpecificSettings#Language#ENGLISH): default for A12
+** German (IProjectSpecificSettings#Language#DEUTSCH)
+* The language of error messages of formal errors which are shown to the end user.
+Here, the following languages are supported (this means that Kernel defines formal error messages for these languages):
+** English (en)
+** German (de)
+** French (fr)
+** Dutch (nl)
+
+The languages of error messages of formal errors can be extended to more languages.
+See <<Custom Error Messages>> for Java and <<Localization>> for TypeScript.
+
+[TIP]
+====
+Error messages of rules and error messages of some field types (e.g. enumerations or string with pattern) are specified in the document model.
+Here, the business analyst needs to specify error messages for all necessary languages.
+For TypeScript additional languages can be added by <<Localization>>.
+====
+
+== Getting started
+
+To have access to the entire Kernel API, it is sufficient to specify a dependency on _kernel-md-facade_ in both Java and TypeScript - i.e. _com.mgmtp.a12.kernel:kernel-md-facade_ in Java or _@com.mgmtp.a12.kernel/kernel-md-facade_ in TypeScript.
+All additional necessary artifacts will be resolved transitively.
+
+[[md-serialization-only]]
+In case, you only deal with serialization and deserialization of documents and document models in Java, a dependency to
+_kernel-md-serializer_ is sufficient.
+Doing so, you also avoid several transitive dependencies to libraries which are needed by generated Java or Groovy code at runtime.
+
+=== Getting started using code generated by Kernel at runtime
+
+A12 Kernel generates code from document models that can be used e.g. for validations or for computations in your applications at runtime.
+To support applications written in different programming languages, the code can be generated accordingly.
+The following programming languages are supported:
+
+* Java
+* TypeScript
+* Groovy
+
+For _Java_ and _TypeScript_ you can find some information in <<Entry points to kernel-md>> (e.g. API, how to get access and code examples).
+
+Since _Groovy_-Code is always accessed via Java API in A12 (it is used internally for dynamic server-side validation and computation), there is no special information for it.
+
+The generated code depends on several artifacts (the so-called runtime artifacts) that must be available in your application at runtime.
+If Kernel is integrated in your application as described in the previous chapter, these libraries are actually available at runtime.
+
+[CAUTION]
+====
+The Kernel version used to generate the code must match the version of its dependent runtime artifacts.
+If this is not the case, a RuntimeException is thrown.
+====
+
+This situation can occur as follows: The version of runtime artifacts is managed by the build process and it matches the version of the generator.
+However, if the generated code is not generated dynamically, but previously generated code is used in your application (e.g. the generated code could be persistent in your version control system), it is conceivable that deviating versions occur, which will not work.
+
+*Conclusion:* If generated code is persisted in your application please be aware to re-generate the code from your document models whenever you upgrade the Kernel version.
+
+== Entry points to kernel-md
+
+In this section, we provide samples for typical entry points of _kernel-md_ which should better lead to the API with the associated Javadoc.
+
+=== Document model deserialization
+
+The following steps describe how to deserialize a document model in Java.
+To understand the alternative mentioned below in code see also <<md-serialization-only,this explanation>>.
+
+[source,java,indent=0]
+----
+include::{codeSnippetsDMDeserializationJava}[tags=documentModelDeserialization]
+----
+
+In TypeScript, a document model is deserialized as follows.
+
+[source,javascript]
+----
+const serializer: DocumentModelSerializer = new DocumentServiceFactory().getDocumentModelSerializer();
+const documentModel: DocumentModel = serializer.deserialize(documentModelAsString);
+----
+
+=== Document deserialization
+
+With the following steps a document in JSON format can be deserialized.
+To understand the alternative mentioned below in code see also <<md-serialization-only,this explanation>>.
+
+[source,java,indent=0]
+----
+include::{codeSnippetsDocDeserializationJava}[tags=documentDeserialization]
+----
+
+<<serialization_deserialization_documentv2,See also the documentation of the new Document API V2 for an example of how to serialize and deserialize a DocumentV2>>
+
+In TypeScript, there is no specific API provided by the Kernel.
+The document is deserialized using TypeScript _JSON.parse_.
+
+=== Updating a document
+
+The API to access document models is not described here, because the TypeDoc documentation together with the knowledge of the document models is sufficient for understanding.
+The following code fragment shows you how to use the existing service API to retrieve document model objects and how to transform document JSONs:
+
+[source,javascript,indent=0]
+----
+const docServiceFactory: DocumentServiceFactory = new DocumentServiceFactory();
+const docModel: DocumentModel = docServiceFactory
+    .getDocumentModelSerializer().deserialize(Fs.readFileSync(modelFile, "utf8"));
+const docService: DocumentService = docServiceFactory.getDocumentService();
+const docJSON: any = JSON.parse(Fs.readFileSync(documentFile, "utf8"));
+const docWithTransientFields = docService.addTransientFields(docJSON, docModel);
+const docWithDateObjects = docService.parseDates(docWithTransientFields, docModel);
+
+// Do something with your document.
+// It should now have Date-objects at places where values for Date-, DateTime- or Time-fields are stored
+// and Date[2] for DateRange-fields.
+// All the transient fields should have been added (with null values).
+// Before saving it back, do the reverse:
+
+const docWithDateStrings = docService.formatDates(docWithDateObjects, docModel);
+const docWithoutTransientFields = docService.removeTransientFields(docWithDateStrings, docModel);
+const docString = JSON.stringify(docWithoutTransientFields);
+----
+
+Similarly in Java, there is a corresponding API for manipulating documents: <<document_api_v2_java,See the Document API V2 for accessing and manipulating documents in java>>.
+
+include::./DocumentAPIV2Java.adoc[leveloffset=2]
+
+=== Generate validation code from document model
+
+How to generate code from a document model:
+
+[source,java,indent=0]
+----
+include::{codeSnippetsDMServiceJava}[tags=validationGeneration]
+----
+
+The generated code also contains gradle build scripts to compile the code:
+
+* navigate to the output directory (in this case `build/generatedCode`)
+* call gradle (version 7+) with: `gradle build`
+* the jar can then be found in `build/libs/generatedCode.jar`
+
+There is no such an API provided by Kernel in TypeScript.
+
+=== Validating a document / Computations on a document
+
+[[kernel_validation]]
+[NOTE]
+====
+For details on the special validation mode Partial Validation (intended for quick pre-checks of individual form pages), see the section on Full Validation and Partial Validation in the Kernel modeling documentation, and the description of the method `+validatePart+`.
+====
+
+==== Java
+
+The structure of a document can be compared to a given document model with
+link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/services/IDmAwareDocService.html#checkStructuralConsistencyWithDm(com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2,java.util.function.Consumer)[`+IDmAwareDocService#checkStructuralConsistencyWithDm+`].
+
+In Java you have two options to validate a document or compute on a document: either the dynamic or the static solution.
+With the dynamic solution, the necessary code is generated and compiled as part of the corresponding call (if it has not already been cached).
+With the static solution, however, the code must have been generated and compiled for the document model in advance and be available in the classpath.
+
+The dynamic solution is usually used because it involves less integration effort.
+With the static solution, on the other hand, the first call is much faster.
+Especially if many document models are used in an application, the start phase of the application can be significantly accelerated.
+
+The usage of both solutions is very similar you just have to implement different sub-interfaces of _IDocumentServiceConfig_ - either _IDocumentDynamicServiceConfig_ or _IDocumentStaticServiceConfig_.
+
+First, an example of implementing _IDocumentDynamicServiceConfig_ to use the dynamic solution:
+
+[source,java,indent=0]
+----
+include::{codeSnippetsDMServiceJava}[tags=dynamicServiceConfig]
+----
+
+Next, an example of implementing _IStaticModelCodeCache_ to use the static solution:
+
+[source,java,indent=0]
+----
+include::{codeSnippetsDMServiceJava}[tags=staticServiceConfig]
+----
+
+With the desired configuration (either dynamic or static) a document can be validated against the field definitions and rules being specified in the corresponding document model as follows (the use of validation and computation is very similar, therefore only one is described):
+
+[source,java,indent=0]
+----
+include::{codeSnippetsDMServiceJava}[tags=validateDocument]
+----
+
+==== TypeScript
+
+For TypeScript, there is a similar functionality for validation or computation services using the document layer.
+For a detailed explanation and capabilities, have a look at the
+link:./assets/doc/typescript//modules/Document_model_and_document_facade.html[Typedoc].
+
+[source,javascript,indent=0]
+----
+include::{codeSnippetsValidatingDocumentTs}[tags=DocumentRtServiceFactoryExample]
+----
+
+[NOTE]
+====
+If the use of `eval` should be avoided in your project, please consult the E&C- or Kernel-team.
+====
+
+=== Migration of document models
+
+In addition to the <<Migration tool>>, it is also possible to migrate document models programmatically to a desired target version using _IDocumentModelMigrator_.
+This is useful when models from older A12 versions should be able to be used.
+The following code snippet shows how one could use this service.
+
+[source,java,indent=0]
+----
+include::{codeSnippetsMigrationJava}[tags=migration]
+----
+
+include::./Mapping.adoc[leveloffset=1]
+
+== Extension points
+
+include::./CustomFieldValidator.adoc[leveloffset=2]
+include::./CustomCondition.adoc[leveloffset=2]
+
+=== Migration tool
+
+The JSON structure of the document model is versioned independently of the Kernel version.
+If there is a breaking change in that JSON structure, a new major version of the document model (DM-version) is created.
+The migration tool is a command line tool which can be used to migrate document models from a DM-version to the DM-version which is supported by the used Kernel version.
+
+With every new Kernel release, there will be an indication in the section "Migration instructions" in the developer documentation at getA12.com whether a migration is necessary and how it can be executed.
+Normally, the execution follows the pattern:
+
+* Download the artifact `kernel-tool-model-migration-<kernel_version>-jar-with-dependencies.jar`
+* Execute `java -jar kernel-tool-model-migration-<kernel_version>-jar-with-dependencies.jar -h` to see how to use the artifact
+
+It is possible to change the behavior of the logging by providing a custom log4j properties file.
+To do so, you need to pass the URI of the configuration file as a JVM argument.
+
+`java -Dlog4j.configuration={URI of your log4j configuration file} -jar <artifact name from above>`
+
+=== Analysis tool
+
+[NOTE]
+====
+This tool should only be called on request.
+It is not necessary to call this tool on every new release.
+
+Sometimes it is necessary to check the compatibility of the existing document models against a certain Kernel version which contains at least one new feature compared to the current used Kernel version.
+In order to achieve this, one should extend _BaseTestDocumentModelConsistency.java_ and override the method _testData()_ (for more information see also the Javadoc of link:./assets/doc/java/com/mgmtp/a12/kernel/tool/docanalysis/BaseTestDocumentModelConsistency.html[BaseTestDocumentModelConsistency.java]).
+====
+
+*Example*
+
+With [A12K-774], Kernel made the parser more strict and an error was reported for rules like:
+
+[source]
+----
+FieldNotFilled(X)
+----
+
+With the analysis tool, the user is able to check if the current existing document models are still valid after this change.
+
+==== Extension of _BaseTestDocumentModelConsistency.java_:
+
+[source,java]
+----
+include::{codeSnippetsDocumentModelConsistencyCheckJava}[tags=consistencyCheck]
+----
+
+Finally, this class can be executed as regression check in jenkins.
+
+=== Localization ===
+
+Localization is currently implemented in TypeScript only.
+In Java, you can only change the error messages of formal errors and custom field types, see <<Custom Error Messages>>.
+Localization is generally described in _A12 Localization Documentation_ in project Utils.
+With localization, you can add new languages or change the values for an existing language.
+This can be done for error messages, labels or enumeration UI-values.
+
+==== Localization of error messages ====
+
+Error messages come in four flavors:
+
+* formal error messages
+* rule error messages
+* field error messages, and
+* custom field type error messages
+
+For general information on how to customize localization please refer to the `Customization` chapter of the _A12 Localization Documentation_ in project Utils.
+
+===== Formal error messages =====
+
+The complete key used for localization of formal errors is `kernel.formalErrors.<FormalErrorKey>`.
+The valid values for `FormalErrorKey` used by Kernel are defined in `RuntimeFormalErrorEnum`, as well as the special key constants `DIVISION_BY_ZERO_INVALID` and `ERROR_DURING_DATA_CHECK_EVAL`.
+For example, in order to add a spanish error message for the `FormalErrorKey` `ZAHL_MIT_UNGUELTIGEN_ZEICHEN_ONK`, you would have to map the localization key
+`kernel.formalErrors.ZAHL_MIT_UNGUELTIGEN_ZEICHEN_ONK` to something like `"Sólo se permiten valores enteros."`.
+
+For the locales `de`, `en`, `fr`, and `nl` the maps from `FormalErrorKey` to the default error message are exported in corresponding bundles of the same name.
+The exported `defaultResourceProvider` additionally offers a way to access the messages for all these locales.
+
+===== Rule error messages =====
+
+The key for rule error messages is `documentModel.ruleErrorMessage.<modelId>.<ruleFullPath>`.
+Here `modelId` is the id of the model as specified in the header of the document model.
+Dots and backslashes have to be encoded in the model id as specified in the _A12 Localization Documentation_.
+`ruleFullPath` is the path to the rule in the document model tree separated by dots.
+For a rule `/rootGroup/group1/group2/rule1` in a model with id `dm.1` you would have the key
+`documentModel.ruleErrorMessage.dm\p1.rootGroup.group1.group2.rule1`.
+
+The parameters, which can be replaced in the rule error message coming from the validation result, are bound by the parameters actually used in the corresponding original error text specified in the document model for the rule.
+
+===== Field error messages =====
+
+Field error messages are the error messages that are presented when the validation of a string field with pattern or an enumeration field fails.
+The respective key is `documentModel.fieldErrorMessage.<modelId>.<fieldFullPath>`.
+Again, `modelId` is the id of the document model. `FieldFullPath` now is the full path of the field in the document model.
+
+For enumeration error messages, if no error message is defined, the formal error message with the formal error key
+`ENUMERATION_DEFAULT_ERROR` is used:
+`kernel.formalErrors.ENUMERATION_DEFAULT_ERROR`.
+
+===== Custom field type error messages =====
+
+For your own custom field type implementation, you have to specify your own keys.
+For the implementations which Kernel provides, the keys are of the form `kernel.customTypeErrors.<CustomErrorType>`.
+The CustomErrorTypes are the same as in Java and are defined in resources\internal\custom_field_types\error_messages_en.properties.
+
+==== Localization of Labels ====
+
+For labels of fields, there is special treatment in the Form Engine, where you have various additional fallback mechanisms you can use.
+The Kernel key used for the labels is of the form `documentModel.label.<modelId>.<fieldFullPath>`.
+The parameters are analogous to the ones in <<Field error messages>>.
+In previous releases this was done with the method `IData.identifierToString`.
+
+==== Conversion of field values to UI-values ====
+
+For the conversion of internal values to UI-values, in the past the method `IData.getValueForDisplay` could be used.
+To alter this behavior you now can use the class `ValueConversion` from Localization npm package, see the _A12 Localization Documentation_.
+
+=== Custom Error Messages
+
+This chapter only describes the Java implementation.
+For TypeScript, changing error messages can be done via <<Localization>>.
+
+In Kernel, error messages for formal errors and error messages of the custom field types provided by Kernel are built in to Kernel artifacts.
+However, these error messages can be adapted project-specifically (e.g. if they are either unsuitable for the project or do not exist in the necessary locale) using link:https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/ResourceBundle.html[ResourceBundle]s.
+
+==== Add custom error messages
+
+Check which resource is used for the specific error message.
+For example formal errors: resources\internal\<version>\vk_rt_formal_errors\error_messages_en.properties
+
+To add custom messages create a file called `error_messages_<LOCALE>.properties` (in the directory `resources/vk_rt_formal_errors`)
+containing the error keys and your own error messages. For each supported locale a specific file has to be created (e.g. `error_messages_de_DE.properties`).
+
+The property files contain key-value pairs in the following format:
+
+[source,properties]
+----
+ENUMERATION_DEFAULT_ERROR=The value is not allowed for the enumeration.
+----
+
+Some error messages are parameterized.
+When providing own error messages, the placeholder must not be changed.
+Example:
+
+[source,properties]
+----
+SOLITARY_INDEX_FEHLER=You specified '$<fieldName>.Value$' for '$<fieldName>$', but you did not specify additional values.
+----
+
+In this example, the placeholder <timeIntervalFormat> must also appear in the project-specific error message.
+
+==== Fallback mechanism
+
+`kernel-core-runtime` uses a fallback mechanism for the resource loading logic.
+When there is either
+
+* no custom error message file given or
+* a specific error key is missing in the custom error message file (for example added error keys with an update of the A12 Kernel)
+
+then the internal predefined error message is automatically used.
+This mechanism always provides an error message.
+
+The internal `ResourceBundle` is located at `internal/<version>/vk_rt_formal_errors/error_messages`.
+
+==== Predefined Error Messages
+
+A12 provides predefined error messages for all errors that can occur and are not specified in the document model.
+This category includes error messages for formal errors and error messages for custom field types provided by A12.
+The provided languages are currently the ones in <<Supported Languages>>.
+
+== Breaking Change Management
+
+=== Kernel specific definition of "Public API"
+
+In Kernel the sources are divided into the following three parts:
+
+* *Public API* - All sources that are neither "internal" nor "a12internal" (see below)
+* A12 Internal API
+** All sources in folders named "a12internal" or sub-folders thereof, or for Java sources in packages named "a12internal" or sub-packages thereof
+** All targets being annotated with _OnlyForA12InternalUsage_
+* Internal
+** All sources in folders named "internal" or sub-folders thereof, or for Java sources in packages named "internal" or sub-packages thereof.
+** Also all sources in modules whose "artifactId" contains "internal" (e.g. "com.mgmtp.a12.kernel:kernel-internal-test-master").
+This is used for modules that only exist for testing the kernel (e.g. integration tests and test utilities).
+This procedure was chosen in order to be able to implement tests easily and efficiently, e.g. to be able to access things that are package private.
+
+Changes to A12Internal API are possible at any time, as for Internal, i.e. also in minor and patch releases.
+In contrast to adjustments to Internal, other A12 components are informed about adjustments to A12Internal API and often these are also coordinated in advance.
+
+Here are the ways in which the Kernel breaking change interpretation is extended from our A12 overall breaking change interpretation:
+
+[cols="1,1"]
+|===
+2+|Public API
+|Breaking
+|Non-breaking
+a|
+
+a|
+* Add public signature to an interface being annotated with *OnlyForUsage*. All targets being marked with this annotation must not be implemented by the user of Kernel. Kernel provides the implementation, therefore adding public signature to those interfaces is non-breaking.
+* Remove or change public behavior/semantics to an interface being annotated *Experimental*. For all targets marked with this annotation, changes can be made during the subsequent stabilization without being breaking.
+2+|Internal/A12Internal
+|Breaking
+|Non-breaking
+a|
+a|
+* Everything apart from Public API points are considered internal (changes in *_a12internal_* will be coordinated with affected A12 products, changes in internal won't)
+* Any changes in this section is always considered non-breaking
+* The version of the generator from which code was generated must correspond to the version of the runtime with which the generated code is to be run
+Projects which use A12 Validation Kernel directly have to generate the validation code for any Major, Minor or Patch releases of the A12 Validation Kernel
+2+|Dependencies
+|Breaking
+|Non-breaking
+a|
+a|
+* Removing a (Java or TS) 3rd party dependencies. Reason: A project should not rely on the transitive 3rd party dependencies from kernel, but define them explicitly by itself.
+2+|Data Representation
+|Breaking
+|Non-breaking
+a|  * Changing the serialization of A12 Documents require migration.
+a|    * Changing the serialization of A12 Document require no migration.
+|===
+
+== Migration Instructions
+
+=== 2025.06-ext4
+
+* Kernel version: 30.7.0
+* Minimum compatible Document Model version: 28.0.0
+* Latest Document Model version: 28.4.0
+  ** A migration from 28.3.0 to 28.4.0 was added due to a rename in the condition language and error text parameters that only
+  affects DMs that have `conditionLanguage` set to `de_DE` and have a `baseYear` set. If there are issues during the migration see
+  A12-18143 for more information.
+
+==== Deprecation
+
+* [A12K-3464] - The following API should be replaced as shown:
+
+[cols="1,1,1,2"]
+|===
+|Programming language
+|Deprecated
+|Replacement
+|Hint
+
+|_Java_ and _Typescript_
+|_ICustomFieldType_ and its methods that accept a `Map<String, Object>` parameter for configuration.  
+|Implement _ICustomFieldValidator_ instead of _ICustomFieldType_ and implement the overloaded methods that do not accept 
+a `Map<String, Object>`  parameter.
+|This is a pure renaming since the name `ICustomFieldType` is also used for a class in the Document Model API, which 
+often leads to confusion. Additionally, the `Map<String, Object>` parameter is not needed any longer.
+
+4+|The public runtime API (see `IDocumentRtService` and `IMappingService`) has been extended to
+allow project-specific implementations for validating custom field types and custom conditions to be passed to the APIs.
+Users can now populate a `DocumentProcessingConfig` accordingly and pass their instance to the APIs. In this context,
+several APIs have been marked as deprecated and replaced with new ones.
+
+|_Java_
+|_MappingConfig_
+|Use _DocumentProcessingConfig_ instead.
+|Uniform naming of the configuration class.
+
+|_Java_
+|The pairing of `CustomFieldTypeService` with `ICustomFieldTypeService`, `CustomConditionService` with `ICustomConditionService`,
+and `DocumentRtCustomExtensionService`
+|Instead, new runtime APIs should be used, with the corresponding settings defined in `DocumentProcessingConfig`
+(see _IDocumentRtService_ below).
+|The previously used static registration is impractical in server operations.
+
+|_Typescript_
+|`CustomFieldTypeService` and `DocumentRtCustomExtensionService`
+|Provide your implementations via `GeneratedCodeRtConfig.customFieldTypeFactory` and `GeneratedCodeRtConfig.customConditionFactory` instead.
+|Kernel's APIs have been extended to allow project-specific implementations for validating custom field types and custom conditions to be passed directly.
+
+4+|_ICustomFieldTypeFactory_
+
+|_Java_
+|Methods  `createCustomFieldType` and `createCustomFieldTypeV2` that return `ICustomFieldType`
+|Implement `createCustomFieldValidator` instead.
+|
+
+|_Java_
+|Methods  `getSupportedTypeNames`
+|No longer needed, can be deleted in your implementation.
+|
+
+4+|_IDocumentRtService_
+|_Java_
+|Methods that do not accept `DocumentProcessingConfig`.
+|Methods have been overloaded with versions that accept a `DocumentProcessingConfig` parameter. Use those instead.
+|
+|===
+
+===== Java
+
+* [A12K-2893] - The alternative experimental `pojo` mode for `TypedAccessorGenerator` is now marked as deprecated. Use `overlay` mode instead. If you still need pojo mode, please contact the A12-Kernel team. The recommended default `overlay` mode is not affected.
+
+
+=== 2025.06-ext2
+
+==== Deprecation
+
+===== Java
+
+* [A12K-3504] - The method `ICustomConditionFactory#createCustomCondition(String)` which was deprecated in release 29.2.0 has
+  now a default
+  implementation, so you can remove the corresponding implementation.
+
+=== 2025.06
+
+CAUTION: Please have a look at link:/docs/overall/migration_guide/index.html[Migration to latest A12] chapter for an explanation of general steps on how to upgrade before starting with the component migration to 2025.06.
+
+* Kernel version: 30.0.0
+* Minimum compatible Document Model version: 28.0.0
+* Latest Document Model version: 28.3.0
+** [A12K-3234] - The document model json structure now supports the optional attribute _includeLevel_ for a group with allowed values _SINGLE_RG_ and _MODEL_ROOT_ (The attribute is only allowed if the group specifies an include, i.e. if _modelAlias_ is also set) . If the attribute is not set, it will be deserialized like _SINGLE_RG_, which corresponds to the classical behavior of includes.
+
+==== Breaking Changes
+
+===== Java
+
+* [A12K-3166] - The annotation _@OnlyForUsage_ was added to the interface _IRequirednessConfig_.
+* [A12K-3174] - The support for Java 17 has ended.
+Please use Java 21.
+* [A12K-3259] - Some deprecated methods were removed with the following replacements:
+
+[cols="1,1"]
+|===
+|Removed
+|New method
+
+2+|_IDocumentStaticServiceConfig_
+
+|_getMappingProperties()_
+|Use _getModelPackage(String)_ instead.
+
+2+|_IComputedFieldInstance_
+
+|_apply(IDocumentFactory, Consumer<IComputedFieldInstance>)_
+|Use _applyTo(DocumentV2)_ instead.
+
+2+|_IDocumentComputationResult_
+
+|_apply(IDocumentFactory, Consumer<IComputedFieldInstance>)_
+|Use _applyTo(DocumentV2)_ instead.
+
+|_getComputedFieldInstances()_
+|Use _getComputedFieldInstancesWithoutErrors()_ and _getComputedFieldInstancesWithErrors()_ instead.
+
+2+|_IMessage_
+
+|_getErrorFieldAsPointer()_
+|Use _getErrorFieldPointer()_ instead.
+
+|_getReferencedFieldsAsPointers()_
+|Use _getReferencedFieldsPointers()_ instead.
+
+|_getRefOmissionErrorResponsibleAsPointers()_
+|Use _getRefOmissionErrorResponsiblePointers()_ instead.
+|===
+
+* [A12K-3188] - Adaption of _IComputedFieldInstance_, _ICustomCondition_, _IDocumentComputationResult_, _IDocumentRtService_,
+_IMessage_ (Part of the rewrite scripts): see javadoc for details.
+* [A12K-3188] - Renaming of _CauseEntityInstance_ to _PartiallyKnownDocumentMultiPointer_.
+
+* [A12K-3188] - Adaption of _DocumentPointer_ (Part of the rewrite scripts): 'toFullName' renamed to 'fullName', 'toRepetitionIndices' renamed to 'repetitions'.
+* [A12K-3188] - Adaption of _CauseEntityInstance_/_PartiallyKnownDocumentMultiPointer_ (Part of the rewrite scripts):
+
+[cols="1,1"]
+|===
+|Change
+|New method
+
+|_constructor_
+|The class is now an interface, use the method _of_ instead of the constructor.
+
+|_asDocumentPointer()_
+|Renamed to _toDocumentPointer_
+
+|_convertibleToDocumentPointer_
+|Is no longer necessary, as _toDocumentPointer_ checks if a _DocumentPointer_ can be created.
+
+|_toFullName_
+|Renamed to _fullName_
+
+|_toRepetitions_
+|Renamed to _repetitions_
+|===
+
+* [A12K-2756] - The method _DocumentRtService.coalesceBooleans()_ was removed without replacement.
+
+===== TS
+
+* [A12K-2913] - The interfaces _DocumentModel.DateTimeType_ and _DocumentModel.TimeType_ have now the new property _format_.
+Anonymous objects or own implementations have to be adapted.
+
+==== Deprecation
+
+===== Java
+
+Types and methods for _IDocument_ are deprecated.
+The Document API V2 should be used instead.
+See the JavaDoc comments for details
+
+* [A12K-3388] - The interface _IDocumentV1V2Converter_, the class _BasicTypeV1V2Conversion_, the class _EmptyDocumentFactory_ and methods in _DocumentServiceFactory_.
+* [A12K-3188] - All the services, interfaces, methods that use _IDocument_ (Document V1) are now deprecated, see the migration scripts and deprecation information in JavaDoc for details for the replacements.
+* [A12K-3236] There is a change in the CLI-tool _BatchDocumentModelExpander_, if your to-expand document models only contain model references related to the document model expansion (include and import, which until now it is the standard use), there is nothing to adapt.
+Otherwise, be aware that the tool now only removes model references with purpose 'include', 'transitiveInclude' or 'typeDefinitions'.
+
+===== TS
+
+* [A12K-3009] - The interfaces _ICustomFieldTypeService_ and _ICustomConditionService_ was removed.
+* [A12K-3009] - The following methods in implementations of _ICustomFieldTypeFactory_ should be replaced as shown (can be made via codemod scripts):
+
+[cols="1,1"]
+|===
+|Deprecated
+|New method
+
+|_getSupportedTypeNames()_
+|Remove method.
+
+|_createCustomFieldType(string)_
+|Change method. Return _null_ if the factory does not support the custom field type (do not throw an exception - multiple factories can be registered).
+
+|_createCustomFieldTypeV2(string)_
+|Remove method. Move the implementation to _createCustomFieldType(string)_
+|===
+
+* [A12K-3009] - The following methods in implementations of _ICustomConditionFactory_ should be replaced as shown (can be made via codemod scripts):
+
+[cols="1,1"]
+|===
+|Deprecated
+|New method
+
+|_getSupportedConditionNames()_
+|Remove method.
+
+|_createCustomCondition(string)_
+|Change method. Return _null_ if the factory does not support the custom condition (do not throw an exception - multiple factories can be registered).
+
+|_createCustomConditionV2(string)_
+|Remove method. Move the implementation to _createCustomCondition(string)_
+|===
+
+[#model_migration_tool]
+=== Model Migration Tool
+
+The document models can be migrated as follows:
+
+* Download the artifact `kernel-tool-model-migration-<kernel_version>-jar-with-dependencies.jar`.
+* Execute `java -jar <artifact name from above> -h` to see how to use the artifact.

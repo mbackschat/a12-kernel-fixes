@@ -1,0 +1,16 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "External interface for working with document models."
+
+dependencies {
+    // if we don't specify the dependency as "api", we get class file for com.mgmtp.a12.model.Model not found in DocumentModelServiceFactory.java:49
+    api libs.baseModelApi
+    // because of IDocumentModelService.checkConsistency
+    api libs.baseModelConsistency
+    api libs.jacksonDatabind
+
+    compileOnly libs.baseModelUtils // Only annotations
+}

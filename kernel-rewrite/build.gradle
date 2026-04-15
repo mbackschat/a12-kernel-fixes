@@ -1,0 +1,93 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+dependencies {
+    annotationProcessor libs.lombok
+
+    api testLibs.rewriteJava
+    api testLibs.rewriteCore
+    api libs.jacksonAnnotations
+    api testLibs.jspecify
+
+    runtimeOnly(testLibs.rewriteJavaDependencies)
+    runtimeOnly(testLibs.rewriteJava17)
+
+    testImplementation libs.commonsIo
+    testImplementation(testLibs.junitJupiterApi)
+    testImplementation(testLibs.rewriteTest)
+    testImplementation(project(':kernel-internal-test-utils')) {
+        // we only want to use the IOUtils4Test, so we exclude all dependencies
+        transitive = false
+    }
+    testImplementation project(':kernel-internal-test-tags')
+
+    testRuntimeOnly(testLibs.junitJupiterEngine)
+}
+
+configurations.configureEach {
+    // disable composite builds (--include-build) for this subproject, because we reference a lot 
+    // of specific kernel versions, where we don't want to get a local version (e.g. of 
+    // kernel-core-runtime-api) substituted even when --include-build is enabled for the 
+    // overall kernel build.
+    resolutionStrategy.useGlobalDependencySubstitutionRules = false
+}
+
+HashMap<String, List<String>> configs = [
+        "30_5_0": [
+                "com.mgmtp.a12.kernel:kernel-md-a12internal:30.3.0",
+                "com.mgmtp.a12.kernel:kernel-md-join:30.3.0",
+                "com.mgmtp.a12.kernel:kernel-core-tool-api:30.3.0"
+        ],
+        "30_2_0": [
+        ],
+        "30_0_0": [
+                "com.mgmtp.a12.kernel:kernel-conversion-java:29.5.0",
+                "com.mgmtp.a12.kernel:kernel-core-runtime-api:27.24.0",
+                "com.mgmtp.a12.kernel:kernel-md-document-api:29.5.0",
+                "com.mgmtp.a12.kernel:kernel-md-document-service:29.5.0",
+                "com.mgmtp.a12.kernel:kernel-md-document-v2:29.5.0",
+                "com.mgmtp.a12.kernel:kernel-md-facade:29.5.0",
+                "com.mgmtp.a12.kernel:kernel-md-model-api:29.5.0",
+                "com.mgmtp.a12.kernel:kernel-md-runtime-api:29.5.0",
+                "com.mgmtp.a12.kernel:kernel-md-runtime-service:29.5.0",
+        ],
+        "29_0_0": [
+                "com.mgmtp.a12.kernel:kernel-md-runtime-service:29.0.0",
+                "com.mgmtp.a12.kernel:kernel-md-facade:29.0.0",
+        ],
+        "28_0_0": [
+                "com.mgmtp.a12.kernel:kernel-md-model-api:28.0.0",
+                "com.mgmtp.a12.kernel:kernel-md-runtime-api:28.0.0",
+                "com.mgmtp.a12.kernel:kernel-md-facade:28.0.0"
+        ],
+        "27_7_0": [
+                "com.mgmtp.a12.kernel:kernel-core-customfieldtype-api:27.7.0",
+                "com.mgmtp.a12.kernel:kernel-core-runtime-api:27.7.0"
+        ]
+]
+
+// download all the needed deps, see https://docs.openrewrite.org/authoring-recipes/multiple-versions
+// the recipe-library does not work
+tasks.register('downloadDeps', Sync) {
+    // create a config for each set of dependencies, this allows to have multiple versions of a dependency
+    String configNamePrefix = 'rewrite_'
+    configs.each { configName, deps ->
+        String config = configNamePrefix + configName
+        project.getConfigurations().create(config)
+
+        deps.each {
+            project.getDependencies().add(config, it)
+        }
+
+        from configurations.named(config)
+    }
+
+    // copy all in the same output directory, this must match the directory where rewrite searches for the jars
+    into project.layout.buildDirectory.dir("classes/java/test/META-INF/rewrite/classpath").get().asFile
+}
+
+tasks.processTestResources.dependsOn(tasks.downloadDeps)
+
+description = "Contains the logic to rewrite (breaking) changes, which can be made automatically, see MGM Wiki Shortlink x/yx6KF"

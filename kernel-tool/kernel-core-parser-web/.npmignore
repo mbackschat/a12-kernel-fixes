@@ -1,0 +1,46 @@
+# Maven
+target/
+overlays/
+src/main/test
+src/main/resources
+src/test
+lib/test
+
+# Gradle
+build/
+build.gradle
+bin
+
+# Java
+src/main/java
+
+# Node
+.npm/
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+.classpath
+.project
+.settings/
+.metadata/
+*.iml
+*.launch
+atlassian-ide-plugin.xml
+
+# Other
+.DS_Store/
+*~
+
+# Specific
+/.gitignore
+/pom.xml
+doc/
+
+# Build artifact
+/LINT-com.mgmtp.a12.kernel-*.json
+/TEST-com.mgmtp.a12.kernel-*.xml
+/com.mgmtp.a12.kernel-*.tgz
+/package.json.backup

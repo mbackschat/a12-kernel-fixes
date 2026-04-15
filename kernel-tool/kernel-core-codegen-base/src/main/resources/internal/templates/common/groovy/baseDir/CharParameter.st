@@ -1,0 +1,3 @@
+CharParameter(t) ::= <<
+'<t.value>'
+>>

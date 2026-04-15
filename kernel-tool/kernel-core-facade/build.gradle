@@ -1,0 +1,27 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+}
+
+description = "service facade for services commonly used by tools"
+
+
+dependencies {
+    api project(':kernel-core-parser')
+    api project(':kernel-core-parsetree-api') // must be api because of MVKService
+    api project(':kernel-core-tool-api') // public methodensignaturen in ServiceFactory
+    // must be api because of MVKService (code that uses MVKService appears to need IInternalCodeGeneratorService at compile time)
+    api project(':kernel-core-codegen-base')
+
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation project(':kernel-core-codegen')
+    implementation project(':kernel-core-base-utils')
+    implementation project(':kernel-core-calc')
+    implementation project(':kernel-core-extmpspecifics')
+    implementation project(':kernel-core-service')
+    implementation libs.baseModelConsistency
+    implementation libs.commonsLang3
+
+
+}
+

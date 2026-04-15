@@ -1,0 +1,10 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.30.UpgradeMinor
+displayName: Migrate to Kernel 30
+description: Migrate applications to the latest Kernel 30 minor release. This recipe will modify application's build files, make changes 
+  to deprecated/preferred APIs, and migrate configuration settings that have changed between versions.
+recipeList:
+  # contains scripts for 30.2+
+- com.mgmtp.a12.kernel.30.A12K-3464
+- com.mgmtp.a12.kernel.30.A12K-3711

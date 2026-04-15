@@ -1,0 +1,26 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.kernelJsConventions
+    alias libs.plugins.lombok
+
+}
+
+description = "provides the implementations of some CustomFieldTypes"
+
+dependencies {
+    api libs.kernelCoreCustomfieldtypeApi
+
+    implementation libs.commonsLang3
+    implementation libs.jacksonDatabind
+
+    compileOnly libs.baseModelUtils // Only annotations
+    compileOnly project(':kernel-md-runtime-api') // Only in JavaDoc
+
+
+}
+
+tasks.named('npm_compile') {
+    addBuildTaskDependency(it, ':kernel-core-runtime-api-ts', ':kernel-core-runtime-ts'
+    )
+}
+

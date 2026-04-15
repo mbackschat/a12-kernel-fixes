@@ -1,0 +1,23 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+dependencies {
+    api project(':kernel-md-document-api')
+    api project(':kernel-md-document-v2')
+    api project(':kernel-md-model-api')
+
+    implementation project(':kernel-md-a12internal')
+    implementation project(':kernel-md-model')
+    implementation libs.baseModelApi
+    implementation libs.commonsLang3
+
+    compileOnly project(':kernel-md-util')
+    compileOnly libs.baseModelUtils // Only annotations
+
+    runtimeOnly project(":${A12_kernel_runtime_artifact_id()}")
+}
+
+description = "Implementation of the services for working with documents."
+

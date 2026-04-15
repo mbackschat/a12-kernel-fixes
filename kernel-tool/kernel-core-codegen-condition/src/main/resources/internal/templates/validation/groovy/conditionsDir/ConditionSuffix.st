@@ -1,0 +1,3 @@
+ConditionSuffix(t) ::= <<
+.isKnownAndTrue()
+>>

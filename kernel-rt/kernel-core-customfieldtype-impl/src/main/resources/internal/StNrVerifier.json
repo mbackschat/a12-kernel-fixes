@@ -1,0 +1,905 @@
+{
+  "bundeslaender": [
+    {
+      "name": "Baden-Württemberg",
+      "kuerzel": "BW",
+      "nr": [ "28" ],
+      "verfahren": [{
+        "verfahrenId": "BW"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "2",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [{
+        "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+        "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+      }]
+    },
+    {
+      "name": "Bayern",
+      "kuerzel": "BY",
+      "nr": [
+        "91",
+        "92"
+      ],
+      "verfahren": [{
+        "verfahrenId": "BY"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "3",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [
+        {
+          "wert": "[0-9]{4}00[0-9]{7}",
+          "fehlermeldung": "In den Ländern des bayerischen Programmierverbundes, d.h. in Bayern, Brandenburg, Mecklenburg-Vorpommern, Saarland, Sachsen, Sachsen-Anhalt und Thüringen darf die Bezirksnummer nicht unter 100 sein."
+        },
+        {
+          "wert": "[0-9]{4}0[9]{8}",
+          "fehlermeldung": "In Bayern gibt es keine Steuernummer, mit gleichzeitig Bezirk = 999, Unterscheidungsnummer = 9999 und Prüfziffer = 9."
+        },
+        {
+          "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+          "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+        }
+      ]
+    },
+    {
+      "name": "Berlin",
+      "kuerzel": "BE",
+      "nr": [ "11" ],
+      "verfahren": [
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1113",
+          "bezirkVon": "0",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1113",
+          "bezirkVon": "694",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1114",
+          "bezirkVon": "0",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1114",
+          "bezirkVon": "694",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1116",
+          "bezirkVon": "0",
+          "bezirkBis": "0"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1116",
+          "bezirkVon": "30",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1116",
+          "bezirkVon": "694",
+          "bezirkBis": "874"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1116",
+          "bezirkVon": "900",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1117",
+          "bezirkVon": "0",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1117",
+          "bezirkVon": "694",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1119",
+          "bezirkVon": "0",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1119",
+          "bezirkVon": "640",
+          "bezirkBis": "679"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1119",
+          "bezirkVon": "681",
+          "bezirkBis": "683"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1119",
+          "bezirkVon": "685",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1120",
+          "bezirkVon": "0",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1120",
+          "bezirkVon": "694",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1121",
+          "bezirkVon": "0",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1121",
+          "bezirkVon": "694",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1123",
+          "bezirkVon": "0",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1123",
+          "bezirkVon": "694",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1124",
+          "bezirkVon": "0",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1124",
+          "bezirkVon": "694",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1125",
+          "bezirkVon": "0",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1125",
+          "bezirkVon": "694",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1127"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1129"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1130"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1140",
+          "bezirkVon": "0",
+          "bezirkBis": "200"
+        },
+        {
+          "verfahrenId": "Berlin-A",
+          "bufanr": "1140",
+          "bezirkVon": "694",
+          "bezirkBis": "999"
+        },
+        {
+          "verfahrenId": "Berlin-B"
+        }
+      ],
+      "format": {
+        "stellenFinanzamtsnr": "2",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [{
+        "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+        "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+      }]
+    },
+    {
+      "name": "Brandenburg",
+      "kuerzel": "BB",
+      "nr": [ "30" ],
+      "verfahren": [{
+        "verfahrenId": "BB"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "3",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [
+        {
+          "wert": "[0-9]{4}00[0-9]{7}",
+          "fehlermeldung": "In den Ländern des bayerischen Programmierverbundes, d.h. in Bayern, Brandenburg, Mecklenburg-Vorpommern, Saarland, Sachsen, Sachsen-Anhalt und Thüringen darf die Bezirksnummer nicht unter 100 sein."
+        },
+        {
+          "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+          "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+        }
+      ]
+    },
+    {
+      "name": "Bremen",
+      "kuerzel": "HB",
+      "nr": [ "24" ],
+      "verfahren": [{
+        "verfahrenId": "HB"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "2",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": " ",
+        "trennzeichen2": " "
+      },
+      "negativmuster": [{
+        "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+        "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+      }]
+    },
+    {
+      "name": "Hamburg",
+      "kuerzel": "HH",
+      "nr": [ "22" ],
+      "verfahren": [{
+        "verfahrenId": "HH"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "2",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [{
+        "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+        "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+      }]
+    },
+    {
+      "name": "Hessen",
+      "kuerzel": "HE",
+      "nr": [ "26" ],
+      "verfahren": [{
+        "verfahrenId": "HE"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "2",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "prefix": "0",
+        "trennzeichen1": " ",
+        "trennzeichen2": " "
+      },
+      "negativmuster": [{
+        "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+        "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+      }]
+    },
+    {
+      "name": "Mecklenburg-Vorpommern",
+      "kuerzel": "MV",
+      "nr": [ "40" ],
+      "verfahren": [{
+        "verfahrenId": "MV"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "3",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [
+        {
+          "wert": "[0-9]{4}00[0-9]{7}",
+          "fehlermeldung": "In den Ländern des bayerischen Programmierverbundes, d.h. in Bayern, Brandenburg, Mecklenburg-Vorpommern, Saarland, Sachsen, Sachsen-Anhalt und Thüringen darf die Bezirksnummer nicht unter 100 sein."
+        },
+        {
+          "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+          "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+        }
+      ]
+    },
+    {
+      "name": "Niedersachsen",
+      "kuerzel": "NI",
+      "nr": [ "23" ],
+      "verfahren": [{
+        "verfahrenId": "NI"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "2",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [{
+        "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+        "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+      }]
+    },
+    {
+      "name": "Nordrhein-Westfalen",
+      "kuerzel": "NW",
+      "nr": [
+        "51",
+        "52",
+        "53",
+        "54",
+        "55",
+        "56"
+      ],
+      "verfahren": [{
+        "verfahrenId": "NW"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "3",
+        "stellenBezirksnr": "4",
+        "stellenUnterscheidungsnr": "3",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [
+        {
+          "wert": "[0-9]{9}000[0-9]{1}",
+          "fehlermeldung": "In NRW muss die Kombination aus Unterscheidungsnummer und Prüfziffer immer größer als 0009 sein."
+        },
+        {
+          "wert": "[0-9]{5}(0000|0998|0999)[0-9]{4}",
+          "fehlermeldung": "Die Bezirke 0000, 0998 und 0999 sind gesperrt."
+        }
+      ]
+    },
+    {
+      "name": "Rheinland-Pfalz",
+      "kuerzel": "RP",
+      "nr": [ "27" ],
+      "verfahren": [{
+        "verfahrenId": "RP"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "2",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [{
+        "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+        "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+      }]
+    },
+    {
+      "name": "Saarland",
+      "kuerzel": "SL",
+      "nr": [ "10" ],
+      "verfahren": [{
+        "verfahrenId": "SL"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "3",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [
+        {
+          "wert": "[0-9]{4}00[0-9]{7}",
+          "fehlermeldung": "In den Ländern des bayerischen Programmierverbundes, d.h. in Bayern, Brandenburg, Mecklenburg-Vorpommern, Saarland, Sachsen, Sachsen-Anhalt und Thüringen darf die Bezirksnummer nicht unter 100 sein."
+        },
+        {
+          "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+          "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+        }
+      ]
+    },
+    {
+      "name": "Sachsen",
+      "kuerzel": "SN",
+      "nr": [ "32" ],
+      "verfahren": [{
+        "verfahrenId": "SN"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "3",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [
+        {
+          "wert": "[0-9]{4}00[0-9]{7}",
+          "fehlermeldung": "In den Ländern des bayerischen Programmierverbundes, d.h. in Bayern, Brandenburg, Mecklenburg-Vorpommern, Saarland, Sachsen, Sachsen-Anhalt und Thüringen darf die Bezirksnummer nicht unter 100 sein."
+        },
+        {
+          "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+          "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+        }
+      ]
+    },
+    {
+      "name": "Sachsen-Anhalt",
+      "kuerzel": "ST",
+      "nr": [ "31" ],
+      "verfahren": [{
+        "verfahrenId": "ST"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "3",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [
+        {
+          "wert": "[0-9]{4}00[0-9]{7}",
+          "fehlermeldung": "In den Ländern des bayerischen Programmierverbundes, d.h. in Bayern, Brandenburg, Mecklenburg-Vorpommern, Saarland, Sachsen, Sachsen-Anhalt und Thüringen darf die Bezirksnummer nicht unter 100 sein."
+        },
+        {
+          "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+          "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+        }
+      ]
+    },
+    {
+      "name": "Schleswig-Holstein",
+      "kuerzel": "SH",
+      "nr": [ "21" ],
+      "verfahren": [{
+        "verfahrenId": "SH"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "2",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [{
+        "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+        "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+      }]
+    },
+    {
+      "name": "Thüringen",
+      "kuerzel": "TH",
+      "nr": [ "41" ],
+      "verfahren": [{
+        "verfahrenId": "TH"
+      }],
+      "format": {
+        "stellenFinanzamtsnr": "3",
+        "stellenBezirksnr": "3",
+        "stellenUnterscheidungsnr": "4",
+        "stellenPruefziffer": "1",
+        "trennzeichen1": "/",
+        "trennzeichen2": "/"
+      },
+      "negativmuster": [
+        {
+          "wert": "[0-9]{4}00[0-9]{7}",
+          "fehlermeldung": "In den Ländern des bayerischen Programmierverbundes, d.h. in Bayern, Brandenburg, Mecklenburg-Vorpommern, Saarland, Sachsen, Sachsen-Anhalt und Thüringen darf die Bezirksnummer nicht unter 100 sein."
+        },
+        {
+          "wert": "[0-9]{5}(000|998|999)[0-9]{5}",
+          "fehlermeldung": "Die Bezirke 000, 998 und 999 sind gesperrt."
+        }
+      ]
+    }
+  ],
+  "verfahren": [
+    {
+      "id": "Berlin-A",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "0",
+        "stelle4": "0",
+        "stelle5": "0",
+        "stelle6": "7",
+        "stelle7": "6",
+        "stelle8": "5",
+        "stelle9": "8",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "Berlin-B",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "2",
+        "stelle4": "9",
+        "stelle5": "0",
+        "stelle6": "8",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "BW",
+      "name": "2er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "512",
+        "stelle4": "256",
+        "stelle5": "0",
+        "stelle6": "128",
+        "stelle7": "64",
+        "stelle8": "32",
+        "stelle9": "16",
+        "stelle10": "8",
+        "stelle11": "4",
+        "stelle12": "2"
+      },
+      "summanden": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "9",
+        "stelle4": "8",
+        "stelle5": "0",
+        "stelle6": "7",
+        "stelle7": "6",
+        "stelle8": "5",
+        "stelle9": "4",
+        "stelle10": "3",
+        "stelle11": "2",
+        "stelle12": "1"
+      }
+    },
+    {
+      "id": "BY",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "5",
+        "stelle3": "4",
+        "stelle4": "3",
+        "stelle5": "0",
+        "stelle6": "2",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "BB",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "5",
+        "stelle3": "4",
+        "stelle4": "3",
+        "stelle5": "0",
+        "stelle6": "2",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "ST",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "5",
+        "stelle3": "4",
+        "stelle4": "3",
+        "stelle5": "0",
+        "stelle6": "2",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "SN",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "5",
+        "stelle3": "4",
+        "stelle4": "3",
+        "stelle5": "0",
+        "stelle6": "2",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "TH",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "5",
+        "stelle3": "4",
+        "stelle4": "3",
+        "stelle5": "0",
+        "stelle6": "2",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "MV",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "5",
+        "stelle3": "4",
+        "stelle4": "3",
+        "stelle5": "0",
+        "stelle6": "2",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "SL",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "5",
+        "stelle3": "4",
+        "stelle4": "3",
+        "stelle5": "0",
+        "stelle6": "2",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "HB",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "4",
+        "stelle4": "3",
+        "stelle5": "0",
+        "stelle6": "2",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "HH",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "4",
+        "stelle4": "3",
+        "stelle5": "0",
+        "stelle6": "2",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "HE",
+      "name": "2er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "512",
+        "stelle4": "256",
+        "stelle5": "0",
+        "stelle6": "128",
+        "stelle7": "64",
+        "stelle8": "32",
+        "stelle9": "16",
+        "stelle10": "8",
+        "stelle11": "4",
+        "stelle12": "2"
+      },
+      "summanden": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "9",
+        "stelle4": "8",
+        "stelle5": "0",
+        "stelle6": "7",
+        "stelle7": "6",
+        "stelle8": "5",
+        "stelle9": "4",
+        "stelle10": "3",
+        "stelle11": "2",
+        "stelle12": "1"
+      }
+    },
+    {
+      "id": "NI",
+      "name": "11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "2",
+        "stelle4": "9",
+        "stelle5": "0",
+        "stelle6": "8",
+        "stelle7": "7",
+        "stelle8": "6",
+        "stelle9": "5",
+        "stelle10": "4",
+        "stelle11": "3",
+        "stelle12": "2"
+      }
+    },
+    {
+      "id": "NW",
+      "name": "11er-Verfahren-NRW",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "3",
+        "stelle3": "2",
+        "stelle4": "1",
+        "stelle5": "0",
+        "stelle6": "7",
+        "stelle7": "6",
+        "stelle8": "5",
+        "stelle9": "4",
+        "stelle10": "3",
+        "stelle11": "2",
+        "stelle12": "1"            
+      }
+    },
+    {
+      "id": "RP",
+      "name": "modifiziertes 11er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "1",
+        "stelle4": "2",
+        "stelle5": "0",
+        "stelle6": "1",
+        "stelle7": "2",
+        "stelle8": "1",
+        "stelle9": "2",
+        "stelle10": "1",
+        "stelle11": "2",
+        "stelle12": "1"}
+    },
+    {
+      "id": "SH",
+      "name": "2er-Verfahren",
+      "faktoren": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "512",
+        "stelle4": "256",
+        "stelle5": "0",
+        "stelle6": "128",
+        "stelle7": "64",
+        "stelle8": "32",
+        "stelle9": "16",
+        "stelle10": "8",
+        "stelle11": "4",
+        "stelle12": "2"
+      },
+      "summanden": {
+        "stelle1": "0",
+        "stelle2": "0",
+        "stelle3": "9",
+        "stelle4": "8",
+        "stelle5": "0",
+        "stelle6": "7",
+        "stelle7": "6",
+        "stelle8": "5",
+        "stelle9": "4",
+        "stelle10": "3",
+        "stelle11": "2",
+        "stelle12": "1"            
+      }
+    }
+  ]
+}

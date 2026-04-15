@@ -1,0 +1,24 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "Implementations of model-api for a12internal usage"
+
+dependencies {
+    api project(':kernel-core-tool-api')
+    api project(':kernel-md-document-api')
+    api project(':kernel-md-document-v2')
+    api project(':kernel-md-model-api')
+    api libs.baseModelApi
+    api libs.baseModelConsistency
+    api libs.commonsLang3
+
+    compileOnly project(':kernel-md-util')
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation project(':kernel-conversion-java')
+    implementation project(':kernel-core-base-utils')
+
+
+}

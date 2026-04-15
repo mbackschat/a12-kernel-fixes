@@ -1,0 +1,29 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.29.A12K-2679
+displayName: Migration for A12K-2679
+description: Migration for A12K-2679.
+recipeList:
+  # breaking
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IComputedFieldInstance getErrorMessage()'
+      commentForDeclaration: 'the return type of the method has changed'
+      commentForInvocation: 'this method now returns an Optional<IMessage>, call getErrorMessage() to get the string'
+  # deprecated
+  # IDocumentComputationResult
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentComputationResult apply(java.util.function.Consumer)'
+      newMethodName: 'applyTo(IDocument)'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentComputationResult apply(com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory, java.util.function.Consumer)'
+      newMethodName: 'applyTo(IDocument, IDocumentFactory)'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentComputationResult getComputedFieldInstances()'
+      commentForInvocation: 'this method is deprecated, use getComputedFieldInstancesWithoutErrors() and getComputedFieldInstancesWithErrors() instead'
+  # IComputedFieldInstance
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IComputedFieldInstance apply(java.util.function.Consumer)'
+      newMethodName: 'applyTo(IDocument)'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IComputedFieldInstance apply(com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory, java.util.function.Consumer)'
+      newMethodName: 'applyTo(IDocument, IDocumentFactory)'

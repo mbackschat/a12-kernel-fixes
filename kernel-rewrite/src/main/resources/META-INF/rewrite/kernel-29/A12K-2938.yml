@@ -1,0 +1,56 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.29.A12K-2938
+displayName: Migration for A12K-2938
+description: Migration for A12K-2938.
+recipeList:
+  # ICustomFieldTypeService (+ CustomFieldTypeService) -> obsolete with A12K-3205 (deprecation of interface)
+#  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+#      methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeService register(com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory)'
+#      newMethodName: 'registerV2'
+#  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+#      methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeService getRegisteredTypeNames()'
+  # CustomFieldTypeService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.CustomFieldTypeService register(com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory)'
+      newMethodName: 'registerV2'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.CustomFieldTypeService getRegisteredTypeNames()'
+  # ICustomFieldTypeFactory
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory getSupportedTypeNames()'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory createCustomFieldType(String)'
+      newMethodName: 'createCustomFieldTypeV2(String)'
+#  # ICustomConditionService (+ CustomConditionService) -> obsolete with A12K-3205 (deprecation of interface)
+#  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+#      methodPattern: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionService register(com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory)'
+#      newMethodName: 'registerV2'
+#  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+#      methodPattern: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionService getRegisteredConditionNames()'
+  # CustomConditionService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.impl.CustomConditionService register(com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory)'
+      newMethodName: 'registerV2'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.impl.CustomConditionService getRegisteredConditionNames()'
+  # com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory getSupportedConditionNames()'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory createCustomCondition(String)'
+      newMethodName: 'createCustomConditionV2(String)'
+  # com.mgmtp.a12.kernel.md.rt.api.ICustomConditionFactory
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.ICustomConditionFactory getSupportedConditionNames()'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.ICustomConditionFactory createCustomCondition(String)'
+      newMethodName: 'createCustomConditionV2(String)'
+  # DocumentRtCustomExtensionService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.facade.DocumentRtCustomExtensionService registerCustomFieldTypes(com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory)'
+      newMethodName: 'registerCustomFieldTypesV2'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.facade.DocumentRtCustomExtensionService registerCustomConditions(com.mgmtp.a12.kernel.md.rt.api.ICustomConditionFactory)'
+      newMethodName: 'registerCustomConditionsV2'
+

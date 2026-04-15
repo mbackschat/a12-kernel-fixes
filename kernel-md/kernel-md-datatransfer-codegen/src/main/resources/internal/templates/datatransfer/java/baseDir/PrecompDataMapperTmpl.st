@@ -1,0 +1,3 @@
+PrecompDataMapperTmpl(t) ::= <<
+<t.SerializedModel>
+>>

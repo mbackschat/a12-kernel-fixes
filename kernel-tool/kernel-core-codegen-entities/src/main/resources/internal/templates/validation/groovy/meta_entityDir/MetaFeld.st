@@ -1,0 +1,3 @@
+MetaFeld(t) ::= <<
+m_felder.add(new Feld_t(<t.interneNr>, "<t.uniqueName>", "<t.pfadName>", <t.maxZeile>, <t.pflichtFeldCode>, <t.mandatoryForRepeatableGroupCode>, metaFormate.get(<t.gemeinsamesFormatNrCode>), "<t.JSName>", [ <t.vordruckPflichtFeldLfdNr; separator=", ">] as Integer[], [ <t.pflichtFeldLfdNr; separator=", "> ] as Integer[], <t.additionalKeyValuesCode>, <t.internalAdditionalKeysCode>, <t.berechnungsUebertragServer>, <t.sbKzRepetition1ListCode>, <t.sbKzMapCode>, errorTexts4Req.get(<t.interneNr>)));
+>>

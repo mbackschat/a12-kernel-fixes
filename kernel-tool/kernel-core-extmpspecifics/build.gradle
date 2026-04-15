@@ -1,0 +1,17 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "models specifics to the extended modeling platform (ExtMP)"
+
+dependencies {
+    api project(':kernel-core-parsetree-api') //should be kept (regardless of any gradle buildHealth suggestions)
+    api project(':kernel-core-tool-api')
+    api libs.baseModelApi
+
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation project(':kernel-core-base-utils')
+    implementation libs.commonsLang3
+}

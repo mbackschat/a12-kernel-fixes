@@ -1,0 +1,29 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "./src"
+  ],
+  "compilerOptions": {
+    "outDir": "./lib",
+    "rootDir": "./src",
+    "declarationMap": true,
+    "declaration": true,
+    "noEmitOnError": false,
+    "sourceMap": true,
+    // skipLibCheck, in order to suppress warnings about monaco sources in node_modules
+    // (we can't directly fix the monaco-editor-addon, TODO but maybe we should file a bug there?)
+    "skipLibCheck": true,
+    // noUnusedLocals can't be enabled because it fails for the generated parser & lexer
+    // it should be ok to disable it, because eslint will tell us about unused imports etc
+    // anyway. And this is only a cosmetic nice-to-have anyway, right?
+    "noUnusedLocals": false
+  },
+  "typedocOptions": {
+    "name": "Parser (Web)",
+    "out": "./doc",
+    "theme": "default",
+    "excludeInternal": "false",
+    "entryPointStrategy": "expand",
+    "exclude": ["**/a12internal/**/*.ts", "**/internal/**/*.ts", "**/node_modules/**"]
+  }
+}

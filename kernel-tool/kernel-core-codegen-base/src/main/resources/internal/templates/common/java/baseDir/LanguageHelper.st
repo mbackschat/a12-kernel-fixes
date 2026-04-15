@@ -1,0 +1,3 @@
+LanguageHelper(t) ::= <<
+<t.javaCode>
+>>

@@ -1,0 +1,34 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "Implementation for runtime services like validation or computation."
+
+dependencies {
+    api project(':kernel-md-a12internal')
+    api project(':kernel-md-document-api')
+    api project(':kernel-md-document-v2')
+    api project(':kernel-md-model-api')
+    api project(':kernel-md-runtime-api')
+    api project(':kernel-mapping-rt-api')
+    api libs.baseModelConsistency
+    api libs.kernelCoreRuntimeApi
+    api libs.groovy
+
+    implementation project(':kernel-core-base-utils')
+    implementation project(':kernel-core-codegen-base')
+    implementation project(':kernel-md-model')
+    implementation project(':kernel-md-serializer')
+    implementation project(':kernel-conversion-java')
+    implementation libs.baseModelApi
+    implementation libs.commonsLang3
+    implementation libs.slf4jApi
+    implementation libs.kernelCoreCustomfieldtypeApi
+
+    compileOnly libs.baseModelUtils // @Experimental tags
+
+    // this includes all necessary dependencies for the kernel runtime that is needed during application runtime
+    runtimeOnly project(':kernel-md-document-service')
+
+}

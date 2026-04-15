@@ -1,0 +1,63 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    id 'antlr'
+}
+
+description = "Check a condition text and create a typed parse tree."
+
+// workaround for a bug in the gradle antlr plugin
+// https://github.com/gradle/gradle/issues/820#issuecomment-1585814999
+// which otherwise adds the whole antlr _tool_ instead of just the runtime, as
+// a runtime dependency:
+// (this workaround additionally needs an implementation/api dependency to antlr4-runtime, see above)
+configurations {
+    api {
+        extendsFrom = extendsFrom.findAll { it != configurations.antlr }
+    }
+}
+
+sourceSets {
+    main {
+        antlr.setSrcDirs(["src/main/antlr4"])
+    }
+}
+
+dependencies {
+    antlr(libs.antlr4) {// this dependency doesn't work yet with centrally-controlled version
+        exclude group: 'com.ibm.icu', module: 'icu4j' // icu4j seems unneded at runtime of the antlr tool https://github.com/antlr/antlr4/issues/4900
+    }
+    api project(':kernel-core-base-utils')
+    api project(':kernel-core-extmpspecifics')
+    api project(':kernel-core-parsetree-api')
+    api project(':kernel-core-tool-api')
+    api libs.antlr4Runtime // required with the below workaround
+    api libs.baseModelConsistency
+    api libs.commonsLang3
+    api libs.validationApi
+
+    implementation libs.commonsText
+
+
+}
+
+// maybe ideally patch this here: https://github.com/gradle/gradle/blob/master/subprojects/antlr/src/main/java/org/gradle/api/plugins/antlr/AntlrPlugin.java
+tasks.sourcesJar {
+    // this dependency is apparently missing by default, which caused a warning during assemble
+    dependsOn(tasks.generateGrammarSource)
+}
+
+// somehow we need to pass "-lib ${antlrOutDir}" to antlr in order for it to find Base_ConditionLexer.tokens
+// (as of antlr 4.9.2), because (while 4.7.1+ does at least look in <package path> vs only root build dir), it
+// doesn't seem to handle the combination of specified output directory ("-o" option set by gradle plugin) *and*
+// <package path> correctly (it will look in ./com/mgmtp/...) instead of /<build dir abspath>/com/mgmtp/...)
+var antlrOutDir = "${tasks.generateGrammarSource.outputDirectory}/com/mgmtp/a12/kernel/core/parser/internal/grammar/gen".toString()
+generateGrammarSource {
+    doFirst {
+        mkdir antlrOutDir
+    }
+    arguments += ["-package", "com.mgmtp.a12.kernel.core.parser.internal.grammar.gen",
+                  "-lib", antlrOutDir,
+                  "-encoding", "utf-8"]
+}
+
+

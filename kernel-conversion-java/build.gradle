@@ -1,0 +1,13 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "Type conversion for java"
+
+dependencies {
+    implementation libs.commonsLang3
+    compileOnly libs.baseModelUtils // Only annotations
+
+
+}

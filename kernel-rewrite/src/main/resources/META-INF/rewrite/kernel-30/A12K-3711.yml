@@ -1,0 +1,20 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.30.A12K-3711
+displayName: Migration for A12K-3711
+description: Migration for A12K-3711.
+recipeList:
+  # Deprecate DocumentModelJoiningService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToDeprecatedTypeImplementation:
+      typeName: 'com.mgmtp.a12.kernel.md.model.a12internal.services.join.DocumentModelJoiningService'
+      comment: 'Use the `CombinationModelService` from `kernel-md-combination-model` instead.'
+  # Deprecate methods in DocumentModelJoiningService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.a12internal.services.join.DocumentModelJoiningService join(com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel, java.util.List, boolean, java.util.Locale, com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter)'
+      comment: 'Use the `MM_CombinationModel` and `CombinationModelService#expand` instead. hi'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.a12internal.services.join.DocumentModelJoiningService join(com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel, com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel, java.util.Locale, com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter, com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter, com.mgmtp.a12.kernel.md.model.a12internal.services.join.addition.IAdditionOrigins)'
+      comment: 'Use the `MM_CombinationModel` and `CombinationModelService#expand` instead.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.a12internal.services.join.DocumentModelJoiningService join(com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel, com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel, java.util.Locale, com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter, com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter, com.mgmtp.a12.kernel.md.model.a12internal.services.join.addition.IAdditionOrigins, com.mgmtp.a12.kernel.md.model.a12internal.services.join.item.DocumentModelJoiningItem.ElementOrderForAddition)'
+      comment: 'Use the `MM_CombinationModel` and `CombinationModelService#expand` instead.'

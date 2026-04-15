@@ -1,0 +1,83 @@
+import groovy.json.JsonSlurper
+
+import java.nio.file.Paths
+
+plugins {
+    alias libs.plugins.kernelBaseConventions
+}
+
+description = "central configuration for typescript subprojects"
+
+def npmWorkingDir = file("${parent.projectDir}")
+
+String osName = System.getProperty("os.name").toLowerCase()
+project.ext.npm_executable = osName.contains("windows") ? "npm.cmd" : "npm"
+project.ext.npx_executable = osName.contains("windows") ? "npx.cmd" : "npx"
+
+def jsonFile = file("${npmWorkingDir}/package.json")
+// read all modules from the json file
+String[] workspacePackages = new JsonSlurper().parseText(jsonFile.text).workspaces
+def npm_groupName = "npm"
+
+
+tasks.register('npm_install', Exec) {
+    group = npm_groupName
+    workingDir npmWorkingDir
+
+    inputs.file("${npmWorkingDir}/package.json")
+
+    workspacePackages.each {
+        def projectPath = it
+        inputs.file(Paths.get(npmWorkingDir.toString(), projectPath, "package.json"))
+
+        outputs.dir(Paths.get(npmWorkingDir.toString(), projectPath, 'node_modules'))
+    }
+
+    // the lockfile in node_modules can be used to identify if there are relevant changes,
+    // it is not necessary to check the whole node_modules directory
+    // see https://docs.npmjs.com/cli/v7/configuring-npm/package-lock-json#hidden-lockfiles
+    outputs.file("${npmWorkingDir}/node_modules/.package-lock.json")
+
+    // don't cache anything (node_modules etc.) as it is not enough to just get the package-lock from cache
+    // see https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure
+    outputs.cacheIf { false }
+
+    commandLine "$npm_executable", "install", "--loglevel", "warn", "--no-progress"
+
+    hideExecTaskOutputUnlessFailure(it)
+}
+
+tasks.register('npm_cleanNodeModules', Delete) {
+    group = npm_groupName
+    dependsOn(tasks.named('npm_clean'))
+
+    delete "${npmWorkingDir}/node_modules"
+}
+
+tasks.register('npm_clean', Delete) {
+    group = npm_groupName
+
+    doFirst {
+        println("files will be cleaned, this is NOT a call to npm run clean")
+    }
+    delete project.layout.buildDirectory
+}
+
+
+tasks.named('clean') {
+    dependsOn(tasks.named('npm_clean'))
+}
+
+tasks.register('getJsDependencies', Exec) {
+    group = 'verification'
+    workingDir npmWorkingDir
+
+    inputs.files(tasks.named('npm_install'))
+
+    commandLine "$npm_executable", "query", ":root > * > *"
+    standardOutput = new ByteArrayOutputStream()
+    doLast {
+        getJsDependencies.ext.jsDeps = new JsonSlurper().parseText(standardOutput.toString())
+                .collectEntries { dep -> [(dep.name): (dep.version)] }
+    }
+}

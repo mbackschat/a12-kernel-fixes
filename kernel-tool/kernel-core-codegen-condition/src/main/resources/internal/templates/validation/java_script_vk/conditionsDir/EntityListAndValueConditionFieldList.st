@@ -1,0 +1,3 @@
+EntityListAndValueConditionFieldList(t) ::= <<
+<if(t.optimize&&t.atLeastOneValueConstruct)>controller.<t.bedingungNameCode>(idx, <t.feldListenCode>, valuesAsObjectList<t.paramNr>, containsValueListFilter<t.paramNr>, isNumber<t.paramNr>)<elseif(t.optimize&&!t.atLeastOneValueConstruct)>controller.<t.bedingungNameCode>(idx, <t.feldListenCode>, valuesAsObjectList<t.paramNr>, foundNonFilledFieldInValueList<t.paramNr>[0], foundNonRelevantFieldInValueList<t.paramNr>, isNumber<t.paramNr>)<else>controller.<t.bedingungNameCode>(idx, <t.feldListenCode>, <t.listCode>)<endif>
+>>

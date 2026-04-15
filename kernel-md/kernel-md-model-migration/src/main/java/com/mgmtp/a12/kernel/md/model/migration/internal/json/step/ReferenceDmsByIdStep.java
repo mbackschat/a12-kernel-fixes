@@ -1,0 +1,85 @@
+/*
+ * SPDX-License-Identifier: EUPL-1.2 OR LicenseRef-commercial
+ *
+ * Copyright (c) 2012-2026 mgm technology partners GmbH
+ *
+ * Dual License
+ * ------------
+ * This source file is part of the mgm A12 Platform and available under
+ * a choice of two different licenses:
+ *
+ * 1. Open-Source License – EUPL v1.2
+ *    You may redistribute and/or modify this file under the terms of the
+ *    European Union Public License, version 1.2 - see https://eupl.eu/.
+ *
+ * 2. Commercial License
+ *    Alternatively, you may obtain a commercial license from
+ *    mgm technology partners GmbH, that permits use of this software
+ *    under different terms (including support and maintenance services).
+ *
+ *    Please contact a12-license@mgm-tp.com for more information.
+ *
+ * You must select and comply with exactly one of the above license options.
+ *
+ * Warranty Disclaimer (applies to either option)
+ * ----------------------------------------------
+ * THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND,
+ * WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
+ * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
+ */
+
+package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
+
+import java.util.Objects;
+import java.util.stream.StreamSupport;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
+import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
+import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
+import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
+import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
+import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
+import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
+import com.mgmtp.a12.kernel.md.model.migration.internal.utils.IdReferenceConverter;
+import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
+
+public class ReferenceDmsByIdStep extends BaseJsonNodeMigrationStep {
+
+	public ReferenceDmsByIdStep(MigrationCache cache, MigrationStepConfigType stepConfigType,
+			ICustomMigrationConfig customMigConfig) {
+		super(cache, stepConfigType, customMigConfig);
+	}
+
+	@Override public void execute(JsonNode model, MigrationLogger migrationLogger) {
+		if (!ModelJsonUtil.referencesOtherDm(model)) {
+			return;
+		}
+		ModelJsonUtil.extractReferencesToDms(model).stream().forEach(this::migrateModelRef);
+		// in case there are expanded document models
+		ModelJsonUtil.extractTypeDefs(model).stream()
+				.map(td -> td.get(ModelJsonUtil.MODEL_REFERENCES))
+				.filter(Objects::nonNull)
+				.filter(JsonNode::isArray)
+				.map(ArrayNode.class::cast)
+				.flatMap(an -> StreamSupport.stream(an.spliterator(), false))
+				.forEach(this::migrateModelRef);
+	}
+
+	private void migrateModelRef(JsonNode modelRef) {
+		String reference = ModelJsonUtil.extractReferenceFromModelReference(modelRef);
+		if (reference == null) { // should not happen
+			throw new MigrationException(new MigrationError(MigrationErrorType.MODEL_CONTENT_NOT_SUPPORTED)
+					.withMessage(
+							"The document model contains a model-reference object with a null or a non-textual reference."));
+		}
+		String newReference = IdReferenceConverter.createIdReference(reference);
+		((ObjectNode) modelRef).set(ModelJsonUtil.MR_REFERENCE, TextNode.valueOf(newReference));
+	}
+
+}

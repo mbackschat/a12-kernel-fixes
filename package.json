@@ -1,0 +1,30 @@
+{
+  "name": "root",
+  "version": "30.8.1",
+  "license": "(EUPL-1.2 OR LicenseRef-commercial)",
+  "private": true,
+  "scripts": {
+    "clean": "npm run clean:build_files ; npm run clean:node_modules",
+    "clean:build_files": "npm exec --workspaces -- npx rimraf ./lib",
+    "clean:node_modules": "npm exec --workspaces -- npx rimraf ./node_modules ; npx rimraf node_modules",
+    "doc": "typedoc"
+  },
+  "devDependencies": {
+    "@com.mgmtp.a12.devtools/tsconfig": "^1.1.0",
+    "typedoc": "^0.28.15"
+  },
+  "overrides": {
+    "xmlbuilder2": "^4.0.1",
+    "@cyclonedx/cyclonedx-library": "^9.0.0",
+    "serialize-javascript": "^7.0.5",
+    "eslint": "^9.39.4"
+  },
+  "workspaces": [
+    "kernel-md/kernel-md-facade",
+    "kernel-rt/kernel-core-runtime-api-ts",
+    "kernel-rt/kernel-core-runtime-ts",
+    "kernel-ts/eslint-config",
+    "kernel-tool/kernel-core-parser-web",
+    "kernel-rt/kernel-core-customfieldtype-impl"
+  ]
+}

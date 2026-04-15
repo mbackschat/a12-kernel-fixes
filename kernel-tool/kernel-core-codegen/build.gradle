@@ -1,0 +1,33 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "kernel-core-codegen"
+
+dependencies {
+    api libs.baseModelApi
+    api project(':kernel-core-base-utils')
+    api project(':kernel-core-codegen-base')
+    api project(':kernel-core-codegen-condition')
+    api project(':kernel-core-codegen-entities')
+    api project(':kernel-core-codegen-rules')
+    api project(':kernel-core-extmpspecifics')
+    api project(':kernel-core-parsetree-api')
+    api libs.kernelCoreRuntimeApi
+    api project(':kernel-core-service')
+    api project(':kernel-core-tool-api')
+
+    implementation project(':kernel-core-calc')
+    implementation project(':kernel-core-codegen-meta-base')
+    implementation project(':kernel-core-parser')
+    implementation project(':kernel-core-utils')
+    implementation libs.baseModelConsistency
+    implementation libs.commonsLang3
+
+    // the metamodel validators must _not_ be compile-time dependencies (runtimeOnly, access via reflection),
+    // in order to enable the A12_KERNEL_BOOTSTRAP_VALIDATORS_DISABLE_MM_VALIDATION mechanism
+    runtimeOnly libs.kernelMmCommonV2CodegenValidators
+
+
+}

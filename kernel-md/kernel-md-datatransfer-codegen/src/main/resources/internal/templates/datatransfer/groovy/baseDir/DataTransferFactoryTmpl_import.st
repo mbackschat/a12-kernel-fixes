@@ -1,0 +1,13 @@
+DataTransferFactoryTmpl_import(t) ::= <<
+import java.util.Map;
+import java.util.Set;
+
+import com.mgmtp.a12.kernel.core.rt._30_8.internal.datatransfer.mappingmodel.IPrecompModelDataMapper;
+import com.mgmtp.a12.kernel.core.rt._30_8.internal.core.IMetaDataValidierung;
+import com.mgmtp.a12.kernel.core.rt._30_8.internal.datatransfer.DataTransferServiceImpl;
+import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICalculator;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
+import com.mgmtp.a12.kernel.core.rt.a12internal.datatransfer.IDataTransferService;
+import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.execution.StructuralMapperVK;
+>>

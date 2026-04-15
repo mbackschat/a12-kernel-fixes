@@ -1,0 +1,14 @@
+{
+  "extends": "./node_modules/@com.mgmtp.a12/devtools/configs/tsconfig",
+  "include": [
+    "./src/test/js"
+  ],
+  "compilerOptions": {
+    "outDir": "./lib/test",
+    "rootDir": "./src",
+    "declarationMap": true,
+    "declaration": true,
+    "resolveJsonModule": true,
+    "stripInternal": false
+  }
+}

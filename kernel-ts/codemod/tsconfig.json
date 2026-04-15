@@ -1,0 +1,30 @@
+{
+  "extends": "./node_modules/@com.mgmtp.a12.devtools/tsconfig/tsconfig",
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "**/__fixtures__/**"
+  ],
+  "compilerOptions": {
+    "outDir": "./lib",
+    "rootDir": "./src",
+		"module": "CommonJS",
+		"moduleResolution": "node",
+    "declarationMap": false,
+    "declaration": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "allowJs": true,
+    "stripInternal": true,
+    "allowSyntheticDefaultImports": true,
+    "noEmitOnError": false,
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
+  },
+  "ts-node": {
+    "transpileOnly": true
+  }
+}

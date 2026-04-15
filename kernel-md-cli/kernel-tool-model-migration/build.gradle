@@ -1,0 +1,58 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "Migration CLI for document model files"
+
+configurations {
+    extraDepsForCliFatJars
+}
+
+dependencies {
+    implementation project(':kernel-core-base-utils')
+    implementation project(':kernel-md-model-api')
+    implementation project(':kernel-md-model-migration')
+    implementation project(':kernel-md-serializer')
+    implementation libs.commonsCli
+    implementation libs.commonsLang3
+    implementation libs.jacksonDatabind
+    implementation libs.slf4jApi
+
+    extraDepsForCliFatJars libs.slf4jLog4j12OnlyForCliJarsAndTests
+
+
+}
+
+task make_MigratorCli(type: Jar) {
+    dependsOn configurations.runtimeClasspath
+    dependsOn configurations.extraDepsForCliFatJars
+    dependsOn sourceSets.main.output
+    from {
+        sortAndConvertClasspathEntriesForFatJar(
+                sourceSets.main.output
+                        + configurations.runtimeClasspath
+                        + configurations.extraDepsForCliFatJars)
+    }
+
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
+    archiveClassifier = "jar-with-dependencies"
+
+    manifest {
+        attributes "Main-Class": "${A12_kernel_group_id}.tool.migration.MigratorCli"
+    }
+}
+
+tasks.assemble {
+    dependsOn(make_MigratorCli)
+}
+
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            // already includes sources jar and javadoc jar
+            artifact make_MigratorCli
+        }
+    }
+}

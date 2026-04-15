@@ -1,0 +1,5505 @@
+//// 
+SPDX-License-Identifier: EUPL-1.2 OR LicenseRef-commercial
+Copyright (c) 2012-2026 mgm technology partners GmbH
+Dual License
+This source file is part of the mgm A12 Platform and available under a choice of two different licenses:
+1. Open-Source License – EUPL v1.2
+You may redistribute and/or modify this file under the terms of the European Union Public License, version 1.2 - see https://eupl.eu/.
+2. Commercial License
+Alternatively, you may obtain a commercial license from mgm technology partners GmbH, that permits use of this software under different terms (including support and maintenance services).
+
+Please contact a12-license@mgm-tp.com for more information.
+    
+You must select and comply with exactly one of the above license options.
+
+Warranty Disclaimer (applies to either option)
+THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS. 
+////
+
+:toc:
+:toclevels: 3
+:toc-title: Table of contents
+:xrefstyle: short
+:imagesdir: assets/images
+:sectnums:
+
+= Parser messages
+:sectnums:
+:sectnumlevels: 2
+
+
+////
+missing descriptions                                            why missing?
+----------------------------------------------------------------------------------------------------------
+[[MVK_POINT_IN_A12_MODEL]]                                      available in German ready for translation
+[[MVK_NO_STRING]]                                               available in German ready for translation
+[[MVK_ERROR_FIELDGROUP_ITERATION5_INVALID]]                     unclear
+[[MVK_INTERNAL_ERROR]]                                          unclear
+[[MVK_RULE_GROUP_IS_EMPTY_OR_INVALID]]                          unclear
+[[MVK_NO_DATE_CONSTANT]]                                        unclear
+[[MVK_ONLY_STRING_ENUM_NUMBER_CMP_DATE_ALLOWED_NO_FIELD]]       unclear
+[[MVK_NON_NUMERIC]]                                             unclear
+[[MVK_REF_ERROR_ENTITY_IF_FILLED_NOT_REFERENCED]]               not relevant
+[[MVK_REF_ERROR_ENTITY_IF_NOT_FILLED_NOT_REFERENCED]]           not relevant
+[[MVK_MISSING_ERROR_FIELD]]                                     not relevant
+[[MVK_ERROR_FIELD_NOT_VALID]]                                   not relevant
+[[MVK_NOT_ON_ERRORFIELD_PATH]]                                  not relevant
+[[MVK_INVALID_PREDEFINED_TYPE]]                                 not relevant
+[[MVK_ITERATION_RESTRICTION_IN_A12_MODEL]]                      not relevant
+[[MVK_ENTITY_MOVE_IN_A12_MODEL_CONDITION]]                      not relevant
+[[MVK_ENTITY_MOVE_IN_A12_MODEL_ERRORTEXT]]                      not relevant
+[[MVK_MAX_LFDNR_RESTRICTION_TO_ONE]]                            not relevant
+[[MVK_MAX_GROUP_RESTRICTION_TO_ONE]]                            not relevant
+[[MVK_FIELD_REF_OP]]                                            not relevant
+[[MVK_CATEGORY_REF_OP]]                                         not relevant
+[[MVK_CONDITION]]                                               not relevant
+[[MVK_COMMON_PARSER_ERROR]]                                     not relevant
+[[MVK_SEMANTIC_INDEX_REF_OP]]                                   not relevant
+[[MVK_MULTIPLE_INDEX_FIELDS2]]                                  not relevant
+[[MVK_INVALID_DATE_RANGE_FORMAT]]                               ExtMP-exclusive
+[[MVK_INVALID_LENGTH_OF_RAW_TYPE]]                              ExtMP-exclusive
+[[MVK_INVALID_RAW_TYPE]]                                        ExtMP-exclusive
+[[MVK_DIFFERENT_YES_VALUE]]                                     ExtMP-exclusive
+[[MVK_DIFFERENT_NO_VALUE]]                                      ExtMP-exclusive
+[[MVK_PARTIAL_DATE_NOT_ALLOWED]]                                ExtMP-exclusive
+[[MVK_FIELDNAME_NOT_UNIQUE]]                                    ExtMP-exclusive
+[[MVK_INVALID_ROOT_GROUP_CONSTR]]                               ExtMP-exclusive
+[[MVK_INVALID_DATE_TYPE_FOR_OP]]                                ExtMP-exclusive
+[[MVK_INVALID_TABLE_ENUM]]                                      ExtMP-exclusive
+[[MVK_TABLE_ENUM_EXPECTED]]                                     ExtMP-exclusive
+[[MVK_DEPENDENT_COLUMN_SIZE_MISMATCH]]                          ExtMP-exclusive
+[[MVK_ONLY_ENUMS_ALLOWED]]                                      ExtMP-exclusive
+[[MVK_STRING_VALUE_NOT_IN_COLUMN]]                              ExtMP-exclusive
+[[MVK_ENUM_VALUES_NOT_IN_COLUMN]]                               ExtMP-exclusive
+[[MVK_NO_BASE_YEAR]]                                            ExtMP-exclusive
+[[MVK_INVALID_PARAMS_FOR_OP]]                                   only for H-models
+[[MVK_DIFFERENT_ROOT_GROUPS]]                                   only for H-models
+[[MVK_CONDITION_WITH_WILDCARD]]                                 only for H-models
+[[MVK_INVALID_OPERATION_IN_H_MODEL]]                            only for H-models
+[[MVK_INVALID_USB]]                                             only for H-models
+[[MVK_H_MODEL_AND_PATH]]                                        only for H-models
+[[MVK_H_MODEL_AND_LSPEC_FOR_GROUP]]                             only for H-models
+[[MVK_H_MODEL_INVALID_INDEX_SPEC]]                              only for H-models
+[[MVK_H_MODEL_INDEX_TOO_BIG]]                                   only for H-models
+[[MVK_H_MODEL_INVALID_ZITERATION]]                              only for H-models
+[[MVK_ILLEGAL_RESTRICTION_OF_WILDCARD]]                         only for H-models
+[[MVK_INVALID_WILDCARD_H_MODEL]]                                only for H-models
+[[MVK_INVALID_USB_WILDCARD]]                                    only for H-models
+[[MVK_INVALID_DATE_TYPE]]                                       only for H-models
+[[MVK_NO_Z_ITERATION]]                                          only for H-models
+[[MVK_ROOT_GROUP_REFERENCED_AS_GROUP]]                          only for H-models
+[[MVK_L_NO_MULT]]                                               only for H-models
+[[MVK_U_NO_MULT]]                                               only for H-models
+[[MVK_INVALID_L]]                                               only for H-models
+[[MVK_NO_USB]]                                                  only for H-models
+[[MVK_MISSING_Z_ITERATION]]                                     only for H-models
+[[MVK_DIFFERENT_Z_MULT]]                                        only for H-models
+[[MVK_NO_Z_MULT]]                                               only for H-models
+[[MVK_NO_Z_WILDCARD_WITHOUT_RESTRICTION]]                       only for H-models
+[[MVK_INVALID_LU_WILDCARD]]                                     only for H-models
+[[MVK_UITERATION_INVALID]]                                      only for H-models
+[[MVK_INVALID_Z_WILDCARD_FOR_GROUP]]                            only for H-models
+[[MVK_INVALID_L_MULT_H_MODEL]]                                  only for H-models
+[[MVK_INVALID_L_ITER]]                                          only for H-models
+[[MVK_INVALID_L_ITER2]]                                         only for H-models
+[[MVK_INVALID_U_ITER]]                                          only for H-models
+[[MVK_INVALID_Z_ITER]]                                          only for H-models
+[[MVK_DIFFERENT_Z_IN_ITER]]                                     only for H-models
+[[MVK_DIFFERENT_L_IN_ITER]]                                     only for H-models
+[[MVK_DIFFERENT_Z]]                                             only for H-models
+[[MVK_INVALID_Z_FOR_GROUP]]                                     only for H-models
+[[MVK_ERROR_FIELD_AND_ZITERATION_INVALID]]                      only for H-models
+[[MVK_ITERATION_RESTRICTION_AND_NO_ITERATION]]                  only for H-models
+[[MVK_ITERATION_RESTRICTION_INVALID_INTERVAL]]                  only for H-models
+[[MVK_ITERATION_AND_ERRFIELD_INVALID]]                          only for H-models
+[[MVK_MAX_INDEX_RESTRICTION_TO_ONE]]                            only for H-models
+[[MVK_NEG_CONDITION_IN_ITERATION_ZEILE]]                        only for H-models
+[[MVK_NEG_CONDITION_IN_ITERATION_LFDNR]]                        only for H-models
+[[MVK_INVALID_UNSPECIFIED_TYPE]]                                only for H-models
+[[MVK_CONDITION_WITHOUT_REPEATABLE_ROOTGROUP]]                  only for H-models
+[[MVK_ERROR_WRONG_CALCULATED_FIELD]]                            not relevant
+[[MVK_ERROR_RESTRICTED_CALCULATION_RULE]]                       not relevant
+[[MVK_ERROR_SEMANTIC_INDEX_OR_CATEGORY_FOR_ERRORFIELD]]         not relevant
+[[MVK_ERROR_ITERATION_UNCHECKED]]                               not relevant
+[[MVK_ERROR_INVALID_COMPARISON]]                                not relevant
+[[MVK_ERROR_COMPARISON_WITH_OR]]                                not relevant
+[[MVK_ERROR_EMPTY_PRECONDITION]]                                not relevant
+[[MVK_ERROR_INVALID_LANGUAGE_FEATURE]]                          not relevant
+[[MVK_ERROR_INVALID_FIELD_GATE]]                                not relevant
+[[MVK_ERROR_WRONG_ROUNDING_MODE]]                               not relevant
+[[MVK_ERROR_CALC_CYCLE]]                                        not relevant
+[[MVK_ERROR_INVALID_FIELDNAME]]                                 not relevant
+[[MVK_CALCULATION_FIELD_AND_NO_CALCULATION_RULE]]               not relevant
+[[MVK_ERROR_INDEX_AS_CALCULATED_FIELD]]                         not relevant
+[[MVK_GROUP_AS_CALCULATED_FIELD]]                               not relevant
+[[MVK_CALC_INVALID_ACTION_TYPE]]                                not relevant
+[[MVK_ERROR_INVALID_ENUM_CALCULATION]]                          not relevant
+////
+
+
+=== Grammar
+
+[[MVK_INCOMPLETE_INPUT]]
+==== MVK_INCOMPLETE_INPUT
+
+===== Example
+
+For the Error Condition
+
+====
+``NumberOfFilledFields(``
+====
+
+the Rule parser returns the message
+
+----
+The condition is not complete (yet).
+[MVK_INCOMPLETE_INPUT]
+----
+
+===== Background
+
+The condition is not yet complete, but can be supplemented to a complete condition.
+
+
+[[MVK_EXPECTED_TOKEN_NOT_FOUND]]
+==== MVK_EXPECTED_TOKEN_NOT_FOUND
+
+===== Example
+
+For the Error Condition
+
+====
+``NumberOfFilledFields``
+====
+
+the Rule parser returns the message
+
+----
+Corrupt input or condition not complete (yet): Expected '('.
+[MVK_EXPECTED_TOKEN_NOT_FOUND]
+----
+
+===== Background
+
+The character '(' must appear after the name of language constructs such as _NumberOfFilledFields_.
+
+
+==== MVK_UNEXPECTED_TOKEN
+[[MVK_UNEXPECTED_TOKEN]]
+
+===== Example
+
+For the Error Condition
+
+====
+``FieldFilled()``
+====
+
+the Rule parser returns the message
+
+----
+Corrupt input or condition not complete (yet): Unexpected found ')'.
+[MVK_UNEXPECTED_TOKEN]
+----
+
+===== Background
+
+A field is expected as an argument after the open round bracket.
+
+[[MVK_LEXER_STANDARD_ERROR]]
+==== MVK_LEXER_STANDARD_ERROR
+
+===== Example
+
+For the Error Condition
+
+====
+``FieldFilled(F) ?``
+====
+
+the following error is returned:
+
+----
+Character '?' at position 18 is incorrect.
+[MVK_LEXER_STANDARD_ERROR]
+----
+
+===== Background
+
+This parser message is displayed if an invalid character, such as the character ``?``, is used in the error condition.
+
+
+=== Error Field and Iteration
+
+[[MVK_ERROR_FIELD_NOT_IN_RULEGROUP]]
+==== MVK_ERROR_FIELD_NOT_IN_RULEGROUP
+
+====== Example
+
+In the model
+
+image::parser_error/en/b64.png[,199]
+
+with Error Field _F_ and Error Condition
+
+====
+``AllFieldsFilled(../F,G)``
+====
+
+the Rule parser returns the message
+
+----
+The error field '/A/K/F' is not in the rule group, but the condition specifies iteration.
+[MVK_ERROR_FIELD_NOT_IN_RULEGROUP]
+----
+
+
+====== Solution
+
+Choose _G_ as Error Field.
+
+====== See
+
+<<Iterationp, Iteration>>
+
+[[MVK_NEG_CONDITION_IN_ITERATION]]
+==== MVK_NEG_CONDITION_IN_ITERATION
+
+===== Example
+
+In the model
+
+
+
+image::parser_error/en/b38.png[,199]
+
+and the Error Condition
+
+====
+``AtLeastOneFieldFilled(G,K/F)``
+====
+
+the Rule parser returns the message
+
+----
+Iteration for '/A/K' is specified, but the rule can fire for not filled repetitions of this repetition level.
+[MVK_NEG_CONDITION_IN_ITERATION]
+----
+
+===== Background
+
+If the field _G_ is specified, the condition would also be fulfilled for unspecified repetitions of _K_. This is not permitted.
+
+
+===== Solution
+
+One possible solution is to extend the condition so that it can only be valid for specified repetitions of the group _K_:
+
+====
+``GroupFilled(K) and AtLeastOneFieldFilled(G,K/F)``
+====
+
+===== See
+
+
+<<Iterationp, Iteration>>
+
+
+[[MVK_ERROR_FIELD_NOT_REFERENCED]]
+==== MVK_ERROR_FIELD_NOT_REFERENCED
+
+If the error field is not referenced in the error condition, the Rule parser returns an error of the following type:
+
+----
+The error field '/A/K/F' is not referenced in the condition.
+[MVK_ERROR_FIELD_NOT_REFERENCED]
+----
+
+
+===== See
+
+
+<<Fehlerfeldp, Error field>>
+
+[[MVK_ERROR_FIELD_AND_ITERATION_INVALID]]
+==== MVK_ERROR_FIELD_AND_ITERATION_INVALID
+
+This message can occur for both cases
+
+* <<ohneparalleleiteration, without parallel iteration>> as well as
+* <<mitparalleleriteration, with parallel iteration>>
+
+
+[[ohneparalleleiteration]]
+===== Without parallel iteration
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b36.png[,199]
+
+with Error Field _F1_ and Error Condition
+
+====
+``GroupFilled(RuleGroup) and [L/F2] < 1000``
+====
+
+the following error is returned:
+
+----
+An iteration for 'L' is specified in the condition by entity 'L/F2'. There must be either an iteration for the error field 'L/F1' in at least one reference or another error field must be defined for the rule.
+[MVK_ERROR_FIELD_AND_ITERATION_INVALID]
+----
+
+
+===== Background
+
+If the error field is not referenced directly, it must be referenced indirectly at least once by a group _G_ so that there is no repeatably referenced group below _G_.
+group is below _G_. + This condition is violated in the above example. The only reference of the error field _F1_ is made indirectly via the group _K_. But below _K_ is the repeatably referenced group _L_.
+
+
+===== Solution 1
+
+Specify the _F2_ field as an error field.
+
+
+===== Solution 2
+
+Change the error condition.
+
+====
+``GroupFilled(L) and [L/F2] < 1000``
+====
+
+===== See
+
+
+<<ruleConditionp, Rule condition>>
+
+[[mitparalleleriteration]]
+===== With parallel iteration
+===== Example
+
+In the model
+
+
+
+image::parser_error/en/b37.png[,199]
+
+with Error Field _L/F_ and Error Condition
+
+====
+``GroupFilled(RuleGroup) and [L/G] == [M/G]``
+====
+
+the following error is returned:
+
+----
+An iteration for 'L' is specified in the condition by entity 'L/G'. There must be either an iteration for the error field 'L/F' in at least one reference or another error field must be defined for the rule.
+[MVK_ERROR_FIELD_AND_ITERATION_INVALID]
+----
+
+===== Background
+
+If the error field is not referenced directly, it must be referenced indirectly at least once by a _Group_, so that there is no other repeatably referenced group below _Group_. +
+This condition is violated in the above example. The only reference of the error field _F_ is made indirectly via the group _K_.
+But below _K_ are the repeatably referenced groups _L_ and _M_.
+
+===== Solution 1
+
+Specify the field _G_ as an error field.
+
+===== Solution 2
+
+Change the error condition.
+
+====
+``GroupFilled(L) and [L/G] == [M/G]``
+====
+
+===== See
+
+
+
+* <<ruleConditionp, Rule condition>>
+* <<paralleleiteration, Parallel iteration>>
+
+[[MVK_ERROR_FIELDGROUP_ITERATION4_INVALID]]
+==== MVK_ERROR_FIELDGROUP_ITERATION4_INVALID
+
+===== Example
+
+In the model
+
+
+
+image::parser_error/en/b40.png[,199]
+
+
+with Error Field _F_ and Error Condition
+
+====
+``GroupFilled(RuleGroup) and [L/G] < 1000``
+====
+
+the following error is returned:
+
+----
+The group 'L' is specified as iteration in the condition. The error field '/A/L/F' is not allowed to be referenced in the rootgroup.
+[MVK_ERROR_FIELDGROUP_ITERATION4_INVALID]
+----
+
+===== Background
+
+If the error field is not referenced directly, it must be referenced indirectly at least once by a _group_, so that there is no repeatably referenced group below _group_. +
+This condition is violated in the above example.
+The only reference of the error field _F_ is made indirectly via the rootgroup _A_. But below _A_ there is still the repeatably referenced group _L_.
+
+
+===== Solution 1
+
+Specify the field _G_ as an error field.
+
+===== Solution 2
+
+Change the error condition.
+
+====
+``GroupFilled(L) and [G] < 1000``
+====
+
+===== See
+
+
+<<ruleConditionp, Rule condition>>
+
+=== Parallel Iteration
+
+
+[[MVK_ERROR_FIELD_NO_INDEX]]
+==== MVK_ERROR_FIELD_NO_INDEX
+
+====== Example
+
+For a model
+
+image::parser_error/en/b65.png[,179]
+
+with error Field _F_ and Rule condition
+
+====
+``[K/F]==[L/G]``
+====
+
+the Rule parser returns the message
+
+----
+For 'L' iteration is specified, but on the path of the error field no index is specified. Therefore wildcard has to be specified or another error field must be defined for the rule.
+[MVK_ERROR_FIELD_NO_INDEX]
+----
+
+
+====== Background
+
+The fields _F_ and _G_ are located in repeatable groups that do not contain each other.
+For a rule condition such as ``[K/F]==[L/G]`` to be valid, parallel iteration is required.
+For this, an index field _Ind_ of the same type as the field _L/Ind_ must be present in group _K_.
+
+====== Solution
+
+In group _K_, create a field _Ind_ of the same type as the field _L/Ind_ and declare it as an index field.
+
+====== See
+
+<<paralleleiteration, Parallel iteration>>
+
+[[MVK_MULTIPLE_INDEX_FIELDS]]
+==== MVK_MULTIPLE_INDEX_FIELDS
+
+===== Example
+
+In the model
+
+
+
+image::parser_error/en/b35.png[,199]
+
+and the Error Condition
+
+====
+``[L/K/F]==[M/F]``
+====
+
+the Rule parser returns the message
+
+----
+For '/A/L/K/F' there is more than one group with an index field.
+[MVK_MULTIPLE_INDEX_FIELDS]
+----
+
+
+===== Background
+
+There must be no more than one index field on the error field path and the paths of the groups that are iterated over in parallel.
+
+===== Solution
+
+Delete the index field property for _Person_.
+
+===== See
+
+
+<<ruleConditionp, Rule condition>>
+
+[[MVK_ERROR_FIELD_INVALID_INDEX]]
+==== MVK_ERROR_FIELD_INVALID_INDEX
+
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b34.png[,199]
+
+with Error Field _L/F_ and Error Condition
+
+====
+``[L/F]==[M/F]``
+====
+
+the Rule parser returns the message
+
+----
+For 'M' iteration is specified, but the index field on the error field path has another name. Therefore wildcard has to be specified or another error field must be defined for the rule.
+[MVK_ERROR_FIELD_INVALID_INDEX]
+----
+
+
+===== Background
+
+The index fields used for a parallel iteration must have the same name.
+
+===== Solution
+
+Align the types of the index fields.
+
+===== See
+
+
+<<paralleleiteration, Parallel iteration>>
+
+[[MVK_ERROR_FIELD_INVALID_INDEX_TYPE]]
+==== MVK_ERROR_FIELD_INVALID_INDEX_TYPE
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b33.png[,249]
+
+with Error Field _L/F_ and Error Condition
+
+====
+``[L/F]==[M/F]``
+====
+
+the Rule parser returns the message
+
+----
+For 'M' iteration is specified, but the index field on the error field path has another type. Therefore wildcard has to be specified or another error field must be defined for the rule.
+[MVK_ERROR_FIELD_INVALID_INDEX_TYPE]
+----
+
+
+===== Background
+
+The index fields used for a parallel iteration must be of the same type.
+
+===== Solution
+
+Align the types of the index fields.
+
+===== See
+
+
+<<paralleleiteration, Parallel iteration>>
+
+[[MVK_PARALLEL_ITERATION_INVALID]]
+==== MVK_PARALLEL_ITERATION_INVALID
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b41.png[,159]
+
+and the Error Condition (with parallel iteration)
+
+====
+``NoFieldFilled(F,/B/G)``
+====
+
+the following error is returned:
+
+----
+Parallel iteration is not allowed as an error can occur for repetitions without filled fields.
+[MVK_PARALLEL_ITERATION_INVALID]
+----
+
+===== Background
+
+
+The condition would also be fulfilled if neither group _A_ nor group _B_ is specified.
+This is not permitted.
+
+
+===== Solution
+
+One possible solution is to extend the condition so that it can only become valid if at least one of the groups _A_ and _B_ is specified.
+
+====
+``GroupFilled(/B) and NoFieldFilled(F,/B/G)``
+====
+
+===== See
+
+
+<<paralleleiteration, Parallel iteration>>
+
+
+
+
+[[MVK_SEMANTIC_INDEX_INVALID_ITER]]
+==== MVK_SEMANTIC_INDEX_INVALID_ITER
+
+===== Example
+
+In the model
+
+image::parser_error/en/b23.png[,189]
+
+with enumeration fields
+
+[caption="P"]
+.erson
+[%autowidth]
+|======
+|Value
+
+|PersonA
+|PersonB
+|======
+
+Error Condition
+
+====
+``[K/Name for L/Person] == "Schmied"``
+====
+
+and Error Field _Name_ the Rule parser returns the error
+
+----
+Field 'L/Person' specifies an iteration that is not allowed and therefore must not be used as semantic index.
+[MVK_SEMANTIC_INDEX_INVALID_ITER]
+----
+
+===== Background
+
+The use of ``<field1> for <field2>`` is not permitted if there is a group _L_ such that
+
+* L is repeatable
+* _<field2>_ is contained directly or indirectly in _L_
+* the index field is neither directly nor indirectly contained in _L_
+
+In the above example, this constellation is given, which is why the corresponding message is returned.
+For the similar, but differently structured model
+
+image::parser_error/en/b59.png[,189]
+
+the error condition
+
+====
+``[K/Name for L/Person] == "Schmied"``
+====
+
+is allowed.
+
+===== See
+
+
+<<semantischer_index, Semantic Index>>
+
+[[MVK_SEMANTIC_INDEX_BELOW_WILDCARD]]
+==== MVK_SEMANTIC_INDEX_BELOW_WILDCARD
+
+===== Example
+
+In the model
+
+image::parser_error/en/b24.png[,199]
+
+with
+
+[caption="Enumeration field "]
+.'Person'
+[%autowidth]
+|======
+|Value
+
+|PersonA
+|PersonB
+|======
+
+Error Condition
+
+====
+``AtLeastOneFieldFilled(/A*/K/Name for "PersonA")``
+====
+
+and Error Field _Name_ the Rule parser returns the error
+
+----
+Field '/A/K/Name' uses a semantic index, but in a parent group an asterisk is specified. This is not allowed.
+[MVK_SEMANTIC_INDEX_BELOW_WILDCARD]
+----
+
+
+
+
+===== Background
+
+In this error condition, a semantic index is used for the repeatable group _K_, although the group _A_ above is referenced with a _*_.
+This is not permitted.
+
+===== Solution
+
+Use
+
+====
+``AtLeastOneFieldFilled(/A*/K*/Name HAVING [K/Person] == "PersonA")``
+====
+
+as Error Condition.
+
+===== See
+
+
+
+* <<semantischer_index, Semantic Index>>
+* <<Filteroperatorp, Filter Operator>>
+
+=== Enumeration Fields and Categories
+
+The following three parser messages are explained together.
+
+[[MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION]]
+==== MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION
+[[MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION_CATEGORY]]
+==== MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION_CATEGORY
+[[MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION_OR_CATEGORY]]
+==== MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION_OR_CATEGORY
+
+For this purpose, _Person_ and _Country_ are fields of the type enumeration with
+
+[caption="Enumeration field "]
+.'Person'
+[%autowidth]
+|======
+|Value
+
+|PersonA
+|PersonB
+|======
+
+and
+
+[caption="Enumeration field 'Country' with category "]
+.Region
+[%autowidth]
+|======
+|Value|Category 'Region'
+
+|France|Europe
+|China|Asia
+|======
+
+===== Example 1
+
+For the Error Condition
+
+====
+``FieldValueIncludedInValueList(Person,"PersonA","PersonC")``
+====
+
+the Rule parser returns the error
+
+----
+At 'FieldValueIncludedInValueList': 'PersonC' is not valid for enumeration 'Person'.
+[MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION]
+----
+
+
+
+
+===== Example 2
+
+
+For the Error Condition
+
+====
+``FieldValueIncludedInValueList(Country +++->+++ Region,"Asia","Afrika")``
+====
+
+the Rule parser returns the message
+
+----
+At 'FieldValueIncludedInValueList': 'Afrika' is not a valid value for category 'Region'.
+[MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION_CATEGORY]
+----
+
+
+
+
+===== Example 3
+
+
+For the Error Condition
+
+====
+``NoFieldValueIncludedInValueList(Country -> Region, Person In "Asia","PersonA")``
+====
+
+the Rule parser returns the error
+
+----
+At 'NoFieldValueIncludedInValueList': 'X' is not valid in the used enumerations or categories.
+[MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION_OR_CATEGORY]
+----
+
+
+
+
+===== Background
+
+When using the language constructs
+
+* ``FieldValueIncludedInValueList``
+* ``FieldValueNotIncludedInValueList``
+* ``NoFieldValueIncludedInValueList``
+* ``AtLeastOneFieldValueIncludedInValueList``
+* ``NotAllFieldValuesIncludedInValueList``
+
+together with an enumeration field and a value list consisting of strings the following must apply:
+
+
+Each string in the value list is either
+
+* value of an enumeration field used without category access
+* Category value of an enumeration field used with this category.
+
+===== See
+
+
+
+* <<Enumeration_attributep, Enumeration>>
+* <<aussagen, Predicate language constructs>>
+
+[[MVK_NO_ENUMERATION]]
+==== MVK_NO_ENUMERATION
+
+If the access operator for categories is applied to a field _F_ that is not of type enumeration, e.g. by
+
+====
+``[F +++->+++ Continent] == "Europe"``
+====
+
+the Rule parser returns the following message:
+
+----
+Field 'F' is no enumeration - the category operation may not be used.
+[MVK_NO_ENUMERATION]
+----
+
+
+===== See
+
+
+
+* <<Enumeration_attributep, Enumeration>>
+* <<the_field_value_operator, The field value operator>>
+
+[[MVK_CATEGORY_UNKOWN]]
+==== MVK_CATEGORY_UNKOWN
+
+If the access operator for categories ``+++->+++`` is applied to a field _F_ of type enumeration with a value that is not specified as the category name of _F_, e.g. by
+
+====
+``[F +++->+++ Continent] == "Europe"``
+====
+
+the Rule parser returns the following message:
+
+----
+Category 'Continent' is unknown.
+[MVK_CATEGORY_UNKOWN]
+----
+
+===== See
+
+
+<<Enumeration_attributep, Enumeration>>
+
+
+[[MVK_CATEGORY_NOT_ALLOWED]]
+==== MVK_CATEGORY_NOT_ALLOWED
+
+===== Example
+
+If _G_ is a field of type Enumeration with category _K_, the Rule parser returns for the condition
+
+====
+``AtLeastOneFieldFilled(F, G +++->+++ K)``
+====
+
+the following message
+
+----
+At 'AtLeastOneFieldFilled': It is not allowed to reference a category.
+[MVK_CATEGORY_NOT_ALLOWED]
+----
+
+
+
+
+===== Background
+
+Access to categories is only permitted for the following language constructs:
+
+* Field value operator ``[  ]``
+* ``FieldValueIncludedInValueList``
+* ``FieldValueNotIncludedInValueList``
+* ``NoFieldValueIncludedInValueList``
+* ``AtLeastOneFieldValueIncludedInValueList``
+* ``NotAllFieldValuesIncludedInValueList``
+* ``NumberOfValueInFields``
+* ``FieldValueAsNumber``
+* ``FirstFilledValue``
+
+
+===== See
+
+
+<<Kategorie_zugriffp, Example of how to use categories in a rule condition>>
+
+=== Arithmetic
+
+[[MVK_NO_STRING_OR_NUMBER_FOR_ADD]]
+==== MVK_NO_STRING_OR_NUMBER_FOR_ADD
+
+===== Example
+
+If _F_ is a field of type string, the Rule parser returns for the error condition
+
+====
+``[F] + 4  == 7``
+====
+
+the following message
+
+----
+Addition is allowed only for numbers or as concatenation operation for strings.
+[MVK_NO_STRING_OR_NUMBER_FOR_ADD]
+----
+
+
+
+===== Background
+
+Operation ``+`` is only permitted if
+
+* both arguments are numbers (then ``+`` stands for the addition) or
+* if both arguments are strings (then ``+`` stands for the string concatenation).
+
+===== See
+
+
+<<arithmetic_operations, Arithmetic operations>>
+
+
+[[MVK_NO_NUMBER_FOR_CALC]]
+==== MVK_NO_NUMBER_FOR_CALC
+
+===== Example
+
+If _F_ is a field of type string, the Rule parser returns the following for error conditions such as
+
+====
+``[F] * 4  == 7``
+====
+
+or
+
+====
+``[F] - 4  == 7``
+====
+
+or
+
+
+====
+``[F] / 4  == 7``
+====
+
+the following message
+
+----
+Calculations are allowed only with numbers.
+[MVK_NO_NUMBER_FOR_CALC]
+----
+
+
+
+===== Background
+
+The arithmetic operations
+
+* Multiplication ``*``
+* Division ``\``
+* Addition ``+``
+* Subtraction ``-``
+
+are only permitted for numbers.
+
+===== See
+
+
+<<arithmetic_operations, Arithmetic operations>>
+
+[[MVK_INVALID_TYPE_FOR_COMPARISON]]
+==== MVK_INVALID_TYPE_FOR_COMPARISON
+
+
+===== Example
+
+If _F_ is a field of type string, the Rule parser returns for the error condition
+
+====
+``1 < [F]``
+====
+
+the following message
+
+----
+'Less than' or 'greater than' comparative is only allowed to be used for numbers, amounts and dates.
+[MVK_INVALID_TYPE_FOR_COMPARISON]
+----
+
+
+[[MVK_NOT_SORTABLE]]
+==== MVK_NOT_SORTABLE
+
+===== Example
+
+Are _F_, _G_ and _H_ fields of type string, the Rule parser returns for the error condition
+
+====
+``MinValue(F,G) == [H]``
+====
+
+the following message
+
+----
+At 'MinValue': Only numbers, amounts or dates are allowed to be used.
+[MVK_NOT_SORTABLE]
+----
+
+
+
+===== Background
+
+With the language constructs
+
+* ``MinValue``
+* ``MaxWert``
+* ``Min``
+* ``Max``
+
+only numbers, amounts of money or dates may be used.
+
+===== See
+
+
+<<MaximumundMinimum, Maximum and Minimum>>
+
+[[MVK_TOO_MANY_CONST_FOR_CALC_OP]]
+==== MVK_TOO_MANY_CONST_FOR_CALC_OP
+
+===== Example
+
+If an error condition contains a partial condition of the type
+
+====
+``11 == 10``
+====
+
+so the Rule parser returns the message
+
+----
+It is not allowed to compare two constants.
+[MVK_INVALID_COMPARE_TO_CONST]
+----
+
+
+
+===== See
+
+
+<<arithmetic_operations, Arithmetic operations>>
+
+[[MVK_INVALID_COMPARE_DEC_PLACES]]
+==== MVK_INVALID_COMPARE_DEC_PLACES
+
+
+===== Example 1
+
+
+If _F_ and _G_ are fields of type number, whereby a maximum of two decimal places are permitted for field _F_ and no decimal places are permitted for field _G_, the Rule parser returns for the error condition
+
+
+====
+``[F] == [G]``
+====
+
+the following message
+
+----
+The maximum number of fractional digits of the left-hand side (2) and of the right-hand side (0) are different.
+[MVK_INVALID_COMPARE_DEC_PLACES]
+----
+
+===== Background
+
+When comparing numerical values with ``==`` and ``!=``, the maximum decimal places must match.
+
+===== Solution
+
+Instead of the condition
+
+====
+``[F] == [G]``
+====
+
+use
+
+====
+``[F] \<= [G] and [G] \<= [F]``
+====
+
+Instead of the condition
+
+====
+``[F] != [G]``
+====
+
+use
+
+====
+``[F] < [G] or [G] < [F]``
+====
+
+===== See
+
+<<vergleichs-operationen, Comparison operations>>
+
+===== Example 2
+
+For Fields _F_, _G_
+
+* of type number,
+* without decimal places,
+* and Min. Value = 1
+
+and Rule condition
+
+====
+``[F] == 2 ^ [G]``
+====
+
+the Rule parser returns the message
+
+----
+The maximum number of fractional digits of the left-hand side (0) and of the right-hand side (?) are different.
+[MVK_INVALID_COMPARE_DEC_PLACES]
+----
+
+===== Background
+
+Since the exponent `[G]` can not be negative, the term `2 ^ [G]` is an integer.
+However, this consideration is not carried out by the Rule parser.
+
+===== Solution
+
+Use a rounding operation like
+
+====
+``[F] == RoundAccounting(2 ^ [G])``
+====
+
+===== See
+
+* <<arithmetic_operations, Arithmetic operations>>
+* <<Rundungen, Rounding>>
+
+[[MVK_TOO_MANY_DIV_FOR_CALC]]
+==== MVK_TOO_MANY_DIV_FOR_CALC
+
+===== Example
+
+For fields _F_ and _G_ of type number and error condition
+
+====
+``[G] / [F] / 2 > 0``
+====
+
+the Rule parser returns the message
+
+----
+Only use one division at most for each calculation.
+[MVK_TOO_MANY_DIV_FOR_CALC].
+----
+
+
+
+===== Background
+
+If several divisions are carried out in a term, brackets ``{}`` must be used.
+
+===== Solution
+
+Use brackets ``{}`` like
+
+====
+``{ [G] / [F] } / 2 > 0``
+====
+
+or
+
+====
+``[G] / { [F]  / 2 } > 0``
+====
+
+
+===== See
+
+
+<<arithmetic_operations, Arithmetic operations>>
+
+[[MVK_TOO_MANY_POW_FOR_CALC]]
+==== MVK_TOO_MANY_POW_FOR_CALC
+
+====== Example
+
+For Fields _F_ and _G_ of typ number (without decimal places) and rule condition
+
+====
+``[G] ^ [F] ^ 2 > 0``
+====
+
+the Rule parser returns the message
+
+----
+Power operations cannot be nested without brackets.
+[MVK_TOO_MANY_POW_FOR_CALC].
+----
+
+====== Background
+
+If a term contains several power operations,  ``{}`` must be used.
+
+====== Solution
+
+Use brackets ``{}`` like
+
+====
+``{ [G] ^ [F] } ^ 2 > 0``
+====
+
+or
+
+====
+``[G] ^ { [F] ^ 2 } > 0``
+====
+
+====== See
+
+<<arithmetic_operations, Arithmetic operations>>
+
+[[MVK_INVALID_TYPE_FOR_TOLERANCE_OP]]
+==== MVK_INVALID_TYPE_FOR_TOLERANCE_OP
+
+===== Example
+
+If _F_ is a field of type number and _G_ is a field of type string, the rule passer returns for
+
+====
+``[F] DiffersWithToleranceRange1 [G]``
+====
+
+the following message
+
+----
+Comparative operation for tolerances is only allowed for numbers and amounts.
+[MVK_INVALID_TYPE_FOR_TOLERANCE_OP]
+----
+
+
+
+===== Background
+
+The language constructs ``DiffersWithToleranceRange1`` etc. can only be used with fields of type number or monetary amount.
+
+
+
+[[MVK_INVALID_DIGIT_FOR_ROUNDING]]
+==== MVK_INVALID_DIGIT_FOR_ROUNDING
+
+===== Example
+
+If _F_ is a field of type number, the Rule parser returns for the error condition
+
+====
+``RoundUpValue(F,15) >= 1``
+====
+
+the following message
+
+----
+'15' is not valid for using the function round.
+[MVK_INVALID_DIGIT_FOR_ROUNDING]
+----
+
+
+
+===== Background
+
+If the rounding language constructs
+
+* ``RoundDownValue``
+* ``RoundDown``
+* ``RoundUpValue``
+* ``RoundUp``
+* ``RoundAccountingValue``
+* ``RoundAccounting``
+
+a second argument for the rounding accuracy is specified, then this argument must be an integer between 0 and 14.
+
+
+
+===== Solution
+
+Select a valid value for the rounding accuracy, e.g.
+
+====
+``RoundUpValue(F,2) >= 1``
+====
+
+===== See
+
+
+<<Rundungen, Rounding>>
+
+[[MVK_BRACKET_MISSING]]
+==== MVK_BRACKET_MISSING
+
+===== Example
+
+For the Error Condition
+
+====
+``FieldFilled(Name) and FieldNotFilled(FirstName) or FieldNotFilled(Company) ``
+====
+
+the Rule parser returns the message
+
+----
+If a condition contains 'and' as well as 'or', brackets must be used to clarify the order of execution.
+[MVK_BRACKET_MISSING]
+----
+
+
+
+===== Background
+
+If both ``And`` and ``Or`` occur in an error condition, round brackets must be used to define how the combination of ``And`` and ``Or`` is to be understood. It makes a big difference which brackets are used.
+
+===== Solution 1
+
+====
+``[red]##*(*## FieldFilled(Name) And FieldNotFilled(FirstName)[red]##*)*## Or FieldNotFilled(Company)``
+====
+
+===== Solution 2
+
+====
+``FieldFilled(Name) And [red]##*(*##FieldNotFilled(FirstName) Or FieldNotFilled(Company)[red]##*)*##``
+====
+
+===== See
+
+
+<<LogicalOperationsp, Logical operators>>
+
+[[MVK_NO_CONST]]
+==== MVK_NO_CONST
+
+===== Example
+
+If _F_ is a field of type number, the Rule parser returns for the error condition
+
+====
+``[F] == Abs(2)``
+====
+
+the following message
+
+----
+At 'Abs' It is not allowed to use constants.
+[MVK_NO_CONST]
+----
+
+
+
+===== Background
+
+With the language constructs
+
+* ``Abs``
+* ``RoundDown``
+* ``RoundUp``
+* ``RoundAccounting``
+
+constants must not be used.
+
+===== See
+
+
+<<rundungen, Rounding>>
+
+
+[[MVK_INVALID_NUMBER_FOR_EXP]]
+==== MVK_INVALID_NUMBER_FOR_EXP
+
+====== Example
+
+For a Field _F_ of type number with one decimal place and Error Condition
+
+====
+``20 < 2 ^ [F]``
+====
+
+the Rule parser returns the message
+
+----
+Please use a number without fractional digits as exponent.
+[MVK_INVALID_NUMBER_FOR_EXP]
+----
+
+====== Background
+
+When using the Power Operator `a ^ b`, the exponent _b_ must be an integer.
+
+====== Solution
+
+In order to make the exponent an integer, an appropriate rounding operation can be used, for example
+
+====
+``20 < 2 ^ RoundAccountingValue(F)``
+====
+
+
+====== See
+
+* <<arithmetic_operations, Arithmetic operations>>
+* <<rundungen, Rounding>>
+
+
+===  RepetitionNotUnique
+
+
+[[MVK_NOT_IN_SAME_PATH]]
+==== MVK_NOT_IN_SAME_PATH
+
+===== Example
+
+In the model
+
+
+
+image::parser_error/en/b62.png[,179]
+
+(where _K/P_ and _L/P_ are index fields) and the error condition
+
+====
+``RepetitionNotUnique(K/F,L/G)``
+====
+
+the Rule parser returns the message
+
+----
+At 'RepetitionNotUnique' All referenced repeatable groups must be in the same path. Corrupt: 'L/G'.
+[MVK_NOT_IN_SAME_PATH]
+----
+
+
+
+===== Background
+
+With ``RepetitionNotUnique`` all referenced repeatable contexts must be on one path. Parallel iteration is also not possible.
+
+===== See
+
+
+<<WiederholungNichtEindeutigpp, RepetitionNotUnique>>
+
+[[MVK_NOT_IN_RULEGROUP]]
+==== MVK_NOT_IN_RULEGROUP
+
+===== Example
+
+In the model
+
+image::parser_error/en/b44.png[,149]
+
+with the Error Condition
+
+====
+``RepetitionNotUnique(../F,G)``
+====
+
+the Rule parser returns the message
+
+----
+At 'RepetitionNotUnique' Only fields in subgroups of RuleGroup or directly contained in the repeatable rootgroup are allowed to be referenced. Corrupt: '../F'.
+[MVK_NOT_IN_RULEGROUP]
+----
+
+
+
+===== Background
+
+When using ``RepetitionNotUnique(fieldList)`` without the addition ``@From`` one of the following conditions must apply:
+
+* the rule group is a repeatable rootgroup that contains all fields of the field list directly or
+* there is a repeatable group which is contained in the rule group and contains all the fields in the field list.
+
+In the example above, neither of these conditions is fulfilled.
+
+===== Solution
+
+Use the addition ``@From`` instead.
+
+====
+``RepetitionNotUnique(../F,G @From ..)``
+====
+
+===== See
+
+
+<<WiederholungNichtEindeutigpp, RepetitionNotUnique>>
+
+[[MVK_GROUP_NOT_REPEATABLE]]
+==== MVK_GROUP_NOT_REPEATABLE
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b47.png[,199]
+
+and the Error Condition
+
+====
+``RepetitionNotUnique(K/L/F @From K/L)``
+====
+
+the Rule parser returns the message
+
+----
+The given group must be repeatable. Corrupt: K/L.
+[MVK_GROUP_NOT_REPEATABLE]
+----
+
+
+
+===== Background
+
+With _@From <group>_ a reference group is specified from which the uniqueness is checked. This reference group must be repeatable.
+
+===== Solution
+
+Select the repeatable group _K_ as the reference group.
+
+====
+``RepetitionNotUnique(K/L/F @From K)``
+====
+
+
+===== See
+
+
+<<WiederholungNichtEindeutigpp, RepetitionNotUnique>>
+
+[[MVK_REPEATABLE_GROUP_MISSING]]
+==== MVK_REPEATABLE_GROUP_MISSING
+
+
+For ``RepetitionNotUnique`` without specifying a reference group using @From, there must be at least one repeatable group between the RuleGroup and each referenced field or the fields must lie directly in a repeatable rootgroup.
+
+
+===== Example 1
+
+In the model
+
+image::parser_error/en/b7.png[,149]
+
+with the Error Condition
+
+====
+``RepetitionNotUnique(F,G)``
+====
+
+the Rule parser returns the message
+
+----
+At 'RepetitionNotUnique': Between RuleGroup and each referenced field must be at least one repeatable group or fields have to be directly contained in the repeatable rootgroup. Corrupt: 'F'.
+[MVK_REPEATABLE_GROUP_MISSING]
+----
+
+
+
+===== Solution
+
+Move the rule to group _A_.
+
+===== Example 2
+
+In the model
+
+image::parser_error/en/b8.png[,169]
+
+with the Error Condition
+
+====
+``RepetitionNotUnique(F,K/G)``
+====
+
+the Rule parser also returns the following message
+
+----
+At 'RepetitionNotUnique': Between RuleGroup and each referenced field must be at least one repeatable group or fields have to be directly contained in the repeatable rootgroup. Corrupt: 'F'.
+[MVK_REPEATABLE_GROUP_MISSING]
+----
+
+
+
+===== Solution
+
+Move field _G_ to group _A_.
+
+===== See
+
+
+<<WiederholungNichtEindeutigpp, RepetitionNotUnique>>
+
+[[MVK_INVALID_COMBINATION_OF_REPETITON_NOT_UNIQUE]]
+==== MVK_INVALID_COMBINATION_OF_REPETITON_NOT_UNIQUE
+
+----
+The language construct 'RepetitionNotUnique' must not be used multiple times per condition.
+[MVK_INVALID_COMBINATION_OF_REPETITON_NOT_UNIQUE]
+----
+
+===== See
+
+
+<<WiederholungNichtEindeutigpp, RepetitionNotUnique>>
+
+
+[[MVK_NOT_IN_GROUP]]
+==== MVK_NOT_IN_GROUP
+
+===== Example
+
+In the model
+
+image::parser_error/en/b63.png[,159]
+
+with the Error Condition
+
+====
+``RepetitionNotUnique(K/F,K/L/G @From K/L)``
+====
+
+the Rule parser returns the message
+
+----
+At 'RepetitionNotUnique': Only fields in subgroups of the given group 'K/L' are allowed to be referenced. Corrupt: 'K/F'.
+[MVK_NOT_IN_GROUP]
+----
+
+
+
+===== Solution
+
+Instead, use the condition
+
+====
+``RepetitionNotUnique(K/F,K/L/G @From K)``
+====
+
+
+===== See
+
+
+<<WiederholungNichtEindeutigpp, RepetitionNotUnique>>
+
+[[MVK_PARALLEL_ITERATION_NOT_ALLOWED]]
+==== MVK_PARALLEL_ITERATION_NOT_ALLOWED
+
+===== Example
+
+In the model
+
+image::parser_error/en/b11.png[,199]
+
+with the Error Condition (with parallel iteration)
+
+====
+``RepetitionNotUnique(L/F) and GroupsNotCollectivelyFilled(L,M)``
+====
+
+the following error is returned:
+
+----
+At 'RepetitionNotUnique': Parallel iteration is not allowed.
+[MVK_PARALLEL_ITERATION_NOT_ALLOWED]
+----
+
+===== Background
+
+It is not permitted to use ``RepetitionNotUnique`` for a group that is iterated over in parallel in the same error condition.
+
+===== Solution
+
+Use the language construct ``FieldValuesNotUnique``
+
+====
+``FieldValuesNotUnique(L*/F) and GroupsNotCollectivelyFilled(L,M)``
+====
+
+===== See
+
+
+
+* <<ruleConditionp, Rule condition>>
+* <<paralleleiteration, Parallel iteration>>
+
+===  SumOfProducts
+
+[[MVK_PARAMSIZE_INVALID_2]]
+==== MVK_PARAMSIZE_INVALID_2
+
+===== Example
+
+For the Error Condition
+
+====
+``SumOfProducts(K*/F) >= 100``
+====
+
+the Rule parser returns the message
+
+----
+'SumOfProducts' must contain exactly two parameters.
+[MVK_PARAMSIZE_INVALID_2]
+----
+
+
+
+===== See
+
+
+<<SummeVonProduktenp, SumOfProducts>>
+
+[[MVK_DIFFERENT_GROUPS]]
+==== MVK_DIFFERENT_GROUPS
+
+===== Example
+
+In the model
+
+image::parser_error/en/b14.png[,199]
+
+the Rule parser returns for the error condition
+
+====
+``SumOfProducts(K*/F,K*/L/G) >= 100``
+====
+
+the following message
+
+----
+All parameters at 'SumOfProducts' must be in the same group. Corrupt: 'K/L/G'.
+[MVK_DIFFERENT_GROUPS]
+----
+
+
+
+===== Solution 1
+
+Move field _G_ to group _K_ and use the error condition
+
+====
+``SumOfProducts(K*/F,K*/G) >= 100``
+====
+
+
+===== Solution 2
+
+Move field _F_ to group _L_ and use the error condition
+
+====
+``SumOfProducts(K*/L/F,K*/L/G) >= 100``
+====
+
+
+===== See
+
+
+<<SummeVonProduktenp, SumOfProducts>>
+
+[[MVK_REPEATABLE_LEVEL_REQUIRED]]
+==== MVK_REPEATABLE_LEVEL_REQUIRED
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b57.png[,199]
+
+with the Error Condition
+
+====
+``SumOfProducts(K/L/F,K/L/G) > 100``
+====
+
+the Rule parser returns the message
+
+----
+At 'SumOfProducts': All fields must be repeatable at least at one layer.
+[MVK_REPEATABLE_LEVEL_REQUIRED]
+----
+
+
+
+
+===== Solution
+
+Use a simple product instead of ``SumOfProducts``
+
+====
+``[K/L/F] * [K/L/G]  > 100``
+====
+
+===== See
+
+
+<<SummeVonProduktenp, SumOfProducts>>
+
+[[MVK_WILDCARD_AT_LOWEST_LEVEL_REQUIRED]]
+==== MVK_WILDCARD_AT_LOWEST_LEVEL_REQUIRED
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b56.png[,199]
+
+with the Error Condition
+
+====
+``SumOfProducts(K/L/F,K/L/G) > 100``
+====
+
+the Rule parser returns the message
+
+----
+At 'SumOfProducts': The lowest repetition position must specify an unrestricted asterisk.
+[MVK_WILDCARD_AT_LOWEST_LEVEL_REQUIRED]
+----
+
+
+
+===== Solution
+
+Mark the repeatable group _K_ with an asterisk:
+
+====
+``SumOfProducts(K*/L/F,K*/L/G) > 100``
+====
+
+===== See
+
+
+<<SummeVonProduktenp, SumOfProducts>>
+
+[[MVK_WILDCARD_ONLY_AT_LOWEST_LEVEL_ALLOWED]]
+==== MVK_WILDCARD_ONLY_AT_LOWEST_LEVEL_ALLOWED
+
+===== Example
+
+In the model
+
+image::parser_error/en/b15.png[,199]
+
+the Rule parser returns for the error condition
+
+====
+``SumOfProducts(K*/L*/F,K*/L*/G)>=100``
+====
+
+the following message
+
+----
+At 'SumOfProducts': Only the lowest repetition position is allowed to specify an asterisk.
+[MVK_WILDCARD_ONLY_AT_LOWEST_LEVEL_ALLOWED]
+----
+
+
+
+===== Solution
+
+Remove the asterisk at _K_. The rule thus iterates over _K_.
+
+====
+``SumOfProducts(K/L*/F,K/L*/G)>=100``
+====
+
+
+===== See
+
+
+<<SummeVonProduktenp, SumOfProducts>>
+
+[[MVK_ONLY_STRING_ENUM_NUMBER_CMP_DATE_ALLOWED]]
+==== MVK_ONLY_STRING_ENUM_NUMBER_CMP_DATE_ALLOWED
+
+===== Example
+
+In the model
+
+image::parser_error/en/b22.png[,179]
+
+the Rule parser returns for the error condition
+
+====
+``NumberOfDifferentValues(F,G)>1``
+====
+
+the following message
+
+----
+At 'NumberOfDifferentValues': It is only allowed to use either string fields, enumerations, numbers (including amounts) or date/time fields with the same components. Incompatible: 'F'.
+[MVK_ONLY_STRING_ENUM_NUMBER_CMP_DATE_ALLOWED]
+----
+
+
+
+===== Background
+
+One of the following situations must exist when using the operator ``NumberOfDifferentValues``:
+
+* All fields in the field list are of type string or enumeration
+* All fields in the field list are of the type number
+* All fields in the field list are of type date
+
+
+
+===== See
+
+
+<<AnzahlVerschiedenerWertep, NumberOfDifferentValues>>
+
+[[MVK_STRING_ENUM_AND_NON_STRING_ENUM]]
+==== MVK_STRING_ENUM_AND_NON_STRING_ENUM
+
+===== Example
+
+In the model
+
+image::parser_error/en/b19.png[,189]
+
+the Rule parser returns for the error condition
+
+====
+``NumberOfDifferentValues(F,G)>1``
+====
+
+the following message
+
+----
+At 'NumberOfDifferentValues': If the first parameter is a string or enumeration then all parameters have to be of type string or enumeration. Corrupt: 'G'.
+[MVK_STRING_ENUM_AND_NON_STRING_ENUM]
+----
+
+
+
+===== Background
+
+One of the following situations must exist when using the operator ``NumberOfDifferentValues``:
+
+* All fields in the field list are of type string or enumeration
+* All fields in the field list are of the type number
+* All fields in the field list are of type date
+
+===== See
+
+
+<<AnzahlVerschiedenerWertep, NumberOfDifferentValues>>
+
+[[MVK_NUMBER_AND_NON_NUMBER]]
+==== MVK_NUMBER_AND_NON_NUMBER
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b58.png[,199]
+
+the Rule parser returns for the error condition
+
+====
+``NumberOfDifferentValues(F,G)>1``
+====
+
+the following message
+
+----
+At 'NumberOfDifferentValues': If the first parameter is a number (including amounts) then all parameters have to be of type number (including amounts). Corrupt: 'G'.
+[MVK_NUMBER_AND_NON_NUMBER]
+----
+
+
+
+===== Background
+
+One of the following situations must exist when using the operator ``NumberOfDifferentValues``:
+
+* All fields in the field list are of type string or enumeration
+* All fields in the field list are of the type number
+* All fields in the field list are of type date
+
+===== See
+
+
+<<AnzahlVerschiedenerWertep, NumberOfDifferentValues>>
+
+[[MVK_INVALID_CONST]]
+==== MVK_INVALID_CONST
+
+===== Example
+
+For the Error Condition
+
+====
+``NumberOfValueInFields("20.02.2022" In F,G ) > 0``
+====
+
+the Rule parser returns the message
+
+----
+At 'NumberOfValueInFields': It is only allowed to use constants with type 'number', 'string', 'true' or 'false'.
+[MVK_INVALID_CONST]
+----
+
+===== See
+
+<<AnzahlWertInFeldlistep, NumberOfValueInFields>>
+
+=== Date
+
+[[MVK_INVALID_DATE_OR_TIME_EXTRACT_OP]]
+==== MVK_INVALID_DATE_OR_TIME_EXTRACT_OP
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b38.png[,179]
+
+with the Error Condition
+
+====
+``"01.05.1989" == Date(MonthFromDate(D1),DayFromDate(D2),YearFromDate(D3))``
+====
+
+the Rule parser returns the message
+
+----
+At 'Date': at this position 'DayFromDate' is the only allowed extraction operator.
+[MVK_INVALID_DATE_OR_TIME_EXTRACT_OP]
+----
+
+
+
+===== Background
+
+If the language construct _Date_ contains constructions with
+
+* _DayFromDate_
+* _MonthFromDate_
+* _YearFromDate_
+
+used as arguments, they must be used in the right place:
+
+[%autowidth]
+|======
+|``DayFromDate``| Position 1
+|``MonthFromDate``| Position 2
+|``YearFromDate``| Position 3
+|======
+
+Accordingly, the order of the language construct _Time_ must be
+
+[%autowidth]
+|======
+|``HoursFromTime``| Position 1
+|``MinutesFromTime``| Position 2
+|``SecondsFromTime``| Position 3
+|======
+
+===== Solution
+
+Arrange the arguments in the correct order:
+
+====
+``"01.05.1989" == Date(DayFromDate(D2),MonthFromDate(D1),YearFromDate(D3)) ``
+====
+
+====
+``"11:11:12" == Time(HoursFromTime(D3),MinutesFromTime(D2),SecondsFromTime(D1))``
+====
+
+===== See
+
+
+
+* <<Datump, Date>>
+* <<Zeitp, Time>>
+
+[[MVK_WRONG_DATE_FORMAT_FOR_OP]]
+==== MVK_WRONG_DATE_FORMAT_FOR_OP
+
+===== Modell
+
+image::parser_error/en/b18.png[,149]
+
+
+===== Example 1
+
+For the Error Condition
+
+====
+``[DateField] == Date(DayField,"12","1929")``
+====
+
+the Rule parser may return the following message
+
+----
+At 'Date': Wrong date format at 'DayField'.
+[MVK_WRONG_DATE_FORMAT_FOR_OP]
+----
+
+
+
+===== Example 2
+
+For the Error Condition
+
+====
+``[DateField] == Date(DayField,"13","1929")``
+====
+
+the Rule parser returns the message
+
+----
+At 'Date': Wrong date format at '13'.
+[MVK_WRONG_DATE_FORMAT_FOR_OP]
+----
+
+
+
+===== Background
+
+In example 1, the message is displayed if the day field does not fulfil the limits
+
+[%autowidth]
+|======
+|``Min Value``| 1
+|``Max Value``| 31
+|======
+
+
+In the second example, the message is displayed because 13 is not between 1 and 12 and therefore cannot represent a month.
+
+===== Solution
+
+In the first example for the day field, the limits must be specified
+
+[%autowidth]
+|======
+|``Min Value``| 1
+|``Max Value``| 31
+|======
+
+
+in the second example use one of the constants
+
+----
+"1", "2", ... , "12"
+----
+
+instead of "13".
+
+The same applies to time constructions of the type
+
+====
+``"11:11:12" == Time(HoursField,"59","00"))``
+====
+
+
+===== Example 3
+
+For the Fields
+
+[%autowidth]
+|======
+|Name|Type|Format
+
+|F|DateRange|YYYY-MM-DD / YYYY-MM-DD
+|G|Date|
+|H|DateFragment|MM-DD
+|======
+
+and the Error Condition
+
+====
+``[F] != DateRange(G,H)``
+====
+
+the Rule parser returns the message
+
+----
+At 'DateRange': Wrong date format at 'H'.
+[MVK_WRONG_DATE_FORMAT_FOR_OP]
+----
+
+====== Background
+
+The arguments of _DateRange_ must be either
+
+* both of type Date or else
+* both of Type DateFragment with the same format.
+
+===== See
+
+
+
+* <<Datump, Date>>
+* <<Zeitp, Time>>
+* <<DatumBereichp, DateRange>>
+
+[[MVK_DATE_AND_NONDATE]]
+==== MVK_DATE_AND_NONDATE
+
+This message can be sent both in connection with
+
+* <<anzahlverschiedenerwerte, NumberOfDifferentValues>> as well as in connection with
+* <<minwert, Min, Max, MinValue, MaxValue>>.
+
+[[anzahlverschiedenerwerte]]
+===== NumberOfDifferentValues
+
+
+In the model
+
+image::parser_error/en/b21.png[,189]
+
+the Rule parser returns for the error condition
+
+====
+``NumberOfDifferentValues(F,G)>1``
+====
+
+the following message
+
+----
+At 'NumberOfDifferentValues': if the first parameter is a date than all parameters have to be dates.
+[MVK_DATE_AND_NONDATE]
+----
+
+
+===== Background
+
+One of the following situations must exist when using the operator ``NumberOfDifferentValues``:
+
+* All fields in the field list are of type string or enumeration
+* All fields in the field list are of the type number
+* All fields in the field list are of type date
+
+===== See
+
+
+<<AnzahlVerschiedenerWertep, NumberOfDifferentValues>>
+
+[[minwert]]
+===== Min, Max, MinValue, MaxValue
+
+If _F_ is a field of type date and _G_ is a field of type number, the Rule parser returns for the error condition
+
+====
+``MinValue(F,G)>1``
+====
+
+the following message
+
+----
+At 'MinValue': if the first parameter is a date than all parameters have to be dates.
+[MVK_DATE_AND_NONDATE]
+----
+
+The same applies to the language constructs ``MaxValue``, ``Min``, ``Max``.
+
+===== Background
+
+When using the language constructs ``Min``, ``Max``, ``MinValue``, ``MaxValue`` one of the following situations must be present:
+
+* All fields in the field list are of type number
+* All fields in the field list are of type date
+
+
+
+===== See
+
+
+<<MaximumundMinimum, Maximum and Minimum>>
+
+[[MVK_DATEFORMATS_NOT_COMPATIBLE]]
+==== MVK_DATEFORMATS_NOT_COMPATIBLE
+
+If _F_ and _D_ are fields of type Date with
+
+[%autowidth]
+|======
+|Field|Format
+
+|_F_| ``JJJJ-MM-TT'T'HH:mm:ss``
+|_G_| ``HH:mm:ss``
+|======
+
+the Rule parser returns for the error condition
+
+====
+``NumberOfDifferentValues(F,G)==1``
+====
+
+the following message
+
+----
+Date formats not compatible for 'NumberOfDifferentValues': 'yyyy-MM-dd'T'HH:mm:ss' and 'HH:mm:ss'
+[MVK_DATEFORMATS_NOT_COMPATIBLE]
+----
+
+
+
+===== Background
+
+If the language constructs
+
+* ``NumberOfDifferentValues``
+* ``MinValue``
+* ``MaxValue``
+
+are used with date type fields, their date formats must contain the same components (e.g. yyyyMMdd and dd.MM.yyyy are compatible, but yyyyMMdd and MMdd are not).
+
+
+===== See
+
+
+
+* <<Datump, Date>>
+* <<Zeitp, Time>>
+
+[[MVK_INVALID_DATE_FOR_OP]]
+==== MVK_INVALID_DATE_FOR_OP
+
+===== Example
+
+If _F_ and _D_ are fields of type date with
+
+[%autowidth]
+|======
+|Field|Format
+
+|_F_| ``JJJJ-MM-TT'T'HH:mm:ss``
+|_G_| ``HH:mm:ss``
+|======
+
+the Rule parser returns for the error condition
+
+====
+``[F] == DateTime(MinutesFromTime(G),"17:09:59")``
+====
+
+the following message
+
+----
+At 'DateTime': 'MinutesFromTime' is no valid date.
+[MVK_INVALID_DATE_FOR_OP]
+----
+
+
+
+===== Background
+
+The language construct ``DateTime`` expects a date as the first argument.
+
+
+===== See
+
+<<Datump, Date>>
+
+[[MVK_INVALID_PARAMETER_FOR_DATE_RANGE_COMPARISON]]
+==== MVK_INVALID_PARAMETER_FOR_DATE_RANGE_COMPARISON
+
+===== Example
+
+If _F1_, _F2_, _F3_, _F4_ are fields of type ``DateRange``, the Rule parser returns for the error condition
+
+====
+``AtLeastOneDateRangeOverlaps(F1, F2 In F3, F4)``
+====
+
+the following message
+
+----
+At 'AtLeastOneDateRangeOverlaps': Invalid parameter before 'IN'. No groups, no asterisk and only exactly one field is allowed.
+[MVK_INVALID_PARAMETER_FOR_DATE_RANGE_COMPARISON]
+----
+
+
+
+===== Background
+
+The language construct ``AtLeastOneDateRangeOverlaps`` is a special case in which the first field list may only contain one field without an asterisk on group-level.
+
+===== See
+
+<<DatumsBereicheUeberlappendp, Date range conditions>>
+
+[[MVK_PARAMSIZE_INVALIDFN]]
+==== MVK_PARAMSIZE_INVALIDFN
+
+===== Example
+
+If _F_ is a field of type date range, the Rule parser returns for the error condition
+
+====
+``DateRangesOverlap(F)``
+====
+
+the following message
+
+----
+At 'DateRangesOverlap': There must be more than one field.
+[MVK_PARAMSIZE_INVALIDFN]
+----
+
+
+
+===== See
+
+
+<<DatumsBereicheUeberlappendp, Date range conditions>>
+
+[[MVK_NO_DATE_RANGE]]
+==== MVK_NO_DATE_RANGE
+
+===== Example
+
+If _F_ is a field of type string, the Rule parser returns for the error condition
+
+====
+``StartOfDateRange(F) \<= "11.11.2000"``
+====
+
+the following message
+
+----
+At 'StartOfDateRange': 'F' is not a date range.
+[MVK_NO_DATE_RANGE]
+----
+
+
+
+===== Background
+
+With the language constructs
+
+* ``StartOfDateRange``
+* ``EndOfDateRange``
+* ``DateRangesOverlap``
+* ``AtLeastOneDateRangeOverlaps``
+
+only fields of type ``DateRange`` may be used as arguments.
+
+===== See
+
+
+<<DatumsBereicheUeberlappendp, Date range conditions>>
+
+
+[[MVK_ONLY_CONSTANTS_USED]]
+==== MVK_ONLY_CONSTANTS_USED
+
+===== Example
+
+If _F_ and _G_ are fields of type Date, the Rule parser returns for the error condition
+
+====
+``Valid(Date("01","01","1990"))``
+====
+
+the following message
+
+----
+At 'Valid': date construction must not contain only constants.
+[MVK_ONLY_CONSTANTS_USED]
+----
+
+
+
+===== Background
+
+Date constructions that consist only of constants are permitted. However, it is not permitted to apply the language constructs ``Valid`` and ``Invalid`` to them. This is not necessary because the validity check for constant date components is already carried out when using the date constructor. For example, the invalid month specification in
+
+====
+``Today < Date("01","13","1990")``
+====
+
+leads to the parser message
+
+----
+At 'Date': Wrong date format at '13'.
+[MVK_WRONG_DATE_FORMAT_FOR_OP]
+----
+
+===== See
+
+
+
+* <<Datump, Date>>
+* <<GueltigundUngueltig, Valid and Invalid>>
+
+[[MVK_DATE_OR_TIME_EXTRACT_OP_NOT_ALLOWED]]
+==== MVK_DATE_OR_TIME_EXTRACT_OP_NOT_ALLOWED
+
+===== Example
+
+If _F_ and _G_ are fields of type Date, the Rule parser returns for the error condition
+
+====
+``[F]!=Date(MonthFromDate(G),"11","2022")``
+====
+
+the following message
+
+----
+At 'Date': at this position 'DayFromDate' is the only allowed extraction operator.
+[MVK_INVALID_DATE_OR_TIME_EXTRACT_OP]
+----
+
+
+
+===== Background
+
+If a date extraction operator is specified as the first parameter in a date construction, it must be ``DayFromDate``.
+
+===== Solution
+
+One solution may be to specify the date extraction operator ``MonthFromDate`` as the second parameter in the date construction.
+
+====
+``[F]!=Date("11",MonthFromDate(G),"2022")``
+====
+
+
+===== See
+
+
+<<Datump, Date>>
+
+[[MVK_EXTRACT_OP_NOT_ALLOWED_4_DATE_CONSTRUCT_WITH_4_PARAMS]]
+==== MVK_EXTRACT_OP_NOT_ALLOWED_4_DATE_CONSTRUCT_WITH_4_PARAMS
+
+===== Example
+
+If _F_ and _G_ are fields of type Date, the Rule parser returns for the error condition
+
+====
+``[F]!=Date("11","11",YearFromDate(G),"89")``
+====
+
+the following message
+
+----
+At 'Date': at this position no extraction operator is allowed when specifying four parameters.
+[MVK_EXTRACT_OP_NOT_ALLOWED_4_DATE_CONSTRUCT_WITH_4_PARAMS]
+----
+
+
+===== Background
+
+If four parameters are specified in a date construction (year consists of two parts), the system checks that neither the third nor the fourth parameter is a date extraction operator.
+
+===== Solution
+
+Perform the date construction with three instead of four arguments.
+
+====
+``[F]!=Date("1","11",G)``
+====
+
+
+===== See
+
+
+<<Datump, Date>>
+
+[[MVK_MISSING_YEAR]]
+==== MVK_MISSING_YEAR
+
+===== Example
+
+If Field _F_ is of type date with the Error Condition
+
+====
+``[F]!=Date("1","11")``
+====
+
+the Rule parser returns the message
+
+----
+At 'Date': Missing year.
+[MVK_MISSING_YEAR]
+----
+
+
+
+===== Background
+
+To construct dates with _Date(<Day>,<Month>)_, hence without a year specification, is not allowed.
+
+===== Solution
+
+Specify a year as third argument, e.g.
+
+====
+``[F]!=Date("1","11","2022")``
+====
+
+
+===== See
+
+
+<<Datump, Date>>
+
+[[MVK_NO_DIGIT_PATTERN]]
+==== MVK_NO_DIGIT_PATTERN
+
+===== Example
+
+If _F_ is a field of type string (without the pattern 'digit sequence') and _G_ is a field of type Date,
+the Rule parser returns for the error condition
+
+====
+``Date("11","11",F) > [G]``
+====
+
+the following message
+
+----
+At 'Date': The field 'F' must use the pattern 'numerical sequence'.
+[MVK_NO_DIGIT_PATTERN]
+----
+
+
+
+===== Background
+
+String fields that are used to construct date or time specifications must have the pattern 'digit sequence'.
+
+===== Solution
+
+Assign the pattern ``\d+`` to field _F_.
+
+===== See
+
+
+<<Datump, Date>>
+
+[[MVK_NO_DATE]]
+==== MVK_NO_DATE
+
+
+===== Example
+
+If _F_ is a field of type string, the Rule parser returns for the error condition
+
+====
+``YearFromDate(F) \<= 2023``
+====
+
+the following message
+
+----
+At 'YearFromDate': The field 'F' does not specify a date.
+[MVK_NO_DATE]
+----
+
+
+
+===== Background
+
+For language constructs that expect a date field as an argument, a date field must also be specified.
+
+===== See
+
+
+
+* <<Datump, Date>>
+* <<Zeitp, Time>>
+
+[[MVK_INVALID_DATE_STRING]]
+==== MVK_INVALID_DATE_STRING
+
+===== Example
+
+If _F_ is a field that is of type date, the Rule parser returns for the error condition
+
+====
+``AddDays("07.17.2020",1)==[F]``
+====
+
+the following message
+
+----
+At 'AddDays':'07.17.2020' is not a valid date. Dates must be in the format dd.mm., dd.mm.yyyy., HH:mm:ss or dd.mm.yyyy'T'HH:mm:ss.
+[MVK_INVALID_DATE_STRING]
+----
+
+
+===== Solution
+
+Use a valid date specification such as
+
+====
+``AddDays("17.07.2020",1)==[F]``
+====
+
+
+===== See
+
+
+
+* <<Datump, Date>>
+* <<Zeitp, Time>>
+
+[[MVK_INVALID_COMPARE_TO_DATE]]
+==== MVK_INVALID_COMPARE_TO_DATE
+
+===== Example
+
+If _F_ is a field that is not of type date the Rule parser returns for the error condition
+
+====
+``[F]=="01.12.2020"``
+====
+
+the following message
+
+----
+It is only allowed to compare dates with other fitting dates.
+[MVK_INVALID_COMPARE_TO_DATE]
+----
+
+
+
+===== Background
+
+When comparing dates, all fields and constants must be of the date type.
+
+===== See
+
+
+
+* <<Datump, Date>>
+* <<Zeitp, Time>>
+
+[[MVK_INVALID_TIME]]
+==== MVK_INVALID_TIME
+
+===== Example
+
+If _F_ is a field of type Date with format _HH.mm:ss_ (i.e. a time specification), the Rule parser returns for the error condition
+
+====
+``AddYears(F,3) > "11.11.2000"``
+====
+
+the following message
+
+----
+At 'AddYears': The 1. parameter needs to contain date specifications. Pure time specifications are not allowed.
+[MVK_INVALID_TIME]
+----
+
+
+
+===== See
+
+
+
+* <<Datump, Date>>
+* <<Zeitp, Time>>
+
+
+[[MVK_DATE_WITH_AND_WITHOUT_YEAR]]
+==== MVK_DATE_WITH_AND_WITHOUT_YEAR
+
+====== Example
+
+Let _F_ be a Field of type Date and let _G_ be a Field of type Date Fragment with format ``MM-DD``.
+For the Rule condition
+
+====
+``DifferenceInDays(F,G) < 100``
+====
+
+the Rule parser returns
+
+----
+At 'DifferenceInDays': All fields must either include or exclude the year. [MVK_DATE_WITH_AND_WITHOUT_YEAR]
+----
+
+====== Background
+
+For models without Base Year and the language constructs
+
+* ``DifferenceInDays``
+* ``DifferenceInMonths``
+* ``DifferenceInYears``
+* ``DateRangesOverlap``
+* ``AtLeastOneDateRangeOverlaps``
+
+either all arguments must contain the year or none do.
+In models with a Base Year, however, missing year specifications are replaced by the Base Year.
+
+===== See
+
+<<baseyearp, BaseYear>>
+
+=== NumberOfValueInFields
+
+[[MVK_NO_STRING_OR_ENUM]]
+==== MVK_NO_STRING_OR_ENUM
+
+===== Example
+
+In the model
+
+image::parser_error/en/b22.png[,179]
+
+with the Error Condition
+
+====
+``NumberOfValueInFields("Berlin" In F,G) > 1``
+====
+
+the Rule parser returns the message
+
+----
+At 'NumberOfValueInFields': It is only allowed to use strings or enumerations.
+[MVK_NO_STRING_OR_ENUM]
+----
+
+===== Background
+
+With ``NumberOfValueInFields`` the types of the fields must match the constants used. The following combinations are possible.
+
+[%autowidth]
+|======
+|Constant|Fields of type
+
+|Type String| String, Enumeration (and mixed)
+|Type Number| Number
+|``True``| Boolean, Confirm (and mixed)
+|``False``| Boolean
+|======
+
+===== See
+
+
+<<AnzahlWertInFeldlistep, NumberOfValueInFields>>
+
+[[MVK_NO_TYPE_YES_OR_YESNO]]
+==== MVK_NO_TYPE_YES_OR_YESNO
+
+===== Example
+
+In the model
+
+image::parser_error/en/b22.png[,179]
+
+with the Error Condition
+
+====
+``NumberOfValueInFields(True In F,G)>1``
+====
+
+the Rule parser returns the message
+
+----
+At 'NumberOfValueInFields': It is only allowed to use fields of type confirm or boolean.
+[MVK_NO_TYPE_YES_OR_YESNO]
+----
+
+===== Background
+
+With ``NumberOfValueInFields`` the types of the fields must match the constants used. The following combinations are possible.
+
+[%autowidth]
+|======
+|Constant|Fields of type
+
+|Type String| String, Enumeration (and mixed)
+|Type Number| Number
+|``True``| Boolean, Confirm (and mixed)
+|``False``| Boolean
+|======
+
+
+===== See
+
+
+<<AnzahlWertInFeldlistep, NumberOfValueInFields>>
+
+[[MVK_NO_TYPEYESNO]]
+==== MVK_NO_TYPEYESNO
+
+===== Example
+
+In the model
+
+image::parser_error/en/b22.png[,179]
+
+with the Error Condition
+
+====
+``NumberOfValueInFields(False In F,G) > 1``
+====
+
+the Rule parser returns the message
+
+----
+At 'NumberOfValueInFields': It is only allowed to use fields of type boolean.
+[MVK_NO_TYPEYESNO]
+----
+
+===== Background
+
+With ``NumberOfValueInFields`` the types of the fields must match the constants used. The following combinations are possible.
+
+[%autowidth]
+|======
+|Constant|Fields of type
+
+|Type String| String, Enumeration (and mixed)
+|Type Number| Number
+|``True``| Boolean, Confirm (and mixed)
+|``False``| Boolean
+|======
+
+
+===== See
+
+
+<<AnzahlWertInFeldlistep, NumberOfValueInFields>>
+
+
+
+
+[[MVK_INVALID_INTERVAL]]
+==== MVK_INVALID_INTERVAL
+
+===== Example
+
+In the model
+
+image::parser_error/en/b27.png[,179]
+
+with the Error Condition
+
+====
+``RangeAsString(K/F,0,3) == [G]``
+====
+
+the Rule parser returns the message
+
+----
+At 'RangeAsString': The interval is not valid. The beginning of the interval must be greater than 0 and less than the end of the interval.
+[MVK_INVALID_INTERVAL]
+----
+
+===== Background
+
+With
+
+====
+``RangeAsString(K/F,k,l)``
+====
+
+_k_ and _l_ must be integers with _k_ > 1 and _k_ < _l_.
+
+===== See
+
+
+<<BereichAlsStringundBereichAlsZahl, RangeAsString and RangeAsNumber>>
+
+=== Paths
+
+[[MVK_INVALID_ROOT_GROUP]]
+==== MVK_INVALID_ROOT_GROUP
+
+===== Example
+
+In a model that does not contain a rootgroup with the name _A_, and Error Condition
+
+====
+``GroupNotFilled(/A)``
+====
+
+the Rule parser returns the message
+
+----
+Rootgroup '/A' nicht gültig.
+[MVK_INVALID_ROOT_GROUP]
+----
+
+
+
+===== Background
+
+Only rootgroups that exist in the model can be referenced in the error condition.
+
+===== See
+
+
+<<Pfade, Paths>>
+
+[[MVK_INVALID_WILDCARD_REL]]
+==== MVK_INVALID_WILDCARD_REL
+
+===== Example
+
+In the model
+
+image::parser_error/en/b44.png[,149]
+
+with the Error Condition
+
+====
+``AtLeastOneFieldFilled(..*/F) and GroupFilled(RuleGroup)``
+====
+
+the Rule parser returns the message
+
+----
+In a relative path containing ..-notation, the '..' parts may not use the '*' symbol.
+[MVK_INVALID_WILDCARD_REL]
+----
+
+===== Solution
+
+Instead, use the absolute path notation
+
+====
+``AtLeastOneFieldFilled(/A*/F) and GroupFilled(RuleGroup)``
+====
+
+
+===== See
+
+
+
+* <<absolute_path, Absolute paths>>
+* <<relative_path, Relative paths>>
+
+[[MVK_INVALID_ENTITY]]
+==== MVK_INVALID_ENTITY
+
+
+===== Example
+
+In the model
+
+image::parser_error/en/b26.png[,179]
+
+with the Error Condition
+
+====
+``GroupFilled(L)``
+====
+
+the Rule parser returns the message
+
+----
+The group or field 'L' is not valid.
+[MVK_INVALID_ENTITY]
+----
+
+
+===== Background
+
+Only groups and fields that exist in the model can be referenced in the error condition.
+
+===== See
+
+
+
+* <<absolute_path, Absolute paths>>
+* <<relative_path, Relative paths>>
+
+[[MVK_TOO_MANY_PARENT_GROUPS]]
+==== MVK_TOO_MANY_PARENT_GROUPS
+
+===== Example
+
+In the model
+
+image::parser_error/en/b30.png[,179]
+
+
+with the Error Condition
+
+====
+``FieldFilled(../../../F)``
+====
+
+the Rule parser returns the message
+
+----
+The relative path specification contains too many upward steps.
+[MVK_TOO_MANY_PARENT_GROUPS]
+----
+
+
+
+===== Solution
+
+Specify the correct relative path.
+
+====
+``FieldFilled(../../F)``
+====
+
+
+===== See
+
+
+
+* <<absolute_path, Absolute paths>>
+* <<relative_path, Relative paths>>
+
+=== Pattern
+
+[[MVK_NO_STRING_OR_ENUM_OR_EXT_ENUM]]
+==== MVK_NO_STRING_OR_ENUM_OR_EXT_ENUM
+
+===== Example
+
+If _F_ is a field that is not of type
+
+* String or
+* Enumeration
+
+the parser returns for an error condition such as
+
+====
+``Invalid(F,"Email")``
+====
+
+(where "Email" is an example of a predefined type) the following message
+
+----
+At 'Invalid': it is only allowed to use string, enumerations and extensible enumerations.
+[MVK_NO_STRING_OR_ENUM_OR_EXT_ENUM]
+----
+
+===== Background
+
+You can use ``Valid`` and ``Invalid`` to check whether a field value is correct in relation to a predefined field type. The field must be of type
+
+* String or
+* Enumeration
+
+===== Solution
+
+Change the type of field _F_ to
+
+* String or
+* Enumeration
+
+
+[[MVK_INVALID_PATTERN]]
+==== MVK_INVALID_PATTERN
+
+===== Example
+
+If _F_ is a field of type string, the Rule parser returns for the error condition
+
+====
+``[F] PatternViolated "\e+"``
+====
+
+the following message
+
+----
+'\e+' is not a valid pattern to compare 'PatternViolated'.
+[MVK_INVALID_PATTERN]
+----
+
+
+===== Background
+
+The character string ``\e+`` does not define a valid regular expression.
+
+===== Solution
+
+Use a valid regular expression such as ``\d+``.
+
+===== See
+
+
+<<WieMusterundNichtWieMuster, PatternMatched and PatternViolated>>
+
+
+[[MVK_INVALID_TYPE_FOR_PATTERN_COMPARISON]]
+==== MVK_INVALID_TYPE_FOR_PATTERN_COMPARISON
+
+===== Example
+
+If _F_ is a field of type number, the Rule parser returns for the error condition
+
+====
+``[F] PatternViolated "\d+"``
+====
+
+the following message
+
+----
+Comparative operation 'PatternViolated' is only allowed for string values.
+[MVK_INVALID_TYPE_FOR_PATTERN_COMPARISON]
+----
+
+
+
+===== Background
+
+Comparisons with ``PatternMatched`` and ``PatternViolated`` are only permitted for fields of type string.
+
+===== Solution
+
+Use a field of type string for the comparison.
+
+===== See
+
+
+<<WieMusterundNichtWieMuster, PatternMatched and PatternViolated>>
+
+
+[[MVK_INVALID_PARAMETER_FOR_PATTERN_COMPARISON]]
+==== MVK_INVALID_PARAMETER_FOR_PATTERN_COMPARISON
+
+===== Example
+
+If _F_ is a field of type string, the Rule parser returns for the error condition
+
+====
+``[F] + "T" PatternViolated "\d+"``
+====
+
+the following message
+
+----
+Comparative operation 'PatternViolated' is only allowed with a field value as first parameter.
+[MVK_INVALID_PARAMETER_FOR_PATTERN_COMPARISON]
+----
+
+
+
+===== Background
+
+A field value must appear on the left-hand side for comparisons with ``PatternMatched`` and ``PatternViolated``.
+
+===== Solution
+
+Use a field of type String for the comparison.
+
+===== See
+
+
+<<WieMusterundNichtWieMuster, PatternMatched and PatternViolated>>
+
+[[MVK_MISSING_CONST_IN_PATTERN_COMP]]
+==== MVK_MISSING_CONST_IN_PATTERN_COMP
+
+===== Example
+
+If _F_ and _G_ fields are of type string, the Rule parser returns for the error condition
+
+====
+``[F] PatternViolated [G]``
+====
+
+the following message
+
+----
+The comparison 'PatternViolated' must have a string constant on the right side. This string constant must specify a valid pattern.
+[MVK_MISSING_CONST_IN_PATTERN_COMP]
+----
+
+
+===== Background
+
+A regular expression must be used as the second argument for comparisons with ``PatternMatched`` and ``PatternViolated``.
+
+
+===== See
+
+
+<<WieMusterundNichtWieMuster, PatternMatched and PatternViolated>>
+
+
+
+=== Semantic Index
+
+[[MVK_INDEX_VALUE_INVALID]]
+==== MVK_INDEX_VALUE_INVALID
+
+===== Example
+
+In the model
+
+image::parser_error/en/b53.png[,199]
+
+with the Error Condition
+
+====
+``FieldFilled(K/F for "Berlin")``
+====
+
+the Rule parser returns the message
+
+----
+The specified value 'Berlin' for the index field '/A/K/Index' is invalid.
+[MVK_INDEX_VALUE_INVALID]
+----
+
+
+
+===== Background
+
+When using ``<field> for <constant>`` the constant must match the type of the index field.
+
+===== Solution
+
+Either use a number constant such as _"1"_ or specify the string type for the index field.
+
+===== See
+
+
+<<semantischer_index, Semantic Index>>
+
+[[MVK_SEMANTIC_INDEX_NOT_ALLOWED]]
+==== MVK_SEMANTIC_INDEX_NOT_ALLOWED
+
+In many cases, fields in language constructs can also be used with the semantic index. There are three exceptions to this:
+
+* The use of semantic indices is not permitted with ``Having``.
+* The use of semantic indices is not permitted for ``NumberOfFilledGroups``.
+* The use of semantic indices is not permitted with ``RepetitionNotUnique``.
+
+===== See
+
+
+<<semantischer_index, Semantic Index>>
+
+[[MVK_INDEX_TYPE_INCONSISTENT]]
+==== MVK_INDEX_TYPE_INCONSISTENT
+
+===== Example
+
+In the model
+
+image::parser_error/en/b54.png[,219]
+
+
+with the Error Condition
+
+====
+``FieldFilled(K/F for Ind)``
+====
+
+the Rule parser returns the message
+
+----
+The type of the field 'Ind' does not match the type of the index field '/A/K/Index'.
+[MVK_INDEX_TYPE_INCONSISTENT]
+----
+
+
+
+===== Background
+
+When using ``<field1> for <field2>`` _<field2>_ must match the type of the index field.
+
+===== Solution
+
+Align the field types of <field2> and index.
+
+===== See
+
+
+<<semantischer_index, Semantic Index>>
+
+[[MVK_SEMANTIC_INDEX_CONTAINED_IN_INDEX]]
+==== MVK_SEMANTIC_INDEX_CONTAINED_IN_INDEX
+
+===== Example
+
+In the model
+
+image::parser_error/en/b17.png[,339]
+
+(the fields Person and ResponsiblePerson are of type Enumeration with values PersonA and PersonB) and the Error Condition
+
+====
+``[Name for ResponsiblePerson] == "Richter"``
+====
+
+the Rule parser returns the message
+
+----
+The field 'ResponsiblePerson' is used as semantic index, but it is contained in the iterating group. This is not allowed.
+[MVK_SEMANTIC_INDEX_CONTAINED_IN_INDEX]
+----
+
+
+
+===== Background
+
+When using a field _G_ as a semantic index, i.e. for a term of the type
+
+====
+``F for G``
+====
+
+_G_ must not be contained in the group of the index field.
+
+===== See
+
+
+<<semantischer_index, Semantic Index>>
+
+[[MVK_SEMANTIC_INDEX_WITH_CATEGORY]]
+==== MVK_SEMANTIC_INDEX_WITH_CATEGORY
+
+===== Example
+
+In the model
+
+image::parser_error/en/b16.png[,299]
+
+with enumeration fields
+
+[caption="Field "]
+.Country
+[%autowidth]
+|======
+|value|Category 'Continent'
+
+|Vietnam| Asia
+|Germany| Europe
+|======
+
+and
+
+[caption="Field "]
+.Continent
+[%autowidth]
+|======
+|value
+
+|Asien
+|Europa
+|======
+
+with the Error Condition
+
+====
+``[Multiplicator for Country +++->+++ Continent] == 20``
+====
+
+the Rule parser returns the message
+
+----
+'Country' specifies a semantic index with a category access. This is not allowed.
+[MVK_SEMANTIC_INDEX_WITH_CATEGORY]
+----
+
+
+
+===== Background
+
+For fields as a semantic index, i.e. for a condition of the type
+
+====
+``F for G``
+====
+
+no category access is allowed for _G_. Same is true for the condition
+
+====
+``F for G +++-> Kat+++``
+====
+
+In contrast, a category may be accessed with _F_. The following is permissible
+
+====
+``F +++-> Kat+++ for G ``
+====
+
+===== See
+
+
+
+* <<semantischer_index, Semantic Index>>
+* <<the_field_value_operator, The field value operator>>
+
+[[MVK_SEMANTIC_INDEX_AND_WILDCARD]]
+==== MVK_SEMANTIC_INDEX_AND_WILDCARD
+
+===== Example
+
+In the model
+
+image::parser_error/en/b1.png[,200]
+
+with the Error Condition
+
+====
+``[K*/F for "1"] >= 100``
+====
+
+the Rule parser returns the message
+
+----
+Field 'K/F' uses a semantic index and uses an asterisk on the level of the index field. This is not allowed.
+[MVK_SEMANTIC_INDEX_AND_WILDCARD]
+----
+
+
+===== Background
+
+``K*/F`` is used to define a field list, whereas the semantic index ``for`` is used to access a specific instance of F. These two modelling methods cannot be combined for the same repetition level.
+
+
+===== Solution
+
+Remove the asterisk:
+
+====
+``[K/F for "1"] >= 100``
+====
+
+===== See
+
+
+
+* <<sternoperator, Asterisk operator>>
+* <<semantischer_index, Semantic Index>>
+
+[[MVK_SEMANTIC_INDEX_NO_FIELD]]
+==== MVK_SEMANTIC_INDEX_NO_FIELD
+
+===== Example
+
+If _K_ is a group, the Rule parser returns for the error condition
+
+====
+``FieldFilled(F for K)``
+====
+
+the following message
+
+----
+'K' is used as semantic index but is not a field.
+[MVK_SEMANTIC_INDEX_NO_FIELD]
+----
+
+===== Background
+
+Only fields are permitted as a semantic index. When using ``F1 for F2``, _F2_ must be a field. _F2_ must not be a group.
+
+===== See
+
+
+<<semantischer_index, Semantic Index>>
+
+[[MVK_SEMANTIC_INDEX_WITH_WILDCARD]]
+==== MVK_SEMANTIC_INDEX_WITH_WILDCARD
+
+===== Example
+
+In the model
+
+image::parser_error/en/b50.png[,199]
+
+with the Error Condition
+
+====
+``FieldFilled(K/F for /A*/Index)``
+====
+
+the Rule parser returns the message
+
+----
+Field '/A/Index' is used as semantic index and therefore must not specify an asterisk.
+[MVK_SEMANTIC_INDEX_WITH_WILDCARD]
+----
+
+===== Background
+
+No asterisk is permitted for a semantic index. When using ``F1 for F2`` _F2_ must not have an asterisk.
+
+===== Solution
+
+Omit the asterisk and use the condition
+
+====
+``FieldFilled(K/H for Index)``
+====
+
+
+===== See
+
+
+<<semantischer_index, Semantic Index>>
+
+[[MVK_SEMANTIC_INDEX_WITH_SEMANTIC_INDEX]]
+==== MVK_SEMANTIC_INDEX_WITH_SEMANTIC_INDEX
+
+===== Example
+
+For the Error Condition
+
+====
+``FieldFilled(F for G for H)``
+====
+
+the Rule parser returns the message
+
+----
+Field 'G' specifies a semantic index and therefore must not use a semantic index itself.
+[MVK_SEMANTIC_INDEX_WITH_SEMANTIC_INDEX].
+----
+
+
+===== Background
+
+A nested use of the semantic index as in the example above is not permitted.
+
+===== See
+
+
+<<semantischer_index, Semantic Index>>
+
+[[MVK_INDEX_FIELD_INVALID]]
+==== MVK_INDEX_FIELD_INVALID
+
+===== Example
+
+In the model
+
+image::parser_error/en/b52.png[,149]
+
+with the Error Condition
+
+====
+``FieldFilled(K/F for "1")``
+====
+
+the Rule parser returns the message
+
+----
+For 'K/F' the used index field 'Index' does not exist.
+[MVK_INDEX_FIELD_INVALID]
+----
+
+
+
+===== Background
+
+An index field _'Index'_ was specified for group _K_ which does not even exist as a field. This might happen when you delete an index field and forget to remove the specification as an index field as well.
+
+===== Solution
+
+Create a suitable index field 'Index'.
+
+===== See
+
+
+<<semantischer_index, Semantic Index>>
+
+[[MVK_NO_INDEX_FIELD]]
+==== MVK_NO_INDEX_FIELD
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b51.png[,199]
+
+the _Index_ field is not specified as an index field. For the Error Condition
+
+====
+``FieldFilled(K/F for "1")``
+====
+
+the Rule parser returns the message
+
+----
+For 'K/F' there is no repeatable group with index field.
+[MVK_NO_INDEX_FIELD]
+----
+
+
+===== Background
+
+To be able to use the _'Index'_ field as a semantic index, it must be specified as an index field of group _K_. The same message is displayed if the Index field does not exist at all.
+
+===== Solution
+
+Specify the field _Index_ as the index field of group _K_.
+
+===== See
+
+
+<<semantischer_index, Semantic Index>>
+
+=== Field Types
+
+
+[[MVK_ONLY_STRING_ENUM_NUMBER_DATE_ALLOWED]]
+==== MVK_ONLY_STRING_ENUM_NUMBER_DATE_ALLOWED
+
+
+===== Example
+
+If _F_ and _G_ are fields of type confirm, the Rule parser returns for the error condition
+
+====
+``FieldValuesNotUnique(F,G)``
+====
+
+the following message
+
+----
+At 'FieldValuesNotUnique': It is only allowed to use string fields, enumerations, numbers (including amounts) and date fields with the same dateformat. Corrupt: 'F'.
+[MVK_ONLY_STRING_ENUM_NUMBER_DATE_ALLOWED]
+----
+
+
+===== See
+
+
+<<aussagen, Predicate language constructs>>
+
+[[MVK_INVALID_TYPES_FOR_COMPARISON]]
+==== MVK_INVALID_TYPES_FOR_COMPARISON
+
+
+===== Example
+
+If _F_ is a field of type number, the Rule parser returns for the error condition
+
+====
+``FieldValueNotIncludedInValueList(F,"a","b")``
+====
+
+the following message
+
+----
+At 'FieldValueIncludedInValueList': It is not allowed to compare strings and numbers.
+[MVK_INVALID_TYPES_FOR_COMPARISON].
+----
+
+===== Background
+
+With the language constructs
+
+* ``FieldValueIncludedInValueList``
+* ``FieldValueNotIncludedInValueList``
+* ``NoFieldValueIncludedInValueList``
+* ``AtLeastOneFieldValueIncludedInValueList``
+* ``NotAllFieldValuesIncludedInValueList``
+
+strings must not be compared with numbers.
+
+===== See
+
+
+<<aussagen, Predicate language constructs>>
+
+[[MVK_ONLY_STRING_ENUM_NUMBER_ALLOWED]]
+==== MVK_ONLY_STRING_ENUM_NUMBER_ALLOWED
+
+
+===== Example
+
+If _F_ is a field of type date, the Rule parser returns for the error condition
+
+====
+``FieldValueNotIncludedInValueList(F,1,2)``
+====
+
+the following message
+
+----
+At 'FieldValueNotIncludedInValueList': It is only allowed to use string fields, enumerations or numbers (including amounts). Corrupt: 'F'.
+[MVK_ONLY_STRING_ENUM_NUMBER_ALLOWED]
+----
+
+===== Background
+
+With the language constructs
+
+* ``FieldValueIncludedInValueList``
+* ``FieldValueNotIncludedInValueList``
+* ``NoFieldValueIncludedInValueList``
+* ``AtLeastOneFieldValueIncludedInValueList``
+* ``NotAllFieldValuesIncludedInValueList``
+
+only the following field types are permitted
+
+* String
+* Enumeration
+* Number
+
+===== See
+
+
+<<aussagen, Predicate language constructs>>
+
+[[MVK_INVALID_TYPE]]
+==== MVK_INVALID_TYPE
+
+===== Example
+
+If _F_ is a field of type Number, and _G_ is a field of type String, the Rule parser returns for the error condition
+
+====
+``[G] == RangeAsString(F,2,4)``
+====
+
+the following message
+
+----
+At 'BereichAlsString': Invalid type. 'F' must be either a string, a predefined type or an extensible enumeration.
+[MVK_INVALID_TYPE].
+----
+
+
+
+===== Background
+
+``RangeAsString`` can only be used with the field type string.
+
+
+===== See
+
+
+<<BereichAlsStringundBereichAlsZahl, RangeAsString and RangeAsNumber>>
+
+[[MVK_INVALID_COMPARE_TO_YES]]
+==== MVK_INVALID_COMPARE_TO_YES
+
+===== Example
+
+If the field _F_ is of type confirm, the Rule parser returns for
+
+====
+``[F] == False``
+====
+
+the following message:
+
+----
+It is only allowed to compare equality of a field of type confirm with another field of type confirm or to compare equality or unequality with the constant True.
+[MVK_INVALID_COMPARE_TO_YES]
+----
+
+===== Background
+
+A field of type confirm can be compared with another field of type confirm or with the constant ``True`` using the comparison operators ``==`` and ``!=``. A comparison with the constant ``False`` is not permitted. The same message is returned if a confirm field is compared with a constant other than ``True``, e.g.
+
+====
+``[F] == 7``
+====
+
+====
+``[F] != "USA"``
+====
+
+or any other term that is not of type confirm
+
+====
+``[F] == [G]``
+====
+
+====
+``[F] != FirstFilledValue(A*/G)``
+====
+
+
+===== Solution
+
+The condition that the confirm field _F_ is not specified can be expressed with
+
+====
+``FieldNotFilled(F)``
+====
+
+
+===== See
+
+
+<<Confirmp, Confirm>>
+
+[[MVK_INVALID_COMPARE_TO_YESNO]]
+==== MVK_INVALID_COMPARE_TO_YESNO
+
+
+===== Example
+
+
+If _F_ is a field of type boolean, the parser returns for the error condition
+
+====
+``[F]==7``
+====
+
+the following message
+
+----
+It is only allowed to compare equality or unequality of a field of type boolean with another field of type boolean or with the constants True or False.
+[MVK_INVALID_COMPARE_TO_YESNO]
+----
+
+===== See
+
+<<Booleanp, Boolean>>
+
+[[MVK_INVALID_COMPARE_TO_DATE_RANGE]]
+==== MVK_INVALID_COMPARE_TO_DATE_RANGE
+
+===== Example
+
+For fields
+
+[%autowidth]
+|======
+|Field|Type|Format
+
+|F| DateRange | _YYYY-MM-DD/YYYY-MM-DD_
+|G| DateRange | _YYYY-MM/YYYY-MM_
+|======
+
+and error condition
+
+====
+``[F]!=[G]``
+====
+
+the following message
+
+----
+It is only allowed to compare date ranges with other fitting date ranges.
+[MVK_INVALID_COMPARE_TO_DATE_RANGE]
+----
+
+is returned by the Rule parser.
+
+===== Background
+
+Date ranges may be compared with ``==`` or with ``!=``. However, they must have the same format.
+
+===== See
+
+* <<vergleichs-operationen, Comparison operations>>
+* <<ComparingDateRanges, Comparing Date Ranges>>
+
+[[MVK_INVALID_COMPARE_TO_ENUM_OR_STRING]]
+==== MVK_INVALID_COMPARE_TO_ENUM_OR_STRING
+
+===== Example
+
+If _F_ is a field of type string and _G_ is a field of type number, for the error condition
+
+====
+``[F]==[G]``
+====
+
+the following message
+
+----
+It is only allowed to compare a character string with another character string.
+[MVK_INVALID_COMPARE_TO_ENUM_OR_STRING]
+----
+
+is returned.
+
+===== Background
+
+When comparing with ``==`` and ``!=`` terms of type string may only be compared with other terms of type string. Terms of type string are:
+
+* String constants
+* Values of fields of type String, Enumeration, Unfinished Enumeration (including type definitions based on String, Enumeration, Unfinished Enumeration) and fields of type Predefined
+* Return values of the operators ``FieldValueAsString`` and ``RangeAsString``
+* Return values from string concatenation using ``+``
+
+
+
+===== See
+
+* <<fieldtypep, Field types>>
+* <<vergleichs-operationen, Comparison operations>>
+
+===== Solution
+
+One possible solution is to convert the field value of _G_ into a string before the comparison using ``==``.
+
+====
+``[F]==FieldValueAsString(G)``
+====
+
+[[MVK_INVALID_STRING_CONSTANT_FOR_ENUM_COMPARISON]]
+==== MVK_INVALID_STRING_CONSTANT_FOR_ENUM_COMPARISON
+
+===== Example
+
+If the _Person_ field is an enumeration field with enumeration values _PersonA_ and _PersonB_, for the error condition
+
+====
+``[Person]=="PersonC"``
+====
+
+the following message
+
+----
+'PersonC' is not valid in the used enumeration.
+[MVK_INVALID_STRING_CONSTANT_FOR_ENUM_COMPARISON]
+----
+
+is returned.
+
+===== Background
+
+When comparing the value of a field of type enumeration with a constant, this constant must be an enumeration value of this field.
+
+===== See
+
+<<Enumeration_attributep, Enumeration>>
+<<vergleichs-operationen, Comparison operations>>
+
+===== Solution
+
+Replace the string _"PersonC"_ with an enumeration value of the _Person_ field:
+
+====
+``[Person]=="PersonB"``
+====
+
+[[MVK_INVALID_COMPARE_ENUM_TO_STRING]]
+==== MVK_INVALID_COMPARE_ENUM_TO_STRING
+
+===== Example
+
+If _F_ is an enumeration field with labels and _G_ is an enumeration field without labels, for the error condition
+
+====
+``[F]==[G]``
+====
+
+the following message
+
+----
+It is not allowed to compare enumerations with display values to strings or to enumerations without display values.
+[MVK_INVALID_COMPARE_ENUM_TO_STRING]
+----
+
+is returned.
+
+===== Background
+
+There are the following options for comparing fields of type String with fields of type Enumeration.
+
+[%autowidth]
+|======
+|[green]#Comparison allowed?# | string | enumeration without labels | enumeration with labels
+|string |[green]#yes# |[green]#yes# |[red]#no#
+|enumeration without labels |[green]#yes# |[green]#yes# | [red]#no#
+|enumeration with labels | [red]#no# |[red]#no#|[green]#yes#
+|======
+
+[NOTE]
+Two enumeration fields with surface values can only be compared if the enumeration values as well as the surface values per enumeration value and language match.
+
+===== See
+
+<<Enumeration_attributep, Enumeration>>
+<<vergleichs-operationen, Comparison operations>>
+
+[[MVK_INVALID_COMPARE_ENUM_TO_ENUM]]
+==== MVK_INVALID_COMPARE_ENUM_TO_ENUM
+
+===== Example
+
+For enumeration fields
+
+[caption="Field "]
+.F
+[%autowidth]
+|======
+|Value|Label
+
+|A| Person A
+|B| Person B
+|======
+
+and
+
+[caption="Field "]
+.G
+[%autowidth]
+|======
+|Value|Label
+
+|A| Husband
+|B| Wife
+|======
+
+and Error Condition
+
+====
+``[F]==[G]``
+====
+
+the following message
+
+----
+When comparing enumerations, the enumeration values must match  (for 'A', the values 'Husband' and 'Person A' are specified).
+[MVK_INVALID_COMPARE_ENUM_TO_ENUM]
+----
+
+is returned.
+
+===== Background
+
+When comparing two enumeration fields with surface values, these must match (per value).
+
+===== See
+
+<<Enumeration_attributep, Enumeration>>
+<<vergleichs-operationen, Comparison operations>>
+
+===== Solution
+
+Align the surface values of the two enumeration fields.
+
+
+===== See
+
+<<GueltigV, Valid and Invalid for the evaluation of custom types>>
+
+[[MVK_NO_NUMBER]]
+==== MVK_NO_NUMBER
+
+===== Example
+
+If _F_ a field of type string, the Rule parser returns for the error condition
+
+====
+``AbsValue(F) > 0``
+====
+
+the following message
+
+----
+At 'AbsValue': Only numbers and amounts are allowed to be used.
+[MVK_NO_NUMBER]
+----
+
+===== Background
+
+There are a number of language constructs that only allow numbers or amounts as arguments:
+
+* At '[blue]##AbsValue##': Only numbers and amounts are allowed to be used. [MVK_NO_NUMBER]
+* At '[blue]##SumOfProducts##': Only numbers and amounts are allowed to be used. [MVK_NO_NUMBER]
+* At '[blue]##FeldWertAlsString##': Only numbers and amounts are allowed to be used. [MVK_NO_NUMBER]
+* At '[blue]##Abs##': Only numbers and amounts are allowed to be used. [MVK_NO_NUMBER]
+* At '[blue]##RoundAccountingValue##': Only numbers and amounts are allowed to be used. [MVK_NO_NUMBER]
+* At '[blue]##RoundUpValue##': Only numbers and amounts are allowed to be used. [MVK_NO_NUMBER]
+* At '[blue]##RoundDownValue##': Only numbers and amounts are allowed to be used. [MVK_NO_NUMBER]
+* At '[blue]##RoundAccounting##': Only numbers and amounts are allowed to be used. [MVK_NO_NUMBER]
+* At '[blue]##RoundUp##': Only numbers and amounts are allowed to be used. [MVK_NO_NUMBER]
+* At '[blue]##RoundDown##': Only numbers and amounts are allowed to be used. [MVK_NO_NUMBER]
+
+This parser message can also occur in connection with '[blue]##NumberOfValueInFields##'.
+
+===== Example
+
+In the model
+
+image::parser_error/en/b22.png[,149]
+
+with the Error Condition
+
+====
+``NumberOfValueInFields(1 In F,G) > 1``
+====
+
+the Rule parser returns the message
+
+----
+At 'NumberOfValueInFields': Only numbers and amounts are allowed to be used.
+[MVK_NO_NUMBER]
+----
+
+===== Background
+
+With ``NumberOfValueInFields`` the types of the fields must match the constants used. The following combinations are possible.
+
+[%autowidth]
+|======
+|Constant|Fields of type
+
+|Type String| String, Enumeration (and mixed)
+|Type Number| Number
+|``True``| Boolean, Confirm (and mixed)
+|``False``| Boolean
+|======
+
+===== See
+
+
+<<AnzahlWertInFeldlistep, NumberOfValueInFields>>
+
+[[MVK_NO_BOOLY_ALLOWED]]
+==== MVK_NO_BOOLY_ALLOWED
+
+===== Example
+
+If _F_ and _G_ are fields of type confirm, the Rule parser returns for the error condition
+
+====
+``FirstFilledValue(F, G) == True``
+====
+
+the following message
+
+----
+At 'ErsterAngegebenerWert' no confirm fields are allowed. Incompatible: 'F'.
+[MVK_NO_BOOLY_ALLOWED]
+----
+
+
+
+===== See
+
+
+<<ErsterAngegebenerWertp, FirstFilledValue>>
+
+[[MVK_VARYING_TYPES_NOT_ALLOWED]]
+==== MVK_VARYING_TYPES_NOT_ALLOWED
+
+===== Example
+
+If _F1_ is a field of type string and _F2_ is a field of type number, the Rule parser returns for the error condition
+
+====
+``FieldValuesNotUnique(F1,F2)``
+====
+
+the following message
+
+----
+At 'FieldValuesNotUnique': All fields must be the same type.
+[MVK_VARYING_TYPES_NOT_ALLOWED]
+----
+
+===== Background
+
+With the language constructs
+
+* ``FieldValuesNotUnique``
+* ``FirstFilledValue``
+* ``FieldValueIncludedInValueList``
+* ``FieldValueNotIncludedInValueList``
+* ``NoFieldValueIncludedInValueList``
+* ``AtLeastOneFieldValueIncludedInValueList``
+* ``NotAllFieldValuesIncludedInValueList``
+* ``NumberOfValueInFields``
+
+all specified fields must be of the same type.
+
+===== See
+
+<<aussagen_sprachkonstrukte_fuer_feldlisten, Predicate language constructs for field lists>>
+
+[[MVK_INCONSISTENT_TYPES_COMPARED]]
+==== MVK_INCONSISTENT_TYPES_COMPARED
+
+===== Example
+
+If _F_ is a field of type number, the Rule parser returns for the error condition
+
+=====
+``[F] == True``
+=====
+
+the following message
+
+----
+Invalid comparison.
+[MVK_INCONSISTENT_TYPES_COMPARED]
+----
+
+===== Background
+
+A number cannot be compared with a Boolean value.
+
+=== Number and Uniqueness of Arguments
+
+[[MVK_DUPLICATE_PARAM1]]
+==== MVK_DUPLICATE_PARAM1
+
+===== Example
+
+If _F_ and _G_ are fields, the Rule parser returns for the error condition
+
+=====
+``AtLeastOneFieldFilled(F,G,G)``
+=====
+
+the following message
+
+----
+At 'AtLeastOneFieldFilled': 'G' was defined more than once.
+[MVK_DUPLICATE_PARAM1]
+----
+
+
+===== Background
+
+A field may not appear more than once in a field list, nor may a group appear more than once in a field list.
+
+===== Solution
+
+Use the following Error Condition instead
+
+=====
+``AtLeastOneFieldFilled(F,G)``
+=====
+
+
+===== See
+
+<<fieldlisst, Field lists>>
+
+[[MVK_DUPLICATE_PARAM2]]
+==== MVK_DUPLICATE_PARAM2
+
+===== Example
+
+If _F_ is a field that is directly or indirectly contained in a group _K_, the Rule parser returns for the error condition
+
+=====
+``AtLeastOneFieldFilled(K/F,K)``
+=====
+
+the following message
+
+----
+At 'AtLeastOneFieldFilled': 'K/F' was defined directly and via a group.
+[MVK_DUPLICATE_PARAM2]
+----
+
+===== Background
+
+A field may not appear more than once in a field list - not even via different types of referencing (e.g. directly and indirectly via a group).
+
+===== Solution
+
+Use the following Error Condition instead
+
+=====
+``AtLeastOneFieldFilled(K)``
+=====
+
+
+===== See
+
+<<fieldlisst, Field lists>>
+
+[[MVK_PARAMSIZE_INVALID1]]
+==== MVK_PARAMSIZE_INVALID1
+
+===== Example
+
+If _F_ and _G_ are fields, the Rule parser returns for the error condition
+
+====
+``FieldFilled(F1,F2)``
+====
+
+the following message
+
+----
+'FieldFilled' must contain exactly one parameter.
+[MVK_PARAMSIZE_INVALID1]
+----
+
+===== Background
+
+With the language constructs
+
+* ``FieldFilled``
+* ``FieldNotFilled``
+* ``GroupFilled``
+* ``GroupNotFilled``
+
+exactly one parameter must be specified.
+
+===== See
+
+
+<<aussagen,Predicate language constructs>>
+
+[[MVK_PARAMSIZE_INVALID2]]
+==== MVK_PARAMSIZE_INVALID2
+
+===== Example
+
+With the error conditions
+
+====
+``AllGroupsFilled(K)``
+====
+
+and
+
+====
+``GroupsNotCollectivelyFilled(K)``
+====
+
+the Rule parser returns the message
+
+----
+At 'AllGroupsFilled' There must be at least two groups or fields.
+[MVK_PARAMSIZE_INVALID2]
+----
+
+===== Background
+
+The language constructs ``AllGroupsFilled(K)`` and ``GroupsNotCollectivelyFilled(K)`` expect a list of groups as parameters that contains at least two elements. A single group is not sufficient.
+
+===== See
+
+
+<<aussagen_sprachkonstrukte_fuer_gruppen, Predicate language constructs for groups>>
+
+[[MVK_PARAMSIZE_INVALIDN]]
+==== MVK_PARAMSIZE_INVALIDN
+
+===== Example
+
+If _F_ is a field, the Rule parser returns for the error condition
+
+====
+``NumberOfFilledFields(F)``
+====
+
+the following message
+
+----
+At 'NumberOfFilledFields': There must be more than one field or at least one group defined.
+[MVK_PARAMSIZE_INVALIDN]
+----
+
+is returned.
+
+===== Background
+
+There are a number of language constructs that expect a field list as an argument and for which a single field is not permitted as an argument:
+
+* ``NotAllFieldsFilled``
+* ``AllFieldsFilled``
+* ``FieldsNotCollectivelyFilled``
+* ``NotExactlyOneFieldFilled``
+* ``MoreThanOneFieldFilled``
+* ``FieldValuesNotUnique``
+* ``MaxValue``
+* ``MinValue``
+* ``Sum``
+* ``NumberOfFilledFields``
+* ``NumberOfDifferentValues``
+
+===== See
+
+
+
+* <<aussagen_sprachkonstrukte_fuer_feldlisten, Predicate language constructs for field lists>>
+* <<arithmetische_sprachkonstrukte_fuer_wertelisten, Arithmetic language constructs for value lists>>
+
+
+[[MVK_PARAMSIZE_INVALIDGN]]
+==== MVK_PARAMSIZE_INVALIDGN
+
+===== Example
+
+If _K_ is a group, the Rule parser returns for the error condition
+
+====
+``NumberOfFilledGroups(K)==1``
+====
+
+the following message
+
+----
+At 'NumberOfFilledGroups': There must be more than one group.
+[MVK_PARAMSIZE_INVALIDGN]
+----
+
+
+===== See
+
+
+<<AnzahlAngegebenerKontextep, NumberOfFilledGroups>>
+
+=== Asterisk Operator
+
+[[MVK_INVALID_WILDCARD_FOR_RULEGROUP]]
+==== MVK_INVALID_WILDCARD_FOR_RULEGROUP
+
+===== Example
+
+In the model
+
+image::parser_error/en/b18.png[,149]
+
+with the Error Condition
+
+====
+``AllFieldsFilled(RuleGroup*/F)``
+====
+
+the Rule parser returns the message
+
+----
+It is not allowed to specifiy an asterisk for 'RuleGroup'.
+[MVK_INVALID_WILDCARD_FOR_RULEGROUP]
+----
+
+===== Solution
+
+Modify the error condition
+
+====
+``AllFieldsFilled(/A/K*/F)``
+====
+
+===== See
+
+
+<<sternoperator, Asterisk operator>>
+
+[[MVK_NO_WILDCARD]]
+==== MVK_NO_WILDCARD
+
+
+===== Example
+
+In the model
+
+
+image::parser_error/en/b29.png[,210]
+
+with the Error Condition
+
+====
+``Sum(K*/L/F) > 10``
+====
+
+the Rule parser returns the message
+
+----
+Missing specification of an asterisk for 'K/L' in 'K/L/F'.
+[MVK_NO_WILDCARD]
+----
+
+===== Background
+
+If a repeatable group in the path is marked with an asterisk, all repeatable groups below it in the path must also be marked with an asterisk.
+
+===== Solution
+
+Group _L_ is also marked with an asterisk.
+
+====
+``Sum(K*/L*/F) > 10``
+====
+
+
+===== See
+
+
+<<sternoperator, Asterisk operator>>
+
+[[MVK_INVALID_WILDCARD]]
+==== MVK_INVALID_WILDCARD
+
+
+===== Example
+
+In the model
+
+image::parser_error/en/b25.png[,179]
+
+with the Error Condition
+
+====
+``AllFieldsFilled(F, K*/G)``
+====
+
+the Rule parser returns the message
+
+----
+Since 'K' is not repeatable, it is not allowed to specify an asterisk.
+[MVK_INVALID_WILDCARD]
+----
+
+===== Background
+
+The asterisk operator is only useful and permitted for repeatable groups.
+
+===== Solution
+
+Omit the asterisk.
+
+====
+``AllFieldsFilled(F, K/G)``
+====
+
+
+===== See
+
+
+<<sternoperator, Asterisk operator>>
+
+[[MVK_NO_WILDCARDS_ALLOWED]]
+==== MVK_NO_WILDCARDS_ALLOWED
+
+===== Example
+
+In the model
+
+image::parser_error/en/b42.png[,149]
+
+with the Error Condition
+
+====
+``FieldFilled(/A*/F)``
+====
+
+the Rule parser returns the message
+
+----
+At 'FieldFilled': It is not allowed to use an asterisk.
+[MVK_NO_WILDCARDS_ALLOWED].
+----
+
+===== Background
+
+There are a number of situations in which no star may be specified.
+
+. For language constructs that expect a single field as an argument:
+
+* Field value operator ``[  ]``
+* ``AbsValue``
+* ``Length``
+* ``FieldValueAsNumber``
+* ``FieldValueAsString``
+* ``RoundDownValue``
+* ``RoundUpValue``
+* ``RoundAccountingValue``
+* ``RangeAsNumber``
+* ``RangeAsString``
+* ``StartOfDateRange``
+* ``EndOfDateRange``
+* ``ValueAsDate``
+
+. For language constructs that expect a single field as the first argument:
+
+* ``FieldValueIncludedInValueList``
+* ``FieldValueNotIncludedInValueList``
+
+. For language constructs that expect a single group as an argument:
+
+* ``GroupFilled``
+* ``GroupNotFilled``
+
+. For language constructs that expect a single field or a single group as an argument:
+
+* ``CurrentRepetition``
+
+. For language constructs that allow a field list as an argument, but which may not contain an asterisk:
+
+* ``RepetitionNotUnique``
+
+===== See
+
+
+<<sternoperator, Asterisk operator>>
+
+[[MVK_NO_WILDCARDS_G_ALLOWED]]
+==== MVK_NO_WILDCARDS_G_ALLOWED
+
+===== Example
+
+In the model
+
+image::parser_error/en/b18.png[,149]
+
+with the Error Condition
+
+====
+AllGroupsFilled(/A/K*)
+====
+
+the Rule parser returns the message
+
+----
+At 'AllGroupsFilled': It is not allowed to use an asterisk for any group.
+[MVK_NO_WILDCARDS_G_ALLOWED]
+----
+
+===== Background
+
+For the language constructs
+
+* ``NotAllGroupsFilled``
+* ``AllGroupsFilled``
+* ``GroupsNotCollectivelyFilled``
+
+the usage of the asterisk operator is not allowed.
+
+===== Solution
+
+Use the following Error Condition instead
+
+====
+NumberOfFilledGroups(/A/K*) == 10
+====
+
+
+===== See
+
+
+
+* <<sternoperator, Asterisk operator>>
+* <<aussagen_sprachkonstrukte_fuer_gruppen, Predicate language constructs for groups>>
+
+=== Filter Operator
+
+[[MVK_WILDCARDS_REQUIRED]]
+==== MVK_WILDCARDS_REQUIRED
+
+===== Example
+
+In the model
+
+image::parser_error/en/b9.png[,259]
+
+with the Error Condition
+
+====
+``Sum(K/Amount Having [K/Type]=="Share") >= 1000``
+====
+
+(where _'Share'_ is an enumeration value of the field _Type_) the Rule parser returns the message
+
+----
+At 'Having': At least one asterisk needs to be specified for the filtered field.
+[MVK_WILDCARDS_REQUIRED]
+----
+
+===== Background
+
+The filter operator ``Having``  requires a field list that is defined with an asterisk.
+
+===== Solution
+
+Insert an asterisk
+
+====
+``Sum(K[red]##*##/Amount Having [K/Type]=="Share") >= 1000``
+====
+
+===== See
+
+
+<<Filteroperatorp, Filter Operator>>
+
+[[MVK_NO_ITERATION_FOR_WILDCARD]]
+==== MVK_NO_ITERATION_FOR_WILDCARD
+
+===== Example
+
+In the model
+
+image::parser_error/en/b45.png[,199]
+
+with the Error Condition
+
+====
+``Sum(K*/G Having FieldFilled(F)) \<= 10``
+====
+
+the Rule parser returns the message
+
+----
+In filter conditions, iteration must be specified for at least one level, that specified asterisk for the filtered field.
+[MVK_NO_ITERATION_FOR_WILDCARD]
+----
+
+===== Background
+
+In filter conditions, you must iterate over at least one level with an asterisk of the filtered field. In the example above, this means that a field located in _K_ must be referenced in the filter condition.
+
+===== Solution
+
+The rule in the example above becomes correct if you move the field _F_ to the group _K_.
+
+===== See
+
+
+<<Filteroperatorp, Filter Operator>>
+
+[[MVK_PARALLEL_ITERATION_FOR_FILTERED_ENTITY_NOT_ALLOWED]]
+==== MVK_PARALLEL_ITERATION_FOR_FILTERED_ENTITY_NOT_ALLOWED
+
+===== Example
+
+In the model
+
+image::parser_error/en/b49.png[,299]
+
+with the Error Condition
+
+====
+``AtLeastOneFieldFilled(K/M*/F Having FieldFilled(K/M/G)) and [K/H]==[L/H]``
+====
+
+the Rule parser returns the message
+
+----
+At 'Having': parallel iteration is not allowed for the filtered entity.
+[MVK_PARALLEL_ITERATION_FOR_FILTERED_ENTITY_NOT_ALLOWED]
+----
+
+===== Background
+
+The filter operator must not be combined with parallel iteration.
+
+===== See
+
+
+<<Filteroperatorp, Filter Operator>>
+
+[[MVK_DISALLOWED_CONSTRUCT_IN_FILTER_CONDITION]]
+==== MVK_DISALLOWED_CONSTRUCT_IN_FILTER_CONDITION
+
+
+===== Example
+
+In the model
+
+image::parser_error/en/b48.png[,199]
+
+with the Error Condition
+
+====
+``AtLeastOneFieldFilled(L*/F Having FieldFilled(G) and CustomCondition WirtschaftsPruefungUngueltig)``
+====
+
+the Rule parser returns the message
+
+----
+The language feature 'CustomCondition' is not supported for filter conditions.
+[MVK_DISALLOWED_CONSTRUCT_IN_FILTER_CONDITION]
+----
+
+===== Background
+
+The language construct ``CustomCondition`` must not be used in the filter condition.
+
+===== See
+
+
+<<Filteroperatorp, Filter Operator>>
+
+[[MVK_INVALID_ITERATION_IN_FILTER_CONDITION]]
+==== MVK_INVALID_ITERATION_IN_FILTER_CONDITION
+
+===== Example
+
+In the model
+
+image::parser_error/en/b46.png[,199]
+
+
+with the Error Condition
+
+====
+``Sum(K*/G Having [K/F1]==[L/F2]) \<= 10``
+====
+
+
+the Rule parser returns the message
+
+----
+Error for 'L' in 'L/F2': in filter conditions iterations are only allowed on levels, that specify an asterisk for the filtered field.
+[MVK_INVALID_ITERATION_IN_FILTER_CONDITION]
+----
+
+===== Background
+
+In filter conditions, you may only iterate over the repetition levels on which the filtered field specifies iteration or asterisk. In the example above, you may only iterate over group _K_. However, the field _F2_ iterates over the group _L_. This is only permitted if the dollar operator is used.
+
+===== Solution
+
+Use the dollar operator for the _F2_ field:
+
+====
+``Sum(/A/K*/G Having [/A/K/F1]==[$L/F2]) \<= 10``
+====
+
+
+===== See
+
+
+<<Filteroperatorp, Filter Operator>>
+
+[[MVK_INVALID_OUTER_ITERATION]]
+==== MVK_INVALID_OUTER_ITERATION
+
+===== Example
+
+For a rule with a partial condition of
+
+====
+``FieldFilled($F)``
+====
+
+which is not part of a filter condition, the Rule parser returns the message
+
+----
+The symbol '$' to specify rule iteration is only allowed inside filter conditions.
+[MVK_INVALID_OUTER_ITERATION]
+----
+
+
+
+===== See
+
+
+<<iteration_in_der_filterbedingung, Iteration in filter condition>>
+
+=== Other
+
+
+[[MVK_NO_CONVERT_IN_NUMBER]]
+==== MVK_NO_CONVERT_IN_NUMBER
+
+===== Example
+
+If _F_ is a field of type string (without pattern), the Rule parser returns for the error condition
+
+====
+``FieldValueAsNumber(F) == 10``
+====
+
+the following message
+
+----
+FieldValueAsNumber': The field must either be type string or enumeration, whose values, or category values, can always be transformed to a number. Corrupt: 'F'.
+[MVK_NO_CONVERT_IN_NUMBER]
+----
+
+===== Background
+
+The language construct ``FieldValueAsNumber`` expects as argument either
+
+* a field of type string
+* with pattern ``[0-9]+`` and
+* maximum length less than 16
+
+or
+
+* a field of the type enumeration
+* with enumeration values which can be converted into numbers (maximum 15-digit numbers, possibly also with sign and decimal places)
+
+or
+
+* the category access operator `F+++->+++ K`
+* where it must be possible to convert the category values of _K_ into numbers (maximum 15-digit numbers, possibly also with sign and decimal places).
+
+===== Solution
+
+Adjust the field type of _F_ accordingly.
+
+===== See
+
+
+<<FeldWertAlsStringundFeldWertAlsZahl, FieldValueAsString and FieldValueAsNumber>>
+
+
+[[MVK_NO_GROUPS_ALLOWED]]
+==== MVK_NO_GROUPS_ALLOWED
+
+The argument of the field value operator ``[  ]``
+
+* must be a field (possibly together with semantic index _For_ or access operator for categories ``+++->+++``)
+* must not be a group.
+
+If a group is used as the argument of the field value operator, e.g. by
+
+====
+``[G] > 0``
+====
+
+the Rule parser returns the following message:
+
+----
+At 'Feldwert-Operation': It is not allowed to use a group.
+[MVK_NO_GROUPS_ALLOWED]
+----
+
+===== Background
+
+In many situations, no group may be specified as an argument. This applies to the following:
+
+*  Field value operator ``[  ]``
+*  Access operator for categories ``+++->+++``
+*  ``Having``
+*  ``FieldFilled``
+*  ``FieldNotFilled``
+*  ``DateRangesOverlap``
+*  ``FieldValueIncludedInValueList``
+*  ``FieldValueNotIncludedInValueList``
+*  ``RepetitionNotUnique``
+*  ``Valid``
+*  ``Invalid``
+*  ``SumOfProducts``
+*  ``AbsValue``
+*  ``Length``
+*  ``FieldValueAsNumber``
+*  ``FieldValueAsString``
+*  ``RoundDownValue``
+*  ``RoundUpValue``
+*  ``RoundAccountingValue``
+*  ``RangeAsNumber``
+*  ``RangeAsString``
+*  ``Date``
+
+
+[[MVK_ROOT_GROUP_REFERENCED]]
+==== MVK_ROOT_GROUP_REFERENCED
+
+===== Example
+
+For the Error Condition
+
+====
+``GroupsNotCollectivelyFilled(/A,/B)``
+====
+
+the error message
+
+----
+At 'GroupsNotCollectivelyFilled': It is not allowed to reference a rootgroup.
+[MVK_ROOT_GROUP_REFERENCED]
+----
+
+is returned.
+
+===== Background
+
+The referencing of a rootgroup is only possible for the language constructs
+
+* ``GroupFilled``
+* ``GroupNotFilled``
+* ``AtLeastOneGroupFilled``
+* ``NoGroupFilled``
+* ``NumberOfFilledGroups``
+
+Furthermore, the rootgroup must be the only parameter.
+
+In the model
+
+image::parser_error/en/b42.png[,149]
+
+the following conditions are permitted:
+
+====
+``GroupFilled(/A)``
+====
+
+====
+``AtLeastOneGroupFilled(/A*)``
+====
+
+====
+``NoGroupFilled(/A*)``
+====
+
+====
+``NumberOfFilledGroups(/A*)>=2``
+====
+
+In the model
+
+image::parser_error/en/b43.png[,149]
+
+the condition
+
+====
+``GroupNotFilled(/A)``
+====
+
+is permitted.
+
+===== See
+
+
+
+* <<aussagen_sprachkonstrukte_fuer_gruppen, Predicate language constructs for groups>>
+* <<funktions_sprachkonstrukte_fuer_feldlisten_und_gruppenlisten, Functional language constructs for field lists and group lists>>
+
+[[MVK_ROOT_GROUP_WITH_OTHER_PARAMETERS]]
+==== MVK_ROOT_GROUP_WITH_OTHER_PARAMETERS
+
+===== Example
+
+In the model
+
+image::parser_error/en/b55.png[,179]
+
+with the Error Condition
+
+====
+``NumberOfFilledGroups(/A,K) > 2``
+====
+
+the Rule parser returns the message
+
+----
+At 'AnzahlAngegebenerKontexte': Only a rootgroup is allowed to be used as parameter.
+[MVK_ROOT_GROUP_WITH_OTHER_PARAMETERS]
+----
+
+===== Background
+
+The referencing of a rootgroup is only possible for the language constructs
+
+* ``GroupFilled``
+* ``GroupNotFilled``
+* ``AtLeastOneGroupFilled``
+* ``NoGroupFilled``
+* ``NumberOfFilledGroups``
+
+Furthermore, the rootgroup must be the only parameter.
+
+In the model
+
+image::parser_error/en/b42.png[,149]
+
+the following conditions are permitted:
+
+====
+``GroupFilled(/A)``
+====
+
+====
+``AtLeastOneGroupFilled(/A*)``
+====
+
+====
+``NoGroupFilled(/A*)``
+====
+
+====
+``NumberOfFilledGroups(/A*)>=2``
+====
+
+In the model
+
+image::parser_error/en/b43.png[,149]
+
+the condition
+
+====
+``GroupNotFilled(/A)``
+====
+
+is permitted.
+
+===== See
+
+
+
+* <<aussagen_sprachkonstrukte_fuer_gruppen, Predicate language constructs for groups>>
+* <<funktions_sprachkonstrukte_fuer_feldlisten_und_gruppenlisten, Functional language constructs for field lists and group lists>>
+
+[[MVK_NO_FIELDS_ALLOWED]]
+==== MVK_NO_FIELDS_ALLOWED
+
+===== Example
+
+If _F_ is a field, the Rule parser returns for the error condition
+
+====
+``GroupFilled(F)``
+====
+
+the following message
+
+----
+At 'GroupFilled': Only groups or rootgroups are allowed. Corrupt: 'F'.
+[MVK_NO_FIELDS_ALLOWED]
+----
+
+===== See
+
+
+<<aussagen, Predicate language constructs>>
+
+[[MVK_NO_EMPTY]]
+==== MVK_NO_EMPTY
+
+===== Example
+
+If _F_ is a field of type string, the Rule parser returns for the error condition
+
+====
+``Valid(F,"")``
+====
+
+the following message
+
+----
+At 'Valid': the second parameter may not be empty.
+[MVK_NO_EMPTY]
+----
+
+===== Background
+
+If the language constructs ``Valid`` and ``Invalid`` are used to check for a predefined type, this must be specified. The empty string "" is not permitted as the second argument.
+
+===== See
+
+
+<<GueltigV, Valid and Invalid for the evaluation of custom types>>
+
+[[MVK_INVALID_SUPPRESSED_WARNING]]
+==== MVK_INVALID_SUPPRESSED_WARNING
+
+If the addition
+
+====
+``@SuppressWarning(MVK_INVALID_COMPARE_DEC_PLACES)``
+====
+
+is used this causes the corresponding check to be suppressed. The condition
+
+====
+``@SuppressWarning(MVK_INVALID_COMPARE_DEC_PLACES)`` +
+``FieldFilled(F) and [F]!=1.5``
+====
+
+is also correct if no decimal places are specified for the field _F_. However, this suppression is only possible for ``MVK_INVALID_COMPARE_DEC_PLACES``. In all other cases, a corresponding error message is returned. For the error condition
+
+====
+``@SuppressWarning(MVK_NO_NUMBER)``
+====
+
+the following message is displayed
+
+----
+The warning to be suppressed 'NO_NUMBER' is not supported.
+[MVK_INVALID_SUPPRESSED_WARNING]
+----
+
+
+[[MVK_ROOT_GROUP_IS_EMPTY]]
+==== MVK_ROOT_GROUP_IS_EMPTY
+
+===== Example
+
+In the model
+
+image::parser_error/en/b12.png[,149]
+
+with the Error Condition
+
+====
+``FieldFilled(F) and GroupNotFilled(/A)``
+====
+
+the Rule parser returns the error
+
+----
+The rootgroup '/A' does not consist of any (valid) fields and is therefore not allowed to be used in the rule.
+[MVK_ROOT_GROUP_IS_EMPTY]
+----
+
+===== Background
+
+Rootgroups, that do not contain any fields (either directly or indirectly) may not be referenced in error conditions.
+
+
+[[MVK_GROUP_IS_EMPTY]]
+==== MVK_GROUP_IS_EMPTY
+
+===== Example
+
+In the model
+
+image::parser_error/en/b13.png[,159]
+
+with the Error Condition
+
+====
+``FieldFilled(F) and GroupNotFilled(K)``
+====
+
+the Rule parser returns the error
+
+----
+Group 'K' does not contain (valid) fields and is therefore not allowed to be used in rules.
+[MVK_GROUP_IS_EMPTY]
+----
+
+===== Background
+
+Groups, that do not contain any fields (either directly or indirectly) may not be referenced in error conditions.
+
+
+[[MVK_INVALID_COMPARE_TO_CONST]]
+==== MVK_INVALID_COMPARE_TO_CONST
+
+===== Example
+
+If an error condition contains e.g. the partial condition
+
+====
+``1==1``
+====
+
+the Rule parser returns the message
+
+----
+It is not allowed to compare two constants.
+[MVK_INVALID_COMPARE_TO_CONST]
+----
+
+===== Background
+
+Constants must not be compared with each other.
+
+=== Parser Messages for Computation Rules
+
+
+[[MVK_ERROR_REFERENCE_TO_CALCULATED_FIELD]]
+==== MVK_ERROR_REFERENCE_TO_CALCULATED_FIELD
+
+===== Example
+
+If _F_ is a Field of type number, and a computation is given by
+
+|=======
+| Precondition|Calculation
+
+|FieldNotFilled(F)|``10``
+|=======
+
+then the Rule Parser return the message
+
+----
+The calculated field cannot be used in prerequisites and calculation functions.
+[MVK_ERROR_REFERENCE_TO_CALCULATED_FIELD]
+----
+
+====== Background
+
+The calculated field may not be referenced, either directly or indirectly, in the precondition.
+Exception: An indirect reference of the calculated field in the precondition by means of the language construct ``GroupFilled`` is permitted.
+
+====== See
+
+<<Preconditions, Preconditions>>
+

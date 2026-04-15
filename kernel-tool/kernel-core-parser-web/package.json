@@ -1,0 +1,70 @@
+{
+  "name": "@com.mgmtp.a12.kernel/kernel-core-parser-web",
+  "version": "30.8.1",
+  "description": "kernel core parser version in typescript",
+  "scripts": {
+    "lint": "npm run internal:eslint",
+    "clean": "rimraf ./lib ./doc ./LINT-com.mgmtp.a12.kernel-*.json ./build/npm_reports/TEST-com.mgmtp.a12.kernel-*.xml ./com.mgmtp.a12.kernel-kernel-core-parser-web-*.tgz",
+    "compile": "npm-run-all --parallel --max-parallel 2 internal:compile:**",
+    "watch": "tsc --watch",
+    "doc": "npm run internal:doc:typedoc",
+    "dev": "npm run compile",
+    "test": "npm-run-all --parallel --max-parallel 2 internal:test:**",
+    "internal:doc:typedoc": "typedoc ./src/main --readme none",
+    "internal:compile:typescript": "tsc",
+    "internal:eslint": "eslint \"./src/**/*.ts\" --max-warnings=0 --ignore-pattern 'src/main/js/internal/gen/*.ts' -f junit -o build/npm_reports/TEST-eslint-report.xml",
+    "internal:test:mocha": "npm run internal:mocha -- --reporter xunit --reporter-options output=./build/npm_reports/TEST-com.mgmtp.a12.kernel-kernel-core-parser-web.xml",
+    "checkTypings": "npx attw com.mgmtp.a12.kernel-kernel-core-parser-web-*.tgz --ignore-rules cjs-resolves-to-esm",
+    "internal:mocha": "mocha --timeout 60000 --ui tdd --sort --recursive ./lib/test",
+    "prepack": "node ../../scripts/prepack-clean.js",
+    "postpack": "node ../../scripts/postpack-restore.js"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./lib/main/js/index.js",
+  "types": "./lib/main/js/index.d.ts",
+  "exports": {
+    ".": "./lib/main/js/index.js",
+    "./a12internal": "./lib/main/js/a12internal/index.js",
+    "./resources/*": "./lib/main/resources/*",
+    "./lib/*": "./lib/*"
+  },
+  "author": "mgm technology partners",
+  "license": "(EUPL-1.2 OR LicenseRef-commercial)",
+  "dependencies": {
+    "antlr4ForA12Kernel": "npm:@com.mgmtp.a12.kernel.antlr4/antlr4@4.13.2-3"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@babel/cli": "^7.28.3",
+    "@babel/core": "^7.28.5",
+    "@babel/plugin-transform-modules-commonjs": "^7.27.1",
+    "@com.mgmtp.a12.antlrcodeeditor/antlrcodeeditor-core": "^6.2.2",
+    "@com.mgmtp.a12.devtools/tsconfig": "^1.1.0",
+    "@com.mgmtp.a12.devtools/prettier-config": "^1.1.0",
+    "@com.mgmtp.a12.kernel/kernel-eslint-config": "30.8.1",
+    "@cyclonedx/cyclonedx-npm": "^4.1.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.19.3",
+    "@types/react": "^19.2.7",
+    "@types/styled-components": "^5.1.36",
+    "copyfiles": "^2.4.1",
+    "mocha": "^11.7.5",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.7.4",
+    "tsconfig-paths": "^4.2.0",
+    "typedoc": "^0.28.15",
+    "typescript": ">=5.9.3 <6.0.0"
+  },
+  "peerDependencies": {
+    "@com.mgmtp.a12.antlrcodeeditor/antlrcodeeditor-core": "^6.2.2"
+  },
+  "files": [
+    "lib/main",
+    "src/main/js",
+    "src/main/typings",
+    "src/main/typings.d.ts",
+    "tsconfig.json",
+    "cyclonedx.json"
+  ]
+}

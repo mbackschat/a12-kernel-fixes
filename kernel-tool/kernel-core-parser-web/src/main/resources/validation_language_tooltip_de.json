@@ -1,0 +1,426 @@
+{
+	"ApplikationsBedingung": {
+	"text": "Kann eine Bedingung oder der Teil einer Bedingung nicht in der A12-Regelsprache formuliert werden, so kann _ApplikationsBedingung_ verwendet werden. Jede Applikationsbedingung hat einen Namen. Die Prüfung muss vom aufrufenden Verfahren implementiert werden.",
+	"title": "ApplikationsBedingung _Name_)"
+    },
+	"MaximalAngegebenerZeilenindex": {
+	"text": "Liefert den maximal angegebenen Zeilen-Index aus der FeldListe.",
+	"title": "MaximalAngegebenerZeilenindex(_FeldListe_)"
+    },
+	"Gueltig": {
+	"text": "Wenn der Parameter _VordefinierterTyp_ angegeben ist, wird geprüft, ob _feld_ einen gültigen Wert im Sinne des _VordefinierterTyp_ hat. Ansonsten wird geprüft, ob _feld_ ein gültiges Datum ist.",
+	"title": "Gueltig(_feld_, _VordefinierterTyp_)"
+    },
+    "Ungueltig": {
+	"text": "Wenn der Parameter _VordefinierterTyp_ angegeben ist, wird geprüft, ob _feld_ einen ungültigen Wert im Sinne des _VordefinierterTyp_ hat. Ansonsten wird geprüft, ob _feld_ ein ungültiges Datum ist.",
+	"title": "Ungueltig(_feld_, _VordefinierterTyp_)"
+    },
+	"ZeilenNichtAufsteigend": {
+	"text": "Wahr, wenn für die aktuelle Zeile ein Wert für eines der Felder angegeben wurde, aber in der vorherigen Zeile wurde kein Feld angegeben.",
+	"title": "ZeilenNichtAufsteigend(_feld_)"
+    },
+	"ZeileNichtEindeutig": {
+	"text": "Wahr, wenn zu der zu prüfenden Zeile mindestens ein Wert angegeben wurde und es eine andere Zeile mit den jeweils gleichen Werten gibt.",
+	"title": "ZeileNichtEindeutig(_feldliste_)"
+    },	
+    "ZeilenLueckenlos": {
+	"text": "Wahr, wenn es in der Feldliste mindestens ein Feld gibt, bei dem für jede Zeile mit einem angegebenen Wert auch die vorherige Zeile einen angegebenen Wert hat.",
+	"title": "ZeilenLueckenlos(_feldliste_)"
+    },
+	"UsbNichtFortlaufend": {
+	"text": "Wahr, wenn für ein Feld eines USB-Vordrucks auf einer USB-Wiederholung (>1) ein Wert angegeben ist, aber für kein auf dem Vorgänger USB (vorhergehende USB-Wiederholung) ein Wert angegeben ist (auf keiner Wiederholung (LfdNr) des USB-Vordrucks).",
+	"title": "UsbNichtFortlaufend(_Vordruck_)"
+    },
+	"VordruckNichtFortlaufend": {
+	"text": "Wahr, wenn für ein Feld auf dem Vordruck mit einer laufenden Nummer ein Wert angegeben ist, aber für kein Feld auf dem Vorgänger-Vordruck (vorhergehende laufende Nummer) ein Wert angegeben ist.",
+	"title": "VordruckNichtFortlaufend(_Vordruck_)"
+    },
+	"AnzahlAngegebenerVordrucke": {
+	"text": "Liefert für einen Vordruck die Anzahl, wie oft der Vordruck angegeben wurde.",
+	"title": "AnzahlAngegebenerVordrucke(_Vordruck_)"
+    },
+	"VordruckAngegeben": {
+	"text": "Wahr, wenn für mindestens ein Feld auf dem spezifizierten Vordruck ein Wert angegeben ist.",
+	"title": "VordruckAngegeben(_Vordruck_)"
+    },	
+	"VordruckNichtAngegeben": {
+	"text": "Wahr, wenn für kein Feld auf dem spezifizierten Vordruck ein Wert angegeben ist.",
+	"title": "VordruckNichtAngegeben(_Vordruck_)"
+    },
+	"MindestensEinVordruckAngegeben": {
+	"text": "Wahr, wenn für mindestens ein Feld auf einem der spezifizierten Vordrucke ein Wert angegeben ist. ",
+	"title": "MindestensEinVordruckAngegeben(_Vordruck_)"
+    },	
+	"KeinVordruckAngegeben": {
+	"text": "Wahr, wenn für kein Feld auf keinem der spezifizierten Vordrucke ein Wert angegeben ist.",
+	"title": "KeinVordruckAngegeben(_Vordruck_)"
+    },	
+	"AnzahlAngegebeneUsb": {
+	"text": "Liefert die Anzahl der verschiedenen USBs, für die mindestens ein Feld in den zu prüfenden Daten angegeben wurde.",
+	"title": "AnzahlAngegebeneUsb"
+    },
+	"WertAlsDatum": {
+	"text": "Liefert je nach _tagesSpezifikation_ für ein teilbekanntes Datum das entsprechende konkrete Datum zurück.",
+	"title": "WertAlsDatum(_tagesSpezifikation_)"
+    },
+    "AktuelleVordruckNummer": {
+	"text": "Liefert die aktuelle Vordrucknummer von _Feld_.",
+	"title": "AktuelleVordruckNummer(_Feld_)"
+    },
+	"Wahr": {
+	"text": "Der Boolsche Wert _Wahr_ als Konstante.",
+	"title": "Wahr"
+    },
+	"Falsch": {
+	"text": "Der Boolesche Wert _Falsch_ als Konstante.",
+	"title": "Falsch"
+    },
+	"AktuelleWiederholung": {
+	"text": "Gibt bei einer Regel, die über _Gruppe_ iteriert, pro Iteration den jeweiligen Wiederholungsindex der Gruppe zurück.",
+	"title": "AktuelleWiederholung(_Gruppe_)"
+    },
+	    "UngleichMitToleranz5": {
+	"text": "_Feld1_ ist ungleich _Feld2_ mit einer Toleranz von 5, d.h. der Absolutbetrag von [Feld1]-[Feld2] ist größer als 5",
+	"title": "[_Feld1_] UngleichMitToleranz5  [_Feld2_]"
+    },
+    "UngleichMitToleranz10": {
+	"text": "_Feld1_ ist ungleich _Feld2_ mit einer Toleranz von 10, d.h. der Absolutbetrag von [Feld1]-[Feld2] ist größer als 10",
+	"title": "[_Feld1_] UngleichMitToleranz10  [_Feld2_]"
+    },
+    "UngleichMitToleranz1": {
+	"text": "_Feld1_ ist ungleich _Feld2_ mit einer Toleranz von 1, d.h. der Absolutbetrag von [Feld1]-[Feld2] ist größer als 1",
+	"title": "[_Feld1_] UngleichMitToleranz1  [_Feld2_]"
+    },
+    "UngleichMitToleranz2": {
+	"text": "_Feld1_ ist ungleich _Feld2_ mit einer Toleranz von 2, d.h. der Absolutbetrag von [Feld1]-[Feld2] ist größer als 2",
+	"title": "[_Feld1_] UngleichMitToleranz2  [_Feld2_]"
+    },
+    "WieMuster": {
+	"text": "Der Wert von _StringFeld_ erfüllt den regulären Ausdruck _RegAus_.",
+	"title": "_StringFeld_ WieMuster _RegAus_"
+    },
+    "NichtWieMuster": {
+	"text": "Der Wert von _StringFeld_ erfüllt den regulären Ausdruck _RegAus_ nicht.",
+	"title": "_StringFeld_ NichtWieMuster _RegAus_"
+    },
+    "WertNichtKonsistent": {
+	"text": "Der Wert des Feldes _Feld_ passt nicht zu den Werten in der WerteListe.",
+	"title": "WertNichtKonsistent(_Feld_ ZU _WerteListe_)"
+    },
+    "FeldAngegeben": {
+	"text": "Für _Feld_ ist ein Wert angegeben.",
+	"title": "FeldAngegeben(_Feld_)"
+    },
+    "FeldNichtAngegeben": {
+	"text": "Für _Feld_ ist kein Wert angegeben.",
+	"title": "FeldNichtAngegeben(_Feld_)"
+    },
+    "FeldWertInWerteListe": {
+	"text": "Ein Wert für _Feld_ ist angegeben und in der _WerteListe_ enthalten. Hierbei ist _WerteListe_ entweder eine Liste von Konstanten oder eine Liste von Feldwerten der Art [F1], [F2], [F3].",
+	"title": "FeldWertInWerteListe(_Feld_, _WerteListe_)"
+    },
+    "FeldWertNichtInWerteListe": {
+	"text": "Ein Wert für _Feld_ ist angegeben und nicht in der _WerteListe_ enthalten. Hierbei ist _WerteListe_ entweder eine Liste von Konstanten oder eine Liste von Feldwerten der Art [F1], [F2], [F3].",
+	"title": "FeldWertNichtInWerteListe(_Feld_, _WerteListe_)"
+    },
+    "KeinFeldAngegeben": {
+	"text": "Für kein Feld der _FeldListe_ ist ein Wert angegeben.",
+	"title": "KeinFeldAngegeben(_FeldListe_)"
+    },
+    "MindestensEinFeldAngegeben": {
+	"text": "Für mindestens ein Feld der _FeldListe_ ist ein Wert angegeben.",
+	"title": "MindestensEinFeldAngegeben(_FeldListe_)"
+    },
+    "NichtGenauEinFeldAngegeben": {
+	"text": "Für kein oder mehr als ein Feld der _FeldListe_ ist ein Wert angegeben.",
+	"title": "NichtGenauEinFeldAngegeben(_FeldListe_)"
+    },
+    "MehrAlsEinFeldAngegeben": {
+	"text": "Für mehr als ein Feld der _FeldListe_ ist ein Wert angegeben.",
+	"title": "MehrAlsEinFeldAngegeben(_FeldListe_)"
+    },
+    "NichtAlleFelderOderKeinFeldAngegeben": {
+	"text": "Nicht für alle Felder der _FeldListe_ sind Werte angegeben.",
+	"title": "NichtAlleFelderOderKeinFeldAngegeben(_FeldListe_)"
+    },
+    "FelderNichtGemeinsamAngegeben": {
+	"text": "Für mindestens ein Feld, aber nicht für alle Felder der _FeldListe_ ist ein Wert angegeben.",
+	"title": "FelderNichtGemeinsamAngegeben(_FeldListe_)"
+    },
+    "AlleFelderAngegeben": {
+	"text": "Für alle Felder der _FeldListe_ ist ein Wert angegeben.",
+	"title": "AlleFelderAngegeben(_FeldListe_)"
+    },
+    "WiederholungNichtEindeutig": {
+	"text": "Für die wiederholbaren Felder der _FeldListe_ gibt es mindestens zwei Wiederholungen mit identischer Wertekonstellation.",
+	"title": "WiederholungNichtEindeutig(_FeldListe_)"
+    },
+    "FeldWerteNichtEindeutig": {
+	"text": "Für mindestens zwei Felder der _FeldListe_ sind identische Werte angegeben.",
+	"title": "FeldWerteNichtEindeutig(_FeldListe_)"
+    },
+    "KeinFeldWertInWerteListe": {
+	"text": "Kein Wert eines Felds der _FeldListe_ ist in der _WerteListe_ enthalten. Hierbei ist _WerteListe_ entweder eine Liste von Konstanten oder eine Feldliste.",
+	"title": "KeinFeldWertInWerteListe(_FeldListe_ IN _WerteListe_)"
+    },
+    "MindestensEinFeldWertInWerteListe": {
+	"text": "Ein oder mehrere Werte von Feldern der _FeldListe_ sind in der _WerteListe_ enthalten. Hierbei ist _WerteListe_ entweder eine Liste von Konstanten oder eine Feldliste.",
+	"title": "MindestensEinFeldWertInWerteListe(_FeldListe_ IN _WerteListe_)"
+    },
+    "NichtAlleFeldWerteInWerteListe": {
+	"text": "Ein oder mehrere Werte von Feldern der _FeldListe_ sind nicht in der _WerteListe_ enthalten. Hierbei ist _WerteListe_ entweder eine Liste von Konstanten oder eine Feldliste.",
+	"title": "NichtAlleFeldWerteInWerteListe(_FeldListe_ IN _WerteListe_)"
+    },
+    "KontextAngegeben": {
+	"text": "Für mindestens ein Feld in der _Gruppe_ ist ein Wert angegeben.",
+	"title": "KontextAngegeben(_Gruppe_)"
+    },
+    "KontextNichtAngegeben": {
+	"text": "Für kein Feld in der _Gruppe_ ist ein Wert angegeben.",
+	"title": "KontextNichtAngegeben(_Gruppe_)"
+    },
+    "KeinKontextAngegeben": {
+	"text": "Für kein Feld in der _GruppenListe_ ist ein Wert angegeben.",
+	"title": "KeinKontextAngegeben(_GruppenListe_)"
+    },
+    "MindestensEinKontextAngegeben": {
+	"text": "Für mindestens ein Feld in der _GruppenListe_ ist ein Wert angegeben.",
+	"title": "MindestensEinKontextAngegeben(_GruppenListe_)"
+    },
+    "NichtAlleOderKeinKontextAngegeben": {
+	"text": "In mindestens einem Kontext der _KontextListe_ ist für kein Feld ein Wert angegeben.",
+	"title": "NichtAlleOderKeinKontextAngegeben(_KontextListe_)"
+    },
+    "KontexteNichtGemeinsamAngegeben": {
+	"text": "Mindestens ein Kontext aber nicht jeder Kontext der _KontextListe_ ist angegeben.",
+	"title": "KontexteNichtGemeinsamAngegeben(_KontextListe_)"
+    },
+    "AlleKontexteAngegeben": {
+	"text": "In jedem Kontext der _KontextListe_ ist für mindestens ein Feld ein Wert angegeben.",
+	"title": "AlleKontexteAngegeben(_KontextListe_)"
+    },
+    "FeldWertAlsString": {
+	"text": "Liefert den Wert von _Feld_ als String.",
+	"title": "FeldWertAlsString(_Feld_)"
+    },
+    "FeldWertAlsZahl": {
+	"text": "Liefert den Wert von _Feld_ als Zahl.",
+	"title": "FeldWertAlsZahl(_Feld_)"
+    },
+    "BereichAlsString": {
+	"text": "Liefert die Zeichen _Start_ bis inklusive _Ende_ von _Feld_ als String.",
+	"title": "BereichAlsString(_Feld_, _Start_, _Ende_)"
+    },
+    "BereichAlsZahl": {
+	"text": "Liefert die Zeichen _Start_ bis inklusive _Ende_ von _Feld_ als Zahl.",
+	"title": "BereichAlsZahl(_Feld_, _Start_, _Ende_)"
+    },
+    "AnzahlAngegebenerFelder": {
+	"text": "Liefert die Anzahl der angegebenen Felder aus _FeldListe_.",
+	"title": "AnzahlAngegebenerFelder(_FeldListe_)"
+    },
+    "AnzahlAngegebenerKontexte": {
+	"text": "Liefert die Anzahl der angegebenen Gruppen aus _GruppenListe_.",
+	"title": "AnzahlAngegebenerKontexte(_GruppenListe_)"
+    },
+    "AnzahlVerschiedenerWerte": {
+	"text": "Liefert die Anzahl unterschiedlicher Werte für die Felder der _FeldListe_.",
+	"title": "AnzahlVerschiedenerWerte(_FeldListe_)"
+    },
+    "ErsterAngegebenerWert": {
+	"text": "Liefert den Wert des ersten angegebenen Felds aus _FeldListe_.",
+	"title": "ErsterAngegebenerWert(_FeldListe_)"
+    },
+    "AnzahlWertInFeldliste": {
+	"text": "Liefert die Anzahl der Felder aus _FeldListe_, die den Wert _Konstante_ haben.",
+	"title": "AnzahlWertInFeldliste(_Konstante_ IN _FeldListe_)"
+    },
+    "Abrunden": {
+	"text": "Liefert _Wert_ abgerundet auf die nächst kleinere ganze Zahl. Die Angabe von _Nachkommastellen_ ist dabei optional.",
+	"title": "Abrunden(_Wert_, _Nachkommastellen_)"
+    },
+    "AbrundenWert": {
+	"text": "Liefert den Wert von _Feld_ abgerundet auf die nächst kleinere ganze Zahl. Die Angabe von _Nachkommastellen_ ist dabei optional.",
+	"title": "AbrundenWert(_Feld_, _Nachkommastellen_)"
+    },
+    "Aufrunden": {
+	"text": "Liefert _Wert_ aufgerundet auf die nächst größere Zahl. Die Angabe von _Nachkommastellen_ ist dabei optional.",
+	"title": "Aufrunden(_Wert_, _Nachkommastellen_)"
+    },
+    "AufrundenWert": {
+	"text": "Liefert den Wert von _Feld_ aufgerundet auf die nächst größere Zahl. Die Angabe von _Nachkommastellen_ ist dabei optional.",
+	"title": "AufrundenWert(_Feld_, _Nachkommastellen_)"
+    },
+    "Runden": {
+	"text": "Liefert _Wert_ kaufmännisch gerundet. Die Angabe von _Nachkommastellen_ ist dabei optional.",
+	"title": "Runden(_Wert_, _Nachkommastellen_)"
+    },
+    "RundenWert": {
+	"text": "Liefert den Wert von _Feld_ kaufmännisch gerundet. Die Angabe von _Nachkommastellen_ ist dabei optional.",
+	"title": "RundenWert(_Feld_, _Nachkommastellen_)"
+    },
+    "Abs": {
+	"text": "Liefert den absoluten Betrag von _Wert_.",
+	"title": "Abs(_Wert_)"
+    },
+    "AbsWert": {
+	"text": "Liefert den absoluten Betrag des Werts von _Feld_.",
+	"title": "AbsWert(_Feld_)"
+    },
+    "Laenge": {
+	"text": "Liefert die Zeichenlänge des Werts von _Feld_.",
+	"title": "Laenge(_Feld_)"
+    },
+    "Max": {
+	"text": "Maximum der aufgelisteten Werte.",
+	"title": "Max(_WerteListe_)"
+    },
+    "Min": {
+	"text": "Minimum der aufgelisteten Werte.",
+	"title": "Min(_WerteListe_)"
+    },
+    "MaxWert": {
+	"text": "Maximaler Wert aller angegebenen Felder von _FeldListe_.",
+	"title": "MaxWert(_FeldListe_)"
+    },
+    "MinWert": {
+	"text": "Minimaler Wert aller angegebenen Felder von _FeldListe_.",
+	"title": "MinWert(_FeldListe_)"
+    },
+    "Summe": {
+	"text": "Summe der Werte aller angegebenen Felder von _FeldListe_.",
+	"title": "Summe(_FeldListe_)"
+    },
+    "SummeVonProdukten": {
+	"text": "Für zwei wiederholbare Felder wird in jeder Wiederholung das Produkt berechnet und diese Produkte aus allen Wiederholungen aufsummiert.",
+	"title": "SummeVonProdukten(_Feld1_, _Feld2_)"
+    },
+    "DifferenzInJahren": {
+	"text": "Liefert die Differenz zwischen zwei Datumsangaben in Jahren.",
+	"title": "DifferenzInJahren(_Datum1_, _Datum2_)"
+    },
+    "DifferenzInMonaten": {
+	"text": "Liefert die Differenz zwischen zwei Datumsangaben in Monaten.",
+	"title": "DifferenzInMonaten(_Datum1_, _Datum2_)"
+    },
+    "DifferenzInTagen": {
+	"text": "Liefert die Differenz zwischen zwei Datumsangaben in Tagen.",
+	"title": "DifferenzInTagen(_Datum1_, _Datum2_)"
+    },
+    "DifferenzInStunden": {
+	"text": "Liefert die Differenz zwischen zwei Datumsangaben in Stunden.",
+	"title": "DifferenzInStunden(_DateTime1_, _DateTime2_)"
+    },
+    "DifferenzInMinuten": {
+	"text": "Liefert die Differenz zwischen zwei Datumsangaben in Minuten.",
+	"title": "DifferenzInMinuten(_DateTime1_, _DateTime2_)"
+    },
+    "DifferenzInSekunden": {
+	"text": "Liefert die Differenz zwischen zwei Datumsangaben in Sekunden.",
+	"title": "DifferenzInSekunden(_DateTime1_, _DateTime2_)"
+    },
+    "AddiereJahre": {
+	"text": "Liefert eine um _Ganzzahl_ an Jahren erhöhte oder erniedrigte Datumsangabe.",
+	"title": "AddiereJahre(_Datum_, _Ganzzahl_)"
+    },
+    "AddiereMonate": {
+	"text": "Liefert eine um _Ganzzahl_ an Monaten erhöhte oder erniedrigte Datumsangabe.",
+	"title": "AddiereMonate(_Datum_, _Ganzzahl_)"
+    },
+    "AddiereTage": {
+	"text": "X steht für Datum oder DateTime. Liefert eine um _Ganzzahl_ erhöhte oder erniedrigte Datumsangabe.",
+	"title": "AddiereTage(_X_, _Ganzzahl_)"
+    },
+    "AddiereStunden": {
+	"text": "Liefert eine um _Ganzzahl_ an Stunden erhöhte oder erniedrigte Datumsangabe.",
+	"title": "AddiereStunden(_DateTime_, _Ganzzahl_)"
+    },
+    "AddiereMinuten": {
+	"text": "Liefert eine um _Ganzzahl_ an Minuten erhöhte oder erniedrigte Datumsangabe.",
+	"title": "AddiereMinuten(_DateTime_, _Ganzzahl_)"
+    },
+    "AddiereSekunden": {
+	"text": "Liefert eine um _Ganzzahl_ an Sekunden erhöhte oder erniedrigte Datumsangabe.",
+	"title": "AddiereSekunden(_DateTime_, _Ganzzahl_)"
+    },
+    "TagAusDatum": {
+	"text": "X steht für Datum oder DateTime. Liefert den Tag der Datumsangabe als Zahl.",
+	"title": "TagAusDatum(_X_)"
+    },
+    "MonatAusDatum": {
+	"text": "X steht für Datum oder DateTime. Liefert den Monat der Datumsangabe als Zahl.",
+	"title": "MonatAusDatum(_X_)"
+    },
+    "JahrAusDatum": {
+	"text": "X steht für Datum oder DateTime. Liefert das Jahr der Datumsangabe als Zahl.",
+	"title": "JahrAusDatum(_X_)"
+    },
+    "QuartalAusDatum": {
+	"text": "X steht für Datum oder DateTime. Liefert das Quartal der Datumsangabe als Zahl zwischen 1 und 4.",
+	"title": "QuartalAusDatum(_X_)"
+    },
+    "StundenAusZeit": {
+	"text": "X steht für Zeit oder DateTime. Liefert die Stunden der Datumsangabe als Zahl",
+	"title": "StundenAusZeit(_X_)"
+    },
+    "MinutenAusZeit": {
+	"text": "X steht für Zeit oder DateTime. Liefert die Minuten der Datumsangabe als Zahl.",
+	"title": "MinutenAusZeit(_X_)"
+    },
+    "SekundenAusZeit": {
+	"text": "X steht für Zeit oder DateTime. Liefert die Sekunden der Datumsangabe als Zahl.",
+	"title": "SekundenAusZeit(_X_)"
+    },
+    "DatumAusDateTime": {
+	"text": "Liefert das Datum aus der _DateTime_ Angabe.",
+	"title": "DatumAusDateTime(_DateTime_)"
+    },
+    "ZeitAusDateTime": {
+	"text": "Liefert die Zeit aus der DateTime Angabe.",
+	"title": "ZeitAusDateTime(_DateTime_)"
+    },
+	"DatumBereich": {
+		"text": "Liefert den Datumsbereich, der mit  _Datum1_ startet und mit _Datum2_ endet.",
+		"title": "DatumBereich(_Datum1_, _Datum2_)"
+	},
+	"StartAusDatumBereich": {
+	"text": "Liefert das Anfangsdatum eines Datumsbereichs.",
+	"title": "StartAusDatumBereich(_DatumBereich_)"
+    },
+    "EndeAusDatumBereich": {
+	"text": "Liefert das Enddatum eines Datumsbereichs.",
+	"title": "EndeAusDatumBereich(_DatumBereich_)"
+    },
+    "Datum": {
+	"text": "Konstruiert aus den angegebenen Parametern eine Konstante vom Typ Datum. Die Angabe von _Jahrhundert_ ist optional. _Jahr_ kann optional sein, wenn das Modell ein Referenzjahr spezifiziert.",
+	"title": "Datum(_Tag_, _Monat_, _Jahrhundert_, _Jahr_)"
+    },
+    "Zeit": {
+	"text": "Konstruiert aus den angegebenen Parametern eine Konstante vom Typ Zeit.",
+	"title": "Zeit(_Stunden_, _Minuten_, _Sekunden_)"
+    },
+    "DateTime": {
+	"text": "Konstruiert aus den angegebenen Parametern eine Konstante vom Typ DateTime.",
+	"title": "DateTime(_Datum_, _Zeit_)"
+    },
+    "Heute": {
+	"text": "Gibt das heutige Datum an.",
+	"title": "Heute"
+    },
+    "Jetzt": {
+	"text": "Gibt das heutige Datum inklusive der aktuellen Uhrzeit an.",
+	"title": "Jetzt"
+    },
+    "Referenzjahr": {
+	"text": "Gibt das im Modell spezifizierte Referenzjahr an. Mit JahrAusDatum(Referenzjahr) kann in einem Modell mit Referenzjahr 2021 z.B. die Zahl 2021 ermittelt werden.",
+	"title": "Referenzjahr"
+    },
+    "DatumsBereicheUeberlappend": {
+	"text": "Die durch die Werte der _FeldListe_ spezifizierten Datumsbereiche überschneiden sich.",
+	"title": "DatumsBereicheUeberlappend(_FeldListe_)"
+    },
+    "MindestensEinDatumsBereichUeberlappend": {
+	"text": "Der Datumsbereich von _Feld_ überschneidet sich mit dem Datumsbereich mindestens eines der Felder der _FeldListe_.",
+	"title": "MindestensEinDatumsBereichUeberlappend(_Feld_ IN _FeldListe_)"
+    }
+}

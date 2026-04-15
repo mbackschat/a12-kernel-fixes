@@ -1,0 +1,23 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "kernel-core-codegen-entities: Everything regarding code generation of fields and groups"
+
+dependencies {
+    api project(':kernel-core-base-utils')
+    api project(':kernel-core-codegen-base')
+    api project(':kernel-core-parsetree-api')
+    api project(':kernel-core-service')
+    api project(':kernel-core-tool-api')
+
+    implementation project(':kernel-core-calc')
+    implementation project(':kernel-core-codegen-meta-base')
+    implementation project(':kernel-core-extmpspecifics')
+    implementation project(':kernel-core-parser')
+
+    implementation libs.kernelCoreRuntimeApi // for meta keys
+    implementation libs.baseModelApi
+    implementation libs.commonsLang3
+}

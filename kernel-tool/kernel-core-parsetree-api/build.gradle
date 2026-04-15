@@ -1,0 +1,12 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+}
+
+description = "external interface of a typed parse tree representation for a condition"
+
+dependencies {
+    implementation libs.commonsLang3
+    compileOnly libs.baseModelUtils // Only annotations
+
+
+}

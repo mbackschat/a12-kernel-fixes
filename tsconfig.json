@@ -1,0 +1,65 @@
+{
+  "extends": "@com.mgmtp.a12.devtools/tsconfig",
+  "paths": {
+    "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl/*": [
+      "kernel-rt/kernel-core-customfieldtype-impl"
+    ],
+    "@com.mgmtp.a12.kernel/kernel-core-customfieldtype-impl": [
+      "kernel-rt/kernel-core-customfieldtype-impl"
+    ],
+    "@com.mgmtp.a12.kernel/kernel-core-parser-web/*": [
+      "kernel-tool/kernel-core-parser-web"
+    ],
+    "@com.mgmtp.a12.kernel/kernel-core-parser-web": [
+      "kernel-tool/kernel-core-parser-web"
+    ],
+    "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/*": [
+      "kernel-rt/kernel-core-runtime-api-ts"
+    ],
+    "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts": [
+      "kernel-rt/kernel-core-runtime-api-ts"
+    ],
+    "@com.mgmtp.a12.kernel/kernel-core-runtime-ts/*": [
+      "kernel-rt/kernel-core-runtime-ts"
+    ],
+    "@com.mgmtp.a12.kernel/kernel-core-runtime-ts": [
+      "kernel-rt/kernel-core-runtime-ts"
+    ],
+    "@com.mgmtp.a12.kernel/kernel-md-facade/*": [
+      "kernel-md/kernel-md-facade"
+    ],
+    "@com.mgmtp.a12.kernel/kernel-md-facade": [
+      "kernel-md/kernel-md-facade"
+    ]
+  },
+  "compilerOptions": {
+    "strictFunctionTypes": true,
+    "stripInternal": false,
+    "resolveJsonModule": true
+  },
+  "typedocOptions": {
+    "name": "A12 Kernel",
+    "out": "docs/kernel-documentation-dev/build/doc/assets/doc/typescript",
+    "theme": "default",
+    "excludeInternal": "true",
+    "excludePrivate": "true",
+    "readme": "none",
+    "entryPointStrategy": "packages",
+    "entryPoints": [
+      "kernel-rt/kernel-core-runtime-api-ts",
+      "kernel-md/kernel-md-facade"
+    ],
+    "exclude": [
+      "**/kernel-core-runtime-ts/**",
+      "**/a12internal/**/*.ts",
+      "**/internal/**/*.ts",
+      "**/node_modules/**"
+    ],
+    "externalSymbolLinkMappings": {
+      "global": {
+        "Error": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+        "Date": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date"
+      }
+    }
+  }
+}

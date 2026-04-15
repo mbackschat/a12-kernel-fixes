@@ -1,0 +1,3 @@
+EntityIdList(t) ::= <<
+<t.variableName>
+>>

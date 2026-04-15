@@ -1,0 +1,3 @@
+LongParameter(t) ::= <<
+<t.value>
+>>

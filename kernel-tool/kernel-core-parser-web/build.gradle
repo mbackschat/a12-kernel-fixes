@@ -1,0 +1,126 @@
+
+plugins {
+    id 'antlr'
+    alias libs.plugins.kernelJsConventions
+    alias libs.plugins.kernelJavaConventions
+
+}
+
+description = "kernel core parser version in typescript"
+
+// workaround for a bug in the gradle antlr plugin
+// https://github.com/gradle/gradle/issues/820#issuecomment-1585814999
+// which otherwise adds the whole antlr _tool_ instead of just the runtime, as
+// a runtime dependency:
+// Note: this does not matter much here for parser_web_, because this subproject does not
+// publish a java artefact - but for consistency with the other antlr-using subprojects,
+// let's add it here too - we don't need a dependency to the java antlr-runtime though)
+configurations {
+    api {
+        extendsFrom = extendsFrom.findAll { it != configurations.antlr }
+    }
+
+}
+
+def antlrSrcDir = layout.buildDirectory.dir("antlr4")
+Directory languageKeywords = layout.projectDirectory.dir("src/main/js/internal/content")
+
+sourceSets {
+    main {
+        antlr.setSrcDirs([antlrSrcDir])
+    }
+    test {
+        resources.srcDirs += languageKeywords
+    }
+}
+
+dependencies {
+    antlr(libs.antlr4VersionForWeb) {// should match the javascript antlr runtime version
+        exclude group: 'com.ibm.icu', module: 'icu4j' // icu4j seems unneded at runtime of the antlr tool https://github.com/antlr/antlr4/issues/4900
+    }
+
+
+}
+
+tasks.register('copy_grammarFiles', Copy) {
+    // copy the grammar files from kernel-core-parser
+    from(project(":kernel-core-parser").sourceSets.main.antlr.srcDirs)
+            .include("**/*.g4")
+
+    destinationDir(file(antlrSrcDir))
+    // replace path so that it's not included in the output path
+    eachFile { details ->
+        details.setRelativePath new RelativePath(true, details.name)
+    }
+
+    // make sure that non-ascii characters are correctly copied, even if the
+    // jvm's default encoding is not utf-8, see the note about CopySpec.setFilteringCharset(String)
+    // at https://docs.gradle.org/current/userguide/working_with_files.html
+    // (the jvm's default is host-dependent, can be checked with java -XshowSettings 2>&1 | grep file.encoding)
+    filteringCharset = 'UTF-8'
+    // explicitly exchange strings to be valid in js antlr
+    filter { line ->
+        line.replaceAll("_localctx", "localctx")
+    }
+    includeEmptyDirs = false
+}
+
+// for now we generate into a subfolder of src/main/js instead of build,
+// because otherwise I don't know how to get tsc & node to resolve relative
+// imports between the generated and non-generated sources.
+def antlrOutDirRaw = "src/main/js/internal/gen"
+generateGrammarSource {
+    dependsOn(tasks.named('copy_grammarFiles'))
+    doFirst {
+        new File(antlrOutDirRaw).mkdirs()
+    }
+    outputDirectory(file(antlrOutDirRaw))
+    arguments += ["-package", "com.mgmtp.a12.kernel.core.parser.internal.grammar.gen",
+                  "-lib", antlrOutDirRaw,
+                  "-encoding", "utf-8",
+                  "-Dlanguage=TypeScript",
+                  "-no-visitor",
+                  "-no-listener"]
+    doLast {
+        def updates = [
+                ['GrammarOnly_ConditionParser.ts', 'AbstractConditionParser'],
+                ['Base_ConditionLexer.ts', 'AbstractConditionLexer']]
+        for (source_toreplace in updates) {
+            def fileToProcess = file(new File(antlrOutDirRaw, source_toreplace[0]))
+            def content = fileToProcess.text.replaceAll(
+                    // TODO a a check that alerts us the next time that the regex fails to match!
+                    "(import ${source_toreplace[1]} from.*)\\.\\/(${source_toreplace[1]}.js)([\'\"])",
+                    // 1) add a newline (eslint will otherwise complain about missing empty lines between imports
+                    // 2) update the relative path from "./" to "../abstract"
+                    '\n$1../abstract/$2$3')
+                    .replaceAll('"antlr4"', '"antlr4ForA12Kernel"') // update import in generated parser/lexer
+                    .replaceAll("'antlr4'", "'antlr4ForA12Kernel'") // update import in generated parser/lexer
+
+            fileToProcess.write(content)
+        }
+    }
+}
+
+tasks.named('npm_lint') {
+    inputs.files(tasks.named('generateGrammarSource'))
+}
+
+tasks.register('copy_resources', Copy) {
+    from("$npm_sourceDir/main/resources") {
+        include '**/*.json'
+    }
+    into "$npm_buildDir/main/resources"
+}
+
+tasks.named('npm_compile') {
+    inputs.files(tasks.named('generateGrammarSource'))
+    outputs.dir("${npm_buildDir}/main/typings") // implicitly throug `npm internal:compile:copyTypings`
+
+    dependsOn('copy_resources') // NOTE: tsc compile does not directly depend on the (tooltip json)
+    // resource files, but putting the task dependency here seems like a robust way to make sure that
+    // npm_pack, npm_publish and npm_test all transitively depend on the resources; including in the
+    // OS repo.
+}
+
+
+tasks.sourcesJar.enabled = false

@@ -1,0 +1,16 @@
+plugins {
+    alias libs.plugins.kernelJsConventions
+
+}
+
+description = "external typescript interface for accessing generated code (validation, calculation, meta data)"
+
+
+// don't run any tests, api-ts does not define any tests
+tasks.named('npm_test') {
+    enabled = false
+}
+
+tasks.named('npm_prepareTest') {
+    enabled = false
+}

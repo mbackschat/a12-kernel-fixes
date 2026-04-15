@@ -1,0 +1,12 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.29.A12K-2714
+displayName: Migration for A12K-2714
+description: Migration for A12K-2714.
+recipeList:
+  # public API
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.a12internal.services.MoveSupportDM changeTextsForMove(com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel, java.util.Map)'
+      newMethodName: 'changePathReferencesForMove'
+      matchOverrides: true
+      ignoreDefinition: true

@@ -1,0 +1,9 @@
+rootProject.name = 'kernel-core-customfieldtype-api'
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
+}

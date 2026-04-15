@@ -1,0 +1,79 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.30.A12K-3364
+displayName: Migration for A12K-3364
+description: Migration for A12K-3364.
+recipeList:
+  # IComputedFieldInstance
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IComputedFieldInstance getPath()'
+        newMethodName: 'IComputedFieldInstance#pointer'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IComputedFieldInstance getRepetitions()'
+        newMethodName: 'IComputedFieldInstance#pointer'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IComputedFieldInstance getValue()'
+        newMethodName: 'IComputedFieldInstance#getValueV2'
+        commentForInvocation: 'this method is deprecated, use `IComputedFieldInstance#getValueV2` instead. The value is a BasicTypeV2 value (differs from BasicTypeV1 in the representation of dates and date ranges). Use IDocumentV1V2Converter#fieldValueV2ToV1 if you still need the old value type.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IComputedFieldInstance getDocument()'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IComputedFieldInstance applyTo(com.mgmtp.a12.kernel.md.document.api.IDocument)'
+        newMethodName: 'IComputedFieldInstance#applyTo(DocumentV2)'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IComputedFieldInstance applyTo(com.mgmtp.a12.kernel.md.document.api.IDocument, com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory)'
+        newMethodName: 'IComputedFieldInstance#applyTo(DocumentV2)'
+
+  # ICustomCondition
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.ICustomCondition check(com.mgmtp.a12.kernel.md.document.api.IDocument, java.util.Set, java.util.Set, com.mgmtp.a12.kernel.md.document.api.IEntityInstance)'
+        newMethodName: 'ICustomCondition#check(DocumentV2, Set<DocumentMultiPointer>, Set<DocumentPointer>, DocumentPointer)'
+
+  # IDocumentComputationResult
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentComputationResult getDocument()'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentComputationResult applyTo(com.mgmtp.a12.kernel.md.document.api.IDocument)'
+        newMethodName: 'IDocumentComputationResult#applyTo(DocumentV2)'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentComputationResult applyTo(com.mgmtp.a12.kernel.md.document.api.IDocument, com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory)'
+        newMethodName: 'IDocumentComputationResult#applyTo(DocumentV2)'
+
+  # IDocumentRtService
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService validateFull(com.mgmtp.a12.kernel.md.document.api.IDocument, java.util.Locale)'
+        newMethodName: 'IDocumentRtService#validateFull(DocumentV2, Locale)'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService validatePart(com.mgmtp.a12.kernel.md.document.api.IDocument, java.util.Set, java.util.Locale)'
+        newMethodName: 'IDocumentRtService#validatePart(DocumentV2, Set<DocumentMultiPointer>, Locale)'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService compute(com.mgmtp.a12.kernel.md.document.api.IDocument, java.util.Locale)'
+        newMethodName: 'IDocumentRtService#compute(DocumentV2, Locale)'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService validatePart(com.mgmtp.a12.kernel.md.document.apiV2.DocumentV2, java.util.Set, java.util.Locale)'
+        commentForInvocation: 'this method now takes a set of DocumentMultiPointer, use `DocumentMultiPointer.of(documentPointer)` to create one from a `DocumentPointer`'
+
+  # IMessage
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IMessage getEntityInstance()'
+        newMethodName: 'IMessage#getErrorFieldPointer()'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IMessage getReferencedFields()'
+        newMethodName: 'IMessage#getReferencedFieldsPointers()'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IMessage getRefOmissionErrorResponsible()'
+        newMethodName: 'IMessage#getRefOmissionErrorResponsiblePointers()'
+  - org.openrewrite.java.ChangeMethodName:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IMessage getErrorFieldAsCauseEntityInstance()'
+        newMethodName: 'getErrorFieldPointer'
+  - org.openrewrite.java.ChangeMethodName:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IMessage getReferencedFieldsAsCauseEntityInstances()'
+        newMethodName: 'getReferencedFieldsPointers'
+  - org.openrewrite.java.ChangeMethodName:
+        methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IMessage getRefOmissionErrorResponsibleAsCauseEntityInstances()'
+        newMethodName: 'getRefOmissionErrorResponsiblePointers'
+
+  # CauseEntityInstance -> PartiallyKnownDocumentMultiPointer
+  - org.openrewrite.java.ChangeType:
+        oldFullyQualifiedTypeName: 'com.mgmtp.a12.kernel.md.document.apiV2.CauseEntityInstance'
+        newFullyQualifiedTypeName: 'com.mgmtp.a12.kernel.md.document.apiV2.PartiallyKnownDocumentMultiPointer'

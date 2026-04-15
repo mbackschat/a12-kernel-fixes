@@ -1,0 +1,3 @@
+BoolConstantOperation(t) ::= <<
+"<t.stringValue>"
+>>

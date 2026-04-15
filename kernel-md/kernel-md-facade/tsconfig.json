@@ -1,0 +1,30 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "./lib",
+    "./node_modules",
+    "./build"
+  ],
+  "compilerOptions": {
+    "outDir": "./lib",
+    "rootDir": "./src"
+  },
+  "typedocOptions": {
+    // keep name in sync with links in kernel-documentation-dev/Readme.adoc
+    "name": "Document model and document facade",
+    "out": "./doc",
+    "theme": "default",
+    "readme": "none",
+    "excludeInternal": "false",
+    "entryPoints": ["src/main/js/"],
+    "entryPointStrategy": "resolve",
+    "exclude": ["**/a12internal/**/*.ts", "**/internal/**/*.ts", "**/node_modules/**"],
+    "validation": {
+      "notDocumented": false,
+      "invalidLink": false
+    }
+  }
+}
