@@ -1,6 +1,6 @@
 CodeGenFilterCondition(t) ::= <<
 var <t.varName> = {
-    isRelevant: function (idx) {
+    isRelevant: (idx) => {
        return <t.conditionBooleanCode>;
     }
 };

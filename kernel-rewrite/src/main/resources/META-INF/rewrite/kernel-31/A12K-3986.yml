@@ -1,0 +1,64 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.31.A12K-3986
+displayName: Migration for A12K-3986
+description: Migration for A12K-3986 (removal of variant support).
+recipeList:
+  # Removed IField#getVariantFilter
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.IField getVariantFilter()'
+      comment: 'Variant support has been removed. `IField#getVariantFilter` no longer exists.'
+      matchOverrides: true
+  # Removed IComputation#getVariantFilter
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.IComputation getVariantFilter()'
+      comment: 'Variant support has been removed. `IComputation#getVariantFilter` no longer exists.'
+      matchOverrides: true
+  # Removed IRule#getVariantFilter
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.IRule getVariantFilter()'
+      comment: 'Variant support has been removed. `IRule#getVariantFilter` no longer exists.'
+      matchOverrides: true
+  # Removed IRule#getVariantErrorMessages
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.IRule getVariantErrorMessages()'
+      comment: 'Variant support has been removed. `IRule#getVariantErrorMessages` no longer exists.'
+      matchOverrides: true
+  # Removed IDocumentModelService#extractUsedVariants
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelService extractUsedVariants(com.mgmtp.a12.kernel.md.model.api.IDocumentModel)'
+      comment: 'Variant support has been removed. `IDocumentModelService#extractUsedVariants` no longer exists.'
+      matchOverrides: true
+  # Removed IValidationCodeGeneratorConfig#getVariant (default method) — drop the override, comment any call sites
+  - com.mgmtp.a12.kernel.rewrite.RemoveMethodOverrideImpl:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.IValidationCodeGeneratorConfig getVariant()'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.IValidationCodeGeneratorConfig getVariant()'
+      comment: 'Variant support has been removed. `IValidationCodeGeneratorConfig#getVariant` no longer exists.'
+      matchOverrides: true
+  # Removed IDocumentServiceConfig#getVariant (affects IDocumentDynamicServiceConfig and IDocumentStaticServiceConfig) — drop the override, comment any call sites
+  - com.mgmtp.a12.kernel.rewrite.RemoveMethodOverrideImpl:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentServiceConfig getVariant()'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentServiceConfig getVariant()'
+      comment: 'Variant support has been removed. `IDocumentServiceConfig#getVariant` no longer exists.'
+      matchOverrides: true
+  # Signature change: ICodeGeneratorConfigV1_2#of lost the variant parameter (static factory, no overrides possible)
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.a12internal.ICodeGeneratorConfigV1_2 of(java.lang.String, java.lang.String, com.mgmtp.a12.kernel.md.model.api.services.IValidationCodeGeneratorConfig.ProgrammingLanguage)'
+      argumentIndex: 1
+  # Signature change: ICodeGeneratorConfigV1_2#ofLazyProgrammingLanguage lost the variant parameter (static factory, no overrides possible)
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.a12internal.ICodeGeneratorConfigV1_2 ofLazyProgrammingLanguage(java.lang.String, java.lang.String, java.util.function.Supplier)'
+      argumentIndex: 1
+  # Signature change: IDocumentRtService#createModelCodeIdentifier lost the variant parameter
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService createModelCodeIdentifier(com.mgmtp.a12.kernel.md.model.api.IDocumentModel, java.lang.String)'
+      argumentIndex: 1
+  # Signature change: IDocumentModelIdProvider#getDocumentModelId lost the variant parameter
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.IDocumentModelIdProvider getDocumentModelId(com.mgmtp.a12.kernel.md.model.api.IDocumentModel, java.lang.String)'
+      commentForDeclaration: 'Variant support has been removed. Update this override: `getDocumentModelId(IDocumentModel)` no longer takes a `variant` argument.'
+      commentForInvocation: 'Variant support has been removed. Drop the `variant` argument: `IDocumentModelIdProvider#getDocumentModelId(documentModel)`.'
+  # Clean up imports that became unused after removing overrides / trimming arguments
+  - org.openrewrite.java.RemoveUnusedImports

@@ -32,7 +32,6 @@
 import type { ICustomFieldTypeCheckError, ICustomFieldTypeConversionResult, ICustomFieldTypeValidationParam } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 import { customFieldTypeConversionResult, type ICustomFieldValidator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
-import { CustomFieldTypeValidationParamImpl } from "./internal/CustomFieldTypeValidationParamImpl.js";
 import { CustomFieldTypeErrorEnum } from "./internal/error/CustomFieldTypeErrorEnum.js";
 import { CustomFieldTypeErrorKeys } from "./internal/error/CustomFieldTypeErrorKeys.js";
 import { CustomFieldTypeErrorUtil } from "./internal/error/CustomFieldTypeErrorUtil.js";
@@ -93,7 +92,6 @@ import { CustomFieldTypeErrorUtil } from "./internal/error/CustomFieldTypeErrorU
  * </table>
  */
 export class IdNrVerifier implements ICustomFieldValidator {
-	private static readonly _INSTANCE: IdNrVerifier = new IdNrVerifier(false);
 	private static readonly _RE_VALID_IDNR = /\d{11}/;
 
 	/*
@@ -104,15 +102,6 @@ export class IdNrVerifier implements ICustomFieldValidator {
 	private constructor(
 		private _acceptTestIdNrs: boolean,
 	) {
-	}
-
-	/**
-	 * @return the instance of {@link ICustomFieldValidator}.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link IdNrVerifier.create}} instead.
-	 */
-	public static getInstance(): IdNrVerifier {
-		return IdNrVerifier._INSTANCE;
 	}
 
 	/**
@@ -141,12 +130,7 @@ export class IdNrVerifier implements ICustomFieldValidator {
 			idnr = convertResult.getConvertedValue();
 		}
 		const _error = this._checkIdNr(idnr);
-		return CustomFieldTypeErrorUtil.getResult(
-			_error,
-			CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST === _error
-				? CustomFieldTypeErrorKeys.TEST_ID_NUMMER
-				: CustomFieldTypeErrorKeys.UNGUELTIGE_ID_NUMMER
-		);
+		return CustomFieldTypeErrorUtil.getResult(_error, CustomFieldTypeErrorKeys.UNGUELTIGE_ID_NUMMER);
 	}
 
 	/**
@@ -167,8 +151,6 @@ export class IdNrVerifier implements ICustomFieldValidator {
 			return CustomFieldTypeErrorEnum.IDNR_PRUEFZIFFER_UNGUELTIG;
 		}
 		if (idnr.startsWith("0") && !this._acceptTestIdNrs) {
-			// This remains for compatibility reasons and will be removed with A12K-3589.
-			// After that, a normal error should be returned and all special handling in the runtime can be eliminated.
 			return CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST;
 		}
 
@@ -272,11 +254,11 @@ export class IdNrVerifier implements ICustomFieldValidator {
 	}
 
 	convertInternal2Display(internalValue: string): ICustomFieldTypeConversionResult {
-		const valParam: ICustomFieldTypeValidationParam = new CustomFieldTypeValidationParamImpl(
-			CustomFieldTypeValidationParamImpl.UNSPECIFIED_LENGTH, CustomFieldTypeValidationParamImpl.UNSPECIFIED_LENGTH);
-		const checkResult = this.validate(internalValue, valParam, false);
-		if (checkResult &&
-			checkResult.getErrorKey() !== CustomFieldTypeErrorKeys.TEST_ID_NUMMER) {
+		const error = this._checkIdNr(internalValue);
+		if (error !== CustomFieldTypeErrorEnum.KEIN_FEHLER && error != CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST) {
+			// can not be null because it is not KEIN_FEHLER
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			const checkResult = CustomFieldTypeErrorUtil.getResult(error, CustomFieldTypeErrorKeys.UNGUELTIGE_ID_NUMMER)!;
 			return customFieldTypeConversionResult(internalValue,
 				"Konvertiere nur gültige Identifikationsnummern. " + checkResult.getErrorMessage());
 		}

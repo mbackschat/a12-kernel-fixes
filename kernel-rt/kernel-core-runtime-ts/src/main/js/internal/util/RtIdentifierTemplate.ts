@@ -30,7 +30,7 @@
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
 
-import { IIdentifier, numbersconv } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import { IIdentifier, stringconv } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 import { Constants } from "./Constants.js";
 import type { FilterPredicate } from "./FilterPredicate.js";
@@ -180,7 +180,7 @@ export class RtIdentifierTemplate {
 	}
 
 	hashCode(): number {
-		return numbersconv(this);
+		return stringconv(JSON.stringify(this));
 	}
 
 	equals(obj: any): boolean {

@@ -33,6 +33,7 @@
 package com.mgmtp.a12.kernel.md.rt.internal.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
@@ -44,13 +45,11 @@ import com.mgmtp.a12.kernel.core.rt.a12internal.utils.IMetaKeys;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IResult;
-import com.mgmtp.a12.kernel.md.document.api.IDocument;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.FieldInstanceV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.utils.IDocumentV2Visitor;
-import com.mgmtp.a12.kernel.md.document.internal.service.implV2.DocumentV1V2ConverterImpl;
 import com.mgmtp.a12.kernel.md.rt.internal.service.conversion.ConversionService;
 import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion;
 
@@ -72,8 +71,6 @@ public class ValidationData implements IData {
 
 	private final DocumentV2 documentV2;
 
-	@Deprecated(since = "30.2.0")
-	private final IDocument originalIDocumentIfExists;
 	// needed to be able to pass results from conversion when getting the value of a specific field instance
 	private final IResult result;
 	private final IMetaModel metaModel;
@@ -87,25 +84,12 @@ public class ValidationData implements IData {
 		this.metaModel = metaModel;
 		this.conversionService = new ConversionService(Objects.requireNonNull(locale));
 		this.identifierToStringFunc = identifierToStringFunc;
-		this.originalIDocumentIfExists = null;
-	}
-
-	/**
-	 * @deprecated IDocument should no longer be used, use
-	 *        {@link #ValidationData(DocumentV2, IMetaModel, Locale, IResult, IIdentifierToString)} instead.
-	 */
-	@Deprecated(since = "30.2.0")
-	public ValidationData(@NonNull IDocument documentV1, @NonNull IMetaModel metaModel, @NonNull Locale locale,
-			@NonNull IResult result, @NonNull IIdentifierToString identifierToStringFunc) {
-		this.originalIDocumentIfExists = documentV1;
-		this.documentV2 = DocumentV1V2ConverterImpl.getInstance().ofDocumentV1(documentV1);
-		this.result = result;
-		this.metaModel = metaModel;
-		this.conversionService = new ConversionService(Objects.requireNonNull(locale));
-		this.identifierToStringFunc = identifierToStringFunc;
 	}
 
 	@Override public String getValue(IIdentifier id) {
+		if (!isValidId(id)) {
+			return VALUE_FOR_ABSENT_AND_EMPTY;
+		}
 		DocumentPointer pointer = DocumentPointerConverter.convertToDocumentPointer(id);
 		IMetaField metaField = (IMetaField) metaModel.getValue(IMetaKeys.MODEL_META_FIELD, id.getName());
 		IMetaGroup metaGroup = (IMetaGroup) metaModel.getValue(IMetaKeys.MODEL_META_GROUP, id.getName());
@@ -146,6 +130,10 @@ public class ValidationData implements IData {
 			return isRepeatableByItself ? REPEATABLE_GROUPINSTANCE_PLACEHOLDER : VALUE_FOR_ABSENT_AND_EMPTY;
 		}
 		return VALUE_FOR_ABSENT_AND_EMPTY;
+	}
+
+	private boolean isValidId(IIdentifier id) {
+		return Arrays.stream(id.getIndices()).allMatch(it -> it > 0);
 	}
 
 	@Override public String getValueForDisplay(IIdentifier id) {
@@ -204,15 +192,5 @@ public class ValidationData implements IData {
 
 	public DocumentV2 getInternalDocumentV2() {
 		return documentV2;
-	}
-
-	/**
-	 * If this ValidationData was created from an IDocument, return this IDocument; otherwise null.
-	 *
-	 * @deprecated IDocument should no longer be used, use {@link #getInternalDocumentV2()} instead.
-	 */
-	@Deprecated(since = "30.2.0")
-	public IDocument getOriginalIDocumentIfExists() {
-		return originalIDocumentIfExists;
 	}
 }

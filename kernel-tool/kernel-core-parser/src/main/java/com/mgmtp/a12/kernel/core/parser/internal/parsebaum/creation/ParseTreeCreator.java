@@ -114,6 +114,7 @@ import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.creation.creators.ope
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.creation.creators.operation.KonstanteCreator;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.creation.creators.operation.RundenOpCreator;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.creation.creators.operation.RundenOperOpCreator;
+import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.creation.creators.operation.SetOpOperationCreator;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.creation.creators.operation.TimeKonstruktCreator;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.creation.creators.operation.ZusGesetzteFeldOperationCreator;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.creation.creators.operation.hdv.AnzahlAngegebenOpHModelCreator;
@@ -453,6 +454,10 @@ public class ParseTreeCreator extends GrammarOnly_ConditionParserBaseListener {
 
 	@Override public void exitSINGLE_OP(GrammarOnly_ConditionParser.SINGLE_OPContext ctx) {
 		addCommentsToOperation(ctx.before, ctx.after, peekFop());
+	}
+
+	@Override public void exitSetOperOp(GrammarOnly_ConditionParser.SetOperOpContext ctx) {
+		SetOpOperationCreator.create(ctx, this);
 	}
 
 	private void addCommentsToOperation(Token commentBefore, Token commentAfter, IOperation op) {

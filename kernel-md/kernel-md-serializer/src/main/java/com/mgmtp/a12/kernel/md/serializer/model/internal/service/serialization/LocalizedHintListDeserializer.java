@@ -32,23 +32,21 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.lang3.LocaleUtils;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.StringType;
 
-public class LocalizedHintListDeserializer extends StdDeserializer<StringType.HintList> {
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.node.JsonNodeType;
 
-	private static final long serialVersionUID = -5418027641848730777L;
+public class LocalizedHintListDeserializer extends StdDeserializer<StringType.HintList> {
 
 	public LocalizedHintListDeserializer() {
 		this(StringType.HintList.class);
@@ -59,7 +57,7 @@ public class LocalizedHintListDeserializer extends StdDeserializer<StringType.Hi
 	}
 
 	@Override
-	public StringType.HintList deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
+	public StringType.HintList deserialize(JsonParser parser, DeserializationContext ctxt) {
 		StringType.HintList.HintListBuilder builder = StringType.HintList.builder();
 		JsonNode localizedHintListNode = parser.readValueAsTree();
 		Locale locale = getLocaleFromLocalizedHintList(localizedHintListNode);
@@ -77,7 +75,7 @@ public class LocalizedHintListDeserializer extends StdDeserializer<StringType.Hi
 		if (localeNode.getNodeType() != JsonNodeType.STRING) {
 			throw new IllegalArgumentException("Unexpected node type for localized text: " + localeNode.getNodeType());
 		}
-		String localeStr = localeNode.asText();
+		String localeStr = localeNode.asString();
 		return LocaleUtils.toLocale(localeStr);
 	}
 
@@ -90,7 +88,7 @@ public class LocalizedHintListDeserializer extends StdDeserializer<StringType.Hi
 			throw new IllegalArgumentException("Unexpected node type for localized text: " + hintListNode.getNodeType());
 		}
 		List<String> hintListValues = new ArrayList<>();
-		hintListNode.forEach(e -> hintListValues.add(e.asText()));
+		hintListNode.forEach(e -> hintListValues.add(e.asString()));
 		return hintListValues;
 	}
 }

@@ -39,10 +39,9 @@ import com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.typed.TypedGroupView;
 
 public class TypedGroupPointerImpl<
-		    S extends TypedGroupView<S>,
-		    T extends TypedGroupView<T>>
-	extends AbstractTypedPointer<S, T>
-{
+		S extends TypedGroupView<S>,
+		T extends TypedGroupView<T>>
+		extends AbstractTypedPointer<S, T> {
 	private final Function<GroupInstanceV2, T> wrapEnd;
 
 	protected TypedGroupPointerImpl(DocumentPointer untypedPointer,
@@ -62,7 +61,7 @@ public class TypedGroupPointerImpl<
 	@Override public S __internal_with(S typedStart, T typedNewSubgroup) {
 		GroupInstanceV2 start = typedStart._unwrap();
 		GroupInstanceV2 updatedStart;
-		if(typedNewSubgroup != null) {
+		if (typedNewSubgroup != null) {
 			GroupInstanceV2 newValueUntyped = typedNewSubgroup._unwrap();
 			updatedStart = start.withGroup(untypedPointer, newValueUntyped);
 		} else {
@@ -76,13 +75,14 @@ public class TypedGroupPointerImpl<
 	/**
 	 *
 	 * @deprecated this method is now redundant, use {@link #_unwrap()} instead.
-	 * It may be removed in some future release but is kept here for compatibility with generated
-	 * typed accessor classes from previous versions.
+	 * 		It may be removed in some future release but is kept here for compatibility with generated
+	 * 		typed accessor classes from previous versions. This method will be removed with A12K-4182.
 	 */
 	@Deprecated
 	public DocumentPointer __internal_untypedPointer() {
 		return untypedPointer;
 	}
+
 	public Function<GroupInstanceV2, S> __internal_wrapStart() {
 		return wrapStart;
 	}

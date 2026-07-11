@@ -47,13 +47,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.Entity;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.EntityImpl;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.EntityRegistry;
+import com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.Entity;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.EntityImpl;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.EntityRegistry;
+import com.mgmtp.a12.kernel.md.model.api.IComputation;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.model.api.IField;
 import com.mgmtp.a12.kernel.md.model.api.IGroup;
@@ -80,20 +81,20 @@ public class SMMGeneratorForImport {
 	public static final String NAME_PREFIX_FOR_SLICE_SOURCE_FIELDS = "I_";
 	public static final String ANNOTATION_FOR_MAPPING_WITHOUT_CLEAR = "MAPPING_WITHOUT_CLEAR";
 
-	private final Set<Entity> groupsWhoseDescendantsDontCauseClears;
-	private final SMMSorter sorter;
+	private final @NonNull Set<Entity> groupsWhoseDescendantsDontCauseClears;
+	private final @NonNull SMMSorter sorter;
 
-	private final Collection<Entity> potentialTargetFields;
-	private final Map<String, List<Entity>> potentialSourceFieldsByShortName;
-	private final Map<Entity, List<Entity>> fieldsInTargetByIrg;
-	private final Map<Entity, List<Entity>> potentialSliceSourceFieldsByParent;
+	private final @NonNull Collection<Entity> potentialTargetFields;
+	private final @NonNull Map<String, List<Entity>> potentialSourceFieldsByShortName;
+	private final @NonNull Map<Entity, List<Entity>> fieldsInTargetByIrg;
+	private final @NonNull Map<Entity, List<Entity>> potentialSliceSourceFieldsByParent;
 
-	private final Set<Entity> groupsToClearOnFirstFill = new HashSet<>();
-	private final Map<Entity, GroupClearSources> targetGroupToClearingSources = new HashMap<>();
+	private final @NonNull Set<Entity> groupsToClearOnFirstFill = new HashSet<>();
+	private final @NonNull Map<Entity, GroupClearSources> targetGroupToClearingSources = new HashMap<>();
 
 	private record GroupClearSources(
-			Set<Entity> sourceFieldsThatCauseClear,
-			Set<Entity> sourceFieldsThatCauseNoClear
+			@NonNull Set<Entity> sourceFieldsThatCauseClear,
+			@NonNull Set<Entity> sourceFieldsThatCauseNoClear
 	) {
 		public GroupClearSources() {
 			this(new HashSet<>(), new HashSet<>());
@@ -104,31 +105,27 @@ public class SMMGeneratorForImport {
 		}
 	}
 
-	private SMMGeneratorForImport(Map<String, Entity> sourceEntitiesByFullName,
-			Map<String, Entity> targetEntitiesByFullName, Set<Entity> groupsWhoseDescendantsDontCauseClears,
-			SMMSorter sorter) {
+	private SMMGeneratorForImport(
+			@NonNull Map<String, Entity> sourceEntitiesByFullName,
+			@NonNull Map<String, Entity> targetEntitiesByFullName,
+			@NonNull Set<Entity> groupsWhoseDescendantsDontCauseClears,
+			@NonNull Set<Entity> computedSourceFields,
+			@NonNull SMMSorter sorter
+	) {
 		this.groupsWhoseDescendantsDontCauseClears = groupsWhoseDescendantsDontCauseClears;
 		this.sorter = sorter;
 
 		List<Entity> sourceFields = sourceEntitiesByFullName.values().stream().filter(Entity::isField).toList();
 		List<Entity> targetFields = targetEntitiesByFullName.values().stream().filter(Entity::isField).toList();
-		potentialTargetFields = targetFields.stream()
-				.filter(this::isPotentialSourceOrTargetField)
-				.toList();
+		potentialTargetFields = targetFields.stream().toList();
 		potentialSourceFieldsByShortName = sourceFields.stream()
-				.filter(this::isPotentialSourceOrTargetField)
+				.filter(computedSourceFields::contains)
 				.collect(Collectors.groupingBy(Entity::shortName));
 		fieldsInTargetByIrg = targetFields.stream()
 				.collect(Collectors.groupingBy(Entity::irg));
 		potentialSliceSourceFieldsByParent = sourceFields.stream()
 				.filter(this::isPotentialSliceSourceField)
 				.collect(Collectors.groupingBy(Entity::parent));
-	}
-
-	private static final Pattern potentialSourceOrTargetFieldNamePattern = Pattern.compile("(E[0-9]{7})|(sbz[0-9]{6})");
-
-	private boolean isPotentialSourceOrTargetField(Entity entity) {
-		return potentialSourceOrTargetFieldNamePattern.matcher(entity.shortName()).matches();
 	}
 
 	private boolean isPotentialSliceSourceField(Entity entity) {
@@ -145,6 +142,7 @@ public class SMMGeneratorForImport {
 		private final Collection<String> groupsWhoseDescendantsDontCauseClears = new HashSet<>();
 		private final Map<String, Integer> fullNameToPreorderRank = new HashMap<>();
 		private int preorderRank = 0;
+		private final Set<String> computedFieldFullNames = new HashSet<>();
 
 		public static DocumentModelInfoCollector collect(IDocumentModel dm) {
 			DocumentModelInfoCollector collector = new DocumentModelInfoCollector();
@@ -165,6 +163,11 @@ public class SMMGeneratorForImport {
 				groupsWhoseDescendantsDontCauseClears.add(getFullName());
 			}
 			fullNameToPreorderRank.put(getFullName(), preorderRank++);
+		}
+
+		@Override
+		public void enterComputation(@NonNull IComputation computation) {
+			computedFieldFullNames.add(ElementPathUtils.absPath(getFullName(), computation.getComputedField().getRelativePath()));
 		}
 	}
 
@@ -207,9 +210,12 @@ public class SMMGeneratorForImport {
 		Set<Entity> groupsWhoseDescendantsDontCauseClears = sourceDMInfoCollector.groupsWhoseDescendantsDontCauseClears().stream()
 				.map(sourceEntitiesByFullName::get)
 				.collect(Collectors.toSet());
+		Set<Entity> computedSourceFields = sourceDMInfoCollector.computedFieldFullNames().stream()
+				.map(sourceEntitiesByFullName::get).collect(Collectors.toSet());
 		return new SMMGeneratorForImport(
 				sourceEntitiesByFullName, targetEntitiesByFullName,
 				groupsWhoseDescendantsDontCauseClears,
+				computedSourceFields,
 				SMMSorter.using(sourceDMInfoCollector.fullNameToPreorderRank(), targetDMInfoCollector.fullNameToPreorderRank()));
 	}
 

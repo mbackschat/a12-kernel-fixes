@@ -7,21 +7,21 @@ description = "kernel-core-codegen"
 
 dependencies {
     api libs.baseModelApi
-    api project(':kernel-core-base-utils')
-    api project(':kernel-core-codegen-base')
-    api project(':kernel-core-codegen-condition')
-    api project(':kernel-core-codegen-entities')
-    api project(':kernel-core-codegen-rules')
-    api project(':kernel-core-extmpspecifics')
-    api project(':kernel-core-parsetree-api')
+    api project(':kernel-internal-base-utils')
+    api project(':kernel-internal-core-codegen-base')
+    api project(':kernel-internal-core-codegen-condition')
+    api project(':kernel-internal-core-codegen-entities')
+    api project(':kernel-internal-core-codegen-rules')
+    api project(':kernel-internal-core-extmpspecifics')
+    api project(':kernel-internal-core-parsetree-api')
     api libs.kernelCoreRuntimeApi
-    api project(':kernel-core-service')
-    api project(':kernel-core-tool-api')
+    api project(':kernel-internal-core-service')
+    api project(':kernel-internal-core-tool-api')
 
-    implementation project(':kernel-core-calc')
-    implementation project(':kernel-core-codegen-meta-base')
-    implementation project(':kernel-core-parser')
-    implementation project(':kernel-core-utils')
+    implementation project(':kernel-internal-core-calc')
+    implementation project(':kernel-internal-core-codegen-meta-base')
+    implementation project(':kernel-internal-core-parser')
+    implementation project(':kernel-internal-core-utils')
     implementation libs.baseModelConsistency
     implementation libs.commonsLang3
 

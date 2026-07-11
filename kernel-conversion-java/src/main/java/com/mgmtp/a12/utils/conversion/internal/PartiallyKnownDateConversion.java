@@ -34,7 +34,7 @@ package com.mgmtp.a12.utils.conversion.internal;
 
 import static com.mgmtp.a12.utils.conversion.internal.DateConversion.getParseError;
 
-import java.text.ParseException;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -58,6 +58,8 @@ import com.mgmtp.a12.utils.conversion.impl.DefaultParseResult;
 import com.mgmtp.a12.utils.conversion.internal.config.PartiallyKnownDateConversionConfigBuilder;
 import com.mgmtp.a12.utils.localization.DataFormats;
 import com.mgmtp.a12.utils.localization.internal.DataFormatsUtil;
+
+import lombok.NonNull;
 
 /**
  * Conversion methods for date related data types (date, date fragment, date time and time).
@@ -221,7 +223,7 @@ public class PartiallyKnownDateConversion {
 		try {
 			// more exact check while parsing
 			ValidationDateParser.parseDate(dateWithFormat);
-		} catch (ParseException e) {
+		} catch (DateTimeParseException e) {
 			return Optional.of(PartiallyKnownDateConversion.createParseErrorForDate(dateWithFormat.getFormat()));
 		}
 		return Optional.empty();
@@ -278,7 +280,7 @@ public class PartiallyKnownDateConversion {
 	}
 
 	private static DateAndFormat getDateWithFormat(
-			String value,
+			@NonNull String value,
 			DateBasicConversionConfig dataType,
 			DataFormats dataFormats
 	) {

@@ -54,6 +54,7 @@ public class FieldTypeMappingUtils {
 			if (errorMessages.containsKey(loc)) {
 				return errorMessages.get(loc);
 			} else {
+				// fallback to language (without country)
 				return errorMessages.get(Locale.of((loc.getLanguage())));
 			}
 		}
@@ -71,6 +72,7 @@ public class FieldTypeMappingUtils {
 			if (hintLists.containsKey(loc)) {
 				return hintLists.get(loc);
 			} else {
+				// fallback to language (without country)
 				return hintLists.get(Locale.of((loc.getLanguage())));
 			}
 		}

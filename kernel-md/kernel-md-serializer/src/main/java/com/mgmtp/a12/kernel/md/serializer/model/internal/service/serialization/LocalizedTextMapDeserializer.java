@@ -32,22 +32,20 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
 import java.util.Locale;
 
 import org.apache.commons.lang3.LocaleUtils;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.mgmtp.a12.kernel.md.model.a12internal.LocalizedTextMapBuilder;
 import com.mgmtp.a12.kernel.md.model.api.ILocalizedTextMap;
 
-public class LocalizedTextMapDeserializer extends StdDeserializer<ILocalizedTextMap> {
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.node.JsonNodeType;
 
-	private static final long serialVersionUID = -5418027641848730776L;
+public class LocalizedTextMapDeserializer extends StdDeserializer<ILocalizedTextMap> {
 
 	public LocalizedTextMapDeserializer() {
 		this(ILocalizedTextMap.class);
@@ -58,7 +56,7 @@ public class LocalizedTextMapDeserializer extends StdDeserializer<ILocalizedText
 	}
 
 	@Override
-	public ILocalizedTextMap deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
+	public ILocalizedTextMap deserialize(JsonParser parser, DeserializationContext ctxt) {
 		LocalizedTextMapBuilder builder = new LocalizedTextMapBuilder();
 
 		JsonNode arr = parser.readValueAsTree();
@@ -78,9 +76,8 @@ public class LocalizedTextMapDeserializer extends StdDeserializer<ILocalizedText
 		if (localeNode.getNodeType() != JsonNodeType.STRING) {
 			throw new IllegalArgumentException("Unexpected node type for localized text: " + localeNode.getNodeType());
 		}
-		String localeStr = localeNode.asText();
-		Locale locale = LocaleUtils.toLocale(localeStr);
-		return locale;
+		String localeStr = localeNode.asString();
+		return LocaleUtils.toLocale(localeStr);
 	}
 
 	private String getTextFromLocalizedText(JsonNode localizedText) {
@@ -91,7 +88,6 @@ public class LocalizedTextMapDeserializer extends StdDeserializer<ILocalizedText
 		if (textNode.getNodeType() != JsonNodeType.STRING) {
 			throw new IllegalArgumentException("Unexpected node type for localized text: " + textNode.getNodeType());
 		}
-		String text = localizedText.get(LocalizedTextMapSerializer.TEXT_KEY).asText();
-		return text;
+		return localizedText.get(LocalizedTextMapSerializer.TEXT_KEY).asString();
 	}
 }

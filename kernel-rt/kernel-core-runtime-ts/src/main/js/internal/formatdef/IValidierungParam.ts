@@ -56,4 +56,4 @@ export interface IValidierungParam {
 	getCustomFieldTypeFactory(): ICustomFieldTypeFactory | undefined;
 }
 
-export default IValidierungParam;
+export type { IValidierungParam as default };

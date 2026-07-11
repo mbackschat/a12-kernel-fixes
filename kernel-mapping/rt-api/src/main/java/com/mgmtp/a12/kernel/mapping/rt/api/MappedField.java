@@ -36,7 +36,6 @@ import java.util.Set;
 
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
-import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion;
 
 import lombok.NonNull;
 
@@ -48,9 +47,8 @@ public interface MappedField {
 	@NonNull DocumentPointer targetField();
 
 	/**
-	 * @return the new value for {@link #targetField()}. Note: this is a value suitable for
-	 *        {@link com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2}, not for
-	 *        {@link com.mgmtp.a12.kernel.md.document.api.IDocument}; see {@link BasicTypeV1V2Conversion} for details.
+	 * @return the new value for {@link #targetField()}. This is a value suitable for
+	 *        {@link com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2 DocumentV2} {@link com.mgmtp.a12.kernel.md.document.apiV2.immutable.FieldInstanceV2 field instances}.
 	 */
 	// currently this can probably not be null, but it seems plausible that we might allow null here in a future version, as a way to selectively clear fields in the target?
 	Object value();

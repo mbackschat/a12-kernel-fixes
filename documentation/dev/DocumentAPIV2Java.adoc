@@ -37,7 +37,6 @@ THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND, WHETHER 
 == Introduction
 
 The document API V2 is a Java API for accessing and manipulating data in documents.
-It is an alternative and successor to the `+IDocument+`-based API.
 
 The main differences to the previous API and goals of the new API are:
 
@@ -47,8 +46,6 @@ The main differences to the previous API and goals of the new API are:
 * immutable semantics with efficient copy-on-write updates, for a smaller API surface, clearer code and easier caching
 * compatibility with optional generated accessor classes that enable static type checks and properly typed field values for the code that accesses the documents
 
-All document related Kernel functionality support `+DocumentV2+` - in cases where it is not directly supported yet, users should utilize the conversion methods `+IDocumentV1V2Converter#toDocumentV1+` and `+IDocumentV1V2Converter#ofDocumentV1+` as needed, and tell kernel about the affected document V1 functionality and the need to support it for `+DocumentV2+`.
-
 // TODO design overview, maybe incl mention of important classes
 
 == API Guide
@@ -57,7 +54,7 @@ All document related Kernel functionality support `+DocumentV2+` - in cases wher
 
 === Obtaining a DocumentV2 [[obtaining_a_documentv2]] [[serialization_deserialization_documentv2]]
 
-`+DocumentV2+` instances can be created from scratch, converted to and from `+IDocument+`, or can be deserialized from the same string representation as a V1 `+IDocument+`.
+`+DocumentV2+` instances can be created from scratch, or can be deserialized from a json string.
 
 [source,java,indent=0]
 .Create an Empty Document
@@ -71,15 +68,7 @@ include::{codeSnippetsExampleFile}[tags=tagCreateDocumentEmpty]
 include::{codeSnippetsExampleFile}[tags=tagCreateDocumentWithSubgroups]
 ----
 
-[source,java,indent=0]
-.Convert from a V1 IDocument
-----
-include::{codeSnippetsExampleFile}[tags=tagCreateDocumentConvert]
-----
-
 For details on the DM id string in the above examples, see <<note_about_dmid, the note about the DM id>>.
-
-<<create_documentv1v2converter, How to get an IDocumentV1V2Converter>> shows how to get the `+converter+` instance.
 
 [[docV2_serialize_deserialize]]
 [source,java,indent=0]
@@ -108,7 +97,7 @@ See the section on <<document_pointers, document pointers>> for details on the n
 
 [NOTE]
 ====
-Note that in `+DocumentV2+` just like in `+IDocument+`, field values have _compile-time_ type `+Object+`, because the compiler doesn't know which of the valid basic types the field has.
+Note that in `+DocumentV2+`, field values have _compile-time_ type `+Object+`, because the compiler doesn't know which of the valid basic types the field has.
 Allowed _runtime_ types for field values in `+DocumentV2+` are `+String+`, `+BigDecimal+`, `+Boolean+`, `+Instant+` , `+InstantRange+` (`+com.mgmtp.a12.utils.conversion.InstantRange+`) and `+null+`.
 The surrounding code is responsible for casting correctly where necessary. +
 Also note that <<note_about_dmid, the document itself does not validate field values against a DM>>.
@@ -118,8 +107,7 @@ For automatic compile-time typed access, see the section about <<generated_typed
 
 [NOTE]
 ====
-In contrast to `+IDocument+` (V1), in `+DocumentV2+`, values of date and time fields are represented by `+java.time.Instant+` instead of `+java.util.Date+`, and date ranges are represented by `+InstantRange+` instead of a 2-element `+Date[]+` array.
-The conversion methods `+ofDocumentV1+` and `+toDocumentV1+`, as well as `+FieldInstanceV2.ofV1Value+` and `+FieldInstanceV2.toV1Value+` take care of this.
+Values of date and time fields are represented by `+java.time.Instant+`, and date ranges are represented by `+InstantRange+`.
 ====
 
 A group in the document can be fetched as follows:
@@ -178,14 +166,13 @@ Similarly, `+group()+` returns `+null+` if the subgroup or its ancestors are not
 ====
 [[note_about_dmid]]
 A document does not know the corresponding DM (it only stores the `+dmId+` String, accessible with `+docV2.getDocumentModelId()+`.
-It is stored mostly for compatibility, because `+IDocument+` (V1) also has this attribute).
 Consequently, the document does not distinguish whether a field or subgroup is merely absent from a given document, or not at all allowed in the corresponding DM.
 Neither is there a distinction between a non-repeatable group and a repeatable group that has no more than one repetition present in the document.
 Similarly, when documents are updated, there is no check against a DM that would verify if the updated document still matches the DM - to validate this, use <<kernel_validation,Kernel validation>>, or check against the DM before updating the document.
 ====
 
 If you want to distinguish between a non-present field and a present field with value `+null+`, use `+DocumentV2#field()+` instead of `+DocumentV2#fieldValue()+` to first obtain the `+FieldInstanceV2+`, check if that is `+null+`, and if not, check if the field's value is `+null+` (`+FieldInstanceV2#value()+`).
-This distinction is mainly made possible for better compatibility with IDocument, and is likely not relevant in most cases.
+This distinction is mainly made possible for compatibility reasons, and is likely not relevant in most cases.
 
 === Updating Documents and Groups
 
@@ -231,7 +218,7 @@ The graphic shows what parts of the document are new (green) when applying the m
 
 image::withFieldValue.svg[Static]
 
-To add an empty field (with value `+null+`) to the document explicitly, use `+withField+` instead of `+withFieldValue+` (this method is provided primarily for compatibility with document api V1, and may be rarely useful in practice).
+To add an empty field (with value `+null+`) to the document explicitly, use `+withField+` instead of `+withFieldValue+`.
 
 ==== Updating Subgroups
 
@@ -362,7 +349,7 @@ If the removed field or group (or any of its ancestor groups) is not present in 
 
 The method `+GroupInstanceV2#withBatchUpdates+` can be used when a very large number of subsequent modifications is done and the intermediary versions of the document or group are not needed.
 Because no references to intermediary results are required, this operation can be implemented with optimized asymptotic performance.
-It is used internally when documents are converted from V1 documents or deserialized, but is likely not necessary in most situations in practice.
+It is used internally when documents are converted or deserialized, but is likely not necessary in most situations in practice.
 Currently, only _additions/replacements_ of groups and fields are supported - deletions could be implemented in the future if needed.
 // NOTE: links to generated files will only resolve from the copied version of the .adoc file inside the build folder,
 // after javadoc has been generated and copied to the subfolders below ./build
@@ -441,12 +428,6 @@ include::{codeSnippetsExampleFile}[tags=tagOfValue]
 ----
 
 [source,java,indent=0]
-.Create a FieldInstanceV2 (Value from V1 IDocument):
-----
-include::{codeSnippetsExampleFile}[tags=tagOfV1Value]
-----
-
-[source,java,indent=0]
 .Create an InstantRange:
 ----
 include::{codeSnippetsExampleFile}[tags=tagCreateInstantRange]
@@ -454,7 +435,7 @@ include::{codeSnippetsExampleFile}[tags=tagCreateInstantRange]
 
 === DocumentPointer: Addressing Fields and Subgroups in Documents [[document_pointers]]
 
-Within a document (both V1 or V2), each field instance and group instance is unambiguously identified by the combination of path (e.g. `+"/MyRootGroup/SubGroup/fieldA"+`) and repetitition indexes (e.g. `+[1, 2, 1]+` ).
+Within a document, each field instance and group instance is unambiguously identified by the combination of path (e.g. `+"/MyRootGroup/SubGroup/fieldA"+`) and repetitition indexes (e.g. `+[1, 2, 1]+` ).
 
 In the document API V2, this is represented by an instance of `+DocumentPointer+`
 (link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/DocumentPointer.html[javadoc])
@@ -688,10 +669,9 @@ include::{codeSnippetsExampleFile}[tags=tagIDmAwareDocServiceConvertToJavaTypeV2
 All groups, whether repeatable or not, are represented in the same way in the document.
 A non-repeatable group is simply a group that has no more than one repetition.
 
-Closely related, there is no distinction between a repeatable group for which no repetitions are present, and a non-repetable group that is not present.
+Closely related, there is no distinction between a repeatable group for which no repetitions are present, and a non-repeatable group that is not present.
 
-This design was chosen because it matches the information that is present in `+IDocument+` of the document API V1 (otherwise V1↔V2 conversion would not be possible without the DM), and because it simplifies the structure of documents.
-It is, however, slightly different to the typescript document API, which uses separate representations for repeatable and non-repeatable groups.
+The `+DocumentV2+` is only available in Java and is slightly different to the typescript document API, which uses separate representations for repeatable and non-repeatable groups.
 
 ==== `+RepetitionsV2+` and empty Repetitions
 
@@ -719,18 +699,13 @@ The typed accessor generator creates, for a given DM, classes that enable the fo
 * IDE-Autocomplete
 * access to the modeler-defined internal and external descriptions of groups and fields (via javadoc)
 
-This code generator has two alternative modes:
+This code generator has one mode:
 
 <<overlay_mode,`+--mode overlay+`>> is the default and is tightly integrated with `+DocumentV2+`.
 When the classes generated by this mode are used, data does not get copied from the `+DocumentV2+`.
 The classes merely act as an overlay that enables the compile-time checks.
 This also allows to mix typed-checked and general `+DocumentV2+`-based code on the same data.
 It also means that the typed accessor classes don't necessarily need to know about the whole DM - they can also be generated just for a selection of groups and fields, or the generated classes (and the hand-written code that interacts with them) could be used for multiple different DMs that all share the selected subgroups and fields (e.g. when the DMs share the same additive model).
-
-<<pojo_mode,`+--mode pojo+`>> was an experimental, now deprecated, alternative mode intended for use cases that prefer more traditional Java Bean like mutable classes with getters and setters.
-This can be preferable e.g. when the classes should interact with other libraries or frameworks that expect Bean-Like Objects.
-The classes that are generated with this mode copy their data from a given document or group when they are instantiated, and offer a method for exporting back to `+DocumentV2+`.
-Classes from PoJo mode do not offer automatic handling e.g. of missing subgroups/parent groups or repetitions, and they always need to be generated for the whole DM, otherwise the data for the unknown subgroups would be lost.
 
 === Typed-Overlay Classes (`+--mode overlay+`) [[overlay_mode]]
 
@@ -852,7 +827,7 @@ For more examples on how to use typed views and pointers in general, see the <<o
 .Generate Typed Accessor Classes Manually
 ----
 java -jar \
-    kernel-md-typed-accessor-gen-xx.x.x-TypedAccessorGenerator-CLI.jar \
+    kernel-md-facade-xx.x.x-typed-accessor-gen-cli.jar \
     --document-model-file <path-to-document-model-file> \
     --package-prefix my.package.prefix.x.y.z \
     --output-dir <path-to-output-directory>
@@ -878,58 +853,6 @@ This has the advantage that the generated classes are always in sync with the DM
 include::{gradleConfigExampleFile}[tags=tagGradleConfigExampleForTypedAccessorGenerator]
 ----
 
-=== PoJo Classes (`+--mode pojo+`) _DEPRECATED_ [[pojo_mode]]
-
-[NOTE]
-====
-PoJo mode is deprecated and planned for removal in a future release. If you are actively using it and rely on it, please contact the A12 kernel team.
-
-PoJo mode previously was an experimental feature.
-Support for document-specific features like e.g. automatic handling of missing parent groups or repetitions during nested read and update is non-existing or extremely limited.
-====
-
-When the optional argument `+--mode pojo+` is passed to `+TypedAccessorGenerator+`, Java-Bean like PoJo classes will be generated instead of the typed views and pointers.
-
-PoJo mode classes are experimental and provide very limited document-specific support.
-They are only intended for use cases where Bean-like objects are necessary e.g. due to compatibility requirements with external frameworks.
-Projects with such use cases may test if PoJo mode would be helpful for their use case and should report to the Kernel team if they are interested in a stable version of PoJo mode.
-
-It is generally recommended to use the default `+--mode overlay+` instead.
-
-[source,java,indent=0]
-.Usage Example: Create a Document with Generated PoJo Classes
-----
-// DomainContact, Contact and Misc are generated classes that correspond
-// to the DomainContact DM and its subgroups
-DomainContact dc = new DomainContact();
-dc.setContact(new Contact());
-dc.getContact().setMisc(new Misc());
-
-DocumentV2 untyped = dc._toUntyped();
-
-Assertions.assertEquals(
-	DocumentV2.empty("DomainContact")
-		.withGroup("Contact/Misc", GroupInstanceV2.empty()),
-	untyped);
-----
-
-[source,java,indent=0]
-.Usage Example: Create PoJo Instances from an Untyped DocumentV2
-----
-DocumentV2 docV2 = DocumentV2.empty("DomainContact")
-		.withFieldValue("Contact/Misc/Type", "vip");
-
-// DomainContact, Contact, Misc and Type are generated classes/enums that
-// correspond to the DomainContact DM and its subgroups
-DomainContact typedDoc = new DomainContact(docV2);
-Type contactType = typedDoc.getContact().getMisc().getType(); // beware of
-// NullPointerExceptions when chaining getters
-
-Assertions.assertEquals(Type.vip, contactType);
-----
-
-Note that PoJo-mode classes currently need `+com.mgmpt.a12.kernel:kernel-md-util+` (in addition to `+com.mgmpt.a12.kernel:kernel-md-document-v2+`) on the compile classpath, due to the `+@Experimental+` annotation.
-
 == Further Resources
 
 * Javadoc in GetA12 (e.g. for link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/immutable/DocumentV2.html[DocumentV2], link:./assets/doc/java/com/mgmtp/a12/kernel/md/document/apiV2/immutable/GroupInstanceV2.html[GroupInstanceV2] etc)
@@ -949,13 +872,6 @@ dependencies {
 ----
 
 Note that the typed accessor classes may need additional dependencies or can be used with more fine-grained Kernel dependencies, see the corresponding gradle code snippet for details.
-
-[[create_documentv1v2converter]]
-[source,java,indent=0]
-.Get an IDocumentV1V2Converter
-----
-include::{codeSnippetsExampleFile}[tags=tagCreateIDocumentV1V2Converter]
-----
 
 [[docV2_serialize_deserialize_setup]]
 [source,java,indent=0]

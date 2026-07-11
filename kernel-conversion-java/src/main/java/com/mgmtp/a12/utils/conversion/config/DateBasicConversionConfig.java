@@ -37,13 +37,15 @@ import java.util.TimeZone;
 import com.mgmtp.a12.model.utils.Experimental;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
+import lombok.NonNull;
+
 /**
  * Data type for all dates (date, date fragment, date range, date time and time).
  */
 @Experimental @OnlyForUsage
 public interface DateBasicConversionConfig extends ValueConversionConfig {
 
-	String format();
+	@NonNull String format();
 
 	default int baseYear() {
 		return 2000;

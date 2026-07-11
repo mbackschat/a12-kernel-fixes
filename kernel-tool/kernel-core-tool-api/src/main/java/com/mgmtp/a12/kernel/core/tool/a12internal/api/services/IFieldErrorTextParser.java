@@ -38,6 +38,8 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IField;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
+import lombok.NonNull;
+
 @OnlyForUsage
 public interface IFieldErrorTextParser {
 
@@ -55,7 +57,7 @@ public interface IFieldErrorTextParser {
 	 * 		problem reporter, may not be null
 	 * @return <code>true</code>, if the error texts are correct and <code>false</code> otherwise.
 	 */
-	boolean hasValidErrorText(IField field, Collection<Locale> locales, IProblemReporter pr);
+	boolean hasValidErrorText(@NonNull IField field, @NonNull Collection<Locale> locales, @NonNull IProblemReporter pr);
 
 	/**
 	 * Checks the custom error texts defined for a required field for the given locales.
@@ -70,5 +72,6 @@ public interface IFieldErrorTextParser {
 	 * 		problem reporter, may not be null
 	 * @return <code>true</code>, if the error texts are correct and <code>false</code> otherwise.
 	 */
-	boolean hasValidErrorTextInRequirednessConfig(IField field, Collection<Locale> locales, IProblemReporter pr);
+	boolean hasValidErrorTextInRequirednessConfig(@NonNull IField field, @NonNull Collection<Locale> locales,
+			@NonNull IProblemReporter pr);
 }

@@ -32,21 +32,19 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
 import java.util.Set;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.mgmtp.a12.kernel.md.model.a12internal.Computation;
 import com.mgmtp.a12.kernel.md.model.a12internal.Element;
 import com.mgmtp.a12.kernel.md.model.a12internal.Field;
 import com.mgmtp.a12.kernel.md.model.a12internal.Group;
 import com.mgmtp.a12.kernel.md.model.a12internal.Rule;
 
-public class ElementSerializer extends StdSerializer<Element> {
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
-	private static final long serialVersionUID = 1915617763547198032L;
+public class ElementSerializer extends StdSerializer<Element> {
 
 	private final GroupSerializer groupSerializer;
 	private final FieldSerializer fieldSerializer;
@@ -68,21 +66,21 @@ public class ElementSerializer extends StdSerializer<Element> {
 	}
 
 	@Override
-	public void serialize(Element value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+	public void serialize(Element value, JsonGenerator gen, SerializationContext provider) {
 		if (!elementIdsInResult.isEmpty() && !elementIdsInResult.contains(value.getId())) {
 			return;
 		}
 		gen.writeStartObject();
 		ElementSerializerUtil.serializeElementBase(value, gen);
-		gen.writeFieldName(value.getClass().getSimpleName());
-		if (value instanceof Group) {
-			groupSerializer.serialize((Group) value, gen, provider);
-		} else if (value instanceof Field) {
-			fieldSerializer.serialize((Field) value, gen, provider);
-		} else if (value instanceof Rule) {
-			ruleSerializer.serialize((Rule) value, gen, provider);
-		} else if (value instanceof Computation) {
-			computationSerializer.serialize((Computation) value, gen, provider);
+		gen.writeName(value.getClass().getSimpleName());
+		switch (value) {
+			case Group group -> groupSerializer.serialize(group, gen, provider);
+			case Field field -> fieldSerializer.serialize(field, gen, provider);
+			case Rule rule -> ruleSerializer.serialize(rule, gen, provider);
+			case Computation computation -> computationSerializer.serialize(computation, gen, provider);
+			default -> {
+				// nothing to do here
+			}
 		}
 		gen.writeEndObject();
 	}

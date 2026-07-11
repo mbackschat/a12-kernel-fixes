@@ -47,8 +47,10 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
 import lombok.NonNull;
 
 /**
- * An alternative interface for accessing and manipulating {@code IDocument}s that is more suitable for efficient lookup and
- * update operations and strives to have more developer-friendly util methods.
+ * Interface for accessing and manipulating documents, suitable for efficient lookup and
+ * update operations and striving to have developer-friendly util methods.
+ * <p>
+ * DocumentV2 instances are immutable and use structural sharing for efficient updates.
  * <p>
  * See the <a href="https://geta12.com/#/docs/2025.06/ext1/kernel/kernel-documentation-dev%23document_api_v2_java">"Document API V2 (Java)"</a>
  * developer guide in the GetA12 kernel developer documentation for details
@@ -57,20 +59,18 @@ import lombok.NonNull;
 @OnlyForUsage // Don't allow arbitrary user-supplied implementations (at least for now)
 public interface DocumentV2 extends GroupInstanceV2 {
 	/**
-	 * see {@code IDocument#getId()}
-	 * <p>
 	 * The id can be used to identify the specific document.
 	 * It is optional as it is not typically used by any kernel functionality.
 	 */
 	Optional<String> getId();
 
 	/**
-	 * similar to {@code IDocument#setId(String)}
+	 * Returns a copy of this document with the given id.
 	 */
 	DocumentV2 withId(String id);
 
 	/**
-	 * see {@code IDocument#getDocumentModelId()} and the note about the dmId in {@link #empty(String)}
+	 * See the note about the dmId in {@link #empty(String)}.
 	 */
 	String getDocumentModelId();
 
@@ -112,8 +112,8 @@ public interface DocumentV2 extends GroupInstanceV2 {
 	 * @param documentModelId
 	 * 		This should be the id of a document model to which this document conforms (typically set e.g. during
 	 * 		deserialization), but note that the document has no reference to a DM and is independent of it.
-	 * 		The dmId is stored as an attribute of the document mainly for compatibility, because {@code IDocument}
-	 * 		(V1) also has this dmId attribute.
+	 * 		The dmId is stored as an attribute of the document for convenience (e.g. during
+	 * 		deserialization), but note that the document has no reference to a DM and is independent of it.
 	 */
 	static DocumentV2 empty(String documentModelId) {
 		return ImmutableDocumentV2Impl.emptyInternal(documentModelId);

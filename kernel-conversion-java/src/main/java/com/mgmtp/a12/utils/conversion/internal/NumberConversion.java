@@ -33,6 +33,7 @@
 package com.mgmtp.a12.utils.conversion.internal;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -187,7 +188,7 @@ public class NumberConversion {
 		String thousandsSeparator = destDataFormats.thousandsSeparator().orElse(null);
 		NumberConversion.checkSeparators(decimalSeparator, thousandsSeparator);
 		int fractionalDigits = NumberConversion.determineFractionalDigits(bigDecimal, destDataType, destDataFormats);
-		String resultWithDot = bigDecimal.setScale(fractionalDigits).toPlainString();
+		String resultWithDot = bigDecimal.setScale(fractionalDigits, RoundingMode.UNNECESSARY).toPlainString();
 		String result = resultWithDot.replace('.', decimalSeparator);
 		if (!StringUtils.isEmpty(thousandsSeparator)) {
 			result = NumberUtil.addThousandsSeparator(

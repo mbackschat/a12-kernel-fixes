@@ -3,15 +3,16 @@ plugins {
     alias libs.plugins.lombok
 }
 
-description = "Utilities used in validation. The module has dependencies to very low level external libraries only. In comparison to kernel-core-utils, kernel-core-base-utils may not depend on kernel-core-runtime."
+description = "Utilities used in validation. The module has dependencies to very low level external libraries only. In comparison to kernel-internal-core-utils, kernel-internal-base-utils may not depend on kernel-core-runtime."
 
 dependencies {
-    api project(':kernel-core-tool-api')
     api libs.baseModelConsistency
 
     implementation libs.commonsCollections4
     implementation libs.commonsLang3
     implementation libs.slf4jApi
+
+    compileOnly libs.baseModelUtils // Only annotations
 
     runtimeOnly libs.jacksonCore
     runtimeOnly libs.jacksonDatabind

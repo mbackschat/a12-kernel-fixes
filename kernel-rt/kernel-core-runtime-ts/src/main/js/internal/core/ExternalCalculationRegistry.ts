@@ -36,7 +36,7 @@ import type { IData, IExternalCalculation, IIdentifier } from "@com.mgmtp.a12.ke
 import { HashMap, HashSet } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ICalculator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import type { ICalculator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 import type { CalculationDependencyGraph } from "../util/CalculationSorter.js";
 
@@ -147,7 +147,7 @@ export class ExternalCalculationRegistry {
      * Executes the stored external calculation for the given field.
      * The inputs will be taken from and the results stored in the given {@link CalculationController}.
      * The given field must be an externally calculated field (see {@link ExternalCalculationRegistry#hasCalculation}).
-     * 
+     *
      * @param fullFieldName full field name of an externally calculated field
      * @param calculationController the calculation controller to use for the calculation
      */
@@ -236,7 +236,7 @@ export class ExternalCalculationRegistry {
 
 /**
  * Represents an external calculation for the purpose of its execution.
- * 
+ *
  * Responsible for executing the {@link IExternalCalculation.Callback}.
  */
 class ExternalCalculationExecutor {
@@ -300,7 +300,7 @@ class AbstractProcessor {
      * For every non-repeatable level below the innermost repeatable group (including the field itself),
      * stores the index 1. Simplifies creation of concrete identifiers from filled instances of the
      * innermost repeatable group.
-     * 
+     *
      * E.g. for /A[10]/B[10]/C[1]/D[1]/F stores [1, 1, 1]
      */
     private _nonRepeatableIndices: number[];
@@ -333,7 +333,7 @@ class AbstractProcessor {
 
 /**
  * Represents a single input field of an external calculation for the purpose of execution.
- * 
+ *
  * Responsible for retrieving the {@link IExternalCalculation.Operand} of the represented field
  * to be passed into {@link IExternalCalculation.Callback}.
  */
@@ -407,7 +407,7 @@ class InputProcessor extends AbstractProcessor {
         const initialValueCheck = calculationController.formalChecker.checkAndConvertFieldValue(id, idExtern, initialDisplayValue, new ErgebnisImpl());
         const initialInternalValue = initialValueCheck.internalXmlValue ?? null;
 
-        // Note: we can't easily distinguish between unfilled and invalid initial values because the check here only 
+        // Note: we can't easily distinguish between unfilled and invalid initial values because the check here only
         // provides the syntactic validity of the value, which would not suffice for index fields
         const initialValueIsUnfilledOrInvalid = initialInternalValue === null || initialInternalValue === "";
         const currentValueIsUnfilled = currentBasicValue === null || currentBasicValue === "";
@@ -438,7 +438,7 @@ class InputProcessor extends AbstractProcessor {
 
 /**
  * Represents a single output field of an external calculation for the purpose of execution.
- * 
+ *
  * Responsible for validating and applying the {@link IExternalCalculation.Result}s returned by
  * {@link IExternalCalculation.Callback}.
  */

@@ -62,7 +62,6 @@ import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IFieldType;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.INumberType;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IStringType;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.ITypeDefType;
-import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IUnspecifiedType;
 import com.mgmtp.a12.kernel.md.model.internal.service.mapping.type.NumberTypeImpl.NumberTypeImplBuilder;
 
 /**
@@ -109,14 +108,14 @@ public class TypeConverter {
 			case ITypeDefType typeDefType -> {
 				IFieldType effectiveFieldType = getEffectiveFieldType(typeDefType, typeDefs, pr, field);
 				if (effectiveFieldType == null) {
-					// This can happen if the type definition could not be found, we already reported the problem
-					yield new UnspecifiedTypeImpl(null);
+					// The type definition could not be found — the problem was already reported via IProblemReporter.
+					// Return a dummy StringType so that error collection can continue for the remaining fields.
+					yield StringTypeImpl.builder().build();
 				}
 				yield convert(effectiveFieldType, modelLocales, typeDefs, pr, field);
 			}
 			case IDateRangeType dateRangeType -> convertDateRange(dateRangeType);
 			case ICustomFieldType customFieldType -> convertCustomType(customFieldType);
-			case IUnspecifiedType unspecifiedType -> convertUnspecifiedType(unspecifiedType);
 			default ->
 					throw new IllegalArgumentException("Cannot convert data type '" + fieldType.getClass().getSimpleName() + "'.");
 		};
@@ -136,10 +135,6 @@ public class TypeConverter {
 			return null;
 		}
 		return typeDef.getFieldType();
-	}
-
-	private UnspecifiedTypeImpl convertUnspecifiedType(IFieldType dataType) {
-		return new UnspecifiedTypeImpl(((IUnspecifiedType) dataType).getDescription().orElse(null));
 	}
 
 	private PredefinedTypeImpl convertCustomType(IFieldType dataType) {

@@ -81,7 +81,7 @@ public abstract class Entity implements IEntity {
 		return annotations;
 	}
 
-	protected String getName() {
+	public String getName() {
 		return name;
 	}
 

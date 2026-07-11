@@ -41,6 +41,7 @@ import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.I
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.StringTemplateGroup;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IEntityId;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IEntityIdList;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.ast.ASTVisitor;
 
 /**
@@ -126,6 +127,13 @@ public class EntityIdsCollector extends ASTVisitor {
 			addIfNecessaryAndSetVarName((EntityIdList) entityIdList);
 		}
 		return true;
+	}
+
+	@Override
+	public boolean visitNext(int i, ISetOpOperation setOp) {
+		// We want the iteration entity in the Set, but the inner set operation is handled separately
+		// See e.g. CodeGenRuleDefinitionBuilder#getSetOpEntityIdsCollector
+		return false;
 	}
 
 	public List<EntityId> getEntityIds() {

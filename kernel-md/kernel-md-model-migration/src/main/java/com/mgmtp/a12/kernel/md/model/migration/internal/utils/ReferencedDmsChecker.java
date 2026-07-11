@@ -39,10 +39,11 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
+
+import tools.jackson.databind.JsonNode;
 
 /**
  * Implementation of checks for referenced document models (rdm). The reference is defined in another document model.

@@ -46,8 +46,8 @@ import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarO
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.RelUpContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.RelativeUpContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.SemanticIndexContext;
-import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.VordrucknameContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.VordruckzeileContext;
+import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.RegelKontextEntityContext;
 
 /**
  * This is the parent class for the antlr-generated class {@link GrammarOnly_ErrorTextParameterParser}. It declares all methods
@@ -104,9 +104,6 @@ public abstract class AbstractErrorTextParameterParser extends Parser {
 	protected void checkVordruckzeile(VordruckzeileContext ctx) {
 	}
 
-	protected void checkVordruckname(VordrucknameContext ctx) {
-	}
-
 	protected void checkLevelParam(GroupIndexContext ctx) {
 	}
 
@@ -132,5 +129,8 @@ public abstract class AbstractErrorTextParameterParser extends Parser {
 	}
 
 	protected void checkRelUp(RelUpContext context) {
+	}
+
+	protected void addRegelKontextEntityToReferencedEntities(RegelKontextEntityContext ctx) {
 	}
 }

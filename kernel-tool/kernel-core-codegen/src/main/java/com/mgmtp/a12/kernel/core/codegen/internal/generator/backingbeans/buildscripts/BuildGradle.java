@@ -47,10 +47,12 @@ public class BuildGradle extends CodeGenModel {
 		this.runtimeArtifactIdPart = kernelVersion.replace(".", "-");
 	}
 
+	@SuppressWarnings("unused") // accessed via template
 	public String getKernelVersion() {
 		return kernelVersion;
 	}
 
+	@SuppressWarnings("unused") // accessed via template
 	public String getRuntimeArtifactIdPart() {
 		return runtimeArtifactIdPart;
 	}

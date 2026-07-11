@@ -5,21 +5,33 @@ plugins {
 
 description = "Implementation of migration services for document model files"
 
+configurations {
+    testClasses {
+        canBeConsumed = true
+        canBeResolved = false
+        extendsFrom testImplementation
+    }
+}
+
 dependencies {
-    api project(':kernel-core-base-utils')
-    api project(':kernel-core-tool-api')
-    api project(':kernel-md-model-api')
-    api libs.baseModelMigrationApi // because of DocumentModelMigrator::migrate
+    api project(':kernel-internal-base-utils')
+    api project(':kernel-internal-core-tool-api')
+    api project(':kernel-md-documentmodel')
     api libs.jacksonAnnotations
     api libs.jacksonDatabind
     api libs.slf4jApi
 
     compileOnly libs.baseModelUtils // Only annotations
 
-    implementation project(':kernel-md-a12internal')
     implementation project(':kernel-md-serializer')
     implementation libs.baseModelApi
-    implementation libs.commonsIo
     implementation libs.commonsLang3
+    implementation libs.jacksonCore
 
+}
+
+artifacts {
+    testClasses(sourceSets.test.output.classesDirs.first()) {
+        builtBy tasks.named('testClasses')
+    }
 }

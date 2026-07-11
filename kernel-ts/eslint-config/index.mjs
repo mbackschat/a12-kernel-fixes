@@ -1,13 +1,11 @@
-import { strict as devtoolsConfigsStrict } from "@com.mgmtp.a12.devtools/eslint-config";
+import { strict }  from "@com.mgmtp.a12.devtools/eslint-config";
+import tsEslint from "typescript-eslint";
 import noNullPlugin from "eslint-plugin-no-null";
 import noticePlugin from "eslint-plugin-notice";
 import preferArrowPlugin from "eslint-plugin-prefer-arrow";
-import { defineConfig } from "eslint/config";
-import tsEslint from "typescript-eslint";
 
-export default defineConfig(
-  ...devtoolsConfigsStrict,
-  tsEslint.configs.recommended,
+export default tsEslint.config(
+  ...strict,
   {
     name: "kernel/general",
     plugins: {

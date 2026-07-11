@@ -108,40 +108,34 @@ public class EntityUtils {
 	}
 
 	/**
-	 * returns true if the given group is on the given path. I.e. the path starts with the full name
-	 * of the group. if both are equal, true is returned.
+	 * returns true if the given ancestorGroup is on the given descendentPath. I.e. the descendentPath starts with the full name
+	 * of the ancestorGroup. if both are equal, true is returned.
 	 *
-	 * @param group
-	 * 		group
-	 * @param path
-	 * 		path
-	 * @return true, if the entity starts with the given path, false otherwise.
+	 * @param ancestorGroup
+	 * 		ancestorGroup
+	 * @param descendentPath
+	 * 		descendentPath
+	 * @return true, if the ancestorGroup's fullName starts with descendentPath, false otherwise.
 	 */
-	public static boolean isAncestorOrEqual(IEntity group, String path) {
-		//add a slash to make sure we do not return if just the prefix is equal.
-		String pathWithSlash = path + SEPARATOR;
-		String entityPathWithSlash = group.getFullName() + SEPARATOR;
-		return pathWithSlash.startsWith(entityPathWithSlash);
+	public static boolean isAncestorOrEqual(IEntity ancestorGroup, String descendentPath) {
+		return isAncestorOrEqual(ancestorGroup.getFullName(), descendentPath);
 	}
 
 	/**
-	 * returns true if the given group is on the given path. I.e. the path starts with the full name
-	 * of the group. if both are equal, false is returned.
+	 * returns true if the given group is on the given descendentPath. I.e. the descendentPath starts with the full name
+	 * of the group. if both are equal, true is returned.
 	 *
-	 * @param group
-	 * 		group
-	 * @param path
-	 * 		path
-	 * @return true, if the entity starts with the given path and is not equal to the given path, false otherwise.
+	 * @param ancestorGroupFullName
+	 * 		full name of the group
+	 * @param descendentPath
+	 * 		descendentPath of the entity
+	 * @return true, if ancestorGroupFullName starts with descendentPath, false otherwise.
 	 */
-	public static boolean isAncestor(IEntity group, String path) {
+	public static boolean isAncestorOrEqual(String ancestorGroupFullName, String descendentPath) {
 		//add a slash to make sure we do not return if just the prefix is equal.
-		String pathWithSlash = path + SEPARATOR;
-		String entityPathWithSlash = group.getFullName() + SEPARATOR;
-		if (pathWithSlash.equals(entityPathWithSlash)) {
-			return false;
-		}
-		return pathWithSlash.startsWith(entityPathWithSlash);
+		String ancestorPathWithSlash = ancestorGroupFullName + SEPARATOR;
+		String descendentPathWithSlash = descendentPath + SEPARATOR; // add a / here too, so the above / addition doesn't break the "equal" case
+		return descendentPathWithSlash.startsWith(ancestorPathWithSlash);
 	}
 
 	/**

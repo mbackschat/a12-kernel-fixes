@@ -23,22 +23,6 @@ class <t.groovyPackageClassnamePrefix>ERValidator_<t.name> implements IValidator
 		}
 	} 
 
-    /**
-     * @deprecated since version 30.6.0. Will be removed with A12K-3589.
-     */
-    @Deprecated(since = "30.6.0")
-    @SuppressWarnings("removal")
-	public void validatePartlyWith3ValueLogic(
-			IData daten, 
-			Set\<IIdentifier\> relevantEntities,
-			Map\<String, ICustomCondition\> applBedingungen,
-			IResult ergebnis,
-			ValidationMode modus) throws ValidatorException {
-		pruefeParams(daten, ergebnis, modus);
-		ValidationCommand c = new ValidationCommand(<t.groovyPackageClassnamePrefix>R_<t.name>.getInstance(), modus, metaData, daten);
-		c.processPartlyValidation(daten, relevantEntities, applBedingungen, ergebnis);
-	}
-
 	public void validatePartlyWith3ValueLogic(
 			IData daten,
 			Set\<IIdentifier\> relevantEntities,
@@ -49,39 +33,12 @@ class <t.groovyPackageClassnamePrefix>ERValidator_<t.name> implements IValidator
 		c.processPartlyValidation(daten, relevantEntities, ergebnis);
 	}
 
-    /**
-     * @deprecated since version 30.6.0. Will be removed with A12K-3589.
-     */
-    @Deprecated(since = "30.6.0")
-    @SuppressWarnings("removal")
-	public void validateAll(IData daten,
-			Map\<String, ICustomCondition\> applBedingungen,
-			IResult ergebnis,
-			ValidationMode modus) throws ValidatorException {
-		validateAllWithDefaults(daten, applBedingungen, ergebnis, modus, null);
-	}
-
 	public void validateAll(IData daten,
 			IResult ergebnis,
 			ValidationMode modus) throws ValidatorException {
 		pruefeParams(daten, ergebnis, modus);
 		ValidationCommand c = new ValidationCommand(<t.groovyPackageClassnamePrefix>R_<t.name>.getInstance(), modus, metaData, daten);
-		c.processFullValidation(daten, ergebnis, null);
-	}
-
-	/**
-	 * This method is not contained in any interface, because it is not supposed to be used by applications. 
-	 * It is used internally for 'on-the-fly testing. 
-     * Will be removed with A12K-3593.
-	 */
-	public void validateAllWithDefaults(IData daten,
-			Map\<String, ICustomCondition\> applBedingungen,
-			IResult ergebnis,
-			ValidationMode modus, 
-			Set\<IIdentifier\> defaultValues) throws ValidatorException {
-		pruefeParams(daten, ergebnis, modus);
-		ValidationCommand c = new ValidationCommand(<t.groovyPackageClassnamePrefix>R_<t.name>.getInstance(), modus, metaData, daten);
-		c.processFullValidation(daten, applBedingungen, ergebnis, defaultValues);
+		c.processFullValidation(daten, ergebnis);
 	}
 
 	public ICalculationResult calculateAll(IData daten, ValidationMode modus, IResult ergebnis) {

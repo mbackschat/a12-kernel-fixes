@@ -32,32 +32,23 @@
 
 package com.mgmtp.a12.kernel.core.utils.internal.metaModel.customConditions;
 
-import java.util.Arrays;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICustomCondition;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
 import com.mgmtp.a12.kernel.core.utils.internal.PatternUtils;
-import com.mgmtp.a12.kernel.core.utils.internal.metaModel.IdentifierImpl;
 
 /**
  * The pattern of a field type string for A12 must be valid.
  */
 public class CheckStringPattern implements ICustomCondition {
 
-	private static final String TEMPLATE_NAME_SHORT_NAME = "templateReference";
-
 	@Override
 	public boolean check(IData data, Set<IIdentifier> relevantFields, Set<IIdentifier> formallyIncorrectFields,
 			IIdentifier errorField) {
 		if (CustomConditionUtil.isNotRelevant(errorField, relevantFields, formallyIncorrectFields)) {
-			return false;
-		}
-		IIdentifier templateNameId = CheckStringPattern.createTemplateNameId(errorField);
-		if (CustomConditionUtil.isNotRelevant(templateNameId, relevantFields, formallyIncorrectFields)) {
 			return false;
 		}
 		String pattern = data.getValue(errorField);
@@ -81,15 +72,6 @@ public class CheckStringPattern implements ICustomCondition {
 	 */
 	protected boolean isPatternValid(String pattern) {
 		return PatternUtils.isPatternValid(pattern);
-	}
-
-	private static IIdentifier createTemplateNameId(IIdentifier errorField) {
-		long[] indices = Arrays.copyOf(errorField.getIndices(), errorField.getIndices().length - 1);
-		// We assume that the templateName field is in the parent group as the error field ("PatternProperty/pattern")
-		String patternPropertyGroupFullName = ElementPathUtils.getParentPath(errorField.getName()); // parent group
-		String templateNameParentGroupFullName = ElementPathUtils.getParentPath(patternPropertyGroupFullName);
-		String templateNameFieldFullName = ElementPathUtils.createPath(templateNameParentGroupFullName, TEMPLATE_NAME_SHORT_NAME);
-		return new IdentifierImpl(templateNameFieldFullName, indices);
 	}
 
 }

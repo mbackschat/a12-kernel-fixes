@@ -33,18 +33,11 @@ package com.mgmtp.a12.kernel.md.rt.api;
 
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
 
-import com.mgmtp.a12.kernel.core.customfieldtype.CustomFieldTypeService;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
-import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator;
-import com.mgmtp.a12.kernel.core.rt.a12internal.custom.impl.CustomConditionService;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 import lombok.NonNull;
-
-// A12K-3589 remove this SuppressWarnings
-@SuppressWarnings("removal")
 @OnlyForUsage
 public interface DocumentProcessingConfig {
 
@@ -54,24 +47,14 @@ public interface DocumentProcessingConfig {
 	@NonNull Locale languageOfErrorMessages();
 
 	/**
-	 * @return The {@link ICustomConditionFactory}. If you still use the deprecated static registration of your implementations via {@link CustomConditionService} return {@code null}.
+	 * @return The {@link ICustomConditionFactory}.
 	 */
 	ICustomConditionFactory customConditionFactory();
 
 	/**
-	 * @return The {@link ICustomFieldTypeFactory}. If you still use the deprecated static registration of your implementations via {@link CustomFieldTypeService} return {@code null}.
+	 * @return The {@link ICustomFieldTypeFactory}.
 	 */
 	ICustomFieldTypeFactory customFieldTypeFactory();
-
-	/**
-	 * This data can be accessed in implementations of {@link ICustomFieldValidator}.
-	 * @return The {@link Map} containing your custom configurations.
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #customConditionFactory()} or {@link #customFieldTypeFactory()} instead. In your implementation
-	 * 		of {@link ICustomFieldTypeFactory} or {@link ICustomConditionFactory} you can already create the objects in the suitable
-	 * 		configuration. Therefore, it is not necessary to pass this data all the way through any longer.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	@NonNull Map<String, Object> additionalInformation();
 
 	/**
 	 * The rule language construct <code>Today</code> will evaluate to the passed date instead of the actual current date. If

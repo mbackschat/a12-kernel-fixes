@@ -59,6 +59,10 @@ public enum BasicTypeV2 implements UnionTypeHelper<BasicTypeV2> {
 		}
 	}
 
+	public static boolean nonEmpty(Object value) {
+		return !(value == null || (value instanceof String s && s.isEmpty()));
+	}
+
 	public static BasicTypeV2 tagOrThrow(Object value) {
 		return UnionTypeHelper.tagOrThrow(value, BasicTypeV2.class);
 	}

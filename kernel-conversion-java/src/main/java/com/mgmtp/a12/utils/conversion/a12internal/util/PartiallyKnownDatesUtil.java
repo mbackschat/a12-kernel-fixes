@@ -32,17 +32,26 @@
 
 package com.mgmtp.a12.utils.conversion.a12internal.util;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.TemporalField;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.mgmtp.a12.model.utils.Experimental;
+
+import lombok.Getter;
+import lombok.NonNull;
 
 /**
  * This class helps with the handling of partially known dates. The method require:
@@ -139,7 +148,7 @@ public class PartiallyKnownDatesUtil {
 	 * <b>Precondition:</b> May ONLY be used for dates without time.
 	 * </p>
 	 */
-	public static Date parseApproximatedDate(String partiallyKnownDate, String format, TimeZone timeZone) {
+	public static Date parseApproximatedDate(@NonNull String partiallyKnownDate, @NonNull String format, TimeZone timeZone) {
 
 		DateAndFormat dateWithFormat = new DateAndFormat(partiallyKnownDate, format, timeZone);
 		if (!ValidationDateParser.isSyntacticallyCorrect(dateWithFormat)) {
@@ -152,8 +161,39 @@ public class PartiallyKnownDatesUtil {
 		return ValidationDateParser.parseDateWithoutSyntaxCheck(dateWithFormat);
 	}
 
+	@Getter private static class LocalDateAdjuster {
+		LocalDate date;
+
+		LocalDateAdjuster(LocalDate date) {
+			this.date = date;
+		}
+
+		/**
+		 * @param dateAndFormat
+		 * 		the date to parse the date part from
+		 * @param datePart
+		 * 		the date part to parse
+		 * @param defaultValue
+		 * 		the default value to use
+		 * @return <code>1</code> if the corresponding value of the dateAndTimeFormat was a specific value and <code>0</code> if it
+		 * 		was the specification of the default (e.g. "00" for days).
+		 */
+		int setDatePart(DateAndFormat dateAndFormat, DatePart datePart, long defaultValue) {
+			String datePartValue = getValueOfDatePart(dateAndFormat, datePart);
+			TemporalField calendarField = getDateField(datePart);
+			if (datePart.getUnknownString().endsWith(datePartValue)) {
+				date = date.with(calendarField, defaultValue);
+				return 1;
+			} else {
+				this.date = date.with(calendarField, Integer.parseInt(datePartValue));
+				return 0;
+			}
+		}
+
+	}
+
 	/**
-	 * Creates a {@link Calendar}-instance based on the given date and format. If a date part is
+	 * Creates a {@link Instant}-instance based on the given date and format. If a date part is
 	 * unknown, it will be replaced as follows:
 	 * <ul>
 	 * <li>year 0000 -&gt; 4000</li>
@@ -164,70 +204,47 @@ public class PartiallyKnownDatesUtil {
 	 * day.
 	 * Note: the given value should be formally correct
 	 */
-	public static Calendar createCalendar(DateAndFormat dateAndFormat) {
-		Calendar cal = new GregorianCalendar(dateAndFormat.getTimeZone());
+	public static Instant createInstant(DateAndFormat dateAndFormat) {
 		if (DatePart.HOUR.isInFormat(dateAndFormat.getFormat())) {
 			// for the field types "date time" and "time" all parts are known -> no replacements needed
 			Date date = ValidationDateParser.parseDateWithoutSyntaxCheck(dateAndFormat);
-			cal.setTime(date);
+			return date.toInstant();
 		} else {
 			int initialGap = 4;
-			int millisecondGap = initialGap - setDatePart(cal, dateAndFormat, DatePart.YEAR, 4000);
-			millisecondGap = millisecondGap - setDatePart(cal, dateAndFormat, DatePart.MONTH, 12);
-			int lastDayOfTheMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-			millisecondGap = millisecondGap - setDatePart(cal, dateAndFormat, DatePart.DAY, lastDayOfTheMonth);
-			if (millisecondGap < initialGap) {
+			LocalDateAdjuster lda = new LocalDateAdjuster(LocalDate.of(4000, 12, 31));
+			int nanosecondGap = initialGap - lda.setDatePart(dateAndFormat, DatePart.YEAR, 4000);
+			nanosecondGap = nanosecondGap - lda.setDatePart(dateAndFormat, DatePart.MONTH, 12);
+			int lastDayOfTheMonth = lda.getDate().with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth();
+			nanosecondGap = nanosecondGap - lda.setDatePart(dateAndFormat, DatePart.DAY, lastDayOfTheMonth);
+			if (nanosecondGap < initialGap) {
 				// if one part of the date is unknown, we set the time some milliseconds before the next day
-				setTimeToMaximum(cal, millisecondGap);
+				return setTimeToMaximum(lda.getDate(), nanosecondGap).atZone(dateAndFormat.getTimeZone().toZoneId()).toInstant();
 			} else {
 				// if all date parts are known, we set the time to 0
-				DateUtil.clearTime(cal);
+				return lda.getDate().atStartOfDay().atZone(dateAndFormat.getTimeZone().toZoneId()).toInstant();
 			}
 		}
-		return cal;
 	}
 
 	/**
 	 * Sets the time part to 23:59:59.(100 - &lt;gap&gt;)
 	 */
-	private static void setTimeToMaximum(Calendar cal, int millisecondGap) {
-		cal.set(Calendar.HOUR_OF_DAY, cal.getActualMaximum(Calendar.HOUR_OF_DAY) - 1);
-		cal.set(Calendar.MINUTE, cal.getActualMaximum(Calendar.MINUTE) - 1);
-		cal.set(Calendar.SECOND, cal.getActualMaximum(Calendar.SECOND) - 1);
-		cal.set(Calendar.MILLISECOND, cal.getActualMaximum(Calendar.MILLISECOND) - millisecondGap);
-	}
-
-	/**
-	 * Sets the date part in the {@link Calendar}-instance with the corresponding value of the given
-	 * date. If the value of the given date part is unknown, this part is set with the given default
-	 * value.
-	 *
-	 * @return <code>1</code> if value of the date part was unknown, otherwise <code>0</code>.
-	 */
-	private static int setDatePart(Calendar cal, DateAndFormat dateAndFormat, DatePart datePart, int defaultValue) {
-		String datePartValue = getValueOfDatePart(dateAndFormat, datePart);
-		int calendarField = getCalendarField(datePart);
-		if (datePart.getUnknownString().endsWith(datePartValue)) {
-			cal.set(calendarField, defaultValue);
-			return 1;
-		} else {
-			cal.set(calendarField, Integer.parseInt(datePartValue));
-			return 0;
-		}
+	private static LocalDateTime setTimeToMaximum(LocalDate cal, int nanosecondGap) {
+		return cal.atTime(LocalTime.MAX).minus(Duration.ofNanos(nanosecondGap));
 	}
 
 	/**
 	 * Maps the values of {@link DatePart} to the corresponding calendar fields. Throws an
 	 * {@link IllegalArgumentException} if for the given date part no mapping is defined.
 	 */
-	private static int getCalendarField(DatePart datePart) {
+	private static TemporalField getDateField(DatePart datePart) {
 		switch (datePart) {
 			case DAY:
-				return Calendar.DAY_OF_MONTH;
+				return ChronoField.DAY_OF_MONTH;
 			case MONTH:
-				return Calendar.MONTH;
+				return ChronoField.MONTH_OF_YEAR;
 			case YEAR:
-				return Calendar.YEAR;
+				return ChronoField.YEAR;
 			default:
 				throw new IllegalArgumentException(
 						String.format("Given date part '%s' is not supported yet.", datePart.getFormatName()));

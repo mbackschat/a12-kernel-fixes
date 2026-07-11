@@ -32,34 +32,33 @@
 
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 /**
  * A field timeZone was added to the model config.
  */
-public class AddTimezoneStep extends BaseJsonNodeMigrationStep {
+public final class AddTimezoneStep {
 
 	private static final String TIME_ZONE = "timeZone";
 
-	public AddTimezoneStep(MigrationCache cache, MigrationStepConfigType stepConfigType, ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+	private AddTimezoneStep() {
 	}
 
-	@Override
-	public void execute(JsonNode model, MigrationLogger migrationLogger) {
-		String timezone = getTimezone(model);
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
+		String timezone = getTimezone(model, customMigConfig);
 		JsonNode modelConfig = ModelJsonUtil.extractDmConfig(model);
-		((ObjectNode) modelConfig).set(TIME_ZONE, TextNode.valueOf(timezone));
+		((ObjectNode) modelConfig).set(TIME_ZONE, StringNode.valueOf(timezone));
 	}
 
-	private String getTimezone(JsonNode model) {
+	private static String getTimezone(JsonNode model, ICustomMigrationConfig customMigConfig) {
 		String modelId = ModelJsonUtil.extractModelId(model);
 		return customMigConfig.getTimezone(modelId).getID();
 	}

@@ -19,10 +19,12 @@ public void calc_<t.uniqueName>(final CalculationController controller)
 	<else>
 	EbenenIterator iter = new EbenenIterator(start, ende, controller.getValidationCache().getGesetzteWiederholungen(), -1);
 	<endif>
-	
+
 	<t.filterParamsCreationCode; separator = "\n">
 	<t.filterCode; separator= "\n">
-	
+    <t.setOpParamsCreationCode; separator = "\n">
+    <t.setOperationCode; separator="\n">
+
 	<t.rtControllerParamsCreationCode; separator = "\n">
 
 	try {

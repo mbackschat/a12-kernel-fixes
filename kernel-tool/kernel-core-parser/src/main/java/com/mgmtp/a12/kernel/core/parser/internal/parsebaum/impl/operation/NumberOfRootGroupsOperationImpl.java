@@ -59,7 +59,7 @@ public final class NumberOfRootGroupsOperationImpl extends OperationImpl impleme
 	@Override
 	public String toString() {
 		String u = usb == IParseTreeEntity.UNSPECIFIED ? "" : "@" + usb;
-		return String.format("AnzahlUSB(%s%s)", vordruckName, u);
+		return String.format("AnzahlAngegebenerVordrucke(%s%s)", vordruckName, u);
 	}
 
 	@Override

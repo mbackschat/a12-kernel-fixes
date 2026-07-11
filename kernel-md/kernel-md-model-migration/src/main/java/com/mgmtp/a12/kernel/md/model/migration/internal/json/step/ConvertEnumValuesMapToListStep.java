@@ -32,21 +32,21 @@
 
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
+import static com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils.MAPPER;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
-import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
+import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * The representation of the enumeration values in json differs to the specification in the java
@@ -54,29 +54,26 @@ import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
  * {@code map value} is the corresponding multilingual label. In the java api it is a list of
  * {@code EnumValue}s. In this step, we align the json representation to the java specification.
  */
-public class ConvertEnumValuesMapToListStep extends BaseJsonNodeMigrationStep {
+public final class ConvertEnumValuesMapToListStep {
 
-	public ConvertEnumValuesMapToListStep(MigrationCache cache, MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+	private ConvertEnumValuesMapToListStep() {
 	}
 
-	@Override
-	public void execute(JsonNode model, MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		List<JsonNode> enumTypeNodes = model.findValues("EnumerationType");
 		for (JsonNode enumType : enumTypeNodes) {
 			JsonNode values = enumType.path(ModelJsonUtil.ENUMERATION_VALUES);
 			if (values.isMissingNode() || !values.isObject()) {
-				throw new MigrationException(new MigrationError(MigrationErrorType.MODEL_CONTENT_NOT_SUPPORTED)
-						.withMessage(
-								"The document model contains an enum field without 'values' or the existing 'values' are not a json object."));
+				throw MigrationUtils.contentNotSupportedException(
+						"The document model contains an enum field without 'values' or the existing 'values' are not a json object.");
 			}
 			ArrayNode newValues = createNewValues(values);
 			((ObjectNode) enumType).replace(ModelJsonUtil.ENUMERATION_VALUES, newValues);
 		}
 	}
 
-	private ArrayNode createNewValues(JsonNode values) {
+	private static ArrayNode createNewValues(JsonNode values) {
 		Iterator<Entry<String, JsonNode>> iterator = values.properties().iterator();
 		ArrayNode newValues = MAPPER.createArrayNode();
 		while (iterator.hasNext()) {

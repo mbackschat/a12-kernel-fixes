@@ -37,14 +37,12 @@ import java.util.List;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEC;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IBaseCalculationService.ICalculationRule;
-import com.mgmtp.a12.kernel.md.utils.OnlyForA12InternalUsage;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 /**
  * Extension of the {@link IEC} with {@link IRule}s and {@link ICalculationRule}s.
  */
 @OnlyForUsage
-@OnlyForA12InternalUsage
 public interface ElementContainer extends IEC {
 
 	/**

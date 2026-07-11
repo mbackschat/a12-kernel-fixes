@@ -46,7 +46,7 @@ import {
 	NumberConversionConfigBuilder,
 	NumberUtil,
 	StringUtil
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 import type { IIdentifier, IResult } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
@@ -439,33 +439,16 @@ export class FormatDefinitionZahl implements IFormatDefinition {
 
 		const thousandsSeparator = darstellungsInfo.getThousandsSeparatorForTrait(this._art.toString());
 		if (thousandsSeparator) {
-			const thousandsSeparatorPattern: RegExp = this._getThousandsSeparatorPattern(
-				// TODO: Fix this the next time the file is edited.
-				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-				thousandsSeparator!,
-				index
-			);
-			const nonLenient: any = param.nonLenientConversion();
-			// This method is not only used for the conversion, but also for other functions like validation,
-			// calculation and others.
-			// At this point the non-lenient parameter is always set for the conversions,
-			// but it is not set for the other functions, for which we want to keep the original behavior:
-			// non-lenient validation.
-			// This means, if the non-lenient parameter is not set, the validation should be non-lenient.
-			if ((nonLenient == null || <boolean>nonLenient) && !thousandsSeparatorPattern.test(wert)) {
-				const fehlerText = this._getFehlerText(
-					FormatDefinitionZahl._ZAHL_MIT_UNGUELTIGEN_ZEICHEN,
-					param
-				);
+			const thousandsSeparatorPattern: RegExp = this._getThousandsSeparatorPattern(thousandsSeparator, index);
+			if (param.nonLenientConversion() && !thousandsSeparatorPattern.test(wert)) {
+				const fehlerText = this._getFehlerText(FormatDefinitionZahl._ZAHL_MIT_UNGUELTIGEN_ZEICHEN, param);
 				return FehlerHandler.addFehler(
 					IFormaleFehlerConstants.FEHLER_ZAHL_MIT_UNGUELTIGEN_ZEICHEN,
 					[fehlerText],
 					param
 				);
 			}
-			// TODO: Fix this the next time the file is edited.
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			wert = wert.replaceAll(thousandsSeparator!, "");
+			wert = wert.replaceAll(thousandsSeparator, "");
 		}
 
 		if (darstellungsInfo.decimalPlacesOptional) {

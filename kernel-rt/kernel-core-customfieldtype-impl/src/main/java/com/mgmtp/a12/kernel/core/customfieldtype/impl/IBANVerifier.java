@@ -273,20 +273,4 @@ public class IBANVerifier implements ICustomFieldValidator {
 		}
 		return new CustomFieldTypeConversionResultImpl(IBANUtils.convertInternal2Display(xmlValue), null);
 	}
-
-	// A12K-3589 remove this SuppressWarnings
-	@SuppressWarnings("removal")
-	@Override
-	public @NonNull ICustomFieldTypeConversionResult convertDisplay2Internal(@NonNull String displayValue,
-			@NonNull Map<String, Object> configData) {
-		return convertDisplay2Internal(displayValue);
-	}
-
-	// A12K-3589 remove this SuppressWarnings
-	@SuppressWarnings("removal")
-	@Override
-	public @NonNull ICustomFieldTypeConversionResult convertInternal2Display(@NonNull String internalValue,
-			@NonNull Map<String, Object> configData) {
-		return convertInternal2Display(internalValue);
-	}
 }

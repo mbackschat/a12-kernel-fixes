@@ -32,19 +32,16 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
 import java.util.Optional;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IBaseCalculationService;
 import com.mgmtp.a12.kernel.md.model.a12internal.Computation;
-import com.mgmtp.a12.kernel.md.model.a12internal.VariantFilter;
+
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 public class ComputationSerializer extends StdSerializer<Computation> {
-
-	private static final long serialVersionUID = 1429934908087558769L;
 
 	public ComputationSerializer() {
 		this(null);
@@ -55,30 +52,25 @@ public class ComputationSerializer extends StdSerializer<Computation> {
 	}
 
 	@Override
-	public void serialize(Computation value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+	public void serialize(Computation value, JsonGenerator gen, SerializationContext provider) {
 		gen.writeStartObject();
-		gen.writeStringField("computedFieldRelPath", value.getComputedField().getRelativePath());
+		gen.writeStringProperty("computedFieldRelPath", value.getComputedField().getRelativePath());
 		Optional<String> roundingMode = value.getRoundingMode();
 		if (roundingMode.isPresent()
 				&& !IBaseCalculationService.RoundingMode.EXACT.toString().equals(roundingMode.get())) {
-			gen.writeStringField("roundingMode", roundingMode.get());
+			gen.writeStringProperty("roundingMode", roundingMode.get());
 		}
 		Optional<String> commonPrecondition = value.getCommonPrecondition();
 		if (commonPrecondition.isPresent()) {
-			gen.writeStringField("commonPrecondition", commonPrecondition.get());
+			gen.writeStringProperty("commonPrecondition", commonPrecondition.get());
 		}
-		gen.writeObjectField("computationAlternatives", value.getComputationAlternatives());
+		gen.writePOJOProperty("computationAlternatives", value.getComputationAlternatives());
 		if (!value.getErrorCodesToSuppress().isEmpty()) {
-			gen.writeObjectField("errorCodesToSuppress", value.getErrorCodesToSuppress());
+			gen.writePOJOProperty("errorCodesToSuppress", value.getErrorCodesToSuppress());
 		}
 		if (!value.getErrorMessage().isEmpty()) {
-			gen.writeFieldName("errorMessage");
-			JsonMapper.getWriterForNoNonEmpty().writeValue(gen, value.getErrorMessage());
-		}
-		Optional<VariantFilter> variantFilter = value.getVariantFilter();
-		if (variantFilter.isPresent()) {
-			gen.writeFieldName("variantFilter");
-			JsonMapper.getWriterForNoNonEmpty().writeValue(gen, variantFilter.get());
+			gen.writeName("errorMessage");
+			KernelJsonMapper.getWriterForNoNonEmpty().writeValue(gen, value.getErrorMessage());
 		}
 		gen.writeEndObject();
 	}

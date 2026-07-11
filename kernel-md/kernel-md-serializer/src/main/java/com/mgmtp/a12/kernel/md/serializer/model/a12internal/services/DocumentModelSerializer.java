@@ -36,15 +36,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.Validate;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.core.utils.internal.ProblemReporter;
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
@@ -55,22 +52,21 @@ import com.mgmtp.a12.kernel.md.model.a12internal.Group;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.model.api.IFieldTypeDefinition;
 import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelSerializer;
+import com.mgmtp.a12.kernel.md.model.internal.service.utils.ConsistencyCheckUtils;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.DocumentModelUtils;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.ElementUtils;
 import com.mgmtp.a12.kernel.md.model.internal.wrapper.DocumentModelWrapper;
 import com.mgmtp.a12.kernel.md.model.internal.wrapper.FieldTypeDefinitionWrapper;
 import com.mgmtp.a12.kernel.md.serializer.model.internal.service.DocumentModelSerializerImpl;
 import com.mgmtp.a12.kernel.md.serializer.model.internal.service.consistency.BasicConsistencyCheck;
-import com.mgmtp.a12.kernel.md.utils.OnlyForA12InternalUsage;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
-import com.mgmtp.a12.model.header.ModelReference;
 
 import lombok.NonNull;
+import tools.jackson.databind.JsonNode;
 
 /**
  * This service offers (de)serialization of a {@link IDocumentModel}.
  */
-@OnlyForA12InternalUsage
 @OnlyForUsage
 public class DocumentModelSerializer {
 
@@ -78,8 +74,7 @@ public class DocumentModelSerializer {
 	 * See
 	 * {@link IDocumentModelSerializer#deserialize(Reader)}.
 	 */
-	public DocumentModel deserialize(Reader reader) throws IOException {
-		Objects.requireNonNull(reader);
+	public @NonNull DocumentModel deserialize(@NonNull Reader reader) {
 		// the user is responsible for closing the reader
 		BufferedReader buffer = new BufferedReader(reader);
 		DocumentModel documentModel = DocumentModelSerializerImpl.getMapper().readValue(buffer, DocumentModel.class);
@@ -87,30 +82,18 @@ public class DocumentModelSerializer {
 		return resolveParentPointersAndModelReferences(documentModel);
 	}
 
-	public DocumentModel deserialize(@NonNull JsonNode jsonNode) throws IOException {
+	public @NonNull DocumentModel deserialize(@NonNull JsonNode jsonNode) {
 		Objects.requireNonNull(jsonNode);
 		DocumentModel documentModel = DocumentModelSerializerImpl.getMapper().treeToValue(jsonNode, DocumentModel.class);
 
 		return resolveParentPointersAndModelReferences(documentModel);
 	}
 
-	private static DocumentModel resolveParentPointersAndModelReferences(DocumentModel documentModel) {
+	private static @NonNull DocumentModel resolveParentPointersAndModelReferences(@NonNull DocumentModel documentModel) {
 		final DocumentModelRoot modelRoot = documentModel.getContent().getModelRoot();
 		modelRoot.getElements().forEach(elem -> elem.setParent(modelRoot));
 
-		List<Group> groupsWithIncludeDetails = DocumentModelUtils.resolveAndUpdateReferences(documentModel, new ProblemReporter());
-
-		if (!groupsWithIncludeDetails.isEmpty() && documentModel.getHeader().getModelReferences() != null) {
-			final Map<String, ModelReference> modelReferences = new HashMap<>();
-			documentModel.getHeader().getModelReferences().forEach(mr -> modelReferences.put(mr.getAlias(), mr));
-
-			groupsWithIncludeDetails.forEach(g -> {
-				ModelReference modelReference = modelReferences.get(g.getIncludeDetails().get().getModelReference().getAlias());
-				if (modelReference != null) {
-					g.getIncludeDetails().get().setModelReference(modelReference);
-				}
-			});
-		}
+		DocumentModelUtils.resolveAndUpdateReferences(documentModel, new ProblemReporter());
 
 		return documentModel;
 	}
@@ -120,7 +103,7 @@ public class DocumentModelSerializer {
 	 * <ul>
 	 * <li>If the {@link DocumentModel} is expanded the
 	 * serialized document model will also be expanded and the information about the include
-	 * definition (see {@link Group#getIncludeDetails()}) will be lost in order to avoid future
+	 * definition (see {@link Group#getIncludeConfig()}) will be lost in order to avoid future
 	 * inconsistencies.</li>
 	 * <li>If the {@link DocumentModel} is not expanded, either direct from the deserialization
 	 * process (see {@link DocumentModelSerializer#deserialize(Reader)}) or collapsed, the serialized document model will
@@ -141,8 +124,13 @@ public class DocumentModelSerializer {
 	 * 		a {@link IProblemReporter} to which basic consistency problems found with
 	 * 		the {@link DocumentModel} will be reported. May not be {@code null}.
 	 */
-	public void serialize(DocumentModel documentModel, Writer writer, IProblemReporter pr) throws IOException {
-		new DocumentModelSerializerImpl().serializeInternal(documentModel, writer, pr::reportProblem, false);
+	public void serialize(
+			@NonNull DocumentModel documentModel,
+			@NonNull Writer writer,
+			@NonNull IProblemReporter pr
+	) throws IOException {
+		DocumentModelSerializerImpl.serializeInternal(new DocumentModelWrapper(documentModel), writer,
+				ConsistencyCheckUtils.problemReporterToNotificationReceiver(pr), false);
 	}
 
 	/**
@@ -167,19 +155,21 @@ public class DocumentModelSerializer {
 	 * 		a {@link IProblemReporter} to which basic consistency problems found with
 	 * 		the {@link FieldTypeDefinition}s will be reported. May not be {@code null}.
 	 */
-	public void serializeFieldTypeDefinitions(DocumentModel documentModel, List<FieldTypeDefinition> fieldTypeDefinitions,
-			Writer writer, IProblemReporter pr) throws IOException {
-		Objects.requireNonNull(documentModel);
+	public void serializeFieldTypeDefinitions(
+			@NonNull DocumentModel documentModel,
+			@NonNull List<FieldTypeDefinition> fieldTypeDefinitions,
+			@NonNull Writer writer,
+			@NonNull IProblemReporter pr
+	) {
 		Validate.noNullElements(fieldTypeDefinitions);
-		Objects.requireNonNull(writer);
-		Objects.requireNonNull(pr);
 
 		List<IFieldTypeDefinition> iFieldTypeDefinitions = fieldTypeDefinitions.stream()
 				.map(FieldTypeDefinitionWrapper::new)
 				.collect(Collectors.toList());
 
 		DocumentModelSerializerImpl.getMapper().writeValue(writer, fieldTypeDefinitions);
-		BasicConsistencyCheck.checkFieldTypeDefinitions(new DocumentModelWrapper(documentModel), iFieldTypeDefinitions, pr);
+		BasicConsistencyCheck.checkFieldTypeDefinitions(new DocumentModelWrapper(documentModel), iFieldTypeDefinitions,
+				ConsistencyCheckUtils.problemReporterToNotificationReceiver(pr)::accept);
 	}
 
 	/**
@@ -204,14 +194,16 @@ public class DocumentModelSerializer {
 	 * 		a {@link IProblemReporter} to which basic consistency problems found with
 	 * 		the {@link Element}s will be reported. May not be {@code null}.
 	 */
-	public void serializeElements(DocumentModel documentModel, List<? extends Element> elements, Writer writer,
-			IProblemReporter pr) throws IOException {
-		Objects.requireNonNull(documentModel);
+	public void serializeElements(
+			@NonNull DocumentModel documentModel,
+			@NonNull List<? extends Element> elements,
+			@NonNull Writer writer,
+			@NonNull IProblemReporter pr
+	) {
 		Validate.noNullElements(elements);
-		Objects.requireNonNull(writer);
-		Objects.requireNonNull(pr);
 
 		DocumentModelSerializerImpl.getMapper().writeValue(writer, elements);
-		BasicConsistencyCheck.checkElements(new DocumentModelWrapper(documentModel), ElementUtils.convert(elements), pr);
+		BasicConsistencyCheck.checkElements(new DocumentModelWrapper(documentModel), ElementUtils.convert(elements),
+				ConsistencyCheckUtils.problemReporterToNotificationReceiver(pr)::accept);
 	}
 }

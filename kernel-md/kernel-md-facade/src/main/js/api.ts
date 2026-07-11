@@ -39,12 +39,8 @@ import type { DatePrecision, InterpretationOfYear, Localizable, LocalizedModelTe
 
 import type { ICustomFieldTypeFactory } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
-import { CustomFieldTypeService } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { CustomConditionService, IIdentifier } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
-
-
-import { CustomConditionFactoryWrapper } from "./internal/dm-runtime-service/CustomConditionFactoryWrapper.js";
+import { IIdentifier } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 // used for typedoc
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -387,15 +383,23 @@ export namespace DocumentModel {
 	export interface DocumentModelContent {
 		readonly modelInfo: DocumentModelInfo;
 		readonly modelConfig: DocumentModelConfig;
+		readonly documentUniquenessCriteria: DocumentUniquenessCriterion[];
 		readonly modelRoot: DocumentModel.Group;
 	}
 
 	export interface DocumentModelInfo {
 		readonly baseYear?: number;
+		readonly packet?: string;
 	}
 
 	export interface DocumentModelConfig {
 		readonly timeZone: string;
+	}
+
+	export interface DocumentUniquenessCriterion {
+		readonly name: string;
+		readonly fields: { fullName: string }[];
+		readonly errorMessage: LocalizedModelText;
 	}
 
 	/**
@@ -551,6 +555,14 @@ export namespace DocumentModel {
 	}
 
 	/**
+	 * Provides the configuration of group includes.
+	 */
+	export interface IncludeConfig {
+		readonly reference?: string;
+		readonly excludeRules?: boolean;
+	}
+
+	/**
 	 * A {@link Group} is a structural {@link Element} that serves as a container for other {@link Element}s.
 	 * It can be repeatable which means a document instance of this {@link DocumentModel} can contain multiple instances
 	 * of this {@link Group}.
@@ -561,8 +573,7 @@ export namespace DocumentModel {
 		readonly indexFieldName?: string;
 		readonly usageType?: string; // for example "Attachment" (formerly known as customType)
 		readonly elements: ReadonlyArray<Element>;
-		readonly modelAlias?: string;
-		readonly excludeRules?: boolean;
+		readonly includeConfig?: IncludeConfig;
 	}
 
 	/**
@@ -675,14 +686,10 @@ export type EntityInstanceValueMapping = Map<EntityInstancePath, string>;
 export interface GeneratedCodeRtConfig {
 	/**
 	 * The factory for the custom conditions that should be used.
-	 * 
-	 * Note: If provided, all implementations registered via {@link DocumentRtCustomExtensionService} will be ignored.
 	 */
 	readonly customConditionFactory?: ICustomConditionFactory;
 	/**
 	 * The factory for the custom field types that should be used.
-	 * 
-	 * Note: If provided, all implementations registered via {@link DocumentRtCustomExtensionService} will be ignored.
 	 */
 	readonly customFieldTypeFactory?: ICustomFieldTypeFactory;
 	/**
@@ -799,22 +806,6 @@ export interface DocumentRtService {
 	 */
 	compute(document: Document): DocumentComputationResult;
 
-	/**
-	 * Applies the computation results to a copy of the given document.
-	 * Only computed values for field instances without (formal) errors are added to the document.
-	 * 
-	 * If the provided document is not the same document used in {@link DocumentRtService.compute}, then the result may be
-	 * an invalid document.
-	 * 
-	 * <b>Note:</b> Before adding the computed field instances to the document, all computable field instances contained in the document are cleared
-	 * (the corresponding value is set to <code>null</code>).
-	 * 
-	 * @param computationResult The result after calling {@link DocumentRtService.compute}.
-	 * @param document The document which should be used as basis to create the result with the updated computed values.
-	 * @returns A new (copied) document with the computed values.
-	 * @deprecated since Kernel version 29.0.0. Use {@link DocumentComputationResult#appliedTo} instead.
-	 */
-	applyComputationResult(computationResult: DocumentComputationResult, document: Document): Document;
 }
 
 /**
@@ -825,11 +816,6 @@ export interface DocumentComputationResult {
 	 * Whether or not errors were encountered during computation processing.
 	 */
 	readonly noErrorOccurred: boolean;
-	/**
-	 * The list of all the computed values without formal errors.
-	 * @deprecated since Kernel version 29.0.0. Use {@link computedFieldInstancesWithoutErrors} instead.
-	 */
-	readonly computedFieldInstances: ComputedFieldInstance[];
 	/**
 	 * The {@link ComputedFieldInstance}s without formal errors (i.e. {@link ComputedFieldInstance.errorMessage} is `undefined`).
 	 * Does not include cleared field instances (i.e. {@link ComputedFieldInstance.value} is `""` or `null`).
@@ -989,13 +975,17 @@ export interface ICustomCondition {
 	 * The method must not change the data or the set of relevant entities.
 	 * The method must be thread-safe.
 	 *
+	 * Non-present field values should be handled appropriately. In particular, when reading field values from the
+	 * document via {@link DocumentService#getAssignedObject}, the returned value may be `undefined`, `null`
+	 * or `""` when a field instance is not filled.
+	 *
 	 * @param document The document that was passed to the validation call (see {@link DocumentRtService#validateFull}
 	 * and {@link DocumentRtService#validatePart}).
 	 * <br><br>
 	 * Please note that the {@link EntityInstanceValueMapping} passed to the validation call is not reflected
 	 * in the document, and instead provided as the parameter <code>valuesOfFieldInstancesToConsider</code>.
 	 * Implementations are responsible for respecting the overrides made through the {@link EntityInstanceValueMapping}.
-	 * 
+	 *
 	 * @param documentModelId The id of the {@link Document}'s model.
 	 * @param relevantEntityInstances All relevant entity instances for this check.
 	 *   <ul>
@@ -1071,34 +1061,3 @@ export function createCustomConditionFactory(obj: { readonly [key: string]: ICus
 	}
 }
 
-/**
- * Service provides projects the ability to extend kernel with their own functionality.
- * 
- * @deprecated Use {@link GeneratedCodeRtConfig.customFieldTypeFactory} and {@link GeneratedCodeRtConfig.customConditionFactory}
- * 		instead to provide your implementations e.g. for validation or computation. This class — and consequently the ability to
- * 		statically register your {@link ICustomFieldTypeFactory} and {@link ICustomConditionFactory} — will be removed with A12K-3589.
- */
-export class DocumentRtCustomExtensionService {
-	/**
-	 * Universally registers custom field types to be available to all future validation/conversion
-	 * calls.
-	 *
-	 * @param customFactory The custom field type factory to be registered. May not be <code>null</code>.
-	 *
-	 * <b>Note:</b> A previously registered custom condition name cannot be overwritten with this call.
-	 */
-	static registerCustomFieldTypes(customFactory: ICustomFieldTypeFactory): void {
-		CustomFieldTypeService.getInstance().register(customFactory);
-	}
-
-	/**
-	 * Universally registers custom conditions to be available to all future validation calls.
-	 *
-	 * @param customFactory The custom condition factory to be registered. May not be <code>null</code>.
-	 *
-	 * <b>Note:</b> A previously registered custom condition name cannot be overwritten with this call.
-	 */
-	static registerCustomConditions(customFactory: ICustomConditionFactory): void {
-		CustomConditionService.getInstance().register(new CustomConditionFactoryWrapper(customFactory));
-	}
-}

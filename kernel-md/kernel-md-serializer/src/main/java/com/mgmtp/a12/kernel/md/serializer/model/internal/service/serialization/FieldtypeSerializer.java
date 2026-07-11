@@ -32,7 +32,6 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -41,27 +40,25 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.PropertyWriter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.DateType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.FieldType;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IDateRangeType.InterpretationOfYear;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IDateType.DatePrecision;
 import com.mgmtp.a12.kernel.md.model.internal.impl.EnumValues;
 import com.mgmtp.a12.kernel.md.model.internal.impl.HintLists;
-import com.mgmtp.a12.model.header.Annotation;
+
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.ser.PropertyWriter;
+import tools.jackson.databind.ser.std.SimpleBeanPropertyFilter;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 public class FieldtypeSerializer extends StdSerializer<FieldType> {
 
-	private static final long serialVersionUID = 4691874774659601572L;
-	private static final Pattern EMPTY_JSON_OBJECT = Pattern.compile("^\\s*\\{\\s*\\}\\s*$");
+	private static final Pattern EMPTY_JSON_OBJECT = Pattern.compile("^\\s*\\{\\s*}\\s*$");
 
 	public FieldtypeSerializer() {
 		this(null);
@@ -72,17 +69,13 @@ public class FieldtypeSerializer extends StdSerializer<FieldType> {
 	}
 
 	@Override
-	public void serialize(FieldType value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+	public void serialize(FieldType value, JsonGenerator gen, SerializationContext provider) {
 		gen.writeStartObject();
-		gen.writeStringField("type", idFromValue(value));
-		if (!value.getAnnotations().isEmpty()) {
-			gen.writeFieldName("annotations");
-			JsonMapper.getWriterForFieldtypes().writeValue(gen, value.getAnnotations());
-		}
-		ObjectMapper fieldTypeMapper = JsonMapper.getWriterForFieldtypes();
+		gen.writeStringProperty("type", idFromValue(value));
+		ObjectMapper fieldTypeMapper = KernelJsonMapper.getWriterForFieldtypes();
 		if (!EMPTY_JSON_OBJECT.matcher(fieldTypeMapper.writeValueAsString(value)).matches()) {
 			String subTypeName = idFromValue(value);
-			gen.writeFieldName(subTypeName);
+			gen.writeName(subTypeName);
 			fieldTypeMapper.writeValue(gen, value);
 		}
 		gen.writeEndObject();
@@ -91,11 +84,6 @@ public class FieldtypeSerializer extends StdSerializer<FieldType> {
 	private String idFromValue(final Object value) {
 		return value.getClass().getSimpleName();
 	}
-}
-
-abstract class FieldTypeMixin {
-	@JsonProperty(access = Access.WRITE_ONLY)
-	List<Annotation> annotations;
 }
 
 abstract class StringTypeMixin {
@@ -184,11 +172,6 @@ abstract class EnumerationTypeEnumCategoryMixin {
 	String description;
 }
 
-abstract class UnspecifiedTypeMixin {
-	@JsonProperty("description")
-	String description;
-}
-
 abstract class CustomFieldTypeMixin {
 	@JsonProperty("name")
 	private String name;
@@ -223,14 +206,15 @@ abstract class DateTypeMixin {
 }
 
 class DatePrecisionFilter extends SimpleBeanPropertyFilter {
+
 	@Override
-	public void serializeAsField(Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer)
+	public void serializeAsProperty(Object pojo, JsonGenerator jgen, SerializationContext provider, PropertyWriter writer)
 			throws Exception {
 		if (writer.getName()
-				.equals("datePrecision") && pojo instanceof DateType && ((DateType) pojo).getDatePrecision() == DatePrecision.FULL) {
+				.equals("datePrecision") && pojo instanceof DateType dateType && dateType.getDatePrecision() == DatePrecision.FULL) {
 			return;
 		}
-		super.serializeAsField(pojo, jgen, provider, writer);
+		super.serializeAsProperty(pojo, jgen, provider, writer);
 	}
 }
 

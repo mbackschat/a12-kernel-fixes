@@ -74,6 +74,8 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IServiceConfigura
 import com.mgmtp.a12.kernel.core.utils.internal.ProblemReporterProxy;
 import com.mgmtp.a12.model.notification.Severity;
 
+import lombok.NonNull;
+
 /**
  * Implementation of {@link IRuleCollectionMetaInformation} providing methods to extract meta information of rule collections.
  */
@@ -93,11 +95,10 @@ public class RuleCollectionMetaInformation implements IRuleCollectionMetaInforma
 	}
 
 	@Override
-	public List<String> getApplicationConditionNames(Collection<? extends IRule> rules, IProblemReporter pm) {
-		Objects.requireNonNull(rules,
-				"getApplicationConditionNames: Parameter 'rules' may not be null.");
-		Objects.requireNonNull(pm, "getApplicationConditionNames: Parameter 'pm' may not be null.");
-
+	public @NonNull List<String> getApplicationConditionNames(
+			@NonNull Collection<? extends IRule> rules,
+			@NonNull IProblemReporter pm
+	) {
 		Collection<ICondition> conditions = rules.stream()
 				.map(rule -> ruleParser.parseBedingungNoExpand(rule, pm))
 				.collect(Collectors.toList());
@@ -105,10 +106,7 @@ public class RuleCollectionMetaInformation implements IRuleCollectionMetaInforma
 	}
 
 	@Override
-	public List<String> getApplicationConditionNames(Collection<ICondition> conditions) {
-		Objects.requireNonNull(conditions,
-				"getApplicationConditionNames: Parameter 'conditions' may not be null.");
-
+	public @NonNull List<String> getApplicationConditionNames(@NonNull Collection<ICondition> conditions) {
 		Set<String> result = new TreeSet<>();
 		for (ICondition condition : conditions) {
 			if (condition != null) {
@@ -166,7 +164,7 @@ public class RuleCollectionMetaInformation implements IRuleCollectionMetaInforma
 		ruleToCondition.keySet()
 				.removeIf(rule -> ruleToCondition.get(rule) == null); // if condition invalid
 
-		if (proxyPr.hasProblemOccurred()) {
+		if (proxyPr.hasErrorOccurred()) {
 			return new ModelChanges();
 		}
 		return getChangesAsSpecifiedByRules(ruleToCondition, pm);
@@ -191,7 +189,7 @@ public class RuleCollectionMetaInformation implements IRuleCollectionMetaInforma
 					modelChanges, ruleToCondition, ec, proxyPr, language);
 		}
 
-		if (proxyPr.hasProblemOccurred()) {
+		if (proxyPr.hasErrorOccurred()) {
 			return new ModelChanges();
 		}
 		return modelChanges;

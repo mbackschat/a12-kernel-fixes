@@ -42,6 +42,8 @@ import org.apache.commons.lang3.Validate;
 
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEnumerationType;
 
+import lombok.NonNull;
+
 /**
  * Default {@link IEnumerationType} implementation.
  */
@@ -98,7 +100,7 @@ class EnumerationTypeImpl implements IEnumerationType {
 	}
 
 	@Override
-	public String getsValue() {
+	public @NonNull String getsValue() {
 		return sValue;
 	}
 

@@ -1,24 +1,25 @@
 plugins {
     alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+
 }
 
 description = "service facade for services commonly used by tools"
 
 
 dependencies {
-    api project(':kernel-core-parser')
-    api project(':kernel-core-parsetree-api') // must be api because of MVKService
-    api project(':kernel-core-tool-api') // public methodensignaturen in ServiceFactory
+    api project(':kernel-internal-core-parser')
+    api project(':kernel-internal-core-parsetree-api') // must be api because of MVKService
+    api project(':kernel-internal-core-tool-api') // public methodensignaturen in ServiceFactory
     // must be api because of MVKService (code that uses MVKService appears to need IInternalCodeGeneratorService at compile time)
-    api project(':kernel-core-codegen-base')
+    api project(':kernel-internal-core-codegen-base')
+    api project(':kernel-internal-base-utils')
 
     compileOnly libs.baseModelUtils // Only annotations
-
-    implementation project(':kernel-core-codegen')
-    implementation project(':kernel-core-base-utils')
-    implementation project(':kernel-core-calc')
-    implementation project(':kernel-core-extmpspecifics')
-    implementation project(':kernel-core-service')
+    
+    implementation project(':kernel-internal-core-calc')
+    implementation project(':kernel-internal-core-extmpspecifics')
+    implementation project(':kernel-internal-core-service')
     implementation libs.baseModelConsistency
     implementation libs.commonsLang3
 

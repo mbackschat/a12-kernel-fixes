@@ -54,7 +54,6 @@ public interface IFieldType {
 	 * <li>INumberType</li>
 	 * <li>IYesNoType</li>
 	 * <li>IYesType</li>
-	 * <li>IUnspecifiedType</li>
 	 * </ul>
 	 *
 	 * @param expectedBaseType

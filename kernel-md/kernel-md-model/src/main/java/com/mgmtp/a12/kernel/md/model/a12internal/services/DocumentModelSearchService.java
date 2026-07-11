@@ -43,7 +43,6 @@ import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelSearchService;
 import com.mgmtp.a12.kernel.md.model.internal.service.DocumentModelSearchServiceImpl;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.ElementUtils;
 import com.mgmtp.a12.kernel.md.model.internal.wrapper.ElementWrapper;
-import com.mgmtp.a12.kernel.md.utils.OnlyForA12InternalUsage;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 /**
@@ -52,7 +51,6 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
  * <b>Attention:</b> This class needs to be re-instantiated whenever the {@link DocumentModel} is
  * changed because the content of the {@link DocumentModel} is cached internally.
  */
-@OnlyForA12InternalUsage
 @OnlyForUsage
 public class DocumentModelSearchService {
 

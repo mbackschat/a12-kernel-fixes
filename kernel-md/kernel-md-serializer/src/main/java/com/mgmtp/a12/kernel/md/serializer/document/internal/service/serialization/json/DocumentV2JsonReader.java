@@ -32,8 +32,6 @@
 
 package com.mgmtp.a12.kernel.md.serializer.document.internal.service.serialization.json;
 
-import static com.mgmtp.a12.kernel.md.model.internal.impl.RankedNotificationImpl.error;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,10 +42,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ValueNode;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentDeserializationConfig;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentSerializationException;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
@@ -61,6 +55,10 @@ import com.mgmtp.a12.kernel.md.serializer.document.internal.service.serializatio
 import com.mgmtp.a12.model.notification.RankedNotification;
 
 import lombok.NonNull;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ValueNode;
 
 public class DocumentV2JsonReader {
 	private static final String UNEXPECTED_NODE_TYPE = "The node %s has an unexpected node type %s, our json schema requires %s in this context.";
@@ -125,14 +123,13 @@ public class DocumentV2JsonReader {
 				case ObjectNode subgroupNode -> groupFromJson(subgroupNode, infoForChild).ifPresent(
 						// can only be a non-repeatable group, as it is a named child
 						group -> subGroups.put(name, RepetitionsV2.of(List.of(group))));
-				default -> info.notify(path -> error(
-						// [A12K-3638] I think it doesn't make sense to support malformed (regarding our json document format)
-						// json structures in this way, an IllegalArgumentException should be ok and simpler here (instead of just
-						// dropping this one node and trying to still deserialize the rest.
-						String.format(UNEXPECTED_NODE_TYPE, path, json.getNodeType(),
+				default ->
+					// this should not happen unless the json-serialized a12 document is malformed
+					throw new IllegalArgumentException(
+						String.format(UNEXPECTED_NODE_TYPE, name, childNode.getNodeType(),
 								String.format("%s, %s, or %s",
 										ValueNode.class.getSimpleName(), ArrayNode.class.getSimpleName(),
-										ObjectNode.class.getSimpleName()))));
+										ObjectNode.class.getSimpleName())));
 			}
 		});
 
@@ -148,20 +145,15 @@ public class DocumentV2JsonReader {
 		List<ObjectNode> repetitions = new ArrayList<>();
 
 		int index = 1;
-		for (Iterator<JsonNode> it = repetitionsNode.elements(); it.hasNext(); index++) {
+		for (Iterator<JsonNode> it = repetitionsNode.iterator(); it.hasNext(); index++) {
 			var elemNode = it.next();
 			if (elemNode instanceof ObjectNode groupNode) {
 				repetitions.add(groupNode);
 			} else {
-				// [A12K-3638] I think it doesn't make sense to support malformed (regarding our json document format)
-				// json structures in this way, an IllegalArgumentException should be ok and simpler here (instead of just
-				// dropping this one node and trying to still deserialize the rest.
-
-				// note: by completely dropping the wrong-type element, the repetition indices of potential subsequent valid group
-				// repetitions get shifted. So it would be cleaner to add an empty ObjectNode to repetitions here. But this would
-				// change the current behavior, and is only relevant for cases of malformed json. So it doesn't really matter.
-				info.atIndex(index).notify(path -> error(
-						String.format(UNEXPECTED_NODE_TYPE, path, elemNode.getNodeType(), ObjectNode.class.getSimpleName())));
+				// this should not happen unless the json-serialized a12 document is malformed
+				throw new IllegalArgumentException(
+						String.format(UNEXPECTED_NODE_TYPE, "element at index " + index, elemNode.getNodeType(),
+								ObjectNode.class.getSimpleName()));
 			}
 		}
 

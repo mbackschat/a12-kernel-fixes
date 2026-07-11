@@ -124,7 +124,7 @@ public final class EntityId extends STParameterClassBase implements IEntityId {
 			List<String> result = new ArrayList<>();
 			for (int i = 0; i < ebenen.length; i++) {
 				long spec = ebenen[i];
-				if (spec == IParseTreeEntity.ITERATION) {
+				if (spec == IParseTreeEntity.ITERATION || spec == IParseTreeEntity.INTERNAL_ITERATION) {
 					result.add(String.valueOf(IParseTreeEntity.ITERATION));
 				} else if (spec == IParseTreeEntity.SEMANTIC_INDEX) {
 					result.add(String.valueOf(IParseTreeEntity.SEMANTIC_INDEX));
@@ -148,25 +148,22 @@ public final class EntityId extends STParameterClassBase implements IEntityId {
 		}
 
 		private void addWildcardLayerSpec(List<String> layerSpecsCode, long[] ebenenSpecs, int level) {
-			// A12K-3044: NOTE: shouldn't the first two cases _only_ be entered for H-DVs?
-			if (level == 0) {// Vordruck
+			if (isHModel && level == 0) {// Vordruck
 				layerSpecsCode.add(String.format("%d, %d", lfdNrSternStart, lfdNrSternEnd));
 			} else if (isField && (level == ebenenSpecs.length - 1)) { // Zeile
+				assert isHModel : "No field wildcards in A12-DVs";
 				if (zeileSternEnd > zeileSternStart) {
 					layerSpecsCode.add(String.format("%d, %d", zeileSternStart, zeileSternEnd));
 				} else {
 					layerSpecsCode.add(String.format("%d", zeileSternEnd));
 				}
-			} else { // Kontext
-				if (!isHModel) {// bei H-DVs gibt es keine Kontextwiederholungen
-					long max = maxWerte[level];
-					if (max > 1) {
-						layerSpecsCode.add(String.format("1, %d", max));
-					} else {
-						layerSpecsCode.add("1");
-					}
+			} else if (!isHModel) {// for H-DVs, we ignore possibly existing wildcards for groups
+				long max = maxWerte[level];
+				if (max > 1) {
+					layerSpecsCode.add(String.format("1, %d", max));
+				} else {
+					layerSpecsCode.add("1");
 				}
-				// No additional index in H models
 			}
 		}
 

@@ -39,6 +39,6 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
  * All methods are thread safe.
  */
 @OnlyForUsage
-public interface IMVK_Service extends IServiceConfiguration, ICodeGeneratorService, IRuleParser, IRuleCollectionMetaInformation,
-		IRuleMetaInformation, IChangeRuleSupport, IConditionFormatter, IFieldErrorTextParser {
+public interface IMVK_Service extends IServiceConfiguration, IRuleParser, IRuleCollectionMetaInformation,
+		IRuleMetaInformation, IConditionFormatter, IFieldErrorTextParser {
 }

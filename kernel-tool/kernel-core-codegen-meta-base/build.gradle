@@ -5,7 +5,7 @@ plugins {
 description = "kernel-core-codegen-meta-base: Base project for the generation of meta API classes"
 
 dependencies {
-    api project(':kernel-core-codegen-base')
-    api project(':kernel-core-tool-api')
+    api project(':kernel-internal-core-codegen-base')
+    api project(':kernel-internal-core-tool-api')
     api libs.baseModelApi
 }

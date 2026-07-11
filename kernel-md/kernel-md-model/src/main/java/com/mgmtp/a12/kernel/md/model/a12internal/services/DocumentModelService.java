@@ -32,8 +32,8 @@
 
 package com.mgmtp.a12.kernel.md.model.a12internal.services;
 
-import java.io.IOException;
-import java.io.Writer;
+import static com.mgmtp.a12.kernel.md.model.internal.service.utils.ConsistencyCheckUtils.problemReporterToNotificationReceiver;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -65,6 +65,7 @@ import com.mgmtp.a12.kernel.core.utils.internal.ProblemReporter;
 import com.mgmtp.a12.kernel.core.utils.internal.ProblemReporterProxy;
 import com.mgmtp.a12.kernel.md.model.a12internal.Computation;
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
+import com.mgmtp.a12.kernel.md.model.a12internal.DocumentUniquenessCriterion;
 import com.mgmtp.a12.kernel.md.model.a12internal.Element;
 import com.mgmtp.a12.kernel.md.model.a12internal.Field;
 import com.mgmtp.a12.kernel.md.model.a12internal.FieldTypeDefinition;
@@ -73,26 +74,16 @@ import com.mgmtp.a12.kernel.md.model.a12internal.Rule;
 import com.mgmtp.a12.kernel.md.model.api.IComputation;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.model.api.IElement;
-import com.mgmtp.a12.kernel.md.model.api.IVariantFilter;
-import com.mgmtp.a12.kernel.md.model.api.services.DocumentModelExpansionException;
-import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelReferenceResolver;
-import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelService;
-import com.mgmtp.a12.kernel.md.model.internal.service.DocumentModelCollapseService;
-import com.mgmtp.a12.kernel.md.model.internal.service.DocumentModelExpandImportService;
-import com.mgmtp.a12.kernel.md.model.internal.service.DocumentModelExpandService;
 import com.mgmtp.a12.kernel.md.model.internal.service.ExternalDocumentModelService;
+import com.mgmtp.a12.kernel.md.model.internal.service.consistency.rules.DocumentUniquenessCriteriaRule;
 import com.mgmtp.a12.kernel.md.model.internal.service.mapping.IRuleFromComputation;
 import com.mgmtp.a12.kernel.md.model.internal.service.reduction.DocumentModelReduceService;
-import com.mgmtp.a12.kernel.md.model.internal.service.utils.DMProblemUtils;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.DocumentModelServiceUtils;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.ElementUtils;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.WrappedProblemWithSeverityLimitAndOrigin;
 import com.mgmtp.a12.kernel.md.model.internal.wrapper.DocumentModelWrapper;
-import com.mgmtp.a12.kernel.md.model.internal.wrapper.ElementWrapper;
-import com.mgmtp.a12.kernel.md.serializer.model.a12internal.services.DocumentModelSerializer;
+import com.mgmtp.a12.kernel.md.model.internal.wrapper.DocumentUniquenessCriterionWrapper;
 import com.mgmtp.a12.kernel.md.serializer.model.internal.service.ExternalDocumentModelSerializerService;
-import com.mgmtp.a12.kernel.md.utils.OnlyForA12InternalUsage;
-import com.mgmtp.a12.model.header.ModelReference;
 import com.mgmtp.a12.model.notification.RankedNotification;
 import com.mgmtp.a12.model.notification.Severity;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
@@ -102,70 +93,9 @@ import lombok.NonNull;
 /**
  * This service offers actions which can be run on a {@link DocumentModel}.
  */
-@OnlyForA12InternalUsage
 @OnlyForUsage
 public class DocumentModelService {
 
-	// ==================================
-	// handling of referenced models
-	// ==================================
-
-	/**
-	 * See
-	 * {@link IDocumentModelService#expand(IDocumentModel,
-	 * com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelReferenceResolver)}
-	 *
-	 * @deprecated use {@code CombinationModelService#expand} in order to get automatic recursive support for {@code CombinationModel}s too.
-	 */
-	@Deprecated(since = "30.2.0")
-	public void expand(DocumentModel documentModel, DocumentModelReferenceResolver resolver) {
-		ProblemReporter pr = new ProblemReporter();
-		expand(documentModel, resolver, pr);
-		if (pr.hasProblemOccurred(Severity.ERROR)) {
-			throw new DocumentModelExpansionException("Following problems occurred during expansion of document model '"
-					+ documentModel.getHeader().getId() + "':" + System.lineSeparator() + DMProblemUtils.join(pr.getProblems()));
-		}
-	}
-
-	/**
-	 * See {@link IDocumentModelService#expand(IDocumentModel, IDocumentModelReferenceResolver)}.
-	 *
-	 * @param pr
-	 * 		Errors during expansion (due to an invalid {@link DocumentModel}) will be reported to {@link IProblemReporter} pr,
-	 * 		instead of throwing an exception. If the origin of the problem could be determined, this can be accessed via
-	 *        {@link IProblem#getSource()} and it will be the reference of the corresponding {@link Element}.
-	 * @deprecated use {@code CombinationModelService#expand} in order to get automatic recursive support for {@code CombinationModel}s too.
-	 */
-	@Deprecated(since = "30.2.0")
-	public void expand(DocumentModel documentModel, DocumentModelReferenceResolver resolver, IProblemReporter pr) {
-		DocumentModelExpandService.expand(documentModel, resolver, pr);
-	}
-
-	/**
-	 * See {@link IDocumentModelService#collapse(IDocumentModel)}
-	 */
-	public void collapse(DocumentModel documentModel) {
-		DocumentModelCollapseService.collapse(documentModel);
-	}
-
-	/**
-	 * See
-	 * {@link IDocumentModelService#extractImportedTypeDefinitions(ModelReference,
-	 * com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelReferenceResolver,
-	 * List)}
-	 */
-	public List<FieldTypeDefinition> extractImportedTypeDefinitions(ModelReference modelRef,
-			DocumentModelReferenceResolver resolver, List<Locale> supportedLocales) {
-		ProblemReporter pr = new ProblemReporter();
-		List<FieldTypeDefinition> result =
-				new DocumentModelExpandImportService(resolver, supportedLocales, pr).extractImportedTypeDefinitions(modelRef);
-		if (pr.hasProblemOccurred(Severity.ERROR)) {
-			throw new DocumentModelExpansionException("Following problems occurred during extraction of typedefinitions of " +
-					"document model '" + modelRef.getReference() + "':" + System.lineSeparator() +
-					DMProblemUtils.join(pr.getProblems()));
-		}
-		return result;
-	}
 	// ==================================
 	// utilities
 	// ==================================
@@ -173,27 +103,17 @@ public class DocumentModelService {
 	/**
 	 * For more information see {@link IMVK_Service#getApplicationConditionNames(Collection, IProblemReporter)}.
 	 */
-	public List<String> getApplicationConditionNames(IMVK_Service imvkService, Collection<Rule> rules, IProblemReporter pr) {
+	public @NonNull List<String> getApplicationConditionNames(
+			@NonNull IMVK_Service imvkService, @NonNull Collection<Rule> rules, @NonNull IProblemReporter pr) {
 		List<IRule> irules = rules.stream().map(rule -> findIRule(imvkService, rule)).toList();
 		return imvkService.getApplicationConditionNames(irules, pr);
 	}
 
 	/**
-	 * Serializes the given {@link DocumentModel} into the given {@link Writer}, calling:
-	 * <ol>
-	 *     <li>{@link DocumentModelService#collapse(DocumentModel)}</li>
-	 *     <li>{@link DocumentModelSerializer#serialize(DocumentModel, Writer, IProblemReporter)}</li>
-	 * </ol>
-	 */
-	public void serialize(DocumentModel documentModel, Writer writer, IProblemReporter pr) throws IOException {
-		collapse(documentModel);
-		new DocumentModelSerializer().serialize(documentModel, writer, pr);
-	}
-
-	/**
 	 * For more information see {@link IMVK_Service#getDirectlyReferencedEntities(IRule rule, IProblemReporter pr)}.
 	 */
-	public Set<IEntity> getDirectlyReferencedEntities(IMVK_Service imvkService, Rule rule, IProblemReporter pr) {
+	public Set<IEntity> getDirectlyReferencedEntities(
+			@NonNull IMVK_Service imvkService, @NonNull Rule rule, @NonNull IProblemReporter pr) {
 		return imvkService.getDirectlyReferencedEntities(findIRule(imvkService, rule), pr);
 	}
 
@@ -230,7 +150,7 @@ public class DocumentModelService {
 	 * For more information see
 	 * {@link IDocumentModelService#getPath(com.mgmtp.a12.kernel.md.model.api.IElement)}.
 	 */
-	public String getPath(Element element) {
+	public @NonNull String getPath(@NonNull Element element) {
 		return ElementUtils.getPath(element);
 	}
 
@@ -279,24 +199,56 @@ public class DocumentModelService {
 	 * 		<li>{@link Field}</li>
 	 * 		<li>{@link Rule}</li>
 	 * 		<li>{@link Computation}</li>
+	 * 		<li>{@link FieldTypeDefinition}</li>
+	 * 		<li>{@link DocumentUniquenessCriterion}</li>
 	 * </ul>
 	 */
 	public void checkConsistency(DocumentModel documentModel, IProblemReporter pr) {
 		new ExternalDocumentModelService().checkConsistency(
-				convertToExternal(documentModel),
-				n -> pr.reportProblem(new MVKCoreError(
-						n.getMessage(),
-						n.getSeverity(),
-						unwrapProblemSource(n.getSource()))));
+				convertToExternal(documentModel), problemReporterToNotificationReceiver(pr));
 	}
 
-	private Object unwrapProblemSource(Object source) {
-		return switch (source) {
-			case DocumentModelWrapper documentModelWrapper -> documentModelWrapper.getDocumentModel();
-			case ElementWrapper elementWrapper -> elementWrapper.getElement();
-			case null -> null;
-			default -> source;
-		};
+	/**
+	 * Check the consistency of the provided Document Uniqueness Criterion. Includes a call to
+	 * {@link #checkDocumentUniquenessCriterionErrorText}.
+	 *
+	 * @param documentModel
+	 * 		the Document Model the Document Uniqueness Criterion is / will be part of
+	 * @param documentUniquenessCriterion
+	 * 		the Document Uniqueness Criterion to check
+	 * @param pr
+	 * 		the problem reporter that will receive the problems found
+	 */
+	public void checkDocumentUniquenessCriterionConsistency(
+			@NonNull DocumentModel documentModel,
+			@NonNull DocumentUniquenessCriterion documentUniquenessCriterion,
+			@NonNull IProblemReporter pr
+	) {
+		DocumentUniquenessCriteriaRule.checkDocumentUniquenessCriterionConsistency(
+				convertToExternal(documentModel),
+				new DocumentUniquenessCriterionWrapper(documentUniquenessCriterion),
+				problemReporterToNotificationReceiver(pr)::accept);
+	}
+
+	/**
+	 * Check the error text of the provided Document Uniqueness Criterion.
+	 *
+	 * @param documentModel
+	 * 		the Document Model the Document Uniqueness Criterion is / will be part of
+	 * @param documentUniquenessCriterion
+	 * 		the Document Uniqueness Criterion to check
+	 * @param pr
+	 * 		the problem reporter that will receive the problems found
+	 */
+	public void checkDocumentUniquenessCriterionErrorText(
+			@NonNull DocumentModel documentModel,
+			@NonNull DocumentUniquenessCriterion documentUniquenessCriterion,
+			@NonNull IProblemReporter pr
+	) {
+		DocumentUniquenessCriteriaRule.checkDocumentUniquenessCriterionErrorText(
+				convertToExternal(documentModel),
+				new DocumentUniquenessCriterionWrapper(documentUniquenessCriterion),
+				problemReporterToNotificationReceiver(pr)::accept);
 	}
 
 	/**
@@ -305,9 +257,6 @@ public class DocumentModelService {
 	 *
 	 * @param documentModel
 	 * 		the {@link DocumentModel} to map. May not be {@code null}.
-	 * @param variant
-	 * 		the variant to apply to the {@link DocumentModel} (see {@link IVariantFilter}. May
-	 * 		be {@code null}.
 	 * @param considerNotInD
 	 * 		- if {@code true} ExtMP-specific information is considered otherwise it is ignored.
 	 * @return an instance of {@link ElementContainer} that contains the same modeling configuration
@@ -316,9 +265,11 @@ public class DocumentModelService {
 	 * @throws IllegalArgumentException
 	 * 		if the DocumentModel cannot be converted due to an illegal format
 	 */
-	public ElementContainer convert(DocumentModel documentModel, String variant, boolean considerNotInD) {
+	public ElementContainer convert(DocumentModel documentModel, boolean considerNotInD) {
 		IDocumentModel extDocumentModel = convertToExternal(documentModel);
-		return DocumentModelServiceUtils.convert(extDocumentModel, variant, considerNotInD);
+		return DocumentModelServiceUtils.convert(extDocumentModel, considerNotInD, p -> {
+			throw new IllegalArgumentException(p.getMessage());
+		});
 	}
 
 	/**
@@ -327,9 +278,6 @@ public class DocumentModelService {
 	 *
 	 * @param documentModel
 	 * 		the {@link IDocumentModel} to map. May not be {@code null}.
-	 * @param variant
-	 * 		the variant to apply to the {@link IDocumentModel} (see {@link IVariantFilter}. May
-	 * 		be {@code null}.
 	 * @param considerNotInD
 	 * 		- if {@code true} ExtMP-specific information is considered otherwise it is ignored.
 	 * @return an instance of {@link ElementContainer} that contains the same modeling configuration
@@ -338,8 +286,10 @@ public class DocumentModelService {
 	 * @throws IllegalArgumentException
 	 * 		if the DocumentModel cannot be converted due to an illegal format
 	 */
-	public ElementContainer convert(IDocumentModel documentModel, String variant, boolean considerNotInD) {
-		return DocumentModelServiceUtils.convert(documentModel, variant, considerNotInD);
+	public ElementContainer convert(IDocumentModel documentModel, boolean considerNotInD) {
+		return DocumentModelServiceUtils.convert(documentModel, considerNotInD, p -> {
+			throw new IllegalArgumentException(p.getMessage());
+		});
 	}
 
 	/**
@@ -347,17 +297,14 @@ public class DocumentModelService {
 	 *
 	 * @param documentModel
 	 * 		the {@link DocumentModel} to map. May not be {@code null}.
-	 * @param variant
-	 * 		the variant to apply to the {@link DocumentModel} (see {@link IVariantFilter}. May
-	 * 		be {@code null}.
 	 * @return an instance of {@link ElementContainer} that contains the same modeling configuration
 	 * 		as the {@link DocumentModel} that was passed in.
 	 *
 	 * @throws IllegalArgumentException
 	 * 		if the DocumentModel cannot be converted due to an illegal format
 	 */
-	public ElementContainer convert(DocumentModel documentModel, String variant) {
-		return convert(documentModel, variant, false);
+	public ElementContainer convert(DocumentModel documentModel) {
+		return convert(documentModel, false);
 	}
 
 	/**
@@ -365,17 +312,14 @@ public class DocumentModelService {
 	 *
 	 * @param documentModel
 	 * 		the {@link IDocumentModel} to map. May not be {@code null}.
-	 * @param variant
-	 * 		the variant to apply to the {@link IDocumentModel} (see {@link IVariantFilter}. May
-	 * 		be {@code null}.
 	 * @return an instance of {@link ElementContainer} that contains the same modeling configuration
 	 * 		as the {@link IDocumentModel} that was passed in.
 	 *
 	 * @throws IllegalArgumentException
 	 * 		if the DocumentModel cannot be converted due to an illegal format
 	 */
-	public ElementContainer convert(IDocumentModel documentModel, String variant) {
-		return convert(documentModel, variant, false);
+	public ElementContainer convert(IDocumentModel documentModel) {
+		return convert(documentModel, false);
 	}
 
 	/**
@@ -383,34 +327,30 @@ public class DocumentModelService {
 	 *
 	 * @param documentModel
 	 * 		the {@link DocumentModel} for the service to work on. May not be {@code null}.
-	 * @param variant
-	 * 		the variant to apply to the {@link DocumentModel} (see {@link IVariantFilter}. May
-	 * 		be {@code null}.
 	 * @param pr
 	 * 		a {@link IProblemReporter} to which problems will be reported if they arise during conversion of the documentModel
 	 * @return the {@link IMVK_Service} instance for the given model.
 	 */
-	public IMVK_Service getMvkServiceForModel(DocumentModel documentModel, String variant, IProblemReporter pr) {
-		return getMvkServiceForModelInternal(documentModel, variant, pr);
+	public @NonNull IMVK_Service getMvkServiceForModel(@NonNull DocumentModel documentModel, @NonNull IProblemReporter pr) {
+		return getMvkServiceForModelInternal(documentModel, pr);
 	}
 
 	/**
-	 * Like {@link #getMvkServiceForModel(DocumentModel, String, IProblemReporter)}, but throws a RuntimeException if problems
+	 * Like {@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}, but throws a RuntimeException if problems
 	 * occur during conversion.
 	 */
-	public IMVK_Service getMvkServiceForModel(DocumentModel documentModel, String variant) {
+	public @NonNull IMVK_Service getMvkServiceForModel(@NonNull DocumentModel documentModel) {
 		return getMvkServiceForModel(
 				documentModel,
-				variant,
 				p -> {
 					throw new IllegalArgumentException("Error during creation of IMVK_Service for model "
 							+ documentModel.getHeader().getId() + " and no problemReporter was given:" + p.getMessage());
 				});
 	}
 
-	private MVKService getMvkServiceForModelInternal(DocumentModel documentModel, String variant, IProblemReporter pr) {
+	private @NonNull MVKService getMvkServiceForModelInternal(@NonNull DocumentModel documentModel, @NonNull IProblemReporter pr) {
 		IDocumentModel extDocModel = convertToExternal(documentModel);
-		ElementContainer ec = DocumentModelServiceUtils.convert(extDocModel, variant, pr);
+		ElementContainer ec = DocumentModelServiceUtils.convert(extDocModel, false, pr);
 		IServiceConfiguration serviceConfiguration = DocumentModelServiceUtils.createServiceConfiguration(extDocModel, ec);
 		return new MVKService(serviceConfiguration);
 	}
@@ -420,13 +360,10 @@ public class DocumentModelService {
 	 *
 	 * @param documentModel
 	 * 		the {@link DocumentModel} for the service to work on. May not be {@code null}.
-	 * @param variant
-	 * 		the variant to apply to the {@link DocumentModel} (see {@link IVariantFilter}. May
-	 * 		be {@code null}.
 	 * @return the {@link ICalculationService} instance for the given model.
 	 */
-	public ICalculationService getCalculationServiceForModel(DocumentModel documentModel, String variant) {
-		ElementContainer ec = convert(documentModel, variant);
+	public @NonNull ICalculationService getCalculationServiceForModel(@NonNull DocumentModel documentModel) {
+		ElementContainer ec = convert(documentModel);
 		IServiceConfiguration serviceConfiguration = DocumentModelServiceUtils.createServiceConfiguration(
 				convertToExternal(documentModel), ec);
 		return new ServiceFactory().getCalculationService(serviceConfiguration, ec.getAllCalculations());
@@ -487,8 +424,6 @@ public class DocumentModelService {
 	 * 		the fullName (path) of a computation within the documentModel
 	 * @param documentModel
 	 * 		the documentModel that contains the computation, the computation's referenced fields, etc.
-	 * @param variant
-	 * 		variant as described in {@link #getMvkServiceForModel(DocumentModel, String)}
 	 * @param pr
 	 * 		an IProblemReporter. You can use {@link OriginInComputationFragment#of(IProblem)} to obtain details about the
 	 * 		origin of the problem within the computation.
@@ -498,10 +433,9 @@ public class DocumentModelService {
 	public boolean isValidComputation(
 			String computationFullName,
 			DocumentModel documentModel,
-			String variant,
 			IProblemReporter pr
 	) {
-		return isValidComputation(computationFullName, documentModel, variant, pr, Collections.emptyList());
+		return isValidComputation(computationFullName, documentModel, pr, Collections.emptyList());
 	}
 
 	/**
@@ -517,8 +451,6 @@ public class DocumentModelService {
 	 * 		the fullName (path) of a computation within the documentModel
 	 * @param documentModel
 	 * 		the documentModel that contains the computation, the computation's referenced fields, etc.
-	 * @param variant
-	 * 		variant as described in {@link #getMvkServiceForModel(DocumentModel, String)}
 	 * @param pr
 	 * 		an IProblemReporter. You can use {@link OriginInComputationFragment#of(IProblem)} to obtain details about the
 	 * 		origin of the problem within the computation.
@@ -530,12 +462,11 @@ public class DocumentModelService {
 	public boolean isValidComputation(
 			String computationFullName,
 			DocumentModel documentModel,
-			String variant,
 			IProblemReporter pr,
 			@NonNull List<String> errorCodesToSuppress
 	) {
 		ComputationRuleAndMvkService mvkServiceAndRule =
-				deriveCalculationRuleAndMvkServiceForDM(computationFullName, documentModel, variant, pr);
+				deriveCalculationRuleAndMvkServiceForDM(computationFullName, documentModel, pr);
 		MVKService mvkService = mvkServiceAndRule.mvkService;
 		ICalculationRule calculationRule = mvkServiceAndRule.calculationRuleForComputation;
 
@@ -552,11 +483,10 @@ public class DocumentModelService {
 	private ComputationRuleAndMvkService deriveCalculationRuleAndMvkServiceForDM(
 			String computationFullName,
 			DocumentModel documentModel,
-			String variant,
 			IProblemReporter pr
 	) {
 		ProblemReporter prProxy = new ProblemReporterProxy(pr);
-		MVKService mvkService = getMvkServiceForModelInternal(documentModel, variant, p -> prProxy.reportProblem(
+		MVKService mvkService = getMvkServiceForModelInternal(documentModel, p -> prProxy.reportProblem(
 				new WrappedProblemWithSeverityLimitAndOrigin(
 						p,
 						isOriginIElementWithPath(p, computationFullName) ?
@@ -582,7 +512,7 @@ public class DocumentModelService {
 	 * For more information see
 	 * {@link IRuleConsistencyCheck#hasValidConditionText(IRule, IProblemReporter)}.
 	 */
-	public boolean hasValidConditionText(IMVK_Service imvkService, Rule rule, IProblemReporter pr) {
+	public boolean hasValidConditionText(@NonNull IMVK_Service imvkService, @NonNull Rule rule, @NonNull IProblemReporter pr) {
 		return imvkService.hasValidConditionText(findIRule(imvkService, rule), pr);
 	}
 
@@ -590,12 +520,12 @@ public class DocumentModelService {
 	 * For more information see
 	 * {@link IRuleConsistencyCheck#hasValidErrorText(IRule, Collection, boolean, IProblemReporter)}.
 	 */
-	public boolean hasValidErrorText(IMVK_Service imvkService, Rule rule, Collection<Locale> locales,
-			boolean extendProblemMessage, IProblemReporter pr) {
+	public boolean hasValidErrorText(@NonNull IMVK_Service imvkService, @NonNull Rule rule, @NonNull Collection<Locale> locales,
+			boolean extendProblemMessage, @NonNull IProblemReporter pr) {
 		return imvkService.hasValidErrorText(findIRule(imvkService, rule), locales, extendProblemMessage, pr);
 	}
 
-	private ElementContainer getElementContainer(IMVK_Service imvkService) {
+	private static @NonNull ElementContainer getElementContainer(@NonNull IMVK_Service imvkService) {
 		if (!(imvkService instanceof MVKService mvkService) || !(mvkService.getEc() instanceof ElementContainer ec)) {
 			throw new IllegalArgumentException(
 					"IMVK_Service must be acquired via 'DocumentModelService#getMvkServiceForModel'. Custom implementations are not allowed.");
@@ -603,29 +533,28 @@ public class DocumentModelService {
 		return ec;
 	}
 
-	private IRule findIRule(IMVK_Service imvkService, Rule rule) {
-		return findIRuleByPath(getPath(rule), getElementContainer(imvkService));
+	private static @NonNull IRule findIRule(@NonNull IMVK_Service imvkService, @NonNull Rule rule) {
+		return findIRuleByPath(ElementUtils.getPath(rule), getElementContainer(imvkService));
 	}
 
-	private IRule findIRuleForComputation(IMVK_Service imvkService, Computation computation) {
-		ICalculationRule calculationRule = findICalculationRuleByPath(getPath(computation),
-				getElementContainer(imvkService));
-		return calculationRule != null ? calculationRule.getRule() : null;
+	private static @NonNull IRule findIRuleForComputation(@NonNull IMVK_Service imvkService, @NonNull Computation computation) {
+		return findICalculationRuleByPath(ElementUtils.getPath(computation), getElementContainer(imvkService)).getRule();
 	}
 
-	private static IRule findIRuleByPath(String rulePath, ElementContainer elementContainer) {
+	private static @NonNull IRule findIRuleByPath(@NonNull String rulePath, @NonNull ElementContainer elementContainer) {
 		return elementContainer.getAllRules().stream()
 				.filter(rule -> rule.getFullName().equals(rulePath))
 				.findFirst()
-				.orElse(null);
+				.orElseThrow(() -> new IllegalArgumentException("Could not find rule at path '%s'".formatted(rulePath)));
 	}
 
-	private static ICalculationRule findICalculationRuleByPath(String calculationPath,
-			ElementContainer elementContainer) {
+	private static @NonNull ICalculationRule findICalculationRuleByPath(
+			@NonNull String calculationPath, @NonNull ElementContainer elementContainer) {
 		return elementContainer.getAllCalculations().stream()
 				.filter(calculation -> calculation.getRule().getFullName().equals(calculationPath))
 				.findFirst()
-				.orElse(null);
+				.orElseThrow(
+						() -> new IllegalArgumentException("Could not find computation at path '%s'".formatted(calculationPath)));
 	}
 
 	/**
@@ -698,22 +627,6 @@ public class DocumentModelService {
 						p.getLine(), p.getSourceStart(), p.getLineEnd(), p.getSourceEnd()));
 	}
 
-	/**
-	 * See {@link #isValidComputation(String, DocumentModel, String, IProblemReporter)}
-	 */
-	public boolean isValidComputation(String computationFullName,
-			DocumentModel documentModel, IProblemReporter pr) {
-		return isValidComputation(computationFullName, documentModel, null, pr, Collections.emptyList());
-	}
-
-	/**
-	 * See {@link #isValidComputation(String, DocumentModel, String, IProblemReporter)}
-	 */
-	public boolean isValidComputation(String computationFullName,
-			DocumentModel documentModel, IProblemReporter pr, List<String> errorCodesToSuppress) {
-		return isValidComputation(computationFullName, documentModel, null, pr, errorCodesToSuppress);
-	}
-
 	private static boolean isOriginIElementWithPath(IProblem p, String path) {
 		return (p.getSource() instanceof IElement element)
 				&& path.equals(ElementUtils.getPath(element));
@@ -726,7 +639,7 @@ public class DocumentModelService {
 			IProblemReporter pr
 	) {
 		ComputationRuleAndMvkService mvkServiceAndRule =
-				deriveCalculationRuleAndMvkServiceForDM(computationFullName, documentModel, null, pr);
+				deriveCalculationRuleAndMvkServiceForDM(computationFullName, documentModel, pr);
 
 		if (mvkServiceAndRule.mvkService == null || mvkServiceAndRule.calculationRuleForComputation == null) {
 			return operationText; // no formatting possible. errors have already been reported to pr
@@ -745,7 +658,7 @@ public class DocumentModelService {
 			IProblemReporter pr
 	) {
 		ComputationRuleAndMvkService mvkServiceAndRule =
-				deriveCalculationRuleAndMvkServiceForDM(computationFullName, documentModel, null, pr);
+				deriveCalculationRuleAndMvkServiceForDM(computationFullName, documentModel, pr);
 
 		if (mvkServiceAndRule.mvkService == null || mvkServiceAndRule.calculationRuleForComputation == null) {
 			return conditionText; // no formatting possible. errors have already been reported to pr

@@ -47,7 +47,6 @@ import {
 import { RtExternalIdentifier } from "@com.mgmtp.a12.kernel/kernel-core-runtime-ts/internal";
 
 import type {
-  ComputedFieldInstance,
   Document,
   DocumentComputationResult,
   DocumentValidationResult,
@@ -171,10 +170,6 @@ export class DocumentComputationResultImpl implements DocumentComputationResult 
     } else {
       return null;
     }
-  }
-
-  public get computedFieldInstances(): ComputedFieldInstance[] {
-    return this.computedFieldInstancesWithoutErrors;
   }
 
   public get noErrorOccurred(): boolean {

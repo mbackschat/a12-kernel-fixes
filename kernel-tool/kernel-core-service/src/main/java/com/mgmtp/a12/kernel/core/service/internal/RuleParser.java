@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -59,10 +58,12 @@ import com.mgmtp.a12.kernel.core.utils.internal.MVKCoreError;
 import com.mgmtp.a12.kernel.core.utils.internal.ProblemReporterProxy;
 import com.mgmtp.a12.model.notification.Severity;
 
+import lombok.NonNull;
+
 /**
  * Implements the interface {@link IRuleParser} for parsing rules.
  */
-public class RuleParser implements IRuleParser, IErrorTextParser {
+public class RuleParser implements IRuleParser {
 
 	private final IServiceConfiguration serviceConfiguration;
 
@@ -71,12 +72,12 @@ public class RuleParser implements IRuleParser, IErrorTextParser {
 	}
 
 	@Override
-	public ICondition parseConditionExpand(IRule rule, String conditionText, IProblemReporter pr) {
+	public ICondition parseConditionExpand(@NonNull IRule rule, @NonNull String conditionText, @NonNull IProblemReporter pr) {
 		return parseBedingungInternal(rule, conditionText, pr, ExpandMode.EXPAND);
 	}
 
 	@Override
-	public ICondition parseConditionNoExpand(IRule rule, String conditionText, IProblemReporter pr) {
+	public ICondition parseConditionNoExpand(@NonNull IRule rule, @NonNull String conditionText, @NonNull IProblemReporter pr) {
 		return parseBedingungInternal(rule, conditionText, pr, ExpandMode.NO_EXPAND);
 	}
 
@@ -88,10 +89,7 @@ public class RuleParser implements IRuleParser, IErrorTextParser {
 	}
 
 	@Override
-	public boolean hasValidConditionText(IRule rule, IProblemReporter pr) {
-		Objects.requireNonNull(rule, "hasValidConditionText: Parameter 'rule' may not be null.");
-		Objects.requireNonNull(pr, "hasValidConditionText: Parameter 'pr' may not be null.");
-
+	public boolean hasValidConditionText(@NonNull IRule rule, @NonNull IProblemReporter pr) {
 		// we take our own problem manager, to be able to reason about the problems later on.
 		MVKParserProblemManager mvkPm = new MVKParserProblemManager();
 		parseBedingungInternal(rule, mvkPm, ExpandMode.NO_EXPAND);
@@ -101,15 +99,16 @@ public class RuleParser implements IRuleParser, IErrorTextParser {
 	}
 
 	@Override
-	public boolean hasValidErrorText(IRule rule, Collection<Locale> locales, boolean extendProblemMessages, IProblemReporter pr) {
-		Objects.requireNonNull(rule, HAS_VALID_ERROR_RULE_NULL);
-		Objects.requireNonNull(locales, HAS_VALID_ERROR_TEXT_LOCALES_NULL);
-		Objects.requireNonNull(pr, HAS_VALID_ERROR_TEXT_PR_NULL);
-
+	public boolean hasValidErrorText(
+			@NonNull IRule rule,
+			@NonNull Collection<Locale> locales,
+			boolean extendProblemMessages,
+			@NonNull IProblemReporter pr
+	) {
 		return hasValidErrorText(rule, rule.getErrorMessages(), locales, extendProblemMessages, pr);
 	}
 
-	@Override public boolean hasValidCustomErrorEntities(IRule rule, IProblemReporter pm) {
+	@Override public boolean hasValidCustomErrorEntities(@NonNull IRule rule, @NonNull IProblemReporter pm) {
 		return hasValidCustomErrorEntities(rule, pm, null);
 	}
 
@@ -119,8 +118,8 @@ public class RuleParser implements IRuleParser, IErrorTextParser {
 	 * 		condition
 	 */
 	public <R extends IRule> boolean hasValidCustomErrorEntities(
-			R rule,
-			IProblemReporter pm,
+			@NonNull R rule,
+			@NonNull IProblemReporter pm,
 			Function<R, ICondition> customRule2ConditionNoExpandForCustomRefErrorEntities
 	) {
 		if (rule.getCustomRefErrorEntitiesIfFilled().isEmpty() && rule.getCustomRefErrorEntitiesIfNotFilled().isEmpty()) {
@@ -180,24 +179,25 @@ public class RuleParser implements IRuleParser, IErrorTextParser {
 	}
 
 	@Override
-	public boolean hasValidErrorText(IRule rule, ICondition condition, Collection<Locale> locales, boolean extendProblemMessages,
-			IProblemReporter pr) {
-		Objects.requireNonNull(rule, HAS_VALID_ERROR_RULE_NULL);
-		Objects.requireNonNull(locales, HAS_VALID_ERROR_TEXT_LOCALES_NULL);
-		Objects.requireNonNull(pr, HAS_VALID_ERROR_TEXT_PR_NULL);
-
+	public boolean hasValidErrorText(
+			@NonNull IRule rule,
+			ICondition condition,
+			@NonNull Collection<Locale> locales,
+			boolean extendProblemMessages,
+			@NonNull IProblemReporter pr
+	) {
 		Map<Locale, String> errorTexts = rule.getErrorMessages();
 		return hasValidErrorText(rule, errorTexts, locales, extendProblemMessages, pr, condition);
 	}
 
 	@Override
-	public boolean hasValidErrorText(IRule rule, Map<Locale, String> errorTexts, Collection<Locale> locales,
-			boolean extendProblemMessages, IProblemReporter pr) {
-		Objects.requireNonNull(rule, HAS_VALID_ERROR_RULE_NULL);
-		Objects.requireNonNull(errorTexts, HAS_VALID_ERROR_TEXT_ERROR_TEXTS_NULL);
-		Objects.requireNonNull(locales, HAS_VALID_ERROR_TEXT_LOCALES_NULL);
-		Objects.requireNonNull(pr, HAS_VALID_ERROR_TEXT_PR_NULL);
-
+	public boolean hasValidErrorText(
+			@NonNull IRule rule,
+			@NonNull Map<Locale, String> errorTexts,
+			@NonNull Collection<Locale> locales,
+			boolean extendProblemMessages,
+			@NonNull IProblemReporter pr
+	) {
 		ICondition condition = null;
 		boolean conditionIsInvalid = false;
 
@@ -221,15 +221,20 @@ public class RuleParser implements IRuleParser, IErrorTextParser {
 	}
 
 	@Override
-	public boolean hasValidErrorText(IRule rule, Map<Locale, String> errorTexts, Collection<Locale> locales,
-			boolean extendProblemMessages, IProblemReporter pm,
-			ICondition condition) {
+	public boolean hasValidErrorText(
+			@NonNull IRule rule,
+			@NonNull Map<Locale, String> errorTexts,
+			@NonNull Collection<Locale> locales,
+			boolean extendProblemMessages,
+			@NonNull IProblemReporter pm,
+			ICondition condition
+	) {
 		RuleErrortextChecker ftChecker = new RuleErrortextChecker(rule, condition, serviceConfiguration.getIEC(),
 				serviceConfiguration.getModelSpecificSettings(), extendProblemMessages);
 
 		MVKParserProblemManager mvkPm = new MVKParserProblemManager();
 		for (Locale loc : locales) {
-			ftChecker.checkErrorMessageNotEmptyAndCorrect(errorTexts.get(loc), rule.getFullName(), loc, mvkPm);
+			ftChecker.checkErrorMessageNotEmptyAndCorrect(errorTexts.get(loc), loc, mvkPm);
 		}
 		mvkPm.transferProblems(pm);
 
@@ -237,37 +242,35 @@ public class RuleParser implements IRuleParser, IErrorTextParser {
 	}
 
 	@Override
-	public ICondition parseBedingungExpand(IRule rule, IProblemReporter pm) {
+	public ICondition parseBedingungExpand(@NonNull IRule rule, @NonNull IProblemReporter pm) {
 		return parseBedingungInternal(rule, pm, ExpandMode.EXPAND);
 	}
 
 	@Override
-	public ICondition parseBedingungExpandPartially(IRule rule, IProblemReporter pm) {
+	public ICondition parseBedingungExpandPartially(@NonNull IRule rule, @NonNull IProblemReporter pm) {
 		return parseBedingungInternal(rule, pm, ExpandMode.EXPAND_PARTIALLY);
 	}
 
 	@Override
-	public ICondition parseBedingungNoExpand(IRule rule, IProblemReporter pm) {
+	public ICondition parseBedingungNoExpand(@NonNull IRule rule, @NonNull IProblemReporter pm) {
 		return parseBedingungInternal(rule, pm, ExpandMode.NO_EXPAND);
 	}
 
 	@Override
-	public ICondition parseBedingungSnippetNoExpand(String operationText, IRule rule, IProblemReporter pm) {
+	public ICondition parseBedingungSnippetNoExpand(@NonNull String operationText, @NonNull IRule rule,
+			@NonNull IProblemReporter pm) {
 		ParserService ps = new ParserService(serviceConfiguration);
 		return ps.parseConditionSnippet(rule, operationText, pm, ExpandMode.NO_EXPAND);
 	}
 
 	@Override
-	public IOperation parseOperationSnippetNoExpand(String operationText, IRule rule, IProblemReporter pm) {
+	public IOperation parseOperationSnippetNoExpand(@NonNull String operationText, @NonNull IRule rule,
+			@NonNull IProblemReporter pm) {
 		ParserService ps = new ParserService(serviceConfiguration);
 		return ps.parseOperationSnippet(rule, operationText, pm, ExpandMode.NO_EXPAND);
 	}
 
-	private ICondition parseBedingungInternal(IRule rule, IProblemReporter pm, ExpandMode expand) {
-		Objects.requireNonNull(rule, "parseBedingung: Parameter 'rule' may not be null.");
-		Objects.requireNonNull(pm, "parseBedingung: Parameter 'pm' may not be null.");
-		Objects.requireNonNull(expand, "parseBedingung: Parameter 'expand' may not be null.");
-
+	private ICondition parseBedingungInternal(@NonNull IRule rule, @NonNull IProblemReporter pm, @NonNull ExpandMode expand) {
 		return parseBedingungInternal(rule, rule.getErrorConditionText(), pm, expand);
 	}
 

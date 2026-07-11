@@ -33,6 +33,8 @@ R_<t.mTVA>.prototype.<t.uniqueRuleName> = function (controller, indices) {
 
 	<t.filterParamsCreationCode; separator = "\n">
 	<t.filterCode; separator= "\n">
+    <t.setOpParamsCreationCode; separator = "\n">
+    <t.setOperationCode; separator="\n">
 	<t.rtControllerParamsCreationCode; separator = "\n">
 
 	try {

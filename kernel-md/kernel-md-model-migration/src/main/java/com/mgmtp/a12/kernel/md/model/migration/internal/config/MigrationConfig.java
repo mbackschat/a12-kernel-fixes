@@ -34,109 +34,110 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.config;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
+import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationCode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.internal.InternalConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.internal.InternalStep;
+import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
+import com.mgmtp.a12.kernel.md.model.migration.internal.step.MigrationStep;
 
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-@Getter
+@Getter @RequiredArgsConstructor
 public class MigrationConfig {
-
-	static class Builder {
-		private InternalConfig internalConfig;
-		private ICustomMigrationConfig customConfig;
-
-		Builder internalConfig(InternalConfig internalConfig) {
-			this.internalConfig = internalConfig;
-			return this;
-		}
-
-		Builder customConfig(ICustomMigrationConfig customConfig) {
-			this.customConfig = customConfig;
-			return this;
-		}
-
-		/**
-		 * If internal intermediate steps are executed on the way to a version, the custom code to
-		 * be executed beforehand must be executed before the first of these internal intermediate
-		 * steps. This is necessary because external projects do not know the internal intermediate
-		 * steps; the custom code is always assigned to externally visible versions.
-		 *
-		 * @return a map with key targetModelVersion of an step and value equal to the code which should be executed before this
-		 * 		step.
-		 */
-		private Map<String, ICustomMigrationCode> assignCustomCodeBeforeToFittingVersion() {
-			Map<String, ICustomMigrationCode> map = new HashMap<>();
-
-			String firstVersionOfSeriesOfInternalVersions = null;
-			for (InternalStep step : internalConfig.getMigrationSteps()) {
-				boolean isInternalVersion = step.getIsInternalVersion(); // Default is 'null' auto-unboxing is thus safe.
-				if (isInternalVersion) {
-					if (firstVersionOfSeriesOfInternalVersions == null) {
-						firstVersionOfSeriesOfInternalVersions = step.getTargetModelVersion();
-					}
-					continue;
-				}
-				// Access customConfig only with externally visible target versions.
-				Optional<ICustomMigrationCode> ccBefore = customConfig.getCustomCodeBefore(step.getTargetModelVersion());
-				if (ccBefore.isPresent()) {
-					String v = firstVersionOfSeriesOfInternalVersions == null ? step.getTargetModelVersion()
-							: firstVersionOfSeriesOfInternalVersions;
-					map.put(v, ccBefore.get());
-				}
-				firstVersionOfSeriesOfInternalVersions = null;
-			}
-			return map;
-		}
-
-		MigrationConfig build() {
-			String finalModelVersion = internalConfig.getMigrationSteps()
-					.get(internalConfig.getMigrationSteps().size() - 1).getTargetModelVersion();
-
-			Map<String, ICustomMigrationCode> ccBeforeMap = assignCustomCodeBeforeToFittingVersion();
-			List<MigrationStepConfigType> migrationSteps = new ArrayList<>();
-
-			for (InternalStep step : internalConfig.getMigrationSteps()) {
-				ICustomMigrationCode ccBefore = ccBeforeMap.get(step.getTargetModelVersion());
-				boolean isInternalVersion = step.getIsInternalVersion();
-				// Access customConfig only with externally visible target versions.
-				Optional<ICustomMigrationCode> customCodeAfter = isInternalVersion ? Optional.empty()
-						: customConfig.getCustomCodeAfter(step.getTargetModelVersion());
-				ICustomMigrationCode ccAfter = customCodeAfter.orElse(null);
-
-				migrationSteps.add(new MigrationStepConfigType(
-						step.getBean(),
-						step.getSourceModelVersion(),
-						step.getTargetModelVersion(),
-						step.getIsInternalVersion(),
-						ccBefore,
-						ccAfter));
-			}
-
-			return new MigrationConfig(finalModelVersion, migrationSteps, customConfig);
-		}
-	}
-
-	static Builder builder() {
-		return new Builder();
-	}
-
-	private final String finalModelVersion;
-	private final List<MigrationStepConfigType> migrationSteps;
+	private final List<MigrationStep> migrationSteps;
 	private final ICustomMigrationConfig customConfig;
 
-	private MigrationConfig(String finalModelVersion, List<MigrationStepConfigType> migrationSteps,
-			ICustomMigrationConfig customConfig) {
-		this.finalModelVersion = finalModelVersion;
-		this.migrationSteps = Collections.unmodifiableList(migrationSteps);
-		this.customConfig = customConfig;
+	public static @NonNull MigrationConfig create(
+			@NonNull List<InternalStep> internalSteps,
+			@NonNull MigrationCache cache,
+			ICustomMigrationConfig customConfigOrNull,
+			boolean isForward
+	) {
+		var chunks = groupStepsIntoExternallyVisibleChunks(internalSteps);
+		if (!isForward) {
+			chunks = chunks.reversed();
+			chunks.forEach(Collections::reverse);
+		}
+
+		ICustomMigrationConfig customConfig = customConfigOrNull != null ? customConfigOrNull : new ICustomMigrationConfig() {
+		};
+
+		List<MigrationStep> migrationSteps = new ArrayList<>();
+		chunks.forEach(chunk ->
+					migrationSteps.addAll(processChunk(cache, isForward, customConfig, chunk))
+		);
+
+		return new MigrationConfig(migrationSteps, customConfig);
+	}
+
+
+	/**
+	 * create a {@link MigrationStep} for {@link InternalStep} and assign custom codes from custom config, where appropriate.
+	 * Background: If internal intermediate steps are executed on the way to a version, the custom code to be executed beforehand must be
+	 * executed before the first of these internal intermediate steps, i.e. before processing the first step of a chunk.
+	 * This is necessary because external projects do not know the internal intermediate steps;
+	 * the custom code is always assigned to externally visible versions.
+	 */
+	private static List<MigrationStep> processChunk(MigrationCache cache, boolean isForward, ICustomMigrationConfig customConfig,
+			List<InternalStep> chunk) {
+
+		List<MigrationStep> migrationSteps = new ArrayList<>();
+
+		String externalTargetVersionOfChunk = chunk.getLast().getTargetVersion(isForward);
+		ICustomMigrationCode customCodeBefore = customConfig.getCustomCodeBefore(externalTargetVersionOfChunk).orElse(null);
+		ICustomMigrationCode customCodeAfter = customConfig.getCustomCodeAfter(externalTargetVersionOfChunk).orElse(null);
+
+		Java8Utils.forEachIndexed(chunk, (i, step) -> {
+
+			var targetVersionOfStep = step.getTargetVersion(isForward);
+			var targetVersionOfStepIsInternal = ! (externalTargetVersionOfChunk.equals(targetVersionOfStep));
+
+			MigrationStepConfig stepConfig =
+					MigrationStepConfig.builder()
+					.sourceModelVersion(step.getSourceVersion(isForward))
+					.targetModelVersion( targetVersionOfStep)
+					.targetVersionIsInternal(targetVersionOfStepIsInternal)
+					.customCodeBefore(i == 0 ? customCodeBefore : null)
+					.customCodeAfter(i == chunk.size() - 1 ? customCodeAfter : null)
+					.build();
+			var implementation = isForward ? step.forwardMigration() : step.backwardMigration();
+			if (implementation != null) {
+				migrationSteps.add(new MigrationStep(cache, stepConfig, customConfig, implementation));
+			}
+		});
+		return migrationSteps;
+	}
+
+	/**
+	 * consider all internal steps for a forward migration and group them into chunks, each each chunk consisting of intermediat
+	 * internal target versions, and ending with a step towards an external target version
+	 * (this is needed, to decide at which steps user custom code should be executed) 
+	 */
+	private static List<List<InternalStep>> groupStepsIntoExternallyVisibleChunks(List<InternalStep> internalSteps) {
+		if (internalSteps.isEmpty()) {
+			return List.of();
+		}
+
+		List<List<InternalStep>> result = new ArrayList<>();
+		List<InternalStep> current = new ArrayList<>();
+
+		for (InternalStep step : internalSteps) {
+			current.add(step);
+			if (!step.newVersionIsInternal()) {
+				result.add(current);
+				current = new ArrayList<>();
+			}
+		}
+
+		if (!current.isEmpty()) {
+			result.add(current);
+		}
+
+		return result;
 	}
 
 	@Override

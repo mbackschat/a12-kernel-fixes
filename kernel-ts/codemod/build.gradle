@@ -25,7 +25,7 @@ tasks.register('custom_npm_install', Exec) {
     // see https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure
     outputs.cacheIf { false }
 
-    commandLine npm_executable, "install", "--loglevel", "warn", "--no-progress"
+    commandLine npm_executable, "install", "--legacy-peer-deps", "--loglevel", "warn", "--no-progress"
 }
 
 tasks.named('npm_install') {

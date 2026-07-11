@@ -79,7 +79,7 @@ import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_stru
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.FieldMappings;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.ResolutionStrategies;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.Slice;
-import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.type;
+import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.Type;
 import com.mgmtp.a12.model.notification.RankedNotification;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
@@ -485,14 +485,14 @@ public class StructuralMappingModelService {
 	 * 		<li>{@link ResolutionStrategies#targetGroupFullName()} is not a group in the target DM.</li>
 	 * 		</ul>
 	 */
-	public @NonNull Set<type> findValidResolutionStrategyTypes(
+	public @NonNull Set<Type> findValidResolutionStrategyTypes(
 			@NonNull MM_StructuralMappingModel_1 smm,
 			@NonNull DocumentPointer resolutionStrategyPointer
 	) {
 		getResolutionStrategy(smm, resolutionStrategyPointer); // check resolution strategy pointer
 		MappingBlocks mappingBlock = getMappingBlock(smm, resolutionStrategyPointer.parent());
 		int resolutionStrategyRepetition = Java8Utils.getLast(resolutionStrategyPointer.getPathParts()).repetitionIndex();
-		return Arrays.stream(type.values()).filter(rsType -> {
+		return Arrays.stream(Type.values()).filter(rsType -> {
 			MappingBlocks modifiedMappingBlock = mappingBlock
 					._with(MappingBlocks._pointer().resolutionStrategies(resolutionStrategyRepetition).type(), rsType);
 			return checkMappingBlock(modifiedMappingBlock);

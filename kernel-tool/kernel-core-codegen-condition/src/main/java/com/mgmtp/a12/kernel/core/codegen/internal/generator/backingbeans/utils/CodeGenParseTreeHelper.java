@@ -43,10 +43,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.mgmtp.a12.kernel.core.calc.internal.util.CalculationInfo;
 import com.mgmtp.a12.kernel.core.calc.internal.util.DynamicEnumerationInfo;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.CodeGenFilterCondition;
+import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.CodeGenSetOperation;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.EntityId;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.EntityIdsCollector;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.conditions.CodeGenCondition;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.CodeGenOperation;
+import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.SetOpOperation;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.conversion.CodeGenCreator;
 import com.mgmtp.a12.kernel.core.codegen.internal.utils.CalculationCodeGenUtilities;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.ExpandMode;
@@ -55,18 +57,21 @@ import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.util.ExpandService;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IEntityId;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.ICondition;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.ast.ASTVisitor;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEC;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICalculationInfo;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IDynamicEnumerationInfo;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IBaseCalculationService.RoundingMode;
 
+import lombok.Getter;
+
 /**
  * Helper class to create {@link CodeGenCondition}s and {@link CodeGenOperation}s.
  * The entities are collected in an {@link EntityIdsCollector}.
- * Also the filter conditions ({@link IEntityId#getFilterCondition()}) are handled. They are
+ * Also, the filter conditions ({@link IEntityId#getFilterCondition()}) are handled. They are
  * extracted and transformed and the variable name is set in the corresponding {@link IEntityId}.
- * The filterConditions can extracted via {@link #getFilterConditions()} after the transformation.
+ * The filterConditions can be extracted via {@link #getFilterConditions()} after the transformation.
  */
 public class CodeGenParseTreeHelper {
 
@@ -75,9 +80,11 @@ public class CodeGenParseTreeHelper {
 	private final ExpandMode expandMode;
 	private final String uniqueFieldName;
 	private final EntityIdsCollector filterEntityIdsCollector = new EntityIdsCollector("filter_");
+	@Getter private final EntityIdsCollector setOperationEntityIdsCollector = new EntityIdsCollector("setOp_");
 	private final String baseYear;
 	private final Function<IEntityId, String> uniqueFieldNamesMapper;
 	private final FilterConditionVisitor filterConditionVisitor = new FilterConditionVisitor();
+	private final SetOperationVisitor setOperationVisitor = new SetOperationVisitor();
 
 	/**
 	 * @param ec
@@ -108,20 +115,39 @@ public class CodeGenParseTreeHelper {
 
 	private final class FilterConditionVisitor extends ASTVisitor {
 		private int filterNumber = 0;
-		private List<CodeGenFilterCondition> filterConditions = new ArrayList<>();
+		private final List<CodeGenFilterCondition> filterConditions = new ArrayList<>();
 
 		@Override
 		public boolean visit(IEntityId entityId) {
 			if (entityId.getFilterCondition() != null) {
 				String varName = "filterCond" + (filterNumber++);
 				CodeGenFilterCondition codeGenFilterCondition = new CodeGenFilterCondition(
-						convertCondition(entityId.getFilterCondition(), filterEntityIdsCollector), varName,
-						filterEntityIdsCollector);
+						convertCondition(entityId.getFilterCondition(), filterEntityIdsCollector), varName
+				);
 				filterConditions.add(codeGenFilterCondition);
 				if (entityId instanceof EntityId) {
 					((EntityId) entityId).setFilterConditionName(varName);
 				}
 			}
+			return false;
+		}
+	}
+
+	private final class SetOperationVisitor extends ASTVisitor {
+		private int setOperationNumber = 0;
+		private final List<CodeGenSetOperation> setOperations = new ArrayList<>();
+
+		public boolean visit(ISetOpOperation setOp) {
+			String varName = "setOp" + (setOperationNumber++);
+			if (!(setOp instanceof SetOpOperation setOpOperation)) {
+				throw new IllegalStateException("The SetOperationVisitor must only be called on already converted parse trees.");
+			}
+			setOpOperation.getOperation().traverse(setOperationEntityIdsCollector);
+			CodeGenSetOperation setOperation = new CodeGenSetOperation(
+					setOpOperation.getOperation(), varName
+			);
+			setOperations.add(setOperation);
+			setOpOperation.setOperationVarName(varName);
 			return false;
 		}
 	}
@@ -148,6 +174,7 @@ public class CodeGenParseTreeHelper {
 		CodeGenCondition result = CodeGenCreator.convertCondition(preCondition, uniqueFieldNamesMapper,
 				uniqueFieldName, baseYear, idCollector, ec, expandGroups);
 		result.traverse(filterConditionVisitor);
+		result.traverse(setOperationVisitor);
 		return result;
 	}
 
@@ -160,6 +187,7 @@ public class CodeGenParseTreeHelper {
 		CodeGenOperation result = CodeGenCreator.convertOperation(operation, uniqueFieldNamesMapper,
 				uniqueFieldName, baseYear, idCollector, ec, expandGroups);
 		result.traverse(filterConditionVisitor);
+		result.traverse(setOperationVisitor);
 		return result;
 	}
 
@@ -226,7 +254,12 @@ public class CodeGenParseTreeHelper {
 		return filterConditionVisitor.filterConditions;
 	}
 
+	public List<CodeGenSetOperation> getSetOperations() {
+		return setOperationVisitor.setOperations;
+	}
+
 	public EntityIdsCollector getFilterConditionEntityIdsCollector() {
 		return filterEntityIdsCollector;
 	}
+
 }

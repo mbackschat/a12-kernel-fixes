@@ -32,47 +32,121 @@
 
 package com.mgmtp.a12.kernel.md.rt.internal.service;
 
-import java.util.Optional;
+import static com.mgmtp.a12.kernel.md.model.internal.service.utils.DocumentModelResolverUtils.getDocumentModelOrThrow;
 
-import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICalculator;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import com.mgmtp.a12.kernel.core.rt.a12internal.IGeneratedCodeAccessFactory;
+import com.mgmtp.a12.kernel.core.utils.internal.HashingHelper;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
+import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelResolver;
+import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelSerializer;
+import com.mgmtp.a12.kernel.md.model.internal.service.ExternalDocumentModelService;
+import com.mgmtp.a12.kernel.md.model.internal.service.codegen.GroovyCodeGeneratorConfig;
+import com.mgmtp.a12.kernel.md.model.internal.service.utils.DMProblemUtils;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.DocumentModelServiceUtils;
+import com.mgmtp.a12.kernel.md.model.internal.service.utils.RankedNotificationUtils;
+import com.mgmtp.a12.kernel.md.rt.api.DocumentValidationException;
 import com.mgmtp.a12.kernel.md.rt.api.IDocumentDynamicServiceConfig;
-import com.mgmtp.a12.kernel.md.rt.api.IDocumentModelIdProvider;
+import com.mgmtp.a12.kernel.md.rt.api.IModelCode;
+import com.mgmtp.a12.kernel.md.rt.api.IModelCodeHashProvider;
+import com.mgmtp.a12.kernel.md.serializer.model.internal.service.DocumentModelSerializerImpl;
+import com.mgmtp.a12.model.notification.RankedNotification;
+import com.mgmtp.a12.model.notification.Severity;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 public class DynamicModelProvider implements IModelProvider {
 
-	private final DocumentModelCodeGenerator documentModelCodeGenerator;
-	private final IDocumentModelIdProvider modelIdProvider;
+	private final @NonNull IDocumentDynamicServiceConfig config;
+	private final @NonNull IDocumentModelResolver documentModelResolver;
+	private static final ConcurrentMap<String, Object> LOCK_OBJECTS = new ConcurrentHashMap<>();
 
-	public DynamicModelProvider(IDocumentDynamicServiceConfig config) {
-		Optional<IDocumentModelIdProvider> localModelIdProvider = config.getModelIdProvider();
-		modelIdProvider = localModelIdProvider.orElseGet(() -> DocumentModelServiceUtils::createGeneratedCodeId);
-		this.documentModelCodeGenerator = new DocumentModelCodeGenerator(config.getCache(), modelIdProvider);
+	@Override public String createModelCodeIdentifier(IDocumentModel documentModel) {
+		return config.getModelIdProvider()
+				.orElse(DocumentModelServiceUtils::createGeneratedCodeId)
+				.getDocumentModelId(documentModel);
 	}
 
 	@Override
-	public IValidator getValidator(IDocumentModel documentModel, String variant) {
-		return getModelCode(documentModel, variant).getValidator();
+	public IGeneratedCodeAccessFactory getGeneratedCodeAccessFactory(String documentModelId) {
+		IDocumentModel documentModel = getDocumentModelOrThrow(documentModelResolver, documentModelId);
+		String modelCodeIdentifier = createModelCodeIdentifier(documentModel);
+		IModelCode modelCode = config.getCache().getModelCode(modelCodeIdentifier);
+		IModelCodeHashProvider hashProvider = config.getModelCodeHashProvider()
+				.orElse((dmId, resolver) -> calculateModelHash(documentModel));
+
+		String modelHash = hashProvider.getHash(documentModelId, documentModelResolver);
+		if (modelCode == null || !Objects.equals(modelHash, modelCode.getModelHash())) {
+			// Note: The lock here does not prevent concurrent modifications of the cache - those can occur at any point in time
+			// since it is controlled by the caller. Assuming that ValidationModelGroovyCode is immutable and that the hash
+			// comparison is a sufficient check for equality, we can guarantee that the model code returned will match the document
+			// model, because:
+			// - in case we return code from the cache, we validate its hash _after_ fetching it from the cache
+			// - in case we generate new code, we return our freshly generated code directly without additional cache lookup. If
+			//   the cache entry got modified during code generation, it would not affect our return value
+			// We can _not_ guarantee that the cache entry will be correct afterward. At worst, this will result in unnecessary code
+			// generation.
+			//
+			// In case the hashing function is _not_ sufficient, we can easily reach inconsistent cache states (regardless of
+			// whether we use a lock here), which could result in outdated models being used for the validation/computation.
+			Object lock = getLockForModel(modelCodeIdentifier);
+			synchronized (lock) {
+				modelCode = config.getCache().getModelCode(modelCodeIdentifier);
+				if (modelCode == null || !Objects.equals(modelHash, modelCode.getModelHash())) {
+					String generatedPlainCode = doCodeGeneration(documentModel);
+					modelCode = new ValidationModelGroovyCode(modelHash, generatedPlainCode);
+					config.getCache().addModelCode(modelCodeIdentifier, modelCode);
+				}
+			}
+		}
+
+		return (ValidationModelGroovyCode) modelCode;
 	}
 
-	@Override
-	public ICalculator getCalculator(IDocumentModel documentModel, String variant) {
-		return getModelCode(documentModel, variant).getCalculator();
+	private String doCodeGeneration(IDocumentModel documentModel) {
+		Collection<RankedNotification> notifications = new ArrayList<>();
+		byte[] byteCode = new ExternalDocumentModelService(config.considerNotInD()).generateValidationCode(
+				documentModel, new GroovyCodeGeneratorConfig(), null, notifications::add);
+		// if the code generation fails, a VkGeneratorException is thrown
+		if (RankedNotificationUtils.hasErrors(notifications)) {
+			throw new DocumentValidationException(
+					"Following errors were found while generating code: " + DMProblemUtils.join(notifications, Severity.ERROR));
+		}
+		return new String(byteCode, StandardCharsets.UTF_8);
 	}
 
-	@Override
-	public IMetaModel getMetaModel(IDocumentModel documentModel, String variant) {
-		return getModelCode(documentModel, variant).getMetaModel();
+	private static @NonNull Object getLockForModel(@NonNull String modelCodeIdentifier) {
+		return LOCK_OBJECTS.computeIfAbsent(modelCodeIdentifier, id -> new Object());
 	}
 
-	@Override public String createModelCodeIdentifier(IDocumentModel documentModel, String variant) {
-		return modelIdProvider.getDocumentModelId(documentModel, variant);
+	private static String calculateModelHash(final IDocumentModel documentModel) {
+		return HashingHelper.calculateHash(getSerializedModel(documentModel));
 	}
 
-	private ValidationModelGroovyCode getModelCode(IDocumentModel documentModel, String variant) {
-		return (ValidationModelGroovyCode) documentModelCodeGenerator.generateCode(documentModel, variant);
+	private static String getSerializedModel(final IDocumentModel documentModel) {
+		IDocumentModelSerializer serializer = new DocumentModelSerializerImpl();
+		String serializedModel = null;
+		try (StringWriter writer = new StringWriter();) {
+			List<RankedNotification> problems = new ArrayList<>();
+			serializer.serialize(documentModel, writer, problems::add);
+			if (!problems.isEmpty()) {
+				throw new IllegalStateException("The document model could not be serialized: " + problems);
+			}
+			serializedModel = writer.toString();
+		} catch (IOException ioe) {
+			throw new IllegalStateException("Error while serializing the document model", ioe);
+		}
+		return serializedModel;
 	}
 }

@@ -1,0 +1,20 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+description = "External interface for working with document models and the (a12internal) implementation."
+
+dependencies {
+    // if we don't specify the dependency as "api", we get class file for com.mgmtp.a12.model.Model not found in DocumentModelServiceFactory.java:49
+    api libs.baseModelApi // e.g. Model
+    api libs.baseModelConsistency // e.g. RankedNotification
+    api libs.jacksonDatabind // e.g. JsonNode
+    api project(':kernel-internal-base-utils') // e.g. IProblem
+    api project(':kernel-md-document-v2')
+
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation libs.commonsLang3
+
+}

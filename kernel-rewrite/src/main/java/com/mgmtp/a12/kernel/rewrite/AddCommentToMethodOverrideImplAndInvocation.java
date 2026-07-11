@@ -46,6 +46,7 @@ import lombok.Value;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
+@SuppressWarnings("unused")
 public class AddCommentToMethodOverrideImplAndInvocation extends Recipe {
 	@Option(displayName = "Method pattern",
 			description = "A method pattern that is used to find matching method declarations/invocations.",

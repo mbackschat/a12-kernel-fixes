@@ -68,7 +68,7 @@ import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_stru
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content.MappingBlocks;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.FieldMappings;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.ResolutionStrategies;
-import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.type;
+import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.Type;
 
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -146,7 +146,7 @@ public class StructuralMappingModelConsistencyChecker {
 						fm.sourceFieldFullName(), fm.targetFieldFullName()))
 				.collect(Collectors.groupingBy(FieldMappings::targetFieldFullName, Collectors.toList()));
 		Map<String, List<ResolutionStrategies>> slicesByTargetField = mappingBlock.resolutionStrategies().stream()
-				.filter(rs -> rs.type() == type.Slice
+				.filter(rs -> rs.type() == Type.Slice
 						&& rs.slice() != null
 						&& StringUtils.isNotEmpty(rs.slice().targetFieldFullName()))
 				.collect(Collectors.groupingBy(rs -> rs.slice().targetFieldFullName(), Collectors.toList()));
@@ -201,7 +201,7 @@ public class StructuralMappingModelConsistencyChecker {
 			checkResolutionStrategyHasRepeatableTargetGroup(resolutionStrategy, pointer);
 		}
 
-		if (resolutionStrategy.type() == type.Slice && resolutionStrategy.slice() != null) {
+		if (resolutionStrategy.type() == Type.Slice && resolutionStrategy.slice() != null) {
 			checkSliceSourceFieldIsDescendantOfSourceGroup(resolutionStrategy, pointer);
 			checkSliceTargetFieldIsDescendantOfTargetGroup(resolutionStrategy, pointer);
 			if (isFullCheck) {
@@ -319,12 +319,12 @@ public class StructuralMappingModelConsistencyChecker {
 			if (rs1 == null || rs2 == null) {
 				// if there's no resolution strategy for a level, the field mappings may still clash
 				// --> continue looking on next level
-			} else if (rs1.type() == type.Slice && rs2.type() == type.Slice) {
+			} else if (rs1.type() == Type.Slice && rs2.type() == Type.Slice) {
 				// if there's a slice that's not shared it's indeterminable whether the same field instance is targeted
 				if (!slicesResolveToSameInstance(rs1, rs2)) {
 					return false;
 				}
-			} else if (rs1.type() == type.Fold && rs2.type() == type.Fold) {
+			} else if (rs1.type() == Type.Fold && rs2.type() == Type.Fold) {
 				// if there's a fold that's not shared the field mappings are guaranteed to target different field instances
 				if (!foldsResolveToSameInstance(rs1, rs2)) {
 					return false;

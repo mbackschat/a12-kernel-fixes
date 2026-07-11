@@ -84,8 +84,7 @@ public class CreatorUtils {
 				trueValue = ((IYesType) ft).getTrueValue();
 			} else if (FieldUtils.isYesNo(e)) {
 				trueValue = ((IYesNoType) ft).getTrueValue();
-			} else if (FieldUtils.isUnspecified(e) || e instanceof IVirtual) {
-				// EXT-19695: we allow comparison with unspecified type
+			} else if (e instanceof IVirtual) {
 				trueValue = "";
 			} else {// should not occur due to earlier check
 				throw new IllegalArgumentException(String.format("Unexpected type for comparison with boolean constant: '%s'.",
@@ -96,8 +95,7 @@ public class CreatorUtils {
 			String falseValue;
 			if (FieldUtils.isYesNo(e)) {
 				falseValue = ((IYesNoType) ft).getFalseValue();
-			} else if (FieldUtils.isUnspecified(e) || e instanceof IVirtual) {
-				// EXT-19695: we allow comparison with unspecified type
+			} else if (e instanceof IVirtual) {
 				falseValue = "";
 			} else {// should not occur due to earlier check
 				throw new IllegalArgumentException(String.format("Unexpected type for comparison with boolean constant: '%s'.",

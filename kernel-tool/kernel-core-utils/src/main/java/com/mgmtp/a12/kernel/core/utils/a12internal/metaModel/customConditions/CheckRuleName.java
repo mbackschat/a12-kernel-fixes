@@ -39,7 +39,6 @@ import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.utils.internal.metaModel.customConditions.CustomConditionUtil;
-import com.mgmtp.a12.kernel.core.utils.internal.services.NameValidationService;
 
 /**
  * Checks the short name section of {@link IRule#getFullName()}.

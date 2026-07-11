@@ -40,8 +40,6 @@ import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.mgmtp.a12.kernel.internal.test.md.rt.api.impl.DocumentDynamicServiceConfig;
-import com.mgmtp.a12.kernel.internal.test.md.rt.api.impl.ModelCodeCacheImpl;
 import com.mgmtp.a12.kernel.internal.test.md.utils.DocumentModelResolverFromClasspath;
 import com.mgmtp.a12.kernel.mapping.facade.MappingServiceFactory;
 import com.mgmtp.a12.kernel.mapping.facade.StaticMappingServiceConfig;
@@ -53,6 +51,8 @@ import com.mgmtp.a12.kernel.mapping.rt.api.SourceField;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.facade.DocumentRtServiceFactory;
+import com.mgmtp.a12.kernel.md.facade.internal.DocumentDynamicServiceConfig;
+import com.mgmtp.a12.kernel.md.facade.internal.ModelCodeCacheImpl;
 import com.mgmtp.a12.kernel.md.rt.api.DocumentProcessingConfig;
 import com.mgmtp.a12.kernel.md.rt.api.IDocumentRtService;
 

@@ -29,20 +29,11 @@
  * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
-import type {
-	ICustomFieldTypeCheckError,
-	ICustomFieldTypeValidationParam
-} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
-
-import type { ICustomFieldValidator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
-
-import type { IFadat } from "../../IFadat.js";
-
 import { CustomFieldTypeErrorEnum } from "../error/CustomFieldTypeErrorEnum.js";
 import { CustomFieldTypeErrorKeys } from "../error/CustomFieldTypeErrorKeys.js";
-import { CustomFieldTypeErrorUtil } from "../error/CustomFieldTypeErrorUtil.js";
 
-import { SteuernummerVerifierImpl } from "./SteuernummerVerifierImpl.js";
+import { AbstractSteuernummerVerifier } from "./AbstractSteuernummerVerifier.js";
+import { SteuernummerValidationHelper } from "./SteuernummerValidationHelper.js";
 
 /**
  * Checks the Bundessteuernummer.
@@ -66,49 +57,28 @@ import { SteuernummerVerifierImpl } from "./SteuernummerVerifierImpl.js";
  * Additionally, the BZSt-Steuernummer will be validated by a verification code check.
  * </p>
  */
-export class BundessteuernummerVerifierImpl extends SteuernummerVerifierImpl implements ICustomFieldValidator {
+export class BundessteuernummerVerifierImpl extends AbstractSteuernummerVerifier {
 	// Formale Prüfung: 13-stellige Zahl, die mit den Ziffern 91160 beginnt.
 	private static readonly _VALID_BUSTNR = /^(91)(16)0[0-9]{8}$/;
 
-	public constructor(fadat: IFadat | undefined) {
-		super(fadat);
-	}
-
-	/**
-	 * Checks the provided Bundessteuernummer.<br>
-	 * As additional parameter the defining data of the
-	 * Steuernummerprüfung is needed. If none are provided then an {@link !Error Error} is thrown.
-	 */
-	validate(
-		value: string,
-		valParam: ICustomFieldTypeValidationParam,
-		isDisplayValue: boolean
-	): ICustomFieldTypeCheckError | undefined {
-		const result: ICustomFieldTypeCheckError | undefined = super.validate(
-			value,
-			valParam,
-			isDisplayValue
+	public constructor() {
+		super(
+			new SteuernummerValidationHelper(BundessteuernummerVerifierImpl._VALID_BUSTNR),
+			CustomFieldTypeErrorKeys.UNGUELTIGE_BUSTNR
 		);
-		return this._checkResult(result);
 	}
 
-	private _checkResult(result: ICustomFieldTypeCheckError | undefined): ICustomFieldTypeCheckError | undefined {
-		if (result != undefined) {
-			return CustomFieldTypeErrorUtil.getResult(
-				CustomFieldTypeErrorEnum.BUNDESSTNR_UNGUELTIG,
-				CustomFieldTypeErrorKeys.UNGUELTIGE_BUSTNR
-			);
-		}
-		return result;
+	protected getBufaValidator(): (bufaNr: number) => boolean {
+		return () => true;
 	}
 
-	getMatcher(xmlSteuernummer: string): RegExpExecArray {
-		// TODO: Fix this the next time the file is edited.
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		return BundessteuernummerVerifierImpl._VALID_BUSTNR.exec(xmlSteuernummer)!;
+	protected mapValidationError(error: CustomFieldTypeErrorEnum): CustomFieldTypeErrorEnum {
+		return error === CustomFieldTypeErrorEnum.KEIN_FEHLER
+			? error
+			: CustomFieldTypeErrorEnum.BUNDESSTNR_UNGUELTIG;
 	}
 
-	istBundesfinanzamtsnummerGueltig(_bundesfinanzamtsnummer: number): boolean {
-		return true;
+	protected createValidationError(): CustomFieldTypeErrorEnum {
+		return CustomFieldTypeErrorEnum.BUNDESSTNR_UNGUELTIG;
 	}
 }

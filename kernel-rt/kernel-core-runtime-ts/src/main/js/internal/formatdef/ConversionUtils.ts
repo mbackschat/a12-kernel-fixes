@@ -41,7 +41,7 @@ import type {
 
 import {
     DateUtil
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 export class ConversionUtils {
 

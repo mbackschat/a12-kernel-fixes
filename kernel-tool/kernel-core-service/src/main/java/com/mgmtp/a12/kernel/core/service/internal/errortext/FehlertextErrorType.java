@@ -76,7 +76,6 @@ public enum FehlertextErrorType {
 	NO_Z_ITERATION, // "Der Parameter '#Zeile' ist nicht erlaubt, da die Regelbedingung nicht über die Zeile iteriert."
 
 	NO_VORDRUCKZEILE, // "Parameter '%s' referenziert ein Feld, das keine Vordruckzeile spezifiziert."
-	NO_VORDRUCKNAME_IN_H, // "Parameter '%s' referenziert einen Vordrucknamen in einer H-DV."
 
 	INVALID_NO_VALUE_VALIDATION, // Feld '%s' definiert 'Keine Werteprüfung' und deswegen ist der Zugriff auf seinen Wert nicht erlaubt.
 
@@ -84,7 +83,7 @@ public enum FehlertextErrorType {
 	FIELD_NO_ENUM, // Feld '%s' ist nicht vom Typ Enumeration und daher darf kein Zugriff auf Kategorienwerte spezifiziert werden.
 	INVALID_CATEGORY, // Kategorie '%s' für Feld '%s' ist unbekannt.
 
-	FIELD_INVALID_PREFIX, // Feld '%s' ist fehlerhaft: %s
+	FIELD_ERRORTEXT_WRONG, // Feld '%s' spezifiziert für die Sprache %s einen fehlerhaften Fehlertext:
 	ILLEGAL_SEMANTIC_INDEX, // Ungültige Spezifikation eines semantischen Index '%s'.
 	MVK_INDEX_FOR_ERROR_TEXT_INVALID, // Ein semantischer Index darf in einem Fehlertext nur verwendet werden, wenn er auch in der Regelbedingung verwendet wird. Fehlerhaft: %s.
 	INVALID_USE_OF_SEMANTIC_INDEX, //Spezifikation des semantischen Index '%s' ist nicht zulässig, da der Fehler auch auftreten kann, wenn kein Feld für die spezifizierte Wiederholung angegeben ist.

@@ -32,19 +32,18 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
-import java.io.Serial;
-import java.io.UncheckedIOException;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import org.apache.commons.lang3.exception.UncheckedException;
+
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.StringType;
 
-public class LocalizedHintListSerializer extends StdSerializer<StringType.HintList> {
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
-	@Serial private static final long serialVersionUID = -3422521314367054070L;
+public class LocalizedHintListSerializer extends StdSerializer<StringType.HintList> {
 
 	public static final String LOCALE_KEY = "locale";
 	public static final String VALUES_KEY = "values";
@@ -58,22 +57,22 @@ public class LocalizedHintListSerializer extends StdSerializer<StringType.HintLi
 	}
 
 	@Override
-	public void serialize(StringType.HintList value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+	public void serialize(StringType.HintList value, JsonGenerator gen, SerializationContext provider) {
 		List<String> hintList = value.getValues();
 		if (hintList.isEmpty()) {
 			return;
 		}
 		try {
 			gen.writeStartObject();
-			gen.writeStringField(LOCALE_KEY, value.getLocale().toString());
-			gen.writeArrayFieldStart(VALUES_KEY);
+			gen.writeStringProperty(LOCALE_KEY, value.getLocale().toString());
+			gen.writeArrayPropertyStart(VALUES_KEY);
 			for (String hint : hintList) {
-				gen.writeObject(hint);
+				gen.writePOJO(hint);
 			}
 			gen.writeEndArray();
 			gen.writeEndObject();
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+		} catch (JacksonException e) {
+			throw new UncheckedException(e);
 		}
 	}
 

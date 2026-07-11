@@ -32,26 +32,9 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.service.consistency;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.core.utils.internal.consistency.DocumentModelConsistencyProblemReporter;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
-import com.mgmtp.a12.model.consistency.Problem;
-import com.mgmtp.a12.model.consistency.rules.ModelConsistencyRule;
 
-public abstract class DocumentModelConsistencyRule implements ModelConsistencyRule<IDocumentModel> {
-	@Override
-	public List<Problem> executeRule(final IDocumentModel model) {
-		List<Problem> problems = new ArrayList<>();
-		checkModel(model, problems::add);
-		return problems;
-	}
-
+public abstract class DocumentModelConsistencyRule {
 	public abstract void checkModel(final IDocumentModel model, DocumentModelConsistencyProblemReporter pr);
-
-	public void checkModelInternal(final IDocumentModel model, IProblemReporter pr) {
-		checkModel(model, DocumentModelConsistencyProblemReporter.fromIProblemReporter(pr));
-	}
 }

@@ -37,7 +37,7 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.model.StructuralMappingModelForCodegen;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.model.StructuralMappingModelForCodegen;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
 import com.mgmtp.a12.kernel.md.model.a12internal.services.DocumentModelSearchService;
@@ -53,7 +53,7 @@ import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_stru
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content.MappingBlocks;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.FieldMappings;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.ResolutionStrategies;
-import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.type;
+import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.Type;
 import com.mgmtp.a12.model.notification.RankedNotification;
 
 import lombok.NonNull;
@@ -102,7 +102,7 @@ public class StructuralMappingModelUtil {
 	public static ResolutionStrategies createSlice(String sourceGroupFullName, String targetGroupFullName,
 			String sourceFieldFullName, String targetFieldFullName) {
 		return ResolutionStrategies._empty()
-				._with(ResolutionStrategies._pointer().type(), type.Slice)
+				._with(ResolutionStrategies._pointer().type(), Type.Slice)
 				._with(ResolutionStrategies._pointer().sourceGroupFullName(), sourceGroupFullName)
 				._with(ResolutionStrategies._pointer().targetGroupFullName(), targetGroupFullName)
 				._with(ResolutionStrategies._pointer().slice().sourceFieldFullName(), sourceFieldFullName)
@@ -111,7 +111,7 @@ public class StructuralMappingModelUtil {
 
 	public static ResolutionStrategies createFold(String sourceGroupFullName, String targetGroupFullName) {
 		return ResolutionStrategies._empty()
-				._with(ResolutionStrategies._pointer().type(), type.Fold)
+				._with(ResolutionStrategies._pointer().type(), Type.Fold)
 				._with(ResolutionStrategies._pointer().sourceGroupFullName(), sourceGroupFullName)
 				._with(ResolutionStrategies._pointer().targetGroupFullName(), targetGroupFullName);
 	}

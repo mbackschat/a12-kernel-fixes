@@ -259,14 +259,6 @@ export class IFormaleFehlerConstants {
 		return "berechnungsWertFehler";
 	}
 
-	// Feld vom Typ Vordefiniert ist ungültig
-	/**
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Not needed anymore, when IdNrVerifier is created properly.
-	 */
-	static get TEST_ID_NUMMER(): string {
-		return "testIDNummer";
-	}
-
 	static get UNGUELTIGE_BIC(): string {
 		return "ungueltigeBIC";
 	}

@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -175,7 +174,7 @@ public class DocumentModelBuilder {
 
 	public static void addInclude(
 			DocumentModel baseDm, String includedDmID, List<String> mountpointPath, int maxRep,
-			IGroup.IIncludeDetails.IncludeLevel includeLevel) {
+			IGroup.IIncludeConfig.IncludeLevel includeLevel) {
 		assert baseDm != null;
 		assert !mountpointPath.isEmpty();
 		assert maxRep >= 1;
@@ -187,8 +186,8 @@ public class DocumentModelBuilder {
 				.build();
 
 		ModelReference includeReference = createModelReferenceForInclude(includedDmID);
-		mountPointGroup.setIncludeDetails(Group.IncludeDetails.builder()
-				.modelReference(includeReference)
+		mountPointGroup.setIncludeConfig(Group.IncludeConfig.builder()
+				.reference(includedDmID)
 				.includeLevel(includeLevel)
 				.build());
 		baseDm.getHeader().getModelReferences().add(includeReference);

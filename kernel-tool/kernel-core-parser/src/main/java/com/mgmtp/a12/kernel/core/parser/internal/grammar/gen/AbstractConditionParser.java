@@ -83,6 +83,7 @@ import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_Conditi
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.RundenOpContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.RundenOperOpContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.SemanticIndexContext;
+import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.SetOperOpContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.SpezifierHModelContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.TimeKonstruktContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.VergleichsBedingungContext;
@@ -158,8 +159,8 @@ public abstract class AbstractConditionParser extends Parser {
 
 	// active hooks
 	// @formatter:off
-	protected void resetFilterCondition(EntitySpecContext entitySpecCtx) {}
-	protected void initFilterCondition(EntitySpecContext ctx) {}
+	protected void resetSetExpression(EntitySpecContext entitySpecCtx) {}
+	protected void initSetExpression(EntitySpecContext ctx) {}
 	// @formatter:on
 
 	// check hooks (they do store stuff to the entity map though, in the full parser
@@ -216,5 +217,6 @@ public abstract class AbstractConditionParser extends Parser {
 	protected void checkRelUp(RelUpContext ctx) {}
 	protected void checkGroupOp(GroupOpContext ctx) {}
 	protected void checkDatumBereichKonstrukt(DatumBereichKonstruktContext ctx) {}
+	protected void checkSetOperOp(SetOperOpContext ctx) {}
 	// @formatter:on
 }

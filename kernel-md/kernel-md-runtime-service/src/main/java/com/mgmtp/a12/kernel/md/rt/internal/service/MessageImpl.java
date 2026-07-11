@@ -35,103 +35,47 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.mgmtp.a12.kernel.md.document.api.IEntityInstance;
 import com.mgmtp.a12.kernel.md.document.apiV2.PartiallyKnownDocumentMultiPointer;
 import com.mgmtp.a12.kernel.md.rt.api.IMessage;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
 public class MessageImpl implements IMessage {
 
-	private final String errorText;
-	private final IEntityInstance entityInstance;
-	private final Collection<IEntityInstance> referencedFields;
-	private final Collection<IEntityInstance> refOmissionErrorResponsible;
-	private final MessageType messageType;
-	private final Severity severity;
-	private final Optional<String> rulePath;
-	private final String code;
+	@Getter private final String errorText;
+	@Getter private final PartiallyKnownDocumentMultiPointer errorFieldPointer;
+	@Getter private final Collection<PartiallyKnownDocumentMultiPointer> referencedFieldsPointers;
+	@Getter private final Collection<PartiallyKnownDocumentMultiPointer> refOmissionErrorResponsiblePointers;
+	@Getter private final MessageType messageType;
+	@Getter private final Severity severity;
+	@Getter private final Optional<String> rulePath;
+	@Getter private final String errorCode;
 
 	public MessageImpl(final String errorText,
-			final IEntityInstance entityInstance,
-			final Collection<IEntityInstance> referencedFields,
-			final Collection<IEntityInstance> refOmissionErrorResponsible,
+			final PartiallyKnownDocumentMultiPointer errorFieldPointer,
+			final Collection<PartiallyKnownDocumentMultiPointer> referencedFieldsPointers,
+			final Collection<PartiallyKnownDocumentMultiPointer> refOmissionErrorResponsiblePointers,
 			final MessageType messageType,
 			final Severity severity,
 			final Optional<String> rulePath,
-			final String code) {
+			final String errorCode) {
 		Objects.requireNonNull(errorText);
 
 		this.errorText = errorText;
-		this.entityInstance = entityInstance;
-		this.referencedFields = referencedFields;
-		this.refOmissionErrorResponsible = refOmissionErrorResponsible;
+		this.errorFieldPointer = errorFieldPointer;
+		this.referencedFieldsPointers = referencedFieldsPointers;
+		this.refOmissionErrorResponsiblePointers = refOmissionErrorResponsiblePointers;
 		this.messageType = messageType;
 		this.severity = severity;
 		this.rulePath = rulePath;
-		this.code = code;
-	}
-
-	@Override
-	public String getErrorText() {
-		return errorText;
-	}
-
-	@SuppressWarnings("removal") @Override
-	public IEntityInstance getEntityInstance() {
-		return entityInstance;
-	}
-
-	@Override public PartiallyKnownDocumentMultiPointer getErrorFieldPointer() {
-		return PartiallyKnownDocumentMultiPointer.of(getEntityInstance());
-	}
-
-	@SuppressWarnings("removal") @Override
-	public Collection<IEntityInstance> getReferencedFields() {
-		return referencedFields;
-	}
-
-	@Override
-	public Collection<PartiallyKnownDocumentMultiPointer> getReferencedFieldsPointers() {
-		return getReferencedFields().stream()
-				.map(PartiallyKnownDocumentMultiPointer::of)
-				.toList();
-	}
-
-	@SuppressWarnings("removal") @Override
-	public Collection<IEntityInstance> getRefOmissionErrorResponsible() {
-		return refOmissionErrorResponsible;
-	}
-
-	@Override
-	public Collection<PartiallyKnownDocumentMultiPointer> getRefOmissionErrorResponsiblePointers() {
-		return getRefOmissionErrorResponsible().stream()
-				.map(PartiallyKnownDocumentMultiPointer::of)
-				.toList();
-	}
-
-	@Override
-	public MessageType getMessageType() {
-		return messageType;
-	}
-
-	@Override
-	public Severity getSeverity() {
-		return severity;
-	}
-
-	@Override
-	public Optional<String> getRulePath() {
-		return rulePath;
-	}
-
-	@Override
-	public String getErrorCode() {
-		return code;
+		this.errorCode = errorCode;
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
-		sb.append("Entity: ").append(getEntityInstance().toString());
+		sb.append("Entity: ").append(getErrorFieldPointer().toString());
 		sb.append(" Type: ").append(getMessageType());
 		sb.append(" Message: ").append(getErrorText());
 		sb.append(" ErrorCode: ").append(getErrorCode());
@@ -145,17 +89,17 @@ public class MessageImpl implements IMessage {
 		if (!(o instanceof MessageImpl message))
 			return false;
 		return Objects.equals(errorText, message.errorText) &&
-				Objects.equals(entityInstance, message.entityInstance) &&
-				Objects.equals(referencedFields, message.referencedFields) &&
-				Objects.equals(refOmissionErrorResponsible, message.refOmissionErrorResponsible) &&
+				Objects.equals(errorFieldPointer, message.errorFieldPointer) &&
+				Objects.equals(referencedFieldsPointers, message.referencedFieldsPointers) &&
+				Objects.equals(refOmissionErrorResponsiblePointers, message.refOmissionErrorResponsiblePointers) &&
 				messageType == message.messageType &&
 				severity == message.severity &&
 				Objects.equals(rulePath, message.rulePath) &&
-				Objects.equals(code, message.code);
+				Objects.equals(errorCode, message.errorCode);
 	}
 
 	@Override public int hashCode() {
-		return Objects.hash(errorText, entityInstance, referencedFields, refOmissionErrorResponsible, messageType, severity,
-				rulePath, code);
+		return Objects.hash(errorText, errorFieldPointer, referencedFieldsPointers, refOmissionErrorResponsiblePointers, messageType, severity,
+				rulePath, errorCode);
 	}
 }

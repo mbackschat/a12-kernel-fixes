@@ -40,9 +40,6 @@ import com.mgmtp.a12.model.consistency.ConsistencyCategory;
  * Enumeration for error codes. Error messages are read from properties-file to ensure I18N.
  */
 public enum DocumentModelCategory implements ConsistencyCategory {
-	DOCUMENT_MODEL_NUMBER_MAX_VALUE_EXCEEDED("problem.document.number.maxValueExceeded"),
-	DOCUMENT_MODEL_NUMBER_MIN_VALUE_EXCEEDED("problem.document.number.minValueExceeded"),
-
 	DOCUMENT_MODEL_WRONG_VERSION("problem.document.wrongVersion"),
 	DOCUMENT_MODEL_WRONG_VERSION_PATTERN("problem.document.wrongVersionPattern"),
 	DOCUMENT_MODEL_ID_NOT_UNIQUE("problem.document.nonUniqueId"),
@@ -59,7 +56,19 @@ public enum DocumentModelCategory implements ConsistencyCategory {
 	DOCUMENT_MODEL_MULTI_SELECT_FIELD_FIELDTYPE("problem.document.multiSelect.field.fieldtype"),
 
 	DOCUMENT_MODEL_CODEGENERATION_PROBLEM("problem.document.codeGen"),
-	DOCUMENT_MODEL_CONSISTENCY_CHECK_FROM_SERIALIZER_PROBLEM("problem.document.consistencyCheckFromSerializer");
+	DOCUMENT_MODEL_CONSISTENCY_CHECK_FROM_SERIALIZER_PROBLEM("problem.document.consistencyCheckFromSerializer"),
+
+	DOCUMENT_MODEL_UNIQUENESS_CRITERION_FIELDS_EMPTY("problem.document.documentUniquenessCriterion.fieldsEmpty"),
+	DOCUMENT_MODEL_UNIQUENESS_CRITERION_FIELD_NOT_FOUND("problem.document.documentUniquenessCriterion.fieldNotFound"),
+	DOCUMENT_MODEL_UNIQUENESS_CRITERION_FIELD_NOT_REQUIRED("problem.document.documentUniquenessCriterion.fieldNotRequired"),
+	DOCUMENT_MODEL_UNIQUENESS_CRITERION_FIELD_REPEATABLE("problem.document.documentUniquenessCriterion.fieldRepeatable"),
+	DOCUMENT_MODEL_UNIQUENESS_CRITERION_FIELD_TRANSIENT("problem.document.documentUniquenessCriterion.fieldTransient"),
+	DOCUMENT_MODEL_UNIQUENESS_CRITERION_MISSING_ERROR_TEXT("problem.document.documentUniquenessCriterion.missingErrorText"),
+	DOCUMENT_MODEL_UNIQUENESS_CRITERION_INVALID_ERROR_TEXT("problem.document.documentUniquenessCriterion.invalidErrorText"),
+	DOCUMENT_MODEL_UNIQUENESS_CRITERION_INVALID_ERROR_TEXT_PARAMETER(
+			"problem.document.documentUniquenessCriterion.invalidErrorTextParameter"),
+	DOCUMENT_MODEL_UNIQUENESS_CRITERION_DUPLICATE_NAME("problem.document.documentUniquenessCriterion.duplicateName"),
+	DOCUMENT_MODEL_UNIQUENESS_CRITERION_EMPTY_NAME("problem.document.documentUniquenessCriterion.emptyName");
 
 	private final String keyValue;
 

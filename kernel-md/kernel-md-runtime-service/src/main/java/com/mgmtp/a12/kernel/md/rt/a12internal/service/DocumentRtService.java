@@ -31,6 +31,7 @@
  */
 package com.mgmtp.a12.kernel.md.rt.a12internal.service;
 
+import com.mgmtp.a12.kernel.core.rt.a12internal.IGeneratedCodeAccessFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICalculator;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
@@ -43,6 +44,8 @@ import com.mgmtp.a12.kernel.md.rt.internal.service.IModelProvider;
 import com.mgmtp.a12.kernel.md.rt.internal.service.StaticModelProvider;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
+import lombok.NonNull;
+
 /**
  * Provides functionality which may be used only by other a12 components.
  */
@@ -50,8 +53,6 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
 public class DocumentRtService {
 
 	private final IDocumentServiceConfig config;
-	private final String variant;
-	private final IModelProvider modelProvider;
 
 	/**
 	 * @param config
@@ -60,20 +61,17 @@ public class DocumentRtService {
 	 * @throws IllegalArgumentException
 	 * 		If no supported sub-interface of {@link IDocumentServiceConfig} is passed.
 	 */
-	public DocumentRtService(IDocumentServiceConfig config) {
+	public DocumentRtService(@NonNull IDocumentServiceConfig config) {
 		this.config = config;
-		this.variant = config.getVariant().orElse(null);
-		this.modelProvider = initModelProvider();
 	}
 
-	private IModelProvider initModelProvider() {
-		if (config instanceof IDocumentDynamicServiceConfig dynamicConfig) {
-			return new DynamicModelProvider(dynamicConfig);
-		}
-		if (config instanceof IDocumentStaticServiceConfig staticConfig) {
-			return new StaticModelProvider(staticConfig);
-		}
-		throw new IllegalArgumentException("The IDocumentServiceConfig implementation passed is not supported.");
+	private IGeneratedCodeAccessFactory getAccessFactory(IDocumentModel model) {
+		IModelProvider modelProvider = switch (config) {
+			case IDocumentDynamicServiceConfig dynamicConfig -> new DynamicModelProvider(dynamicConfig, id -> model);
+			case IDocumentStaticServiceConfig staticConfig -> new StaticModelProvider(staticConfig, id -> model);
+			default -> throw new IllegalArgumentException("The IDocumentServiceConfig implementation passed is not supported.");
+		};
+		return modelProvider.getGeneratedCodeAccessFactory(model.getHeader().getId());
 	}
 
 	/**
@@ -84,7 +82,7 @@ public class DocumentRtService {
 	 * @return the {@link IMetaModel} of the document model passed
 	 */
 	public IMetaModel getMetaModel(IDocumentModel model) {
-		return modelProvider.getMetaModel(model, variant);
+		return getAccessFactory(model).getMetaObject();
 	}
 
 	/**
@@ -95,7 +93,7 @@ public class DocumentRtService {
 	 * @return the {@link IValidator} of the document model passed
 	 */
 	public IValidator getValidator(IDocumentModel model) {
-		return modelProvider.getValidator(model, variant);
+		return getAccessFactory(model).getValidator();
 	}
 
 	/**
@@ -106,7 +104,7 @@ public class DocumentRtService {
 	 * @return the {@link ICalculator} of the document model passed
 	 */
 	public ICalculator getCalculator(IDocumentModel model) {
-		return modelProvider.getCalculator(model, variant);
+		return getAccessFactory(model).getCalculator();
 	}
 
 }

@@ -34,22 +34,14 @@ package com.mgmtp.a12.kernel.core.parser.internal.check.util;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.lang3.StringUtils;
 
-import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
 import com.mgmtp.a12.kernel.core.parser.internal.check.CheckImplAbstractClass;
 import com.mgmtp.a12.kernel.core.parser.internal.constants.EntityIdConstants;
-import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorHandler;
 import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorTypesEnum;
 import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorTypesEnumForHModel;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.FullChecks_ConditionParser;
@@ -67,7 +59,6 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IDateType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IDateType.PartlyKnownDateType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEnumerationType;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEnumerationType.EnumerationValue;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IField;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IFieldType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IStringType;
@@ -921,7 +912,7 @@ public class CheckEntityListenUtils extends CheckImplAbstractClass {
 	private boolean checkWildcard(boolean wildcardFound, long maxIndex, long indexSpec, boolean wildcardRestricted,
 			EntityListeContext ctx, String opName) {
 		if (!wildcardFound && maxIndex > 1 && (indexSpec != IParseTreeEntity.WILDCARD || wildcardRestricted)) {
-			String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_WILDCARD_AT_LOWEST_LEVEL_REQUIRED, opName);
+			String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_WILDCARD_AT_LOWEST_REPEATABLE_LEVEL_REQUIRED, opName);
 			throw createMVKParserError(ctx.getParent(), errMessage);
 		} else if (wildcardFound && (indexSpec == IParseTreeEntity.WILDCARD)) {
 			String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_WILDCARD_ONLY_AT_LOWEST_LEVEL_ALLOWED, opName);
@@ -1033,106 +1024,5 @@ public class CheckEntityListenUtils extends CheckImplAbstractClass {
 				throw createMVKParserError(ctxForErrorMessaging.getParent(), errMessage);
 			}
 		}));
-	}
-
-	/**
-	 * Check for all enumeration values of <code>enumType2</code> that are contained in <code>enumType1</code> (i. e. xml and/or
-	 * display value matches) that the display and xml values, respectively, are the same for <code>enumType1</code> and
-	 * <code>enumType2</code>. If the enumeration types are not compatible, an {@link Optional} containing an error message is
-	 * returned. Examples (notation: "(a=A, b=B)" means an enumeration with xml values a and b and corresponding display values A
-	 * and B):
-	 * <ul>
-	 *     <li>enumerations (a=A, b=B, c=C) and (a=A, b=B, c=C) are compatible (all values match)</li>
-	 *     <li>enumerations (a=A, b=B, c=C) and (c=C, d=D, e=E) are compatible (for the common xml value c the display value C
-	 *     matches and vice versa)
-	 *     </li>
-	 *     <li>enumerations (a=A, b=B, c=C) and (d=D, e=E, f=F) are compatible (no common xml or display values - nothing has to
-	 *     match) - for calculations this case is forbidden by NormalisierteBerechnungsFormHelper#isEnumValueCompatible</li>
-	 *     <li>enumerations (a=A, b=B, c=C1) and (c=C2, d=D, e=E) are incompatible (for the common xml value c the display values
-	 *     C1 and C2 do not match)
-	 *     </li>
-	 *     <li>enumerations (a=A, b=B, c1=C) and (c1=C, d=D, e=E) are incompatible (for the common display value C the xml values
-	 *     c1 and c2 do not match)
-	 *     </li>
-	 * </ul>
-	 * <br>
-	 * <b>Note:</b> For enumerations with table reference, no check is done.
-	 *
-	 * @param enumType1
-	 * @param enumType2
-	 * @return {@link Optional} containing an error message, if the enum types are incompatible, otherwise {@link Optional#empty()}.
-	 */
-	public static Optional<String> checkDisplayValues(IEnumerationType enumType1, IEnumerationType enumType2,
-			ParserErrorHandler errHandler) {
-		if (FieldUtils.isTableEnumWithTable(enumType1) || FieldUtils.isTableEnumWithTable(enumType2)) {
-			// No detail check for enums with table reference
-			return Optional.empty();
-		}
-
-		// These checks should not be necessary
-		checkXmlValuesUnique(enumType1);
-		checkXmlValuesUnique(enumType2);
-
-		// both have display values
-		Set<Locale> locales = new HashSet<>(enumType1.getSupportedDisplayLocales());
-		locales.retainAll(enumType2.getSupportedDisplayLocales());
-		return locales.stream()
-				.map(l -> checkEnumValuesForLocale(enumType1, enumType2, l, errHandler))
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.findFirst();
-	}
-
-	private static void checkXmlValuesUnique(IEnumerationType enumType) {
-		// This check should not be necessary, because it is checked in the MetaModel, and such values should not be saveable in the editor
-		Map<String, Set<String>> duplicates = Java8Utils.findDuplicates(enumType.getXMLValues().stream(), Function.identity());
-		if (!duplicates.isEmpty()) {
-			throw new IllegalArgumentException(
-					String.format("In enumerations, the values need to be distinct. Duplicate Values: %s.",
-							duplicates.keySet()));
-		}
-	}
-
-	private static Optional<String> checkEnumValuesForLocale(IEnumerationType enumType1, IEnumerationType enumType2, Locale locale,
-			ParserErrorHandler errHandler) {
-		Map<String, String> xmlToUi1 = enumType1.getDisplayValues(locale) == null ? null
-				: enumType1.getDisplayValues(locale).stream()
-				.collect(Collectors.toMap(EnumerationValue::getXmlValue, EnumerationValue::getDisplayValue));
-		Map<String, String> xmlToUi2 = enumType2.getDisplayValues(locale) == null ? null
-				: enumType2.getDisplayValues(locale).stream()
-				.collect(Collectors.toMap(EnumerationValue::getXmlValue, EnumerationValue::getDisplayValue));
-		Optional<String> errMsgOpt = checkSameValues(xmlToUi1, xmlToUi2, errHandler);
-		if (errMsgOpt.isPresent()) {
-			return errMsgOpt;
-		}
-
-		Map<String, String> uiToXml1 = enumType1.getDisplayValues(locale) == null ? null
-				: enumType1.getDisplayValues(locale).stream()
-				.collect(Collectors.toMap(EnumerationValue::getDisplayValue, EnumerationValue::getXmlValue));
-		Map<String, String> uiToXml2 = enumType2.getDisplayValues(locale) == null ? null
-				: enumType2.getDisplayValues(locale).stream()
-				.collect(Collectors.toMap(EnumerationValue::getDisplayValue, EnumerationValue::getXmlValue));
-		return checkSameValues(uiToXml1, uiToXml2, errHandler);
-	}
-
-	private static Optional<String> checkSameValues(Map<String, String> map1, Map<String, String> map2,
-			ParserErrorHandler errHandler) {
-		if (map1 == null || map2 == null) {
-			// Can happen only for inconsistent enumerations, not specifying display values for all languages.
-			return Optional.empty();
-		}
-		for (Entry<String, String> entry : map1.entrySet()) {
-			String key = entry.getKey();
-			String value = entry.getValue();
-			if (!map2.containsKey(key)) {
-				continue;
-			}
-			if (!value.equals(map2.get(key))) {
-				String errMessage = errHandler.getErrorMessage(ParserErrorTypesEnum.MVK_INVALID_COMPARE_ENUM_TO_ENUM, key, value,
-						map2.get(key));
-				return Optional.of(errMessage);
-			}
-		}
-		return Optional.empty();
 	}
 }

@@ -37,18 +37,22 @@ import java.util.Optional;
 
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.BaseCodeGenUtils;
 import com.mgmtp.a12.kernel.core.rt.a12internal.IGeneratedCodeAccessFactory;
-import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICalculator;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
 import com.mgmtp.a12.kernel.md.model.internal.service.codegen.CodeGeneratorParameters;
 import com.mgmtp.a12.kernel.md.rt.api.DocumentValidationException;
 import com.mgmtp.a12.kernel.md.rt.api.IDocumentStaticServiceConfig;
 import com.mgmtp.a12.kernel.md.rt.api.IStaticModelCode;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Holds references to instances of the necessary access classes for using the code statically generated from Document Models.
  */
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 class StaticModelCodeAccessor implements IStaticModelCode {
+	@Getter private final @NonNull IGeneratedCodeAccessFactory accessFactory;
 
 	static class Builder {
 
@@ -59,11 +63,7 @@ class StaticModelCodeAccessor implements IStaticModelCode {
 			String packagePath = getPackagePath(docModelId, config);
 
 			IGeneratedCodeAccessFactory codeAccessFactory = getInstanceFromGencode(docModelId, config, packagePath, "Factory_");
-			IValidator validator = codeAccessFactory.getValidator();
-			ICalculator calculator = codeAccessFactory.getCalculator();
-			IMetaModel metaModel = codeAccessFactory.getMetaObject();
-
-			return new StaticModelCodeAccessor(validator, calculator, metaModel);
+			return new StaticModelCodeAccessor(codeAccessFactory);
 		}
 
 		/**
@@ -113,27 +113,5 @@ class StaticModelCodeAccessor implements IStaticModelCode {
 
 	static Builder builder() {
 		return new Builder();
-	}
-
-	private final IValidator validator;
-	private final ICalculator calculator;
-	private final IMetaModel metaModel;
-
-	private StaticModelCodeAccessor(IValidator validator, ICalculator calculator, IMetaModel metaModel) {
-		this.validator = validator;
-		this.calculator = calculator;
-		this.metaModel = metaModel;
-	}
-
-	public IValidator validator() {
-		return validator;
-	}
-
-	public ICalculator calculator() {
-		return calculator;
-	}
-
-	public IMetaModel metaModel() {
-		return metaModel;
 	}
 }

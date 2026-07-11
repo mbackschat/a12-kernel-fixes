@@ -52,6 +52,9 @@ public class VirtualEntityTester extends ASTVisitor {
 		if (p instanceof IVirtual) {
 			hasVirtualEntities = true;
 		}
+		if (p.getFilterCondition() != null) {
+			p.getFilterCondition().traverse(this);
+		}
 		return !hasVirtualEntities;
 	}
 

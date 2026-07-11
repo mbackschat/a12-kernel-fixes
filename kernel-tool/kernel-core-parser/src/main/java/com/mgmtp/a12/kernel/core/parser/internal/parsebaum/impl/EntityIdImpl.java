@@ -76,7 +76,8 @@ public class EntityIdImpl implements IEntityId {
 	private final ICondition filterCondition;
 
 	// make sure that this constructor sets all fields, so that it can be used to ensure completeness of the with* methods.
-	private EntityIdImpl(long[] ebenen, long[] maxWerte, long maxUsb, long zeileSternStart, long zeileSternEnd, long lfdNrSternStart,
+	private EntityIdImpl(long[] ebenen, long[] maxWerte, long maxUsb, long zeileSternStart, long zeileSternEnd,
+			long lfdNrSternStart,
 			long lfdNrSternEnd, String fullName, long usb, boolean isEchtesFeld, boolean isHmodel, String categoryName,
 			List<Object> semanticIndex, int startIdxInCondition, int stopIdxInCondition, boolean isReferencedByShortName,
 			PathNotationConfig pathNotationConfig, boolean isOuter, ICondition filterCondition) {
@@ -224,7 +225,8 @@ public class EntityIdImpl implements IEntityId {
 		}
 	}
 
-	public EntityIdImpl(IField f, List<Long> indices, long usb, List<Object> semIdx, boolean isHModel, boolean isOuter, PathNotationConfig pathNotationConfig) {
+	public EntityIdImpl(IField f, List<Long> indices, long usb, List<Object> semIdx, boolean isHModel, boolean isOuter,
+			PathNotationConfig pathNotationConfig) {
 		// For fields, we do not need the IEC
 		this(f, indices, usb, semIdx, isHModel, null, isOuter, pathNotationConfig);
 	}
@@ -245,7 +247,8 @@ public class EntityIdImpl implements IEntityId {
 	 * 		repetition information via the contained fields. May be <code>null</code>,
 	 * 		otherwise.
 	 */
-	public EntityIdImpl(IEntity e, List<Long> indices, long usb, List<Object> semIdx, boolean isHModel, IEC ec, boolean isOuter, PathNotationConfig pathNotationConfig) {
+	public EntityIdImpl(IEntity e, List<Long> indices, long usb, List<Object> semIdx, boolean isHModel, IEC ec, boolean isOuter,
+			PathNotationConfig pathNotationConfig) {
 		this.fullName = e.getFullName();
 		if (e.isField()) {
 			this.maxWerte = EntityUtils.getMax(e, isHModel);
@@ -391,6 +394,30 @@ public class EntityIdImpl implements IEntityId {
 	@Override
 	public boolean isOuter() {
 		return isOuter;
+	}
+
+	@Override public EntityIdImpl withIndices(long[] indices) {
+		return new EntityIdImpl(
+				indices,
+				this.maxWerte,
+				this.maxUsb,
+				this.zeileSternStart,
+				this.zeileSternEnd,
+				this.lfdNrSternStart,
+				this.lfdNrSternEnd,
+				this.fullName,
+				this.usb,
+				this.isEchtesFeld,
+				this.isHmodel,
+				this.categoryName,
+				this.semanticIndex,
+				this.startIdxInCondition,
+				this.stopIdxInCondition,
+				this.isReferencedByShortName,
+				this.pathNotationConfig,
+				this.isOuter,
+				this.filterCondition
+		);
 	}
 
 	@Override public EntityIdImpl withFilterCondition(ICondition filterCondition) {

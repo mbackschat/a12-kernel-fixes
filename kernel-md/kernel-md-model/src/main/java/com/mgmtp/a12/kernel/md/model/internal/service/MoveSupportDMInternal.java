@@ -38,8 +38,11 @@ import java.util.Map;
 import java.util.function.Function;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils;
+import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
+import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser;
 import com.mgmtp.a12.kernel.core.service.internal.MoveSupportInternal;
+import com.mgmtp.a12.kernel.core.service.internal.errortext.FehlertextUtil;
 import com.mgmtp.a12.kernel.md.model.a12internal.Computation;
 import com.mgmtp.a12.kernel.md.model.a12internal.IDocumentModelObjectReference;
 
@@ -95,6 +98,30 @@ public class MoveSupportDMInternal extends MoveSupportInternal {
 		String newBasePath = findNewFullname(oldBasePath, entityMoves);
 		String newRelPath = ElementPathUtils.relPath(newFullName, newBasePath);
 		elementRef.setRelativePath(newRelPath);
+	}
+
+	/**
+	 * Similar to {@link #changeErrorTextsForMove(Map, String, Map, Locale)} but for Document Uniqueness Criterion error texts,
+	 * which use simple absolute-path parameters ({@code $fieldFullName$} and {@code $fieldFullName.value$}) rather than the
+	 * rule error text grammar.
+	 */
+	public Map<Locale, String> changeDocumentUniquenessCriterionErrorTextsForMove(
+			Map<Locale, String> errorTexts,
+			Map<String, String> entityMoves
+	) {
+		return Java8Utils.mapMapValuesPreserveOrder(errorTexts, errorText ->
+				FehlertextUtil.mapParamsInFehlertext(errorText, param -> {
+					if (!EntityUtils.isAbsolutePath(param)) {
+						return param; // not a valid absolute path — leave unchanged
+					}
+					String suffix = "";
+					String basePath = param;
+					if (param.endsWith(".value")) {
+						suffix = ".value";
+						basePath = param.substring(0, param.length() - ".value".length());
+					}
+					return findNewFullname(basePath, entityMoves) + suffix;
+				}));
 	}
 
 	private String updateBedingungSnippet(

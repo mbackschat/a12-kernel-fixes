@@ -62,7 +62,7 @@ import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_stru
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content.MappingBlocks;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.FieldMappings;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.ResolutionStrategies;
-import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.type;
+import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.Type;
 import com.mgmtp.a12.model.notification.RankedNotification;
 import com.mgmtp.a12.model.notification.Severity;
 import com.mgmtp.a12.kernel.mmvalidators.extmpinternal.codegen_mm_structuralmappingmodel__0031.Factory_codegen_mm_structuralmappingmodel__0031;
@@ -202,7 +202,7 @@ public class StructuralMappingModelNotifier {
 		});
 	}
 
-	public String getString(type type) {
+	public String getString(Type type) {
 		if (type == null) {
 			return getString(NotificationCode.FRAGMENT_RS_UNKNOWN);
 		}

@@ -60,6 +60,7 @@ import lombok.Value;
 
 @EqualsAndHashCode(callSuper = false)
 @Value
+@SuppressWarnings("unused")
 public class AddCommentToDeprecatedTypeImplementation extends Recipe {
 	@Option(displayName = "Type name",
 			description = "The interface/class fqn that is deprecated.",

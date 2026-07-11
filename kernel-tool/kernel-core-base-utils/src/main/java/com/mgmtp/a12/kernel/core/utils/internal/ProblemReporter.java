@@ -83,7 +83,7 @@ public class ProblemReporter implements IProblemReporter {
 		return warnings;
 	}
 
-	public boolean hasProblemOccurred() {
+	public boolean hasErrorOccurred() {
 		return hasProblemOccurred(Severity.ERROR);
 	}
 

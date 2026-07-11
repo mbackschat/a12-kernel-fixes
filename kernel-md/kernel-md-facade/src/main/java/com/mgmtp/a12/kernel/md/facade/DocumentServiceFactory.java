@@ -34,24 +34,13 @@ package com.mgmtp.a12.kernel.md.facade;
 
 import java.util.Objects;
 
-import com.mgmtp.a12.kernel.md.document.api.IDocument;
-import com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory;
-import com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService;
-import com.mgmtp.a12.kernel.md.document.api.services.IDocumentSerializer;
-import com.mgmtp.a12.kernel.md.document.api.services.IDocumentService;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.services.IDmAwareDocService;
-import com.mgmtp.a12.kernel.md.document.apiV2.services.IDocumentV1V2Converter;
 import com.mgmtp.a12.kernel.md.document.apiV2.services.IDocumentV2Serializer;
-import com.mgmtp.a12.kernel.md.document.internal.service.DocumentFactoryImpl;
-import com.mgmtp.a12.kernel.md.document.internal.service.implV2.DocumentV1V2ConverterImpl;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelResolver;
-import com.mgmtp.a12.kernel.md.serializer.MDSerializerFactory;
 import com.mgmtp.a12.kernel.md.serializer.document.internal.service.DmAwareDocServiceImpl;
-import com.mgmtp.a12.kernel.md.serializer.document.internal.service.DocumentSearchServiceImpl;
 import com.mgmtp.a12.kernel.md.serializer.document.internal.service.DocumentSerializerImpl;
-import com.mgmtp.a12.kernel.md.serializer.document.internal.service.DocumentServiceImpl;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 import lombok.NonNull;
@@ -69,24 +58,11 @@ public class DocumentServiceFactory {
 	 * 		the {@link IDocumentModelResolver} instance which will be used
 	 * 		to retrieve the
 	 * 		information of the corresponding {@link IDocumentModel} when
-	 * 		working on a specific
-	 *        {@link IDocument}. May not be {@code null}.
+	 * 		working on a specific {@link DocumentV2}. May not be {@code null}.
 	 */
 	public DocumentServiceFactory(@NonNull IDocumentModelResolver documentModelResolver) {
 		Objects.requireNonNull(documentModelResolver);
 		this.documentModelResolver = documentModelResolver;
-	}
-
-	/**
-	 * Creates a serializer for a {@link IDocument}.
-	 *
-	 * @return the instance of the service. Is never {@code null}.
-	 *
-	 * @deprecated use {@link #createDocumentV2Serializer()} instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	public IDocumentSerializer createDocumentSerializer() {
-		return new MDSerializerFactory().createDocumentSerializer(documentModelResolver);
 	}
 
 	/**
@@ -99,66 +75,10 @@ public class DocumentServiceFactory {
 	}
 
 	/**
-	 * Creates a service for the document (for more information see {@link IDocumentService}).
-	 *
-	 * @param document
-	 * 		the {@link IDocument} instance for which the services should be executed. May
-	 * 		not
-	 * 		be {@code null}.
-	 * @return the instance of the service. Is never {@code null}.
-	 *
-	 * @deprecated the {@link IDocumentService} is deprecated use {@link #createDmAwareDocService(String)} for functionality with
-	 * 		the document model.
-	 */
-	@Deprecated(since = "30.0.0")
-	public IDocumentService createDocumentService(IDocument document) {
-		Objects.requireNonNull(document);
-		return new DocumentServiceImpl(document, documentModelResolver);
-	}
-
-	/**
 	 * Note: for additional DocumentV2-related util methods (that are <em>not</em> DM-related), see also
 	 * {@link com.mgmtp.a12.kernel.md.document.apiV2.utils.DocumentV2Utils}
 	 */
 	@NonNull public IDmAwareDocService createDmAwareDocService(@NonNull String dmId) {
 		return DmAwareDocServiceImpl.ofResolver(dmId, documentModelResolver);
 	}
-
-	/**
-	 * @deprecated Use methods that expect {@link DocumentV2} instead of {@link IDocument}.
-	 */
-	@Deprecated(since = "30.0.0")
-	public IDocumentV1V2Converter createDocumentV1V2Converter() {
-		return DocumentV1V2ConverterImpl.getInstance();
-	}
-
-	/**
-	 * Creates a service for a specific document, which can be used to search field instances by
-	 * different properties.
-	 *
-	 * @param document
-	 * 		the document in which you want to search. May not be {@code null}.
-	 * @return the instance of the service. Is never {@code null}.
-	 *
-	 * @deprecated Use methods of {@link DocumentV2}, {@link com.mgmtp.a12.kernel.md.document.apiV2.utils.DocumentV2Utils} and
-	 *        {@link IDmAwareDocService} instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	public IDocumentSearchService createDocumentSearchService(IDocument document) {
-		Objects.requireNonNull(document);
-		return new DocumentSearchServiceImpl(document, documentModelResolver);
-	}
-
-	/**
-	 * Creates an instance of the default implementation of {@link IDocumentFactory}.
-	 *
-	 * @return the instance of the default creation service. Is never {@code null}.
-	 *
-	 * @deprecated use DocumentV2 API instead, see deprecation information of {@link IDocumentFactory}.
-	 */
-	@Deprecated(since = "30.0.0")
-	public IDocumentFactory createDocumentFactory() {
-		return new DocumentFactoryImpl();
-	}
-
 }

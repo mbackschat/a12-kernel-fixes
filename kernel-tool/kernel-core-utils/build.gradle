@@ -1,14 +1,15 @@
 plugins {
     alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
 }
 
 description = "utilities used in validation (without kernel-core-runtime)"
 
 dependencies {
     api libs.kernelCoreRuntimeApi
-    api project(':kernel-core-base-utils')
-
-    implementation project(':kernel-core-tool-api')
+    api project(':kernel-internal-base-utils')
+    api project(':kernel-internal-core-tool-api')
+    
     implementation libs.commonsLang3
 
     compileOnly libs.baseModelUtils

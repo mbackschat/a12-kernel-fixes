@@ -46,7 +46,6 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IFieldType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.INumberType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IPredefinedType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IStringType;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IUnspecifiedType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IYesNoType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IYesType;
 
@@ -127,11 +126,6 @@ public class OperationResultTypeMap {
 		if (t instanceof IYesType) {
 			IYesType yesType = (IYesType) t;
 			return OperationResultType.createBooleanType(OperationResultBaseType.BOOLY, yesType);
-		}
-
-		if (t instanceof IUnspecifiedType) {
-			IUnspecifiedType unspecifiedType = (IUnspecifiedType) t;
-			return OperationResultType.createUnspecifiedType(unspecifiedType);
 		}
 
 		throw new RuntimeException("Im nothing!" + t.getClass().getName());

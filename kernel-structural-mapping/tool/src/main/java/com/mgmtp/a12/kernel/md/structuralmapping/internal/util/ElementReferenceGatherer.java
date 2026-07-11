@@ -51,7 +51,7 @@ import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_stru
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content.MappingBlocks;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.FieldMappings;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.ResolutionStrategies;
-import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.type;
+import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.Type;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -135,7 +135,7 @@ public class ElementReferenceGatherer {
 		var referencer = SMMNotificationSource.of(pointer, resolutionStrategy);
 		gatherElement(resolutionStrategy.sourceGroupFullName(), FieldOrGroup.GROUP, SourceOrTarget.SOURCE, referencer);
 		gatherElement(resolutionStrategy.targetGroupFullName(), FieldOrGroup.GROUP, SourceOrTarget.TARGET, referencer);
-		if (resolutionStrategy.type() == type.Slice && resolutionStrategy.slice() != null) {
+		if (resolutionStrategy.type() == Type.Slice && resolutionStrategy.slice() != null) {
 			gatherElement(resolutionStrategy.slice().sourceFieldFullName(), FieldOrGroup.FIELD, SourceOrTarget.SOURCE, referencer);
 			gatherElement(resolutionStrategy.slice().targetFieldFullName(), FieldOrGroup.FIELD, SourceOrTarget.TARGET, referencer);
 		}

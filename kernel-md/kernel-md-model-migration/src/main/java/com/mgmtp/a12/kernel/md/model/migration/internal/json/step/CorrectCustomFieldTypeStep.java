@@ -33,26 +33,24 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
 
-public class CorrectCustomFieldTypeStep extends BaseJsonNodeMigrationStep {
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
+
+public final class CorrectCustomFieldTypeStep {
 
 	private static final String CUSTOM_FIELD_TYPE_JSON_NAME = "CustomFieldType";
 	private static final String[] PROPERTIES_TO_DELETE = new String[] { "minLength", "maxLength", "pattern", "errorMessage",
 			"validationConfig" };
 
-	public CorrectCustomFieldTypeStep(MigrationCache cache, MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+	private CorrectCustomFieldTypeStep() {
 	}
 
-	@Override
-	public void execute(JsonNode model, MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		List<JsonNode> customTypeNodes = model.findValues(CUSTOM_FIELD_TYPE_JSON_NAME);
 		for (JsonNode customType : customTypeNodes) {
 			for (String propertyToDelete : PROPERTIES_TO_DELETE) {

@@ -46,19 +46,15 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
 import com.mgmtp.a12.kernel.core.calc.internal.util.compOp.CalcOperationRoundDownWithCompOp;
 import com.mgmtp.a12.kernel.core.calc.internal.util.compOp.CalcOperationWithCompOp;
-import com.mgmtp.a12.kernel.core.parser.internal.check.bedingung.CheckVergleichsBedingungImpl;
-import com.mgmtp.a12.kernel.core.parser.internal.check.util.CheckEntityListenUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.FieldUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.error.MVKParserError;
-import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorHandler;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.languages.ConditionMultiLanguageHandler;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.EntityIdImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.bedingung.CompositeConditionImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.util.AnalyseService;
 import com.mgmtp.a12.kernel.core.parser.internal.util.MissingEntityEC;
-import com.mgmtp.a12.kernel.core.parser.internal.util.OperationResultType;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IEntityId;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IParseTreeEntity;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.IApplicationCondition;
@@ -73,6 +69,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IFieldIdOpe
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IGroupOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.INumberOfRootGroupsOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.ComparisonOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.EntityListConditionName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.EntityListOperationName;
@@ -419,31 +416,7 @@ public class NormalisierteBerechnungsFormHelper {
 		} else {
 			values = FieldUtils.getCategoryValues(enumType, category);
 		}
-		if (!xmlValues.containsAll(values)) {
-			return false;
-		}
-		if (StringUtils.isEmpty(category)) {
-			return checkDisplayValues(enumType, errorFieldType);
-		}
-		return true;
-	}
-
-	/**
-	 * For comparisons of field operations with enumerations, this check is already done by the parser, see
-	 * {@link CheckVergleichsBedingungImpl#checkEnumValuesWithoutCategories(OperationResultType,
-	 * OperationResultType, GrammarOnly_ConditionParser.OperationContext, GrammarOnly_ConditionParser.OperationContext)}, but for
-	 * comparisions with <code>FirstFilledValue</code> we do this check only for calculations at the moment.
-	 */
-	private boolean checkDisplayValues(IEnumerationType operandType, IEnumerationType errorFieldType) {
-		if (FieldUtils.isEnumWithDisplayValues(operandType) != FieldUtils.isEnumWithDisplayValues(errorFieldType)) {
-			return false;
-		}
-		if (!FieldUtils.isEnumWithDisplayValues(errorFieldType)) {
-			return true;
-		}
-		Optional<String> errMsgOpt = CheckEntityListenUtils.checkDisplayValues(operandType, errorFieldType,
-				new ParserErrorHandler(errorLookup.getLocale()));
-		return errMsgOpt.isEmpty();
+		return xmlValues.containsAll(values);
 	}
 
 	private boolean checkVorbedingungen(List<ICondition> teilBedingungen, IField errorField, boolean isIterable) {
@@ -459,7 +432,7 @@ public class NormalisierteBerechnungsFormHelper {
 		}
 		// Es muss bei wiederholbarem Fehlerfeld sichergestellt sein, dass mindestens ein Operandenfeld der Wiederholung angegeben ist.
 		// only relevant for H-DVs now, as for A12 DVs, the iteration check precondition is added automatically/implicity
-		if (isHModel && isIterable && teilBedingungen.stream().noneMatch(b -> iterationChecked(b, errorField, isHModel))) {
+		if (isHModel && isIterable && teilBedingungen.stream().noneMatch(b -> iterationChecked_HDVOnly(b, errorField, isHModel))) {
 			reportProblem(CalculationErrorType.MVK_ERROR_ITERATION_UNCHECKED);
 			return false;
 		}
@@ -483,13 +456,13 @@ public class NormalisierteBerechnungsFormHelper {
 		}
 	}
 
-	private static class IterationChecker extends ASTVisitor {
+	private static class IterationChecker_HDVOnly extends ASTVisitor {
 		private final Predicate<IEntityId> checker;
 		private boolean result = false;
 		private final IField errorField;
 		private final IEC ec;
 
-		public IterationChecker(Predicate<IEntityId> checker, IField errorField, IEC ec) {
+		public IterationChecker_HDVOnly(Predicate<IEntityId> checker, IField errorField, IEC ec) {
 			this.checker = checker;
 			this.errorField = errorField;
 			this.ec = ec;
@@ -501,7 +474,7 @@ public class NormalisierteBerechnungsFormHelper {
 				return false;
 			}
 			if (p.getLogOp() == LogOp.Or) {
-				result = p.getConditionList().stream().allMatch(b -> isIterationChecked(b, checker, errorField, ec));
+				result = p.getConditionList().stream().allMatch(b -> isIterationChecked_HDVOnly(b, checker, errorField, ec));
 				return false;
 			}
 			return true;
@@ -543,8 +516,9 @@ public class NormalisierteBerechnungsFormHelper {
 			return result;
 		}
 
-		public static boolean isIterationChecked(ICondition bedingung, Predicate<IEntityId> checker, IField errorField, IEC ec) {
-			IterationChecker itChecker = new IterationChecker(checker, errorField, ec);
+		public static boolean isIterationChecked_HDVOnly(ICondition bedingung, Predicate<IEntityId> checker, IField errorField,
+				IEC ec) {
+			IterationChecker_HDVOnly itChecker = new IterationChecker_HDVOnly(checker, errorField, ec);
 			bedingung.traverse(itChecker);
 			return itChecker.getResult();
 		}
@@ -566,7 +540,7 @@ public class NormalisierteBerechnungsFormHelper {
 		}
 	}
 
-	private boolean iterationChecked(ICondition bedingung, IField errorField, boolean isHModel) {
+	private boolean iterationChecked_HDVOnly(ICondition bedingung, IField errorField, boolean isHModel) {
 		Predicate<IEntityId> checker;
 		if (isHModel) {
 			checker = eid -> iterationCheckedHModel(errorField, eid);
@@ -574,7 +548,7 @@ public class NormalisierteBerechnungsFormHelper {
 			checker = eid -> iterationCheckedA12Model(errorField, eid);
 		}
 
-		return IterationChecker.isIterationChecked(bedingung, checker, errorField, ec);
+		return IterationChecker_HDVOnly.isIterationChecked_HDVOnly(bedingung, checker, errorField, ec);
 	}
 
 	/**
@@ -724,6 +698,20 @@ public class NormalisierteBerechnungsFormHelper {
 					return false;
 				}
 				return true;
+			}
+
+			@Override public boolean visit(ISetOpOperation setOpOperation) {
+				// We must traverse the iterationEntity fully (not just its filter condition), even though
+				// semantically, the ISetOpOperation (aka SumOfTerms) only evaluates
+				// GroupFilled(iterEntity), because:
+				// The way that the direct vk api use in extmp prod currently works, the invariant that
+				// no repetitions of repeatable groups can disappear does not currently hold
+				// (the last filled field of a repetition can (probably) be emptied out by a
+				// computation which makes the whole repetition in effect disappear, because the
+				// group repetition is not explicitly represented in IData
+				setOpOperation.getIterationEntity().traverse(this);
+				setOpOperation.getOperation().traverse(this);
+				return false;
 			}
 
 			@Override

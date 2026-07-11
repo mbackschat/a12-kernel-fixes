@@ -33,7 +33,7 @@ package com.mgmtp.a12.kernel.core.service.internal;
 
 import java.util.Collection;
 import java.util.Locale;
-import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import com.mgmtp.a12.kernel.core.service.internal.errortext.FieldErrortextChecker;
@@ -44,11 +44,14 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelSp
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IFieldErrorTextParser;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IServiceConfiguration;
+import com.mgmtp.a12.model.notification.Severity;
+
+import lombok.NonNull;
 
 /**
  * Implements the interface {@link IFieldErrorTextParser} for parsing field error texts.
  */
-public class FieldErrorTextParser implements IFieldErrorTextParser, IErrorTextParser {
+public class FieldErrorTextParser implements IFieldErrorTextParser {
 
 	private final IModelSpecificSettings modelSpecificSettings;
 
@@ -57,11 +60,11 @@ public class FieldErrorTextParser implements IFieldErrorTextParser, IErrorTextPa
 	}
 
 	@Override
-	public boolean hasValidErrorText(IField field, Collection<Locale> locales, IProblemReporter pr) {
-		Objects.requireNonNull(field, HAS_VALID_ERROR_TEXT_FIELD_NULL);
-		Objects.requireNonNull(locales, HAS_VALID_ERROR_TEXT_LOCALES_NULL);
-		Objects.requireNonNull(pr, HAS_VALID_ERROR_TEXT_PR_NULL);
-
+	public boolean hasValidErrorText(
+			@NonNull IField field,
+			@NonNull Collection<Locale> locales,
+			@NonNull IProblemReporter pr
+	) {
 		Function<Locale, String> localeToErrorText = l -> null;
 		if (field.getType() instanceof IEnumerationType et) {
 			localeToErrorText = l -> et.getErrorMessage(l);
@@ -73,26 +76,30 @@ public class FieldErrorTextParser implements IFieldErrorTextParser, IErrorTextPa
 	}
 
 	@Override
-	public boolean hasValidErrorTextInRequirednessConfig(IField field, Collection<Locale> locales, IProblemReporter pr) {
-		Objects.requireNonNull(field, HAS_VALID_ERROR_TEXT_FIELD_NULL);
-		Objects.requireNonNull(locales, HAS_VALID_ERROR_TEXT_LOCALES_NULL);
-		Objects.requireNonNull(pr, HAS_VALID_ERROR_TEXT_PR_NULL);
-
+	public boolean hasValidErrorTextInRequirednessConfig(
+			@NonNull IField field,
+			@NonNull Collection<Locale> locales,
+			@NonNull IProblemReporter pr
+	) {
 		Function<Locale, String> localeToErrorText = l -> field.getRequirednessConfig()
-				.map(rc -> rc.getErrorMessage(l).orElse(null)).orElse(null);
+				.flatMap(rc -> rc.getErrorMessage(l)).orElse(null);
 		return hasValidErrorText(field, locales, localeToErrorText, pr);
 	}
 
-	private boolean hasValidErrorText(IField field, Collection<Locale> locales,
-			Function<Locale, String> localeToErrorText, IProblemReporter pr) {
-		Objects.requireNonNull(field, HAS_VALID_ERROR_TEXT_FIELD_NULL);
-		Objects.requireNonNull(localeToErrorText, HAS_VALID_ERROR_TEXT_ERROR_TEXTS_NULL);
-		Objects.requireNonNull(locales, HAS_VALID_ERROR_TEXT_LOCALES_NULL);
-		Objects.requireNonNull(pr, HAS_VALID_ERROR_TEXT_PR_NULL);
-
-		FieldErrortextChecker fec = new FieldErrortextChecker(modelSpecificSettings, pr);
-		return locales.stream()
-				.map(l -> fec.checkErrorText(localeToErrorText.apply(l), field))
-				.reduce(true, (a, b) -> a && b);
+	private boolean hasValidErrorText(
+			@NonNull IField field,
+			@NonNull Collection<Locale> locales,
+			@NonNull Function<Locale, String> localeToErrorText,
+			@NonNull IProblemReporter pr
+	) {
+		AtomicBoolean isValid = new AtomicBoolean(true);
+		FieldErrortextChecker fec = new FieldErrortextChecker(field, modelSpecificSettings, false);
+		locales.forEach(locale -> fec.checkErrorText(localeToErrorText.apply(locale), locale, problem -> {
+			if (problem.getSeverity().isAtLeastAsSevereAs(Severity.ERROR)) {
+				isValid.set(false);
+			}
+			pr.reportProblem(problem);
+		}));
+		return isValid.get();
 	}
 }

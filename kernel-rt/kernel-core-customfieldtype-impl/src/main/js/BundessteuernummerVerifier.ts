@@ -29,15 +29,11 @@
  * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
-import type { ICustomFieldValidator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
+import type {ICustomFieldValidator} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
+import {BundessteuernummerVerifierImpl} from "./internal/verifier/BundessteuernummerVerifierImpl.js";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { IFadat, deserializeFadat } from "./IFadat.js";
-
-import { BundessteuernummerVerifierImpl } from "./internal/verifier/BundessteuernummerVerifierImpl.js";
-// used for typedoc
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { SteuernummerVerifier } from "./SteuernummerVerifier.js";
+import {SteuernummerVerifier} from "./SteuernummerVerifier.js";
 
 /**
  * The {@link ICustomFieldValidator} implementation for the German Federal tax number - the so called 'Bundessteuernummer'.
@@ -116,19 +112,10 @@ export class BundessteuernummerVerifier {
 		// at the moment, we don't need to do something
 	}
 
-	/**
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link create} instead.
-	 */
-	public static getInstance(): ICustomFieldValidator {
-		return new BundessteuernummerVerifierImpl(undefined);
-	}
-
-	/**
-	 * @param fadat
-	 * 		the federal tax office data. Can be created via {@link deserializeFadat}.
-	 * @return the instance of {@link ICustomFieldValidator}.
-	 */
-	public static create(fadat: IFadat): ICustomFieldValidator {
-		return new BundessteuernummerVerifierImpl(fadat);
+    /**
+     * @return the instance of {@link ICustomFieldValidator}.
+     */
+	public static create(): ICustomFieldValidator {
+		return new BundessteuernummerVerifierImpl();
 	}
 }

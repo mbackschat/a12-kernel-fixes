@@ -46,7 +46,7 @@ import java.util.Objects;
  * </p>
  *
  * <p>
- * <strong>PLEASE NOTE:</strong> This class exists duplicated in kernel-core-runtime and kernel-core-base-utils.
+ * <strong>PLEASE NOTE:</strong> This class exists duplicated in kernel-core-runtime and kernel-internal-base-utils.
  * Please keep the behavior of both TrieNode implementations consistent!
  * </p>
  */

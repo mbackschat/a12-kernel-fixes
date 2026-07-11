@@ -34,7 +34,7 @@ package com.mgmtp.a12.utils.conversion.internal;
 
 import static com.mgmtp.a12.utils.conversion.a12internal.util.ValidationDateParser.makeStringDayMonthTwoDigits;
 
-import java.text.ParseException;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -89,7 +89,7 @@ public class DateConversion {
 	 * @return the converted string value
 	 */
 	public static String convert(
-			String value,
+			@NonNull String value,
 			DateBasicConversionConfig srcDataType,
 			DataFormats srcDataFormats,
 			DateBasicConversionConfig destDataType,
@@ -216,7 +216,7 @@ public class DateConversion {
 		try {
 			// more exact check while parsing
 			ValidationDateParser.parseDate(dateWithFormat);
-		} catch (ParseException e) {
+		} catch (DateTimeParseException e) {
 			return Optional.of(DateConversion.createParseErrorForDate(originalFormat));
 		}
 		return Optional.empty();
@@ -273,7 +273,7 @@ public class DateConversion {
 	}
 
 	private static DateAndFormat getDateWithFormat(
-			String value,
+			@NonNull String value,
 			DateBasicConversionConfig dataType,
 			DataFormats dataFormats
 	) {

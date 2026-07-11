@@ -56,11 +56,6 @@ import lombok.NonNull;
 public interface IMetaField extends IMetaEntity {
 
 	/**
-	 * To set the conversion to non-lenient (see {@link IMetaField#convertWithOnlyBasicTypeCheck})
-	 */
-	String NON_LENIENT_CONVERSION = "non-lenient";
-
-	/**
 	 * Converts the given value from the UI representation to the internal representation or vice
 	 * versa.
 	 * <p>
@@ -134,12 +129,12 @@ public interface IMetaField extends IMetaEntity {
 	/**
 	 * Convert the given value to a basic type, only checking that the given type can be parsed
 	 * correctly and unambiguously.<p/>
-	 * Note: the returned value will be suitable for {@code IDocument} fields; for {@code DocumentV2} fields, it must first be
-	 * converted via {@code com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion#basicTypeV1ToV2}. This conversion is
-	 * necessary
-	 * because of the different representation of dates, times and date ranges in V2 values (The conversion cannot be done
-	 * automatically in IMetaField, because the conversion logic and {@code InstantRange} type are currently not available in
-	 * the core-runtime api and core-runtime, but only in the "md" API of kernel.)
+	 * Note: the returned value uses basic type V1 representations (e.g. {@link java.util.Date} for dates).
+	 * For {@code DocumentV2} fields, the result must first be converted via
+	 * {@code com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion#basicTypeV1ToV2} to get V2 representations
+	 * (e.g. {@link java.time.Instant}, {@code InstantRange}). This conversion cannot be done automatically in IMetaField,
+	 * because the conversion logic and {@code InstantRange} type are currently not available in the core-runtime API,
+	 * but only in the "md" API of kernel.
 	 *
 	 * @param value
 	 * 		the value to be converted.
@@ -167,14 +162,6 @@ public interface IMetaField extends IMetaEntity {
 	 * 		If a {@link Locale} is given which is not contained in the list of supported
 	 * 		languages (returned by {@link IMetaModel} for the key "languages"), an {@link IllegalArgumentException} will be thrown.
 	 * 		If no {@link Locale} is given, {@link Locale#GERMANY} will be used.</li>
-	 * 		<li>The string constant {@link IMetaField#NON_LENIENT_CONVERSION} can be also
-	 * 		passed. If the string was passed, wrong placed thousands
-	 * 		separators end up in a validation error and no conversion takes place. Otherwise,
-	 * 		the conversion will be lenient: wrong placed thousands separators will be ignored
-	 * 		and
-	 * 		the conversion takes places.
-	 * 		<b>Restriction:</b> this parameter only affects the conversion
-	 * 		of <b>number fields</b>.</li>
 	 * 		</ul>
 	 * @param result
 	 * 		will contain error messages, if they occur.
@@ -184,7 +171,7 @@ public interface IMetaField extends IMetaEntity {
 	 * 		<dd>{@link String}</dd>
 	 * 		<dt>number</dt>
 	 * 		<dd>{@link BigDecimal} or {@link String} when the value contains at least one
-	 * 		leading zero and such zeros are allowed</dd>
+	 * 		leading zero and such zeros are allowed. Incorrectly placed thousands separators will be ignored.</dd>
 	 * 		<dt>date</dt>
 	 * 		<dd>{@link Date} (time zone of the model will be considered) or {@link String} for
 	 * 		partially known dates; if the value contains
@@ -213,8 +200,8 @@ public interface IMetaField extends IMetaEntity {
 	 * only checks necessary to ensure convertibility are performed. E.g. string patterns or correct
 	 * decimal places are not checked, as long as the given value can be represented correctly as
 	 * base type.<p/>
-	 * Note: the value object is expected to have a type that matches the IDocument field types. If the value is a DocumentV2 field
-	 * value, it must first be converted via
+	 * Note: the value object is expected to have a type that matches basic type V1 representations (e.g. {@link java.util.Date}
+	 * for dates). If the value is a DocumentV2 field value (V2 representation), it must first be converted via
 	 * {@code com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion#basicTypeV2ToV1}.
 	 * See also the similar note in {@link #convertWithOnlyBasicTypeCheck(String, PresentationInformation, IResult, Object...)}
 	 *

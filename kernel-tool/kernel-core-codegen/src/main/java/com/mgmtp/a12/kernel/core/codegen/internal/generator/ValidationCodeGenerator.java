@@ -86,7 +86,7 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGeneratorParameters.Product;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGeneratorParameters.ProgrammingLanguage;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
-import com.mgmtp.a12.kernel.core.utils.internal.EnumerationDataTable;
+import com.mgmtp.a12.kernel.core.tool.internal.EnumerationDataTable;
 
 /**
  * The code generator creating the validation code.
@@ -160,7 +160,7 @@ public class ValidationCodeGenerator extends ModelBasedCodeGenerator {
 	protected boolean prepareRules() {
 		data.removeRules(this::handleLengthOfAllowedValueValidationRule, problemReporter);
 
-		return !problemReporter.hasProblemOccurred();
+		return !problemReporter.hasErrorOccurred();
 	}
 
 	/**
@@ -218,7 +218,7 @@ public class ValidationCodeGenerator extends ModelBasedCodeGenerator {
 
 		CodeGenRulesBuilder rulesBuilder = new CodeGenRulesBuilder(data, problemReporter, getPackageInfo(), expandGroups);
 		// error parsing rules
-		if (problemReporter.hasProblemOccurred()) {
+		if (problemReporter.hasErrorOccurred()) {
 			return false;
 		}
 		rules = rulesBuilder.build();
@@ -258,7 +258,7 @@ public class ValidationCodeGenerator extends ModelBasedCodeGenerator {
 			tableHolder = new CodeGenTableHolderBuilder(data.getEc().getEnumerationTables(), data, problemReporter,
 					getPackageInfo()).build();
 		}
-		return !problemReporter.hasProblemOccurred();
+		return !problemReporter.hasErrorOccurred();
 	}
 
 	@Override

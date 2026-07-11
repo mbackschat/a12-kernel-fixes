@@ -171,8 +171,8 @@ public final class ImmutableDocumentV2Impl
 
 		private static String validateDocumentId(String id) {
 			if (Objects.equals(id, "")) {
-				throw new IllegalArgumentException("id may be null or a non empty string, but not the empty string " +
-						"(for compatibility with IDocument#setId)");
+				// for compatibility with IDocument#setId:
+				throw new IllegalArgumentException("id may be null or a non-empty string, but not the empty string");
 			}
 			return id;
 		}

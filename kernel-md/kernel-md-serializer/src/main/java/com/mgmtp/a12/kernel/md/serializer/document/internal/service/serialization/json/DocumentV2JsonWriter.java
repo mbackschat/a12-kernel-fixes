@@ -37,15 +37,6 @@ import java.io.Writer;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.PrettyPrinter;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ValueNode;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentSerializationException;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.FieldInstanceV2;
@@ -56,6 +47,14 @@ import com.mgmtp.a12.kernel.md.serializer.document.internal.service.DocumentSeri
 import com.mgmtp.a12.kernel.md.serializer.document.internal.service.serialization.DocumentJsonAndXmlSerializationInfoImpl;
 
 import lombok.NonNull;
+import tools.jackson.core.PrettyPrinter;
+import tools.jackson.core.StreamWriteFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ValueNode;
 
 public class DocumentV2JsonWriter {
 	protected static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
@@ -83,20 +82,19 @@ public class DocumentV2JsonWriter {
 	}
 
 	private static void formatJson(JsonNode docJson, Writer writer, PrettyPrinter pp) {
-		try (final JsonGenerator jsonGenerator = new JsonFactory().createGenerator(writer)) {
-			// write as plain, as otherwise we might lose precision
-			// (Note: on closer look, it appears that precision might not actually be lost: WRITE_BIGDECIMAL_AS_PLAIN's javadoc
-			//  doesn't say so, and grepping for usages in https://github.com/FasterXML/jackson.git yields GeneratorBase.java which
-			//  just uses BigDecimal::toString otherwise, which guarantees to not lose information according to note 1 in
-			//  https://docs.oracle.com/javase/8/docs/api/java/math/BigDecimal.html#toString--
-			//  -> do we only do this for "pretty printing"; or maybe is the scientific notation like -1.23E-10 not supported by
-			//  json parsers/our json parser?
-			// )
-			jsonGenerator.enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN);
-			jsonGenerator.setPrettyPrinter(pp);
-			jsonGenerator.setCodec(new ObjectMapper());
-			jsonGenerator.writeTree(docJson);
-			jsonGenerator.flush();
+		JsonMapper mapper = JsonMapper.builder()
+				.enable(StreamWriteFeature.WRITE_BIGDECIMAL_AS_PLAIN)
+				.disable(StreamWriteFeature.AUTO_CLOSE_TARGET)
+				.defaultPrettyPrinter(pp)
+				.build();
+		if (pp != null) {
+			mapper.writerWithDefaultPrettyPrinter().writeValue(writer, docJson);
+		} else {
+			mapper.writeValue(writer, docJson);
+		}
+
+		try {
+			writer.flush();
 		} catch (final IOException ioe) {
 			throw new DocumentSerializationException("Error while creating/writing JsonGenerator.", ioe);
 		}

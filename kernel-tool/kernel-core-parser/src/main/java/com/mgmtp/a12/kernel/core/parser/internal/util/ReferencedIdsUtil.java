@@ -52,6 +52,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.IEntityList
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.IRootGroupCondition;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IGroupOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.INumberOfRootGroupsOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.EntityListConditionName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.GroupOperationName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.ast.ASTVisitor;
@@ -70,9 +71,8 @@ public class ReferencedIdsUtil {
 	 * entity. It affects entities with a filter condition, i.e. the language construct 'Mit'.
 	 */
 	public enum ReferencedIdsMode {
-		IGNORE_FILTERCONDITION,
-		USE_FILTERCONDITION_UNMODIFIED,
-		USE_FILTERCONDITION_REPLACE_PSEUDO_ITERATION
+		IGNORE_SET_EXPRESSIONS,
+		USE_SET_EXPRESSION_REPLACE_INNER_BY_WILDCARD
 	}
 
 	private static class ReferencedEntityVisitor extends ASTVisitor {
@@ -159,12 +159,12 @@ public class ReferencedIdsUtil {
 
 			getIndexFieldIfParallelIteration(e, ec, addIndexFields).ifPresent(this::addEntityToResult);
 
-			if (e.getFilterCondition() != null && refIdsMode != ReferencedIdsMode.IGNORE_FILTERCONDITION) {
+			if (e.getFilterCondition() != null && refIdsMode != ReferencedIdsMode.IGNORE_SET_EXPRESSIONS) {
 				ReferencedEntityVisitor filterVisitor = new ReferencedEntityVisitor(addIndexFields, addRootGroups, ec, refIdsMode,
 						filter);
 				e.getFilterCondition().traverse(filterVisitor);
 				Set<? extends IEntityId> ids = filterVisitor.getEntityIds();
-				if (refIdsMode == ReferencedIdsMode.USE_FILTERCONDITION_REPLACE_PSEUDO_ITERATION) {
+				if (refIdsMode == ReferencedIdsMode.USE_SET_EXPRESSION_REPLACE_INNER_BY_WILDCARD) {
 					ids = transformFilterConditionIds(filterVisitor.getEntityIds(), e);
 				}
 				entityIds.addAll(ids);
@@ -205,6 +205,22 @@ public class ReferencedIdsUtil {
 				addEntityToResult(createEntityForNumberOfRootGroupCondition(norgo, ec));
 				// No semantic index possible (only rootGroup*)
 			}
+		}
+
+		@Override public boolean visit(ISetOpOperation setOp) {
+			setOp.getIterationEntity().traverse(this);
+			if (refIdsMode == ReferencedIdsMode.IGNORE_SET_EXPRESSIONS) {
+				return false;
+			}
+			ReferencedEntityVisitor setExpressionVisitor = new ReferencedEntityVisitor(addIndexFields, addRootGroups, ec,
+					refIdsMode, filter);
+			setOp.getOperation().traverse(setExpressionVisitor);
+			long targetIdx = refIdsMode == ReferencedIdsMode.USE_SET_EXPRESSION_REPLACE_INNER_BY_WILDCARD ?
+					IParseTreeEntity.WILDCARD :
+					IParseTreeEntity.ITERATION;
+			Set<? extends IEntityId> ids = transformSetExpressionIds(setExpressionVisitor.getEntityIds(), targetIdx);
+			entityIds.addAll(ids);
+			return false;
 		}
 
 		private void addEntityToResult(IEntityId e) {
@@ -362,7 +378,7 @@ public class ReferencedIdsUtil {
 			boolean addIndexFields, IEC ec) {
 
 		Set<IEntityId> refEntities = getDirectlyReferencedIEntityIdsFilteredWithoutRootGroups(parts,
-				ReferencedIdsMode.USE_FILTERCONDITION_UNMODIFIED, ec, tester, addIndexFields);
+				ReferencedIdsMode.USE_SET_EXPRESSION_REPLACE_INNER_BY_WILDCARD, ec, tester, addIndexFields);
 		return refEntities.stream()
 				.map(IEntityId::getFullName)
 				.collect(Collectors.toSet());
@@ -408,7 +424,7 @@ public class ReferencedIdsUtil {
 
 	public static Set<IEntityId> getReferencedIds4MetaReferences(ICondition c, IEC ec, int levelToStartDuplicateSearch,
 			boolean useNonRootGroups, boolean useRootGroups, Set<IEntityId> allRefIndexFields) {
-		ReferencedIdsMode refIdsMode = ReferencedIdsMode.USE_FILTERCONDITION_REPLACE_PSEUDO_ITERATION;
+		ReferencedIdsMode refIdsMode = ReferencedIdsMode.USE_SET_EXPRESSION_REPLACE_INNER_BY_WILDCARD;
 		Predicate<IEntityId> filter = mkEntityFilter(useNonRootGroups, useRootGroups);
 		ReferencedEntityVisitor visitor = new ReferencedEntityVisitor(true, useRootGroups, ec, refIdsMode, filter);
 		visitor.setLevelToStartDuplicateSearch(levelToStartDuplicateSearch);
@@ -424,7 +440,7 @@ public class ReferencedIdsUtil {
 		if (id.getFilterCondition() == null) {
 			return Collections.emptySet();
 		}
-		ReferencedIdsMode refIdsMode = ReferencedIdsMode.USE_FILTERCONDITION_REPLACE_PSEUDO_ITERATION;
+		ReferencedIdsMode refIdsMode = ReferencedIdsMode.USE_SET_EXPRESSION_REPLACE_INNER_BY_WILDCARD;
 		Predicate<IEntityId> filter = mkEntityFilter(useNonRootGroups, useRootGroups);
 		ReferencedEntityVisitor filterVisitor = new ReferencedEntityVisitor(true, useRootGroups, ec, refIdsMode,
 				// does refIdsMode make any difference here? wouldn't it only chagnge something if there were nested filter conditions?
@@ -494,6 +510,33 @@ public class ReferencedIdsUtil {
 		return Optional.empty();
 	}
 
+	private static Set<? extends IEntityId> transformSetExpressionIds(Set<IEntityId> filterIds, long targetIdx) {
+		return filterIds.stream()
+				.map(id -> transformSetExpressionId(id, targetIdx))
+				.collect(Collectors.toSet());
+	}
+
+	private static IEntityId transformSetExpressionId(IEntityId id, long targetIdx) {
+		if (id.isOuter()) {
+			return id.withIsOuter(false); // the results of this method get their indices interpreted like non-filtercondition
+			// entityids, so it doesn't make sense to have isOuter set there (and the refEntity codegen gets confused if
+			// isOuter==true for any of the entities.
+			// Note: If the entityIds had a "isInner" flag, we'd clear that too.
+		}
+		long[] indices = id.getIndices().clone();
+		boolean changed = false;
+		for (int i = 0; i < indices.length; i++) {
+			if (indices[i] == IParseTreeEntity.INTERNAL_ITERATION) {
+				indices[i] = targetIdx;
+				changed = true;
+			}
+		}
+		if (!changed) {
+			return id;
+		}
+		return id.withIndices(indices);
+	}
+
 	private static Set<? extends IEntityId> transformFilterConditionIds(Set<IEntityId> filterIds, IEntityId filteredId) {
 		return filterIds.stream()
 				.map(id -> transformFilterConditionId(id, filteredId))
@@ -543,6 +586,16 @@ public class ReferencedIdsUtil {
 				: e;
 	}
 
+	public static IEntityId replaceInternalIndicesByWildcard(IEntityId e) {
+		long[] indices = e.getIndices().clone();
+		for (int i = 0; i < indices.length; i++) {
+			if (indices[i] == IParseTreeEntity.INTERNAL_ITERATION) {
+				indices[i] = IParseTreeEntity.WILDCARD;
+			}
+		}
+		return e.withIndices(indices);
+	}
+
 	/**
 	 * Replaces iteration indices starting from levelToStartReplacement by the value
 	 * {@link IParseTreeEntity#REP_NOT_UNQ_REF_LEVEL_HAS_TO_BE_REPLACED}
@@ -556,7 +609,7 @@ public class ReferencedIdsUtil {
 				indices[i] = IParseTreeEntity.REP_NOT_UNQ_REF_LEVEL_HAS_TO_BE_REPLACED;
 			}
 		}
-		return new EntityIdImpl(e, indices);
+		return e.withIndices(indices);
 	}
 
 	public static Set<IEntityId> getDirektReferenzierteIFeldIds(List<? extends IParseTreeEntity> parts,

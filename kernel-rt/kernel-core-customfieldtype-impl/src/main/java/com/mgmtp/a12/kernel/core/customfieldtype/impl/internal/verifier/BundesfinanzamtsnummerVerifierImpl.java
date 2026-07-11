@@ -35,10 +35,9 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeCheckError;
-import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeConversionResult;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeValidationParam;
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.IFadat;
-import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.CustomFieldTypeConversionResultImpl;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorEnum;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorKeys;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorUtil;
@@ -57,12 +56,14 @@ import lombok.NonNull;
  * <code>[0-9]{4}</code>
  * entspricht handelt es sich um einen formalen Fehler.
  */
-public class BundesfinanzamtsnummerVerifierImpl extends AbstractFadatRelatedCustomFieldType {
+public class BundesfinanzamtsnummerVerifierImpl implements ICustomFieldValidator {
 
 	private static final Pattern VALID_BUFANR = Pattern.compile("[0-9]{4}");
 
-	public BundesfinanzamtsnummerVerifierImpl(IFadat fadat) {
-		super(fadat);
+	private final @NonNull IFadat fadat;
+
+	public BundesfinanzamtsnummerVerifierImpl(@NonNull IFadat fadat) {
+		this.fadat = fadat;
 	}
 
 	/**
@@ -71,13 +72,12 @@ public class BundesfinanzamtsnummerVerifierImpl extends AbstractFadatRelatedCust
 	 * {@link IllegalArgumentException} geworfen.
 	 */
 	@Override
-	protected Optional<ICustomFieldTypeCheckError> validate(
+	public @NonNull Optional<ICustomFieldTypeCheckError> validate(
 			@NonNull String bundesfinanzamtsnummer,
 			@NonNull ICustomFieldTypeValidationParam valParam,
-			boolean isDisplayValue,
-			@NonNull ParamsProvider pp
+			boolean isDisplayValue
 	) {
-		CustomFieldTypeErrorEnum error = checkBufaNr(bundesfinanzamtsnummer, pp);
+		CustomFieldTypeErrorEnum error = checkBufaNr(bundesfinanzamtsnummer);
 		return CustomFieldTypeErrorUtil.getResult(error, valParam.getErrorMsgLocale(),
 				CustomFieldTypeErrorKeys.UNGUELTIGE_BUFANR);
 	}
@@ -86,13 +86,12 @@ public class BundesfinanzamtsnummerVerifierImpl extends AbstractFadatRelatedCust
 	 * Prüft die angegebene Bundesfinanzamtsnummer und liefert den Key der passenden Fehlermeldung
 	 * bzw. <code>null</code>, wenn die Bundesfinanzamtsnummer gültig ist.
 	 */
-	private CustomFieldTypeErrorEnum checkBufaNr(String bundesfinanzamtsnummer,
-			ParamsProvider pp) {
+	private CustomFieldTypeErrorEnum checkBufaNr(String bundesfinanzamtsnummer) {
 		if (!istFormalGueltig(bundesfinanzamtsnummer)) {
 			return CustomFieldTypeErrorEnum.BUFANR_FORMALER_FEHLER;
 		}
 		// Integer.parseInt is ok, because formally correct
-		if (!existsFederalTaxOfficeNumber(Integer.parseInt(bundesfinanzamtsnummer), pp)) {
+		if (!FadatLookupUtil.existsFederalTaxOfficeNumber(fadat, Integer.parseInt(bundesfinanzamtsnummer))) {
 			return CustomFieldTypeErrorEnum.BUFANR_UNGUELTIGE_FINANZAMTSNR;
 		}
 		return CustomFieldTypeErrorEnum.KEIN_FEHLER;
@@ -103,15 +102,5 @@ public class BundesfinanzamtsnummerVerifierImpl extends AbstractFadatRelatedCust
 	 */
 	private boolean istFormalGueltig(final String bufaNr) {
 		return VALID_BUFANR.matcher(bufaNr).matches();
-	}
-
-	@Override
-	protected ICustomFieldTypeConversionResult convertDisplay2Internal(String displayValue, ParamsProvider pp) {
-		return new CustomFieldTypeConversionResultImpl(displayValue, null);
-	}
-
-	@Override
-	protected ICustomFieldTypeConversionResult convertInternal2Display(String xmlValue, ParamsProvider pp) {
-		return new CustomFieldTypeConversionResultImpl(xmlValue, null);
 	}
 }

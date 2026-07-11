@@ -46,11 +46,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
 import com.mgmtp.a12.kernel.md.model.a12internal.services.DocumentModelReferenceResolver;
 import com.mgmtp.a12.kernel.md.serializer.model.a12internal.services.DocumentModelSerializer;
-import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.ObjectMapperProvider;
+import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.KernelJsonMapperProvider;
+
+import tools.jackson.databind.JsonNode;
 
 /**
  * Resolves {@link DocumentModel}s by their file path.
@@ -98,7 +99,7 @@ public class FilePathIncludedDocumentModelResolver implements DocumentModelRefer
 						if (!isDocModel(model)) {
 							return;
 						}
-						String modelId = model.get(HEADER).get(MODEL_ID).asText();
+						String modelId = model.get(HEADER).get(MODEL_ID).asString();
 						docModelPathsById.computeIfAbsent(modelId, id -> new HashSet<>()).add(p);
 						// when assertions are enabled, fail-fast in order to eagerly detect likely-unintended situations(instead of
 						// failing only if the ambiguous references is actually resolved):
@@ -113,7 +114,7 @@ public class FilePathIncludedDocumentModelResolver implements DocumentModelRefer
 
 	private JsonNode parseModel(Path jsonPath) {
 		try (final InputStream inputStream = Files.newInputStream(jsonPath)) {
-			return ObjectMapperProvider.createPreconfiguredObjectMapper().readTree(inputStream);
+			return KernelJsonMapperProvider.createPreconfiguredObjectMapper().build().readTree(inputStream);
 		} catch (IOException e) {
 			throw new UncheckedIOException("Could not read the json file '" + jsonPath + "'.", e);
 		}
@@ -129,20 +130,19 @@ public class FilePathIncludedDocumentModelResolver implements DocumentModelRefer
 		JsonNode modelId = header.get(MODEL_ID);
 		JsonNode modelType = header.get(MODEL_TYPE);
 		JsonNode modelVersion = header.get(MODEL_VERSION);
-		if (modelId == null || !modelId.isTextual()
-				|| modelType == null || !modelType.isTextual()
-				|| modelVersion == null || !modelVersion.isTextual()) {
+		if (modelId == null || !modelId.isString()
+				|| modelType == null || !modelType.isString()
+				|| modelVersion == null || !modelVersion.isString()) {
 			return false;
 		}
-		return modelType.asText().equals(DOCUMENT_MODEL_TYPE);
+		return modelType.asString().equals(DOCUMENT_MODEL_TYPE);
 	}
 
 	@Override
 	public DocumentModel getDocumentModel(String reference) {
 		Set<Path> docModelPaths = docModelPathsById.get(reference);
-		if (docModelPaths == null) {
-			throw new IllegalArgumentException("Reference '" + reference + "' cannot be resolved in workspace with basePath "
-					+ this.basePath);
+		if (docModelPaths == null || docModelPaths.isEmpty()) {
+			return null;
 		}
 		if (docModelPaths.size() != 1) {
 			throw new RuntimeException("The requested model id " + reference + " is not unique in the workspace at "

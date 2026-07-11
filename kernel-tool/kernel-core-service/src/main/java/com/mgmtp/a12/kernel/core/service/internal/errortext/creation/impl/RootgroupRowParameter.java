@@ -47,7 +47,6 @@ public class RootgroupRowParameter extends ErrortextParameter implements IRootgr
 	private String field;
 	private String fieldFullOrShortName;
 
-
 	public RootgroupRowParameter(String field, String fieldFullOrShortName) {
 		this.field = field;
 		this.fieldFullOrShortName = fieldFullOrShortName;
@@ -56,11 +55,6 @@ public class RootgroupRowParameter extends ErrortextParameter implements IRootgr
 	@Override
 	public String getField() {
 		return field;
-	}
-
-	@Override
-	public void setField(String field) {
-		this.field = field;
 	}
 
 	public String getFieldFullOrShortName() {

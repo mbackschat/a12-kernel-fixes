@@ -41,7 +41,7 @@ import lombok.NonNull;
 public class DocumentStaticRtService extends DocumentAbstractRtService {
 
 	public DocumentStaticRtService(final IDocumentStaticServiceConfig config, final IDocumentModelResolver documentModelResolver) {
-		super(config, documentModelResolver, new StaticModelProvider(config));
+		super(config, documentModelResolver, new StaticModelProvider(config, documentModelResolver));
 	}
 
 	@Override

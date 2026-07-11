@@ -39,31 +39,29 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.NodePath;
 
-public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
-	public ReferenceViaPathStep(MigrationCache cache, MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+public final class ReferenceViaPathStep {
+
+	private ReferenceViaPathStep() {
 	}
 
-	@Override
-	public void execute(JsonNode model, MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		// create following map: field path by field id (fieldPathById)
-		Map<String, NodePath> fieldPathById = extractFieldByPathId(model);
+		Map<String, NodePath> fieldPathById = extractFieldByPathId(model, cache);
 
 		// extract the id of the current DM
 		String docModelId = ModelJsonUtil.extractModelId(model);
@@ -71,17 +69,17 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 		//	add fieldPathById to fieldPathByIdMapByDocModelId with the corresponding DM id
 		cache.addFieldPathByIdMapByDocModelId(docModelId, fieldPathById);
 
-		updateModel(model);
+		updateModel(model, cache);
 	}
 
-	public Map<String, NodePath> extractFieldByPathId(JsonNode model) throws MigrationException {
+	public static Map<String, NodePath> extractFieldByPathId(JsonNode model, MigrationCache cache) throws MigrationException {
 		// extract all including groups (see also UseUuidInTypeDefsStep#collectTypeDefUuidsByIncludedIds)
 		Collection<ModelJsonUtil.JsonNodeWithPath> includingGroups = ModelJsonUtil.extractUnexpandedIncludingGroupsWithPath(model);
 
 		// create map: included DM reference by model alias
 		Map<String, String> includedDmReferenceByAlias = ModelJsonUtil.createIncludedDmReferenceByAlias(model, true);
 		Map<String, NodePath> fieldPathById = ModelJsonUtil.extractAllElementsWithPath(model, ModelJsonUtil.TYPE_FIELD).stream()
-				.collect(Collectors.toMap(node -> node.node().get(ModelJsonUtil.FIELD_ID).asText(),
+				.collect(Collectors.toMap(node -> node.node().get(ModelJsonUtil.FIELD_ID).asString(),
 						ModelJsonUtil.JsonNodeWithPath::path));
 
 		// if there is at least one, we do:
@@ -126,7 +124,7 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 		return fieldPathById;
 	}
 
-	public void updateModel(JsonNode model) throws MigrationException {
+	public static void updateModel(JsonNode model, MigrationCache cache) throws MigrationException {
 		// 	update references within the current DM
 		//		extract the json nodes which reference a field
 		//			if there is none, there is nothing to migrate
@@ -134,10 +132,10 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 		//			update them with help of fieldPathById
 		//				the important note at the Design of Solution in A12-15368 should be taken into account.
 		//				identify references which could NOT be resolved
-		List<String> nonResolvableFieldIds = new ArrayList<>(migrateIndexFields(model));
-		nonResolvableFieldIds.addAll(migrateSortFields(model));
-		nonResolvableFieldIds.addAll(migrateComputedFields(model));
-		nonResolvableFieldIds.addAll(migrateErrorFields(model));
+		List<String> nonResolvableFieldIds = new ArrayList<>(migrateIndexFields(model, cache));
+		nonResolvableFieldIds.addAll(migrateSortFields(model, cache));
+		nonResolvableFieldIds.addAll(migrateComputedFields(model, cache));
+		nonResolvableFieldIds.addAll(migrateErrorFields(model, cache));
 
 		// if there are no references which could NOT be resolved, we are done with the migration
 		// if there are references which could NOT be resolved, throw an exception
@@ -148,7 +146,7 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 		}
 	}
 
-	private List<String> migrateIndexFields(JsonNode model) {
+	private static List<String> migrateIndexFields(JsonNode model, MigrationCache cache) {
 		String docModelId = ModelJsonUtil.extractModelId(model);
 		Map<String, NodePath> fieldPathById = cache.getFieldPathByIdMapByDocModelId(docModelId);
 
@@ -157,7 +155,7 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 				.filter(elem -> elem.node().get(ModelJsonUtil.TYPE_GROUP).has(ModelJsonUtil.INDEX_FIELD_ID))
 				.map(elem -> {
 					ObjectNode node = (ObjectNode) elem.node().get(ModelJsonUtil.TYPE_GROUP);
-					String indexFieldId = node.get(ModelJsonUtil.INDEX_FIELD_ID).asText();
+					String indexFieldId = node.get(ModelJsonUtil.INDEX_FIELD_ID).asString();
 					NodePath resolvedField = fieldPathById.get(indexFieldId);
 
 					// we collect the non resolvable field but continue with the migration
@@ -165,7 +163,7 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 						return indexFieldId;
 					} else {
 						// the index field in a group can only be in the group itself, therefore the path is just the field name
-						TextNode value = new TextNode(resolvedField.getElementName());
+						StringNode value = new StringNode(resolvedField.getElementName());
 						ModelJsonUtil.replaceProperty(node, ModelJsonUtil.INDEX_FIELD_ID, ModelJsonUtil.INDEX_FIELD_NAME,
 								value);
 						return null;
@@ -173,7 +171,7 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 				}).filter(Objects::nonNull).toList();
 	}
 
-	private List<String> migrateSortFields(JsonNode model) {
+	private static List<String> migrateSortFields(JsonNode model, MigrationCache cache) {
 		String docModelId = ModelJsonUtil.extractModelId(model);
 		Map<String, NodePath> fieldPathById = cache.getFieldPathByIdMapByDocModelId(docModelId);
 
@@ -185,10 +183,10 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 
 					return StreamSupport.stream(node.spliterator(), false).map(jsonNode -> {
 						ObjectNode sortField = (ObjectNode) jsonNode;
-						String sortFieldId = sortField.get(ModelJsonUtil.SORT_FIELD_ID).asText();
+						String sortFieldId = sortField.get(ModelJsonUtil.SORT_FIELD_ID).asString();
 						if (sortFieldId.isEmpty()) {
 							ModelJsonUtil.replaceProperty(sortField, ModelJsonUtil.SORT_FIELD_ID, ModelJsonUtil.SORT_FIELD_NAME,
-									new TextNode(""));
+									new StringNode(""));
 							return null;
 						}
 
@@ -199,14 +197,14 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 						} else {
 							// the sort field/s in a group can only be in the group itself, therefore the path is just the field name
 							ModelJsonUtil.replaceProperty(sortField, ModelJsonUtil.SORT_FIELD_ID, ModelJsonUtil.SORT_FIELD_NAME,
-									new TextNode(resolvedField.getElementName()));
+									new StringNode(resolvedField.getElementName()));
 							return null;
 						}
 					});
 				}).filter(Objects::nonNull).toList();
 	}
 
-	private List<String> migrateComputedFields(JsonNode model) {
+	private static List<String> migrateComputedFields(JsonNode model, MigrationCache cache) {
 		String docModelId = ModelJsonUtil.extractModelId(model);
 		Map<String, NodePath> fieldPathById = cache.getFieldPathByIdMapByDocModelId(docModelId);
 
@@ -215,10 +213,10 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 				.filter(elem -> elem.node().get(ModelJsonUtil.TYPE_COMPUTATION).has(ModelJsonUtil.COMPUTED_FIELD_ID))
 				.map(elem -> {
 					ObjectNode node = (ObjectNode) elem.node().get(ModelJsonUtil.TYPE_COMPUTATION);
-					String computedFieldId = node.get(ModelJsonUtil.COMPUTED_FIELD_ID).asText();
+					String computedFieldId = node.get(ModelJsonUtil.COMPUTED_FIELD_ID).asString();
 					if (computedFieldId.isEmpty()) {
 						ModelJsonUtil.replaceProperty(node, ModelJsonUtil.COMPUTED_FIELD_ID, ModelJsonUtil.COMPUTED_FIELD_REL_PATH,
-								new TextNode(""));
+								new StringNode(""));
 						return null;
 					}
 
@@ -234,14 +232,14 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 						// relative path to field starting from current group
 						String relativeFieldPath = absolutePathInDM.relativize(computationPath);
 						ModelJsonUtil.replaceProperty(node, ModelJsonUtil.COMPUTED_FIELD_ID, ModelJsonUtil.COMPUTED_FIELD_REL_PATH,
-								new TextNode(relativeFieldPath));
+								new StringNode(relativeFieldPath));
 
 						return null;
 					}
 				}).filter(Objects::nonNull).toList();
 	}
 
-	private List<String> migrateErrorFields(JsonNode model) {
+	private static List<String> migrateErrorFields(JsonNode model, MigrationCache cache) {
 		String docModelId = ModelJsonUtil.extractModelId(model);
 		Map<String, NodePath> fieldPathById = cache.getFieldPathByIdMapByDocModelId(docModelId);
 
@@ -250,10 +248,10 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 				.filter(elem -> elem.node().get(ModelJsonUtil.TYPE_RULE).has(ModelJsonUtil.ERROR_ENTITY_ID))
 				.map(elem -> {
 					ObjectNode node = (ObjectNode) elem.node().get(ModelJsonUtil.TYPE_RULE);
-					String errorFieldId = node.get(ModelJsonUtil.ERROR_ENTITY_ID).asText();
+					String errorFieldId = node.get(ModelJsonUtil.ERROR_ENTITY_ID).asString();
 					if (errorFieldId.isEmpty()) {
 						ModelJsonUtil.replaceProperty(node, ModelJsonUtil.ERROR_ENTITY_ID, ModelJsonUtil.ERROR_ENTITY_REL_PATH,
-								new TextNode(""));
+								new StringNode(""));
 						return null;
 					}
 
@@ -269,7 +267,7 @@ public class ReferenceViaPathStep extends BaseJsonNodeMigrationStep {
 						// relative path to field starting from current group
 						String relativeFieldPath = absolutePathInDM.relativize(computationPath);
 						ModelJsonUtil.replaceProperty(node, ModelJsonUtil.ERROR_ENTITY_ID, ModelJsonUtil.ERROR_ENTITY_REL_PATH,
-								new TextNode(relativeFieldPath));
+								new StringNode(relativeFieldPath));
 
 						return null;
 					}

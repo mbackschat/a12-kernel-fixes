@@ -67,9 +67,9 @@ public class FormatData {
 	private int indentLevel;
 
 	private final int width;
-	private String indentStr = "                                                                              "; // JA, viele Blanks!
-	private List<String> allLines = new ArrayList<>();
-	private Deque<FormatInfo> modi = new LinkedList<>();
+	private final String indentStr = "                                                                              "; // JA, viele Blanks!
+	private final List<String> allLines = new ArrayList<>();
+	private final Deque<FormatInfo> modi = new LinkedList<>();
 
 	public FormatData(int width, int indentLevel) {
 		this.width = width;
@@ -118,8 +118,7 @@ public class FormatData {
 			case ARG_LIST:
 				modi.push(new FormatInfo(modus, 2));
 				break;
-			case BEDINGUNG:
-			case BLOCK:
+			case BEDINGUNG, BLOCK:
 				modi.push(new FormatInfo(modus, indentLevel));
 				break;
 			case KLAMMER:

@@ -107,7 +107,7 @@ export class Feld_t {
 		return this._internalAdditionalKeys;
 	}
 
-	public get errorTexts4Req(): Map<string, string> {
+	public get errorTexts4Req(): Map<string, string> | HashMap<string, string> {
 		return this._errorTexts4Req ?? new HashMap();
 	}
 }

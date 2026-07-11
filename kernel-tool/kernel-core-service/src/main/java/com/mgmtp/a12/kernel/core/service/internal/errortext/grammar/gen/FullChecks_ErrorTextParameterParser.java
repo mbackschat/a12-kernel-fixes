@@ -70,8 +70,8 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IGroup;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IStringType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelSpecificSettings;
+import com.mgmtp.a12.kernel.core.tool.internal.utils.ECUtils;
 import com.mgmtp.a12.kernel.core.utils.internal.CommonUtils;
-import com.mgmtp.a12.kernel.core.utils.internal.ECUtils;
 
 /**
  * Checks the parameter between two $-signs in a rule error text.
@@ -122,16 +122,16 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 	private String errorTextParameter;
 
 	/**
-	 * map of a parsed context to its resolved entity
+	 * map of a parsed EntitySpecContext to its resolved entity
 	 */
-	private final Map<ParserRuleContext, EntityRef> referencedEntities = new HashMap<>();
+	private final Map<EntitySpecContext, EntityRef> referencedEntities = new HashMap<>();
 
 	private RefEntities refEntities;
 
 	/**
-	 * Some referenced entities are not automatically created during the checks. E.g. the rule group reference or the indirectly
-	 * referenced index fields. If one would like to put the latter into referencedEntities, one would have to use different
-	 * ParserRuleContexts for the different index fields. This is not easy to do.
+	 * Some referenced entities are not automatically created during the checks. E.g. the indirectly referenced index fields. If
+	 * one would like to put the latter into referencedEntities, one would have to use different ParserRuleContexts for the
+	 * different index fields. This is not easy to do.
 	 * Therefore, to have these entities in the result of {@link #getReferencedEntities()}, we store them in this set.
 	 */
 	private final Set<IEntity> additionallyReferencedEntities = new HashSet<>();
@@ -210,6 +210,9 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 			throw composeError(FehlertextErrorType.INVALID_PARAMETER, errorTextParameter);
 		}
 
+		// check existence of category also if no condition was passed to avoid errors in ErrorTextParameterCreator
+		String categoryName = ctx.valueOrCategory() instanceof CategoryContext catCtxt ? checkAndGetCategoryName(catCtxt,
+				ctx.id.getText()) : null;
 
 		/*
 		 * Es wurden keine Felddefinitionen gesetzt, d.h. Prüfung kann hier aufhören. Eine Prüfung,
@@ -231,11 +234,12 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 			throw composeError(FehlertextErrorType.INVALID_PATH_SPEC, errorTextParameter);
 		}
 
-		RefEntities.FullName fullName = new RefEntities.FullName(getEntityRef(ctx.entitySpec()).getEntity().getFullName());
-		IEntityId firstId = checkFieldReferencedInConditionAndGetFirstId(fullName, entityNameInErrorText, ctx);
+		String fullName = getEntityRef(ctx.entitySpec()).getEntity().getFullName();
+		RefEntities.FullName refEntitiesFullName = new RefEntities.FullName(fullName);
+		IEntityId firstId = checkFieldReferencedInConditionAndGetFirstId(refEntitiesFullName, entityNameInErrorText, ctx);
 
 		if (ctx.valueOrCategory() instanceof ValueContext) {
-			checkDotValue(entityNameInErrorText, firstId, fullName);
+			checkDotValue(entityNameInErrorText, firstId, refEntitiesFullName);
 		}
 
 		// Prüfe Lfd-Angabe, falls eine gemacht wurde.
@@ -258,8 +262,8 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 		}
 
 		// check access to category values
-		if (ctx.valueOrCategory() instanceof CategoryContext catCtxt) {
-			checkCategoryRef(catCtxt, entityNameInErrorText, firstId);
+		if (categoryName != null) {
+			checkAccessToCategoryValue(fullName, categoryName);
 		}
 		// kein Fehler entdeckt
 	}
@@ -343,11 +347,6 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 		}
 	}
 
-	private void checkCategoryRef(CategoryContext categoryCtx, String fieldRef, IEntityId firstId) {
-		String categoryName = checkAndGetCategoryName(categoryCtx, fieldRef);
-		checkAccessToCategoryValue(firstId.getFullName(), categoryName);
-	}
-
 	private String checkAndGetCategoryName(CategoryContext categoryCtx, String fieldRef) {
 		NameWithoutDotContext categoryNameCtx = categoryCtx.categoryRef().categoryName;
 		if (categoryNameCtx == null) {
@@ -357,6 +356,10 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 	}
 
 	@Override protected void checkIndexFieldRef(IndexFieldContext ctx) {
+		// check existence of category also if no condition was passed to avoid errors in ErrorTextParameterCreator
+		String categoryName = ctx.valueOrCategory() instanceof CategoryContext catCtxt ? checkAndGetCategoryName(catCtxt,
+				ctx.id.getText()) : null;
+
 		if (refEntities == null) {
 			return;
 		}
@@ -393,9 +396,8 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 		checkIndexFieldRefRepeatability(refIndexFieldOnErrorEntityPath, allRefIndexFieldsInParam);
 
 		if (ctx.valueOrCategory() != null) {
-			if (ctx.valueOrCategory() instanceof CategoryContext catCtx) {
+			if (ctx.valueOrCategory() instanceof CategoryContext) {
 				// ->category reference
-				String categoryName = checkAndGetCategoryName(catCtx, fieldNameRef);
 				checkIndexFieldRefCategory(allRefIndexFieldsInParam, categoryName);
 			} else if (ctx.valueOrCategory() instanceof ValueContext) {
 				// .value reference
@@ -457,7 +459,7 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 		IFieldType fieldType = ((IField) ec.get(entityId.getFullName())).getType();
 		if (fieldType instanceof IEnumerationType enumerationType) {
 			return enumerationType.getXMLValues().size() == 1
-					&& !enumerationType.getsValue().isEmpty();
+					&& !StringUtils.isEmpty(enumerationType.getsValue());
 		} else {
 			return false;
 		}
@@ -562,18 +564,6 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 		checkValidFieldName(ctx.id);
 	}
 
-	/**
-	 * Checks for the Vordruckname-parameter '&lt;field&gt;.Vordruckname' if
-	 * <ul>
-	 * <li>the field is referenced in a correct way, i.e. with the short name for H-Models and with the full name for A12-Models</li>
-	 * <li>the field exists</li>
-	 * </ul>
-	 * It is <b>not</b> checked here if the field is used in an allowed model. But that is checked during code generation.
-	 */
-	@Override protected void checkVordruckname(VordrucknameContext ctx) {
-		checkValidFieldName(ctx.id);
-	}
-
 	private void checkValidFieldName(EntitySpecContext id) {
 		String fName = id.getText();
 		EntitySpecContext entitySpecCtx = ParserUtils.getEntitySpecContext(id);
@@ -605,11 +595,6 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 			}
 			absolutePath = rulePath;
 			pathToDisplayInErrorMessage = rulePath;
-			// We add this even if no referenced fields were transmitted
-			IEntity entity = ec.get(rulePath);
-			if (entity != null) {
-				additionallyReferencedEntities.add(entity);
-			}
 		} else {
 			var entityRef = getEntityRef(ctx.entitySpec());
 			absolutePath = entityRef.entity.getFullName();
@@ -650,13 +635,16 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 			}
 			throw composeError(FehlertextErrorType.INVALID_USE_OF_ITERATION_PARAM, errorTextParameter);
 		}
-		additionallyReferencedEntities.add(entity);
 	}
 
+	/**
+	 * precondition: {@code entitySpecContext} has already been parsed
+	 *
+	 */
 	private EntityRef getEntityRef(EntitySpecContext entitySpecContext) {
 		if (referencedEntities.containsKey(entitySpecContext)) {
 			return referencedEntities.get(entitySpecContext);
-		} else {
+		} else { // should not happen - referenced entities are put to the map while they are parsed
 			throw new IllegalArgumentException(
 					String.format("Referenced entity for EntitySpecContext %s not found.", entitySpecContext.getText()));
 		}
@@ -843,10 +831,21 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 
 	/**
 	 * @return a map of the respecive error text parameter context to the parsed entityRef,
-	 * 		does not contain indirectly referenced entities in contrast to {@link ##getReferencedEntities}
+	 * 		does not contain indirectly referenced entities in contrast to {@link #getReferencedEntities}
 	 */
-	public Map<ParserRuleContext, EntityRef> getReferencedEntitiesMap() {
+	public Map<EntitySpecContext, EntityRef> getReferencedEntitiesMap() {
 		return referencedEntities;
 	}
 
+	@Override
+	protected void addRegelKontextEntityToReferencedEntities(RegelKontextEntityContext ctx) {
+		EntitySpecContext entitySpecContext = ParserUtils.getEntitySpecContext(ctx);
+		IEntity entity = ec.get(rulePath);
+		if (entity == null) { // should not happen - this would be an integration error
+			throw new IllegalArgumentException(String.format("Rule group %s not found in entity container", rulePath));
+		}
+		EntityRef entityRef = new EntityRef(ctx.getText(), entity);
+
+		referencedEntities.put(entitySpecContext, entityRef);
+	}
 }

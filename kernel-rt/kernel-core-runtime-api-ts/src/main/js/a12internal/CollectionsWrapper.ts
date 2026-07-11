@@ -42,16 +42,12 @@ export interface IEquatable {
 
 export type IHashAndEquals = IHashCode & IEquatable;
 
-export function numbersconv(k: any): number {
-	const str = typeof k === "string" ? k : JSON.stringify(k);
-	return stringconv(str);
-}
-
 export function stringconv(str: string): number {
-	if (str.length === 0) {
-		return 0;
+	let hash = 0;
+	for (let i = 0; i < str.length; i++) {
+		hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
 	}
-	return Array.from(str).reduce((hash, ch) => ((hash << 5) - hash + (ch.codePointAt(0) ?? 0)), 0);
+	return hash;
 }
 
 export function arraysEqual(a: any, b: any): boolean {
@@ -61,7 +57,12 @@ export function arraysEqual(a: any, b: any): boolean {
 	if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
 		return false;
 	}
-	return a.every((element: any, index: number) => element === b[index]);
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) {
+			return false;
+		}
+	}
+	return true;
 }
 
 export function hashFuncNumberArray(object: any): number {

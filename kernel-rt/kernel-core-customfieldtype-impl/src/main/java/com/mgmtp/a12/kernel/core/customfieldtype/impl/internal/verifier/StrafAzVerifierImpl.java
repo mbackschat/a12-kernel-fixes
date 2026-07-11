@@ -36,10 +36,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeCheckError;
-import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeConversionResult;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeValidationParam;
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.IFadat;
-import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.CustomFieldTypeConversionResultImpl;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorEnum;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorKeys;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorUtil;
@@ -65,22 +64,23 @@ import lombok.NonNull;
  * Bei der Gültigkeitsprüfung wird die Korrektheit der Prüfziffer (letzte Ziffer) geprüft.
  * </p>
  */
-public class StrafAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
+public class StrafAzVerifierImpl implements ICustomFieldValidator {
 
 	private static final Pattern VALID_STRAFAZ = Pattern.compile("([0-9]{4})D[0-9]{4}[0-9]{7}[0-9]{1}");
 
-	public StrafAzVerifierImpl(IFadat fadat) {
-		super(fadat);
+	private final @NonNull IFadat fadat;
+
+	public StrafAzVerifierImpl(@NonNull IFadat fadat) {
+		this.fadat = fadat;
 	}
 
 	@Override
 	public Optional<ICustomFieldTypeCheckError> validate(
 			@NonNull String strafaz,
 			@NonNull ICustomFieldTypeValidationParam valParam,
-			boolean isDisplayValue,
-			@NonNull ParamsProvider pp
+			boolean isDisplayValue
 	) {
-		CustomFieldTypeErrorEnum error = checkStrafAz(strafaz, pp);
+		CustomFieldTypeErrorEnum error = checkStrafAz(strafaz);
 		return CustomFieldTypeErrorUtil.getResult(error, valParam.getErrorMsgLocale(),
 				CustomFieldTypeErrorKeys.UNGUELTIGES_STRAFAZ);
 	}
@@ -89,14 +89,14 @@ public class StrafAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 	 * Prueft das angegebene Straf-Aktenzeichens und liefert den Key der passenden Fehlermeldung
 	 * bzw. <code>null</code>, wenn das Straf-Aktenzeichen gueltig ist.
 	 */
-	private CustomFieldTypeErrorEnum checkStrafAz(String strafaz, ParamsProvider pp) {
+	private CustomFieldTypeErrorEnum checkStrafAz(String strafaz) {
 		Matcher matcher = VALID_STRAFAZ.matcher(strafaz);
 		if (!matcher.matches()) {
 			return CustomFieldTypeErrorEnum.STRAFAZ_FORMAT_FEHLER;
 		}
 
 		int bundeslandNr = Integer.parseInt(matcher.group(1));
-		if (!existsFederalTaxOfficeNumber(bundeslandNr, pp)) {
+		if (!FadatLookupUtil.existsFederalTaxOfficeNumber(fadat, bundeslandNr)) {
 			return CustomFieldTypeErrorEnum.STRAFAZ_FINANZAMT_FEHLER;
 		}
 
@@ -113,18 +113,6 @@ public class StrafAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 		int pruefZiffer = Integer.parseInt(strafaz.substring(16, 17));
 
 		return generierePruefziffer(buFaNr, jahr, laufendeNummer) == pruefZiffer;
-	}
-
-	@NonNull @Override
-	public ICustomFieldTypeConversionResult convertDisplay2Internal(@NonNull String displayValue,
-			ParamsProvider pp) {
-		return new CustomFieldTypeConversionResultImpl(displayValue, null);
-	}
-
-	@NonNull @Override
-	public ICustomFieldTypeConversionResult convertInternal2Display(@NonNull String xmlValue,
-			ParamsProvider pp) {
-		return new CustomFieldTypeConversionResultImpl(xmlValue, null);
 	}
 
 	/**

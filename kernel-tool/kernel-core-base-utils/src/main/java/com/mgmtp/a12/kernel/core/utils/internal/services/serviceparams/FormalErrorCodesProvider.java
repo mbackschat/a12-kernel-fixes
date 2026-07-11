@@ -74,7 +74,6 @@ public class FormalErrorCodesProvider {
 				"stringmitnewline",
 				"stringzukurz",
 				"stringzulang",
-				"testidnummer",
 				"uniqueindex",
 				"uniquevalue",
 				"usbangegebenbeimaxusbnull",

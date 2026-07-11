@@ -34,7 +34,6 @@
 export * from "./CollectionsWrapper.js";
 export type * from "./custom/ICustomConditionFactory.js";
 export type * from "./custom/IExternalCalculation.js";
-export * from "./custom/impl/CustomConditionService.js";
 export type * from "./meta/IMetaEntity.js";
 export type * from "./meta/IMetaField.js";
 export type * from "./meta/IMetaGroup.js";

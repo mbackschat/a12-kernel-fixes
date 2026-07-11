@@ -50,7 +50,6 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEC;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IField;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGeneratorParameters;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IMandatoryInformation;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelChanges;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelSpecificSettings;
@@ -62,6 +61,8 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IRuleCollectionMe
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IRuleMetaInformation;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IRuleParser;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IServiceConfiguration;
+
+import lombok.NonNull;
 
 /**
  * implements the MVK Services
@@ -125,22 +126,15 @@ public class MVKService implements IMVK_Service {
 		return pss;
 	}
 
-	/** {@link com.mgmtp.a12.kernel.core.tool.a12internal.api.services.ICodeGeneratorService} implementations */
-
-	@Override
-	public byte[] getSourceCodeAsZip(Collection<? extends IRule> rules, ICodeGeneratorParameters params, IProblemReporter pm) {
-		return serviceFactory.getCodeGeneratorService(serviceConfiguration).getSourceCodeAsZip(rules, params, pm);
-	}
-
 	/** {@link IRuleParser} implementations */
 
 	@Override
-	public ICondition parseConditionExpand(IRule rule, String conditionText, IProblemReporter pm) {
+	public ICondition parseConditionExpand(@NonNull IRule rule, @NonNull String conditionText, @NonNull IProblemReporter pm) {
 		return ruleParser.parseConditionExpand(rule, conditionText, pm);
 	}
 
 	@Override
-	public ICondition parseConditionNoExpand(IRule rule, String conditionText, IProblemReporter pm) {
+	public ICondition parseConditionNoExpand(@NonNull IRule rule, @NonNull String conditionText, @NonNull IProblemReporter pm) {
 		return ruleParser.parseConditionNoExpand(rule, conditionText, pm);
 	}
 
@@ -150,71 +144,75 @@ public class MVKService implements IMVK_Service {
 	}
 
 	@Override
-	public boolean hasValidConditionText(IRule rule, IProblemReporter pm) {
+	public boolean hasValidConditionText(@NonNull IRule rule, @NonNull IProblemReporter pm) {
 		return ruleParser.hasValidConditionText(rule, pm);
 	}
 
 	@Override
-	public boolean hasValidErrorText(IRule rule, Collection<Locale> locales, boolean extendProblemMessages, IProblemReporter pm) {
+	public boolean hasValidErrorText(@NonNull IRule rule, @NonNull Collection<Locale> locales, boolean extendProblemMessages,
+			@NonNull IProblemReporter pm) {
 		return ruleParser.hasValidErrorText(rule, locales, extendProblemMessages, pm);
 	}
 
-	@Override public boolean hasValidCustomErrorEntities(IRule rule, IProblemReporter pm) {
+	@Override public boolean hasValidCustomErrorEntities(@NonNull IRule rule, @NonNull IProblemReporter pm) {
 		return ruleParser.hasValidCustomErrorEntities(rule, pm);
 	}
 
 	@Override
-	public boolean hasValidErrorText(IRule rule, ICondition condition, Collection<Locale> locales, boolean extendProblemMessages,
-			IProblemReporter pm) {
+	public boolean hasValidErrorText(@NonNull IRule rule, ICondition condition, @NonNull Collection<Locale> locales,
+			boolean extendProblemMessages,
+			@NonNull IProblemReporter pm) {
 		return ruleParser.hasValidErrorText(rule, condition, locales, extendProblemMessages, pm);
 	}
 
 	@Override
-	public boolean hasValidErrorText(IRule rule, Map<Locale, String> errorTexts, Collection<Locale> locales,
-			boolean extendProblemMessages, IProblemReporter pm) {
+	public boolean hasValidErrorText(@NonNull IRule rule, @NonNull Map<Locale, String> errorTexts,
+			@NonNull Collection<Locale> locales, boolean extendProblemMessages, @NonNull IProblemReporter pm) {
 		return ruleParser.hasValidErrorText(rule, errorTexts, locales, extendProblemMessages, pm);
 	}
 
 	@Override
-	public boolean hasValidErrorText(IRule rule, Map<Locale, String> errorTexts, Collection<Locale> locales,
-			boolean extendProblemMessages, IProblemReporter pm,
+	public boolean hasValidErrorText(@NonNull IRule rule, @NonNull Map<Locale, String> errorTexts,
+			@NonNull Collection<Locale> locales, boolean extendProblemMessages, @NonNull IProblemReporter pm,
 			ICondition condition) {
 		return ruleParser.hasValidErrorText(rule, errorTexts, locales, extendProblemMessages, pm, condition);
 	}
 
 	@Override
-	public ICondition parseBedingungExpand(IRule rule, IProblemReporter pm) {
+	public ICondition parseBedingungExpand(@NonNull IRule rule, @NonNull IProblemReporter pm) {
 		return ruleParser.parseBedingungExpand(rule, pm);
 	}
 
 	@Override
-	public ICondition parseBedingungExpandPartially(IRule rule, IProblemReporter pm) {
+	public ICondition parseBedingungExpandPartially(@NonNull IRule rule, @NonNull IProblemReporter pm) {
 		return ruleParser.parseBedingungExpandPartially(rule, pm);
 	}
 
 	@Override
-	public ICondition parseBedingungNoExpand(IRule rule, IProblemReporter pm) {
+	public ICondition parseBedingungNoExpand(@NonNull IRule rule, @NonNull IProblemReporter pm) {
 		return ruleParser.parseBedingungNoExpand(rule, pm);
 	}
 
-	@Override public ICondition parseBedingungSnippetNoExpand(String bedingungSnippet, IRule rule, IProblemReporter pm) {
+	@Override public ICondition parseBedingungSnippetNoExpand(@NonNull String bedingungSnippet, @NonNull IRule rule,
+			@NonNull IProblemReporter pm) {
 		return ruleParser.parseBedingungSnippetNoExpand(bedingungSnippet, rule, pm);
 	}
 
-	@Override public IOperation parseOperationSnippetNoExpand(String operationSnippet, IRule rule,
-			IProblemReporter pm) { // TODO does this need to be API?
+	@Override public IOperation parseOperationSnippetNoExpand(@NonNull String operationSnippet, @NonNull IRule rule,
+			@NonNull IProblemReporter pm) { // TODO does this need to be API?
 		return ruleParser.parseOperationSnippetNoExpand(operationSnippet, rule, pm);
 	}
 
 	/** {@link com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IRuleCollectionMetaInformation} implementations */
 
 	@Override
-	public List<String> getApplicationConditionNames(Collection<? extends IRule> rules, IProblemReporter pm) {
+	public @NonNull List<String> getApplicationConditionNames(
+			@NonNull Collection<? extends IRule> rules, @NonNull IProblemReporter pm) {
 		return ruleCollectionMetaInformation.getApplicationConditionNames(rules, pm);
 	}
 
 	@Override
-	public List<String> getApplicationConditionNames(Collection<ICondition> conditions) {
+	public @NonNull List<String> getApplicationConditionNames(@NonNull Collection<ICondition> conditions) {
 		return ruleCollectionMetaInformation.getApplicationConditionNames(conditions);
 	}
 
@@ -283,34 +281,6 @@ public class MVKService implements IMVK_Service {
 		return iterationPerLevel;
 	}
 
-	/** {@link com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IChangeRuleSupport} implementations */
-
-	@Override
-	public String changeConditionText(IRule rule, String oldFullName, String newFullName, IProblemReporter pm) {
-		return serviceFactory.getChangeRuleSupport(serviceConfiguration)
-				.changeConditionText(rule, oldFullName, newFullName, pm);
-	}
-
-	@Override
-	public Map<Locale, String> changeErrorText(IRule rule, String oldFullName, String newFullName, IProblemReporter pm) {
-		return serviceFactory.getChangeRuleSupport(serviceConfiguration)
-				.changeErrorText(rule, oldFullName, newFullName, pm);
-	}
-
-	@Override
-	public String changeConditionTextForDecoration(IRule rule, Map<String, String> oldToNewFullNames, String newRuleFullName,
-			IProblemReporter pm) {
-		return serviceFactory.getChangeRuleSupport(serviceConfiguration)
-				.changeConditionTextForDecoration(rule, oldToNewFullNames, newRuleFullName, pm);
-	}
-
-	@Override
-	public Map<Locale, String> changeErrorTextForDecoration(IRule rule, Map<String, String> oldToNewFullNames,
-			String newRuleFullName, IProblemReporter pm) {
-		return serviceFactory.getChangeRuleSupport(serviceConfiguration)
-				.changeErrorTextForDecoration(rule, oldToNewFullNames, newRuleFullName, pm);
-	}
-
 	/** {@link com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IConditionFormatter} implementations */
 
 	@Override
@@ -359,11 +329,12 @@ public class MVKService implements IMVK_Service {
 	/** {@link com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IFieldErrorTextParser} implementations */
 
 	@Override
-	public boolean hasValidErrorText(IField field, Collection<Locale> locales, IProblemReporter pr) {
+	public boolean hasValidErrorText(@NonNull IField field, @NonNull Collection<Locale> locales, @NonNull IProblemReporter pr) {
 		return serviceFactory.getFieldErrorTextParser(serviceConfiguration).hasValidErrorText(field, locales, pr);
 	}
 
-	@Override public boolean hasValidErrorTextInRequirednessConfig(IField field, Collection<Locale> locales, IProblemReporter pr) {
+	@Override public boolean hasValidErrorTextInRequirednessConfig(
+			@NonNull IField field, @NonNull Collection<Locale> locales, @NonNull IProblemReporter pr) {
 		return serviceFactory.getFieldErrorTextParser(serviceConfiguration)
 				.hasValidErrorTextInRequirednessConfig(field, locales, pr);
 	}

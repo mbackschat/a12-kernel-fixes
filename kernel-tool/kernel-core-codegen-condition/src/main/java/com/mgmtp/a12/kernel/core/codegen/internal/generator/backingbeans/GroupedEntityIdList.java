@@ -75,8 +75,7 @@ public final class GroupedEntityIdList extends EntityIdList implements IEntityId
 		// used by string template
 		public List<String> getValuesCode() {
 			List<String> result = new ArrayList<>();
-			for (int i = 0; i < list.size(); i++) {
-				EntityId id = list.get(i);
+			for (EntityId id : list) {
 				result.add(id.getVariableName());
 			}
 			return result;

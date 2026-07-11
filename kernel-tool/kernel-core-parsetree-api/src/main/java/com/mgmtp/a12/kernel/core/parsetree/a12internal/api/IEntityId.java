@@ -192,7 +192,7 @@ public interface IEntityId extends IParseTreeEntity {
 	}
 
 	/**
-	 * Get the filter condition for filtered TODO: How do we call Mengenbildung in English?
+	 * Get the filter condition for filtered set operations.
 	 *
 	 * @return the filter condition.
 	 */
@@ -223,6 +223,10 @@ public interface IEntityId extends IParseTreeEntity {
 	}
 
 	public default IEntityId withIsOuter(boolean isOuter) {
+		throw new NotImplementedException();
+	}
+
+	public default IEntityId withIndices(long[] indices) {
 		throw new NotImplementedException();
 	}
 

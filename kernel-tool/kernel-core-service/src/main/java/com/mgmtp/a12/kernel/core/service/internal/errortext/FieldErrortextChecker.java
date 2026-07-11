@@ -32,128 +32,81 @@
 
 package com.mgmtp.a12.kernel.core.service.internal.errortext;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import com.mgmtp.a12.kernel.core.extmpspecifics.internal.utils.ExtmpUtils;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IField;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IFieldType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelSpecificSettings;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
-import com.mgmtp.a12.kernel.core.utils.internal.CommonUtils;
 import com.mgmtp.a12.kernel.core.utils.internal.MVKCoreError;
+
+import lombok.NonNull;
 
 /**
  * Checks the error text of a {@link IFieldType}.
  */
 public class FieldErrortextChecker {
 
-	private final FehlertextErrorLookup errorHandler;
-	private final IModelSpecificSettings modelSpecificSettings;
-	private final IProblemReporter problemManager;
-
-	public FieldErrortextChecker(IModelSpecificSettings modelSpecificSettings, IProblemReporter problemManager) {
-		this.errorHandler = new FehlertextErrorLookup(modelSpecificSettings.getLanguageUsedInConditionText());
-		this.modelSpecificSettings = modelSpecificSettings;
-		this.problemManager = problemManager;
-	}
+	private final @NonNull IField field;
+	private final @NonNull FehlertextErrorLookup errorHandler;
+	private final @NonNull IModelSpecificSettings modelSpecificSettings;
+	private final Locale localeOfProblemMessages;
+	private final boolean extendProblemMessages;
 
 	/**
-	 * Checks the error text of a field (type).
-	 *
-	 * @param errorText
-	 * 		Text to be checked
 	 * @param field
 	 * 		the error text's {@link IField}
-	 * @return <code>true</code>, if the text is OK. Otherwise, <code>false</code> is returned and
-	 * 		the error message reported in the problem manager.
-	 */
-	public boolean checkErrorText(String errorText, IField field) {
-		return checkErrorText(errorText, field, false);
-	}
-
-	/**
-	 * Checks the error text of a field (type).
-	 *
-	 * @param errorText
-	 * 		Text to be checked
-	 * @param field
-	 * 		the error text's {@link IField}
-	 * @param extendErrorMessage
+	 * @param extendProblemMessages
 	 * 		specifies, whether a message regarding the field should be prepended.
-	 * @return <code>true</code>, if the text is OK. Otherwise, <code>false</code> is returned and
-	 * 		the error message is reported in the problem manager.
 	 */
-	public boolean checkErrorText(String errorText, IField field, boolean extendErrorMessage) {
-		String result = checkErrorTextInternal(errorText);
-		if (result != null) {
-			if (extendErrorMessage) {
-				result = errorHandler.getBareErrorMessage(FehlertextErrorType.FIELD_INVALID_PREFIX, field.getFullName(), result);
-			}
-			problemManager.reportProblem(new MVKCoreError(result, field));
-			return false;
-		}
-
-		return true;
+	public FieldErrortextChecker(
+			@NonNull IField field,
+			@NonNull IModelSpecificSettings modelSpecificSettings,
+			boolean extendProblemMessages
+	) {
+		this.field = field;
+		this.localeOfProblemMessages = modelSpecificSettings.getLanguageUsedInConditionText();
+		this.errorHandler = new FehlertextErrorLookup(localeOfProblemMessages);
+		this.modelSpecificSettings = modelSpecificSettings;
+		this.extendProblemMessages = extendProblemMessages;
 	}
 
-	private String checkErrorTextInternal(String errorText) {
-
-		// (1) The check, regarding if the definition of an error message is allowed, is done through the meta model
-		if (StringUtils.isEmpty(errorText)) {
-			return null;
-		}
-
-		// (2) Right encoding? ISO-8859-15 for ExtMP, Unicode for A12
-		if (ExtmpUtils.isExtmp(modelSpecificSettings)) {
-			if (!FehlertextUtil.isFehlertextCharsetOK(errorText)) {
-				return errorHandler.getErrorMessage(FehlertextErrorType.WRONG_ENCODING, "ISO-8859-15");
-			}
-		} else {
-			if (!FehlertextUtil.isFehlertextCharsetUnicodeOK(errorText)) {
-				return errorHandler.getErrorMessage(FehlertextErrorType.WRONG_ENCODING, "Unicode");
-			}
-		}
-
-		// (3) line breaks present?
-		if (!FehlertextUtil.checkLineSeparators(errorText)) {
-			return errorHandler.getErrorMessage(FehlertextErrorType.INVALID_LINEBREAK);
-		}
-
-		if (!FehlertextUtil.checkControlCharacters(errorText)) {
-			return errorHandler.getErrorMessage(FehlertextErrorType.INVALID_CHARACTERS);
-		}
-
-		// (4) correct number of $-chars?
-		if (!FehlertextUtil.checkWrongNumberOfDollars(errorText)) {
-			return errorHandler.getErrorMessage(FehlertextErrorType.WRONG_NUMBER_OF_DOLLARS);
-		}
-		String invalidValue = check_INVALID_PARAMETER(errorText);
-		if (invalidValue != null) {
-			return errorHandler.getErrorMessage(FehlertextErrorType.INVALID_PARAMETER, invalidValue);
-		}
-
-		return null;
-	}
+	// Valid parameter(s) in a field's error text between two $-signs
+	private static final Map<Locale, Set<String>> localeToValidParameterText = Map.of(
+			Locale.GERMANY, Set.of("Feld", "Feld.Wert"),
+			Locale.US, Set.of("field", "field.value"));
 
 	/**
-	 * Checks every second token to be <i>Feld</i>/<i>field</i> or <i>Feld.Wert</i>/
-	 * <i>field.value</i>, depending on <code>languageOfConditionText</code>.
-	 *
-	 * @return <code>null</code>, if everything is OK. Otherwise, the invalid parameter value is
-	 * 		returned.
+	 * Checks the error text of a field (type).
 	 */
-	private String check_INVALID_PARAMETER(String errorText) {
-		String[] parts = errorText.split("\\$");
+	public void checkErrorText(String errorText, Locale locale, IProblemReporter problemReporter) {
+		IProblemReporter pr = prependProblemMessageIfNecessary(problemReporter, locale);
 
-		// Check only parts within the $-signs
-		for (int i = 1; i < parts.length; i = i + 2) {
-			String value = parts[i];
-			if (!CommonUtils.CONST_FIELD.get(modelSpecificSettings.getLanguageUsedInConditionText()).contains(value)) {
-				return value;
-			}
-		}
-
-		return null;
+		List<String> parameters = FehlertextUtil.checkErrorTextAndExtractParameters(
+				errorText, errorHandler, pr, field, ExtmpUtils.isExtmp(modelSpecificSettings));
+		parameters.stream()
+				.filter(parameterText -> !isValidParameterText(parameterText))
+				.findFirst()
+				.ifPresent(parameterText -> pr.reportProblem(
+						new MVKCoreError(errorHandler.getErrorMessage(FehlertextErrorType.INVALID_PARAMETER, parameterText),
+								field)));
 	}
 
+	private boolean isValidParameterText(@NonNull String parameterText) {
+		return localeToValidParameterText.get(modelSpecificSettings.getLanguageUsedInConditionText()).contains(parameterText);
+	}
+
+	private IProblemReporter prependProblemMessageIfNecessary(IProblemReporter problemReporter, Locale locale) {
+		if (!extendProblemMessages) {
+			return problemReporter;
+		}
+		String errMsgPrefix = errorHandler.getBareErrorMessage(
+				FehlertextErrorType.FIELD_ERRORTEXT_WRONG, field.getFullName(), locale.getDisplayLanguage(localeOfProblemMessages));
+		return problem -> problemReporter.reportProblem(
+				new MVKCoreError(errMsgPrefix + " " + problem.getMessage(), problem.getSource()));
+	}
 }

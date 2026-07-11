@@ -32,15 +32,16 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.service.utils;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.LocaleUtils;
 
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2;
-import com.mgmtp.a12.model.header.HeaderFactory;
 import com.mgmtp.a12.kernel.mmtypings.ct_model_header_1.views._ct_model_header_1.Header;
 import com.mgmtp.a12.kernel.mmtypings.ct_model_header_1.views._ct_model_header_1._header.Annotations;
 import com.mgmtp.a12.kernel.mmtypings.ct_model_header_1.views._ct_model_header_1._header.Labels;
 import com.mgmtp.a12.kernel.mmtypings.ct_model_header_1.views._ct_model_header_1._header.Locales;
 import com.mgmtp.a12.kernel.mmtypings.ct_model_header_1.views._ct_model_header_1._header.ModelReferences;
+import com.mgmtp.a12.model.header.HeaderFactory;
 
 import lombok.NonNull;
 
@@ -103,7 +104,7 @@ public class ModelHeaderUtils {
 								._with(Annotations._pointer().name(), annotation.getName())
 								._with(Annotations._pointer().value(), annotation.getValue()))
 						.toList())
-				._with(Header._pointer().modelReferences(), header.getModelReferences().stream()
+				._with(Header._pointer().modelReferences(), ListUtils.emptyIfNull(header.getModelReferences()).stream()
 						.map(modelReference -> ModelReferences._empty()
 								._with(ModelReferences._pointer().alias(), modelReference.getAlias())
 								._with(ModelReferences._pointer().modelType(), modelReference.getModelType())

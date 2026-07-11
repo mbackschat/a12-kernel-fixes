@@ -67,14 +67,14 @@ public class CheckIdNameImpl {
 	/**
 	 * map of a parsed context to its resolved entity
 	 */
-	private Map<ParserRuleContext, FullChecks_ErrorTextParameterParser.EntityRef> referencedEntities = new HashMap<>();
+	private Map<EntitySpecContext, FullChecks_ErrorTextParameterParser.EntityRef> referencedEntities = new HashMap<>();
 
 	public CheckIdNameImpl(IRule rule
 			, FullChecks_ErrorTextParameterParser.ErrorComposer errorComposer
 			, IEC ec
 			, EntityResolver entityResolver
 			, String errorTextParameter
-			, Map<ParserRuleContext, FullChecks_ErrorTextParameterParser.EntityRef> referencedEntities
+			, Map<EntitySpecContext, FullChecks_ErrorTextParameterParser.EntityRef> referencedEntities
 	) {
 		this.rulePath = EntityUtils.getRuleGroupName(rule);
 		this.errorComposer = errorComposer;

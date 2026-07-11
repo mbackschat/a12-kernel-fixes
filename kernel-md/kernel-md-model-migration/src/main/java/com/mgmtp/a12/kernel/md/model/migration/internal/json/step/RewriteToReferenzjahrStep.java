@@ -32,6 +32,7 @@
 
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
+import static com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils.MAPPER;
 import static com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil.extractBaseYearIfPresent;
 
 import java.lang.reflect.InvocationTargetException;
@@ -39,27 +40,25 @@ import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.function.Function;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
-public class RewriteToReferenzjahrStep extends BaseJsonNodeMigrationStep {
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
-	public RewriteToReferenzjahrStep(MigrationCache cache,
-			MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+public final class RewriteToReferenzjahrStep {
+
+	private RewriteToReferenzjahrStep() {
 	}
 
-	@Override public void execute(JsonNode model, MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		var mc = ModelJsonUtil.extractDmConfig(model);
 		String conditionLanguageString = mc instanceof ObjectNode && mc.get("conditionLanguage") instanceof ObjectNode clNode
-				? clNode.get("code").asText()
+				? clNode.get("code").asString()
 				: null;
 		if ("de_DE".equals(conditionLanguageString) && extractBaseYearIfPresent((ObjectNode) model).isPresent()) {
 			ModelJsonUtil.extractAllElements(model, "Rule").forEach(rule -> {
@@ -99,17 +98,17 @@ public class RewriteToReferenzjahrStep extends BaseJsonNodeMigrationStep {
 	}
 
 	private static void updateTextField(JsonNode parentJsonNode, String fieldName, Function<String, String> update) {
-		if(parentJsonNode instanceof ObjectNode parentObjectNode) {
-			if(parentObjectNode.get(fieldName) instanceof TextNode textNode) {
-				String oldText = textNode.textValue();
-				if(oldText != null) {
-					String newText = update.apply(oldText);
-					parentObjectNode.set(fieldName, MAPPER.valueToTree(newText));
-					return;
-				}
+		if (parentJsonNode instanceof ObjectNode parentObjectNode && parentObjectNode.get(
+				fieldName) instanceof StringNode textNode) {
+			String oldText = textNode.stringValue();
+			if (oldText != null) {
+				String newText = update.apply(oldText);
+				parentObjectNode.set(fieldName, MAPPER.valueToTree(newText));
+				return;
 			}
 		}
-		assert false: "unexpected node, got: " + parentJsonNode;
+
+		assert false : "unexpected node, got: " + parentJsonNode;
 	}
 
 	private static String callMigratorViaReflectionDE(String methodName, String stringToMigrate) {

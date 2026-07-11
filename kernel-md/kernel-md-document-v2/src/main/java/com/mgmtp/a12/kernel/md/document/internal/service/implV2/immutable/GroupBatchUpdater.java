@@ -163,8 +163,9 @@ class GroupBatchUpdater<S extends AbstractImmutableGroupInstance<S>> {
 
 	private void updateSingleAction(String currentName, int currentRep1Based, UpdateAction localUpdate) {
 		assert localUpdate.pointer().size() == levelOffset + 1;
-		int _dummy_force_switch_completeness_check = switch (localUpdate.type()) { // use a switch expression instead of a
-			// statement, to get a compile-time completeness check
+		@SuppressWarnings("unused") // use a switch expression instead of a
+		// statement, to get a compile-time completeness check
+		int _dummy_force_switch_completeness_check = switch (localUpdate.type()) {
 
 			// this should happen at most one per (currentName, currentRepetition):
 			case PUT_FIELD -> applyPutField(currentName, currentRep1Based, localUpdate);

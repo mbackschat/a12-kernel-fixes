@@ -33,9 +33,8 @@ import {
 	DateUtil,
 	TimeZonedDate,
 	ValidationDateParser
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
-import { DatePrecision } from "@com.mgmtp.a12.utils/utils-localization";
 
 import type {
 	DocumentModel, DocumentService, EntityInstancePath,
@@ -184,7 +183,7 @@ export class DocumentServiceImpl implements DocumentService {
 					value,
 					modelField.fieldType.format,
 					baseYearOrDefault,
-					modelField.fieldType.datePrecision !== DatePrecision.FULL,
+					modelField.fieldType.datePrecision !== "FULL",
 					timeZone
 				);
 			} catch (_error) {
@@ -279,7 +278,7 @@ export class DocumentServiceImpl implements DocumentService {
 					return true;
 				case "DateType":
 					if (
-						modelField.fieldType.datePrecision !== DatePrecision.FULL &&
+						modelField.fieldType.datePrecision !== "FULL" &&
 						typeof value === "string"
 					) {
 						// in this case we know, it was a partially known date

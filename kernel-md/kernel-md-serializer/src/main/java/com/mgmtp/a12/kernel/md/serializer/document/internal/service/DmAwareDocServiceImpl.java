@@ -46,7 +46,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils;
-import com.mgmtp.a12.kernel.md.document.api.IFieldInstance;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.UpdateAction;
@@ -71,8 +70,6 @@ import com.mgmtp.a12.kernel.md.model.internal.service.utils.TransientFieldsInGro
 import com.mgmtp.a12.kernel.md.serializer.document.internal.service.convertion.FieldValueConverter;
 import com.mgmtp.a12.model.notification.RankedNotification;
 import com.mgmtp.a12.model.notification.Severity;
-import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion;
-
 import lombok.NonNull;
 
 public class DmAwareDocServiceImpl implements IDmAwareDocService {
@@ -114,31 +111,6 @@ public class DmAwareDocServiceImpl implements IDmAwareDocService {
 		return documentModelSearchService.getGroupOrFieldPathById(fieldId).map(
 						path -> DocumentV2Utils.getFieldInstances(document, DocumentMultiPointer.ofPathWithAllWildcards(path)))
 				.orElse(List.of());
-	}
-
-	@Override public boolean checkPresenceOfFieldInstancesInNonRepeatableGroups(
-			@NonNull DocumentV2 document,
-			@NonNull Consumer<RankedNotification> notificationReceiver) {
-		// has to be this weird, as we need to adapt it in the visitor
-		AtomicBoolean result = new AtomicBoolean(true);
-		Consumer<RankedNotification> notification = notificationReceiver.andThen(n -> {
-			if (n.getSeverity().isAtLeastAsSevereAs(Severity.ERROR)) {
-				result.set(false);
-			}
-		});
-
-		NonRepeatableEntitiesFinder nref = new NonRepeatableEntitiesFinder();
-		new DocumentModelWalker().acceptDocumentModel(this.documentModel, nref);
-
-		for (String path : nref.getNonRepeatableFieldPaths()) {
-			if (document.field(DocumentPointer.of(path)) == null) {
-				notification.accept(error(
-						String.format("The corresponding instance of the non-repeatable field '%s' was not found in the document.",
-								path)));
-			}
-		}
-
-		return result.get();
 	}
 
 	@Override public boolean checkStructuralConsistencyWithDm(@NonNull DocumentV2 document,
@@ -230,40 +202,6 @@ public class DmAwareDocServiceImpl implements IDmAwareDocService {
 						.collect(Collectors.toSet()));
 	}
 
-	/**
-	 * Add all transient fields defined in the configured DM. The fields are created with a field value of {@code null}.
-	 * <p>
-	 * <i>Info</i>: this method only exists because it was needed in the implementation for IDocument and should no longer be needed
-	 * as in most of the cases an empty field (value {@code null}) has the same behavior as if it not exists at all.
-	 *
-	 * @param document
-	 * 		the document to add the transient fields to.
-	 * @return the adapted document if the DM defines transient fields, otherwise the original is returned.
-	 */
-	public DocumentV2 addTransientFields(@NonNull DocumentV2 document) {
-		TransientFieldsInGroupsFinder nrgf = new TransientFieldsInGroupsFinder();
-		new DocumentModelWalker().acceptDocumentModel(documentModel, nrgf);
-
-		ArrayList<UpdateAction> updateActions = new ArrayList<>();
-
-		for (Map.Entry<String, String> transientField : nrgf.getTransientFields()) {
-			DocumentMultiPointer repeatableParentGroup = DocumentMultiPointer.ofPathWithAllWildcards(transientField.getKey());
-			DocumentPointer transientFieldPathInParent = DocumentPointer.of(transientField.getValue());
-
-			Collection<Map.Entry<DocumentPointer, GroupInstanceV2>> parentGroupInstanceEntries =
-					DocumentV2Utils.getGroupInstances(document, repeatableParentGroup);
-
-			for (var groupEntry : parentGroupInstanceEntries) {
-				if (groupEntry.getValue().field(transientFieldPathInParent) == null) {
-					updateActions.add(
-							UpdateAction.putFieldValue(groupEntry.getKey().withConcatenated(transientFieldPathInParent), null));
-				}
-			}
-		}
-
-		return document.withBatchUpdates(updateActions);
-	}
-
 	@Override public DocumentV2 removeUnknowns(@NonNull DocumentV2 document) {
 		return (DocumentV2) removeUnknownsInternal(DocumentPointer.of(""), document, _n -> {
 		});
@@ -291,14 +229,6 @@ public class DmAwareDocServiceImpl implements IDmAwareDocService {
 		DocumentV2 documentV2 = (DocumentV2) removeUnknownsInternal(DocumentPointer.of(""), document, unknowns::add);
 
 		return new DocumentAndUnknowns(documentV2, unknowns);
-	}
-
-	// only for DocumentServiceImpl
-	Object convertToJavaType(IFieldInstance fieldInstance, String value, Consumer<RankedNotification> notificationReceiver) {
-		Objects.requireNonNull(fieldInstance);
-		String fieldFullName = fieldInstance.getPath();
-		// delegate to convertToJavaTypeV2, so that gets the full unit-test coverage of convertToJavaTypeV2 convertToJavaType
-		return BasicTypeV1V2Conversion.basicTypeV2ToV1(convertToJavaTypeV2(fieldFullName, value, notificationReceiver));
 	}
 
 	// [A12K-3432]: use batchUpdate

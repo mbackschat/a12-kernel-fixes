@@ -33,7 +33,7 @@ import { Big } from "big.js";
 
 import {
 	TimeZonedDate
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import { VkBigDecimal } from "../util/VkBigDecimal.js";
 import { VkDate } from "../util/VkDate.js";

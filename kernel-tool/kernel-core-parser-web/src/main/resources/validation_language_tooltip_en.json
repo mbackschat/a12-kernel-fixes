@@ -313,7 +313,10 @@
 	"text": "For each repetition, the product of two repeatable fields is calculated. The results are summed up.",
 	"title": "SumOfProducts(_Field1_, _Field2_)"
     },
-    
+    "SumOfTerms": {
+    "text": "For each repetition, the value of an iterating term is calculated and then those values are summed up.",
+    "title": "SumOfTerms(_Path_, _Term_)"
+    },
     "DifferenceInYears": {
 	"text": "Returns the difference of the two date values in years.",
 	"title": "DifferenceInYears(_Date1_, _Date2_)"

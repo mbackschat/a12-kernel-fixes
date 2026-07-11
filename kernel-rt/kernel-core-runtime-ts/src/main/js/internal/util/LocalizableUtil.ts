@@ -53,7 +53,7 @@ import {
 	DateRangeConversionConfigBuilder,
 	DateTimeConversionConfigBuilder,
 	TimeConversionConfigBuilder
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 import type { IIdentifier, IMetaField } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
@@ -257,8 +257,16 @@ export class LocalizableUtil {
 	}
 
 	public static createFieldErrorKey(field: IIdentifier, metaData: IMetaDataValidierung) {
+		return LocalizableUtil._createFieldSpecialKey(field, metaData, "fieldErrorMessage");
+	}
+
+	public static createFieldRequiredErrorKey(field: IIdentifier, metaData: IMetaDataValidierung) {
+		return LocalizableUtil._createFieldSpecialKey(field, metaData, "fieldRequiredErrorMessage");
+	}
+
+	private static _createFieldSpecialKey(field: IIdentifier, metaData: IMetaDataValidierung, type: string) {
 		const fullName = metaData.getPfadName(metaData.getUniqueName(field.getName()));
-		return LocalizableUtil.createModelKey(fullName, metaData, "fieldErrorMessage");
+		return LocalizableUtil.createModelKey(fullName, metaData, type);
 	}
 
 	public static defaultsFromMap(texts: Map<string, string>): LocalizableDefaults {

@@ -300,9 +300,16 @@ export class EntityIterator implements Iterable<RtInternalIdentifier> {
 		entityName: string,
 		partialIsUnknown: boolean
 	): boolean {
-		let pruefRelIdsMitNamenDesEntityIterators: HashSet<RtInternalIdentifier> | undefined = vc
-			.getPruefungsrelevanteFelderIntern()
-			.get(entityName);
+		let pruefRelIdsMitNamenDesEntityIterators: HashSet<RtInternalIdentifier> | undefined;
+        if (partialIsUnknown && vc.isValidationPartWith3ValueLogic() && !this.isField()) {
+            pruefRelIdsMitNamenDesEntityIterators = vc
+                .getFullyRelevantGroupsIntern()
+                .get(entityName) as any;
+        } else {
+            pruefRelIdsMitNamenDesEntityIterators = vc
+                .getPruefungsrelevanteFelderIntern()
+                .get(entityName) as any;
+        }
 
 		if (pruefRelIdsMitNamenDesEntityIterators == undefined) {
 			// kein Feld mit diesem Namen ist prüfungsrelevant

@@ -35,32 +35,29 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 import java.util.Objects;
 import java.util.stream.StreamSupport;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
-import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.IdReferenceConverter;
+import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
-public class ReferenceDmsByIdStep extends BaseJsonNodeMigrationStep {
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
-	public ReferenceDmsByIdStep(MigrationCache cache, MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+public final class ReferenceDmsByIdStep {
+
+	private ReferenceDmsByIdStep() {
 	}
 
-	@Override public void execute(JsonNode model, MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		if (!ModelJsonUtil.referencesOtherDm(model)) {
 			return;
 		}
-		ModelJsonUtil.extractReferencesToDms(model).stream().forEach(this::migrateModelRef);
+		ModelJsonUtil.extractReferencesToDms(model).stream().forEach(ReferenceDmsByIdStep::migrateModelRef);
 		// in case there are expanded document models
 		ModelJsonUtil.extractTypeDefs(model).stream()
 				.map(td -> td.get(ModelJsonUtil.MODEL_REFERENCES))
@@ -68,18 +65,17 @@ public class ReferenceDmsByIdStep extends BaseJsonNodeMigrationStep {
 				.filter(JsonNode::isArray)
 				.map(ArrayNode.class::cast)
 				.flatMap(an -> StreamSupport.stream(an.spliterator(), false))
-				.forEach(this::migrateModelRef);
+				.forEach(ReferenceDmsByIdStep::migrateModelRef);
 	}
 
-	private void migrateModelRef(JsonNode modelRef) {
+	private static void migrateModelRef(JsonNode modelRef) {
 		String reference = ModelJsonUtil.extractReferenceFromModelReference(modelRef);
 		if (reference == null) { // should not happen
-			throw new MigrationException(new MigrationError(MigrationErrorType.MODEL_CONTENT_NOT_SUPPORTED)
-					.withMessage(
-							"The document model contains a model-reference object with a null or a non-textual reference."));
+			throw MigrationUtils.contentNotSupportedException(
+					"The document model contains a model-reference object with a null or a non-textual reference.");
 		}
 		String newReference = IdReferenceConverter.createIdReference(reference);
-		((ObjectNode) modelRef).set(ModelJsonUtil.MR_REFERENCE, TextNode.valueOf(newReference));
+		((ObjectNode) modelRef).set(ModelJsonUtil.MR_REFERENCE, StringNode.valueOf(newReference));
 	}
 
 }

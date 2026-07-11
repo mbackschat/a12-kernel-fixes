@@ -30,7 +30,6 @@
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
 
-import { HashSet as HashTable } from "@com.mgmtp.a12.utils/utils-collections";
 
 import {
 	DateAndFormat,
@@ -39,13 +38,12 @@ import {
 	PartiallyKnownDatesUtil,
 	TimeZonedDate,
 	ValidationDateParser
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import type { IIterator, IResult, ValidationMode } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 import {
 	ArrayMap,
-	IIdentifier,
-	numbersconv
+	IIdentifier
 } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 import { CustomFieldTypeValidationParamImpl } from "../custom/CustomFieldTypeValidationParamImpl.js";
@@ -75,6 +73,7 @@ import { VkString } from "../util/VkString.js";
 
 import { IteratorWrapper } from "../util/IteratorWrapper.js";
 import { ParallelIteratorWrapper } from "../util/ParallelIteratorWrapper.js";
+import type { SetOperation } from "../util/SetOperation.js";
 
 import { BedingungsOperatorHelper, VglOp } from "./BedingungsOperatorHelper.js";
 import { BigDecimalUtils } from "./BigDecimalUtils.js";
@@ -1056,10 +1055,7 @@ export abstract class RuntimeController {
 		// all fields must have the same type
 		const isZahl: boolean = this.isZahlFeld(entityList[0].getUniqueName());
 		// speichert die gefundenen Werte
-		const werte: HashTable<VkBigDecimal | string> = new HashTable<VkBigDecimal | string>(
-			(n: VkBigDecimal | string) => numbersconv(n),
-			(a: VkBigDecimal | string, b: VkBigDecimal | string) => this._feldWerteEquals(a, b)
-		);
+		const werte = new Set<string>();
 		let containsFilter = false;
 		for (const rtIdContainer of entityList) {
 			if (rtIdContainer.isAggregation()) {
@@ -1071,8 +1067,8 @@ export abstract class RuntimeController {
 							containsFilter = true;
 						}
 						// nur prüfungsrelavante, angegebene Werte werden gesammelt
-						const v: VkBigDecimal | string = isZahl
-							? this.feldWertAlsZahl(id)
+						const v = isZahl
+							? this.feldWertAlsZahl(id).toComparableString()
 							: this._feldWertIntern(id);
 						if (!v || werte.has(v)) {
 							return containsFilter ? ValidierungsErgebnis.TRUE_AF : ValidierungsErgebnis.TRUE_WF;
@@ -1085,8 +1081,8 @@ export abstract class RuntimeController {
 				const rtId = RtInternalIdentifier.createFromTemplate(rtIdContainer, index);
 				if (this.isWertAngegeben(rtId, false) === DreiWertBool.TRUE) {
 					// nur prüfungsrelavante, angegebene Werte werden gesammelt
-					const v: VkBigDecimal | string = isZahl
-						? this.feldWertAlsZahl(rtId)
+					const v = isZahl
+						? this.feldWertAlsZahl(rtId).toComparableString()
 						: this._feldWertIntern(rtId);
 					if (!v || werte.has(v)) {
 						return containsFilter ? ValidierungsErgebnis.TRUE_AF : ValidierungsErgebnis.TRUE_WF;
@@ -1097,14 +1093,6 @@ export abstract class RuntimeController {
 			}
 		}
 		return ValidierungsErgebnis.FALSE_OR_UNKNOWN; // alle prüfungsrelevanten Felder der Feldliste haben verschiedene Werte
-	}
-
-	private _feldWerteEquals(a: VkBigDecimal | string, b: VkBigDecimal | string): boolean {
-		if (a instanceof VkBigDecimal && b instanceof VkBigDecimal) {
-			return a.compareTo(b) === 0;
-		} else {
-			return a === b;
-		}
 	}
 
 	/**
@@ -3467,6 +3455,54 @@ export abstract class RuntimeController {
 			x => this.feldWertAlsDateRange(x),
 			false
 		);
+	}
+
+	public summeVonTermen(
+		idx: IterationState,
+		iterationEntity: RtIdentifierTemplate,
+		op: SetOperation<VkBigDecimal>
+	): VkBigDecimal {
+		let numVisitedRepetitions = 0;
+		const iterator = new EntityIterator(iterationEntity, idx);
+        if (this.validierungArt.isValidationPartWith3ValueLogic() &&
+                iterator.istEineWiederholungNichtPruefungsRelevant(this.validationCache, true)) {
+            // We might have false positives here for partial validation, but else we could have false positive error messages
+            return VkBigDecimal.NICHT_PRUEF_REL_ZAHL;
+        }
+		const numTotalRepetitions = iterator.anzahlFelder();
+		this._setzeEndIndicesAufMaxGesetzt(iterator, true);
+		iterator.optimiereMitGesetztenWiederholungenWennSinnvoll(this.validationCache);
+
+		let sum = VkBigDecimal.ZAHL_0;
+		for (const iterationEntityId of iterator) {
+			const iterationState = iterationEntityId.getIterationState();
+			numVisitedRepetitions++;
+			if (iterationState == undefined) {
+				throw Error("No iterationState in iterated entity specified!");
+			}
+			// Even if it is only partially relevant (e.g. only the operands are relevant) and one of the relevant fields is given,
+			// we want to evaluate the operation.
+			// might be replaced with !alleKontexteAngegeben(...).isKnownAndTrue()
+            const result = this.isWertAngegeben(iterationEntityId, false);
+            if (result == DreiWertBool.FALSE) {
+                sum = sum.add(VkBigDecimal.NICHT_ANGEGEBENE_ZAHL);
+                continue;
+            } else if (result == DreiWertBool.UNKNOWN) {
+                return VkBigDecimal.NICHT_PRUEF_REL_ZAHL;
+            }
+			const value = op.calculate(iterationState);
+			if (value.wertIstUngueltig) { // see the corresponding commment in the java runtime
+				sum = sum.add(VkBigDecimal.NICHT_ANGEGEBENE_ZAHL);
+				// see the corresponding commment in the java runtime
+				continue;
+			}
+			sum = sum.add(value);
+		}
+		if (numVisitedRepetitions < numTotalRepetitions) {
+			sum = sum.add(VkBigDecimal.NICHT_ANGEGEBENE_ZAHL);
+		}
+
+		return sum;
 	}
 
 	public getValidationCache(): ValidationCache {

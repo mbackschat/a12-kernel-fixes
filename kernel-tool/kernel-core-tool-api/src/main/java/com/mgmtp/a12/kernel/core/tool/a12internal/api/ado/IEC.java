@@ -235,11 +235,8 @@ public interface IEC {
 	 * 		known.</li>
 	 * 		<li>A map from table name to <code>null</code>- values if only the names of the
 	 * 		tables are known.</li>
-	 * 		<li>A map from table name to the full table data represented as
-	 *                                                {@link IEnumerationDataTable}.</li>
+	 * 		<li>A map from table name to the full table data represented as {@link IEnumerationDataTable}.</li>
 	 * 		</ul>
-	 * 		The table data should use the implementation EnumerationDataTable from package
-	 * 		kernel-core-utils.
 	 */
 	default Map<String, IEnumerationDataTable> getEnumerationTables() {
 		return null;

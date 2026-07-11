@@ -32,17 +32,17 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import org.apache.commons.lang3.exception.UncheckedException;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.mgmtp.a12.kernel.md.model.api.ILocalizedTextMap;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 public class LocalizedTextMapSerializer extends StdSerializer<ILocalizedTextMap> {
 
-	private static final long serialVersionUID = -3422521314367054069L;
 	public static final String LOCALE_KEY = "locale";
 	public static final String TEXT_KEY = "text";
 
@@ -55,24 +55,24 @@ public class LocalizedTextMapSerializer extends StdSerializer<ILocalizedTextMap>
 	}
 
 	@Override
-	public void serialize(ILocalizedTextMap value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+	public void serialize(ILocalizedTextMap value, JsonGenerator gen, SerializationContext provider) {
 		gen.writeStartArray();
 		value.entrySet().forEach(locText -> {
 			try {
 				gen.writeStartObject();
 				String text = locText.getValue() == null ? "" : locText.getValue();
-				gen.writeStringField(LOCALE_KEY, locText.getKey().toString());
-				gen.writeStringField(TEXT_KEY, text);
+				gen.writeStringProperty(LOCALE_KEY, locText.getKey().toString());
+				gen.writeStringProperty(TEXT_KEY, text);
 				gen.writeEndObject();
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
+			} catch (JacksonException e) {
+				throw new UncheckedException(e);
 			}
 		});
 		gen.writeEndArray();
 	}
 
 	@Override
-	public boolean isEmpty(SerializerProvider provider, ILocalizedTextMap value) {
+	public boolean isEmpty(SerializationContext provider, ILocalizedTextMap value) {
 		return (value == null || value.size() == 0);
 	}
 

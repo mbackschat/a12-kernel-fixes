@@ -32,9 +32,6 @@
 
 package com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.conditions.CodeGenCondition;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.STParameterClassBase;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.StringTemplateGroup;
@@ -46,12 +43,10 @@ import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.S
 public class CodeGenFilterCondition extends STParameterClassBase {
 	private final CodeGenCondition codeGenCondition;
 	private final String varName;
-	private final EntityIdsCollector filterEntityIdsCollector;
 
-	public CodeGenFilterCondition(CodeGenCondition condition, String varName, EntityIdsCollector filterEntityIdsCollector) {
+	public CodeGenFilterCondition(CodeGenCondition condition, String varName) {
 		this.codeGenCondition = condition;
 		this.varName = varName;
-		this.filterEntityIdsCollector = filterEntityIdsCollector;
 	}
 
 	public String getConditionBooleanCode() {
@@ -60,29 +55,5 @@ public class CodeGenFilterCondition extends STParameterClassBase {
 
 	public String getVarName() {
 		return varName;
-	}
-
-	public List<String> getConditionClassFieldsCpp() {
-		return filterEntityIdsCollector.getAll().stream()
-				.map(co -> co.toCode("classField"))
-				.collect(Collectors.toList());
-	}
-
-	public List<String> getConditionConstructorParamsCpp() {
-		return filterEntityIdsCollector.getAll().stream()
-				.map(co -> co.toCode("constructorParam"))
-				.collect(Collectors.toList());
-	}
-
-	public List<String> getConditionClassInitFieldsCpp() {
-		return filterEntityIdsCollector.getAll().stream()
-				.map(co -> co.toCode("constructorInitField"))
-				.collect(Collectors.toList());
-	}
-
-	public List<String> getConditionPassedParamsCpp() {
-		return filterEntityIdsCollector.getAll().stream()
-				.map(co -> co.toCode("passedParam"))
-				.collect(Collectors.toList());
 	}
 }

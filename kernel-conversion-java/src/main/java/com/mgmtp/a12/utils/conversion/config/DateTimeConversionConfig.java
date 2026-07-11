@@ -35,13 +35,15 @@ package com.mgmtp.a12.utils.conversion.config;
 import com.mgmtp.a12.model.utils.Experimental;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
+import lombok.NonNull;
+
 /**
  * Data type for date time.
  */
 @Experimental @OnlyForUsage
 public interface DateTimeConversionConfig extends DateBasicConversionConfig {
 	@Override
-	default String format() {
+	default @NonNull String format() {
 		return "yyyy-MM-dd'T'HH:mm:ss";
 	}
 }

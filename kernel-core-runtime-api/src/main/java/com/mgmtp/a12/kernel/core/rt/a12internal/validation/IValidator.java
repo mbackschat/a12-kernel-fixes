@@ -31,12 +31,10 @@
  */
 package com.mgmtp.a12.kernel.core.rt.a12internal.validation;
 
-import java.util.Map;
 import java.util.Set;
 
 import com.mgmtp.a12.kernel.core.rt.a12internal.ValidationMode;
 import com.mgmtp.a12.kernel.core.rt.a12internal.ValidatorException;
-import com.mgmtp.a12.kernel.core.rt.a12internal.custom.impl.CustomConditionService;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 import lombok.NonNull;
@@ -49,20 +47,6 @@ import lombok.NonNull;
 // @formatter:off (the formatter keeps adding indents in the comments below on every save)
 @OnlyForUsage
 public interface IValidator {
-
-	/**
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Please use
-	 *        {@link #validatePartlyWith3ValueLogic(IData, Set, IResult, ValidationMode)} instead and provide your
-	 *        {@link ICustomCondition}s in {@link ValidationMode#customConditionFactory()} instead.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	void validatePartlyWith3ValueLogic(
-			IData data,
-			Set<IIdentifier> relevantEntities,
-			Map<String, ICustomCondition> customConditions,
-			IResult validationResult,
-			ValidationMode mode // null currently allowed (contrary to javadoc) --> defaults to `new ValidationMode()`
-	);
 
 	// @formatter:off (prevent indent on every save)
 	/**
@@ -110,9 +94,8 @@ public interface IValidator {
 	 * 		specifies the mode of validation. May not be <code>null</code>.
 	 * @throws ValidatorException
 	 * 		<ul>
-	 * 			<li>If a rule that is validated uses a custom condition which is unknown (either in
-	 * 				{@link ValidationMode#customConditionFactory()} or not registered in the deprecated
-	 * 				{@link CustomConditionService}.</li>
+	 * 			<li>If a rule that is validated uses a custom condition which is unknown (in
+	 * 				{@link ValidationMode#customConditionFactory()}).</li>
 	 * 		</ul>
 	 * @throws IllegalArgumentException
 	 * 		<ul>
@@ -125,31 +108,11 @@ public interface IValidator {
 	 * 		</ul>
 	 */
 	// @formatter:on
-	default void validatePartlyWith3ValueLogic(
+	void validatePartlyWith3ValueLogic(
 			@NonNull IData data,
 			Set<IIdentifier> relevantEntities,
 			@NonNull IResult validationResult,
 			ValidationMode mode // null currently allowed (contrary to javadoc) --> defaults to new `ValidationMode()`
-	) {
-		// A default implementation exists solely to allow the use of generated code before 30.2.0 via this API.
-		// This default implementation will be removed with A12K-3589.
-		// Use customConditions 'null' to be compatible with ValidationCommand#cacheAllCustomConditions(..) in previous version.
-		validatePartlyWith3ValueLogic(data, relevantEntities, null, validationResult, mode);
-	}
-
-	// @formatter:off (prevent indent on every save)
-	/**
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Please use
-	 *        {@link #validateAll( IData, IResult, ValidationMode)} instead and provide your
-	 *        {@link ICustomCondition}s in {@link ValidationMode#customConditionFactory()} instead.
-	 */
-	// @formatter:on
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	void validateAll(
-			@NonNull IData data,
-			Map<String, ICustomCondition> customConditions,
-			@NonNull IResult validationResult,
-			ValidationMode mode // null currently allowed (contrary to javadoc) --> defaults to `new ValidationMode()`
 	);
 
 	// @formatter:off (prevent indent on every save)
@@ -178,9 +141,8 @@ public interface IValidator {
 	 * 		specifies the mode of validation. May not be <code>null</code>.
 	 * @throws ValidatorException
 	 * 		<ul>
-	 * 			<li>If a rule that is validated uses a custom condition which is unknown (either in
-	 * 				{@link ValidationMode#customConditionFactory()} or not registered in the deprecated
-	 * 				{@link CustomConditionService}).</li>
+	 * 			<li>If a rule that is validated uses a custom condition which is unknown (in
+	 * 				{@link ValidationMode#customConditionFactory()}).</li>
 	 * 		</ul>
 	 * @throws IllegalArgumentException
 	 * 		<ul>
@@ -193,14 +155,9 @@ public interface IValidator {
 	 * 		</ul>
 	 */
 	// @formatter:on
-	default void validateAll(
+	void validateAll(
 			@NonNull IData data,
 			@NonNull IResult validationResult,
 			ValidationMode mode // null currently allowed (contrary to javadoc) --> defaults to `new ValidationMode()`
-	) {
-		// A default implementation exists solely to allow the use of generated code before 30.2.0 (ER-54) via this API.
-		// This default implementation will be removed with A12K-3589.
-		// Use customConditions 'null' to be compatible with ValidationCommand#cacheAllCustomConditions(..) in previous version.
-		validateAll(data, null, validationResult, mode);
-	}
+	);
 }

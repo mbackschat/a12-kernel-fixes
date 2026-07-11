@@ -36,10 +36,10 @@ public class CustomFieldTypeApiConstants {
 	// Don't remove 'new String(..)' to prevent constant inlining (at compile-time).
 	// Don't change the format of this line, it is automatically parsed and checked by verify-versions.sh
 	// see see MGM Wiki Shortlink x/ZGQqDQ for notes on how to update
-	public static final String API_VERSION = new String("28.2.0");
+	public static final String API_VERSION = new String("29.0.2");
 	// Don't remove 'new String(..)' to prevent constant inlining (at compile-time).
 	// Don't change the format of this line, it is automatically parsed and checked by verify-versions.sh
 	// see see MGM Wiki Shortlink x/ZGQqDQ for notes on how to update
 	// @formatter:off
-	public static final String OLDEST_COMPATIBLE_RUNTIME_AND_GENCODE_VERSION = new String("28.0.0"); // last checked for api version 28.2.0 Keep this comment here as it is (no extra or new line breaks), it will be automatically checked during api deployment
+	public static final String OLDEST_COMPATIBLE_RUNTIME_AND_GENCODE_VERSION = new String("28.0.0"); // last checked for api version 29.0.2 Keep this comment here as it is (no extra or new line breaks), it will be automatically checked during api deployment
 }

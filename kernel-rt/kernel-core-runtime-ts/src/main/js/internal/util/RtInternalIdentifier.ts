@@ -66,19 +66,22 @@ export class RtInternalIdentifier {
 
 	private _category: string | undefined;
 	private _semIndex: SemanticIndexSpec | undefined;
+    private _iterationState: IterationState | undefined;
 	private _hash: number;
 
 	constructor(
 		name: string,
 		indices: number[],
 		category?: string,
-		semIndex?: SemanticIndexSpec
+		semIndex?: SemanticIndexSpec,
+        iterationState?: IterationState
 	) {
 		this._name = name;
 		this._indices = indices;
 		this._category = category ? category : undefined;
 		this._semIndex = semIndex ? semIndex : undefined;
 		this._hash = this._hashNumber();
+        this._iterationState = iterationState;
 	}
 
 	public cloneWithSemanticIndexReplaced(
@@ -110,7 +113,8 @@ export class RtInternalIdentifier {
 			this._name,
 			idx,
 			this._category,
-			this._semIndex
+			this._semIndex,
+            this._iterationState
 		);
 		return result;
 	}
@@ -143,7 +147,8 @@ export class RtInternalIdentifier {
 			name,
 			indices,
 			category,
-			semIndex ? semIndex : semIdxSpec
+			semIndex ? semIndex : semIdxSpec,
+            idx
 		);
 	}
 
@@ -182,7 +187,8 @@ export class RtInternalIdentifier {
 			template.getUniqueName(),
 			indices,
 			template.getCategory(),
-			semIdx
+			semIdx,
+            usedIterationState
 		);
 	}
 
@@ -314,6 +320,13 @@ export class RtInternalIdentifier {
 		return this._category;
 	}
 
+    /**
+     * If the field was created via an iteration state or was cloned from such an identifier, this returns the used iteration state.
+     */
+    getIterationState(): IterationState | undefined {
+        return this._iterationState;
+    }
+
 	/**
 	 * <p>
 	 * Diese Methode wird nur für die Pflichtfeld-Ermittlung aufgerufen.
@@ -437,7 +450,8 @@ export class RtInternalIdentifier {
 				this._name,
 				resultIdx,
 				this._category,
-				this._semIndex
+				this._semIndex,
+                this._iterationState
 			);
 		}
 	}
@@ -459,14 +473,5 @@ export class RtInternalIdentifier {
 		}
 		const parentIndexes = id.getIndices().slice(0, -1);
 		return new RtInternalIdentifier(parentName, parentIndexes);
-	}
-
-	static normalizeIdentifier(id: RtInternalIdentifier): RtInternalIdentifier {
-		return new RtInternalIdentifier(
-			id.getName(),
-			id.getIndices(),
-			id.getCategory(),
-			id.getSemanticIndex()
-		);
 	}
 }

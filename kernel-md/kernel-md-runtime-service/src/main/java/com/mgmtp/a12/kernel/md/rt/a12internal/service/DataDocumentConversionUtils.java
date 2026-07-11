@@ -45,64 +45,29 @@ import com.mgmtp.a12.kernel.core.rt.a12internal.utils.IMetaKeys;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IResult;
-import com.mgmtp.a12.kernel.md.document.api.IDocument;
-import com.mgmtp.a12.kernel.md.document.api.IEntityInstance;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.UpdateAction;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.FieldInstanceV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2;
-import com.mgmtp.a12.kernel.md.document.internal.service.implV2.DocumentV1V2ConverterImpl;
-import com.mgmtp.a12.kernel.md.rt.internal.service.DocumentIDataWrapper;
 import com.mgmtp.a12.kernel.md.rt.internal.service.DocumentPointerConverter;
 import com.mgmtp.a12.kernel.md.rt.internal.service.Identifier;
 import com.mgmtp.a12.kernel.md.rt.internal.service.LowKernelApiUtils;
 import com.mgmtp.a12.kernel.md.rt.internal.service.ResultForConversion;
 import com.mgmtp.a12.kernel.md.rt.internal.service.ValidationData;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
+import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion;
 
 import lombok.NonNull;
 
 /**
- * This class contains utility methods for converting {@link IData} to {@link IDocument} and vice versa.
+ * This class contains utility methods for converting {@link IData} to {@link DocumentV2} and vice versa.
  */
 @OnlyForUsage
 public class DataDocumentConversionUtils {
 
 	private DataDocumentConversionUtils() {
 		throw new IllegalStateException("Utility class");
-	}
-
-	/**
-	 * Utility method to convert {@link IData} to {@link IDocument} for a given document model id.
-	 *
-	 * @param data
-	 *        {@link IData} to be converted
-	 * @param documentModelId
-	 * 		id of the according document model
-	 * @param metaModel
-	 * 		needed to check if the {@link IEntityInstance}s are fields or groups
-	 * @param presentationInformation
-	 * 		defines the external representation. If this value is null, no value conversion is performed. This means, the values given
-	 * 		in <code>data</code> will be interpreted as internal values.
-	 * @param result
-	 * 		needed to gather the problems which occur while converting the value
-	 * @return {@link IDocument} with reading access to its {@link IEntityInstance}s through {@link IDocument#getEntityInstances}.
-	 * 		The methods {@link IDocument#addEntityInstance(IEntityInstance)} or
-	 *        {@link IDocument#removeEntityInstance(IEntityInstance)} cannot be used.
-	 *
-	 * @deprecated use {@link #createDocumentV2(IData, String, IMetaModel, IResult, PresentationInformation)} instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	public static IDocument createDocument(IData data, String documentModelId, IMetaModel metaModel, IResult result,
-			PresentationInformation presentationInformation) {
-		if (data instanceof ValidationData validationData) {
-			IDocument originalIDocument = validationData.getOriginalIDocumentIfExists();
-			return originalIDocument != null
-					? originalIDocument
-					: DocumentV1V2ConverterImpl.getInstance().toDocumentV1(validationData.getInternalDocumentV2());
-		}
-		return new DocumentIDataWrapper(data, documentModelId, metaModel, result, presentationInformation);
 	}
 
 	/**
@@ -144,7 +109,7 @@ public class DataDocumentConversionUtils {
 					if (metaField != null) {
 						String sValue = d.getValue(identifier);
 						ResultForConversion conversionResult = new ResultForConversion(result, identifier);
-						Object value = DocumentV1V2ConverterImpl.getInstance().fieldValueV1ToV2(
+						Object value = BasicTypeV1V2Conversion.basicTypeV1ToV2(
 								metaField.convertWithOnlyBasicTypeCheck(sValue, presentationInformation, conversionResult));
 						return Optional.of(UpdateAction.putField(pointer, FieldInstanceV2.ofValue(value)));
 					}
@@ -161,31 +126,6 @@ public class DataDocumentConversionUtils {
 				.toList();
 
 		return DocumentV2.empty(dmId).withBatchUpdates(updates);
-	}
-
-	/**
-	 * Utility method to convert an {@link IDocument} to {@link IData}.
-	 *
-	 * @param document
-	 *        {@link IDocument} to be converted
-	 * @param metaModel
-	 * 		needed to get values for given {@link IIdentifier}s (see e.g. {@link IData#getValue(IIdentifier)}).
-	 * @param locale
-	 * 		needed to get the according display values
-	 * @param result
-	 * 		needed to be able to pass results from conversion while getting the value of a specific field instance
-	 * @return the corresponding {@link IData}-instance.
-	 *
-	 * @throws IllegalArgumentException
-	 * 		if {@code locale} is not supported in {@code metaModel}
-	 * @deprecated use {@link #createData(DocumentV2, IMetaModel, Locale, IResult)} instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	public static IData createData(IDocument document, IMetaModel metaModel, Locale locale, IResult result) {
-		// throw early for wrong locale, otherwise the lazy conversion might throw an exception much later
-		LowKernelApiUtils.checkLocaleIsSupported(metaModel, locale);
-		return LowKernelApiUtils.createData(document, metaModel, locale, result,
-				id -> new Identifier(id.getName(), id.getIndices()).toString());
 	}
 
 	/**

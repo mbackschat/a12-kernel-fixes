@@ -51,15 +51,6 @@ public interface IGroupIndexParameter extends IRepetitionIndexParameter {
 	public String getGroupFullName();
 
 	/**
-	 * Set the name of the group. Used for changing error texts after moving or renaming groups.
-	 *
-	 * @param group
-	 * 		name of the group as referenced in the error text parameter
-	 */
-	public void setGroup(String group);
-	//TODO[A12K-3890]: check whether this setter is still needed, after the FehlertextUtil is cleaned from orphaned methods.
-
-	/**
 	 * @return the semantic index, or null if no semantic index is specified
 	 */
 	public ISemanticIndex getSemanticIndex();
@@ -72,5 +63,4 @@ public interface IGroupIndexParameter extends IRepetitionIndexParameter {
 	 * @param semanticIndex
 	 */
 	public void setSemanticIndex(ISemanticIndex semanticIndex);
-	//TODO[A12K-3890]: check whether this setter is still needed, after the FehlertextUtil is cleaned from orphaned methods.
 }

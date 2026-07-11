@@ -31,33 +31,24 @@
  */
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
+
+import tools.jackson.databind.JsonNode;
 
 /**
  * A no-op migration step that is used to simply update the schema version without changing anything
  * in the models.
  * This is only useful if the schema was extended in a way that no existing models must be adapted.
  */
-public class NoMigrationNecessaryStep extends BaseJsonNodeMigrationStep {
+public final class NoMigrationNecessaryStep {
 
-	/**
-	 * Instantiates a new NoMigrationNecessaryStep.
-	 *
-	 * @param stepConfigType
-	 * 		the step config type of this migration step
-	 * @param customMigConfig
-	 */
-	public NoMigrationNecessaryStep(final MigrationCache cache, final MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+	private NoMigrationNecessaryStep() {
 	}
 
-	@Override
-	public void execute(final JsonNode model, final MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		// do nothing :)
 	}
 }

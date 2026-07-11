@@ -160,8 +160,8 @@ public class ExtmpToolUtils {
 			return minLength;
 		}
 
-		if (template.length() > 0) {
-			return new RegExpLengthTester(template).calculateMinLength();
+		if (!template.isEmpty()) {
+			return new RegExpLengthTester(template).getMinLength();
 		}
 
 		return STRING_MINIMUM_ALLOWED_LENGTH;
@@ -182,8 +182,8 @@ public class ExtmpToolUtils {
 			return maxLength;
 		}
 
-		if (template.length() > 0) {
-			return new RegExpLengthTester(template).calculateMaxLength();
+		if (!template.isEmpty()) {
+			return new RegExpLengthTester(template).getMaxLength();
 		}
 
 		return computeMaxLength(maxLength, isFeldkennungsbasiert, hasAssignedUxmlDa, fieldFullName, noValueValidation);

@@ -32,7 +32,6 @@
 package com.mgmtp.a12.kernel.core.customfieldtype.impl;
 
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -41,7 +40,6 @@ import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeConversionResul
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeValidationParam;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.CustomFieldTypeConversionResultImpl;
-import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.CustomFieldTypeValidationParamImpl;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorEnum;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorKeys;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorUtil;
@@ -106,7 +104,6 @@ import lombok.NonNull;
  * </tr>
  * </table>
  */
-@SuppressWarnings("removal")
 public class IdNrVerifier implements ICustomFieldValidator {
 
 	private static final Pattern RE_VALID_IDNR = Pattern.compile("[0-9]{11}");
@@ -120,16 +117,6 @@ public class IdNrVerifier implements ICustomFieldValidator {
 
 	private IdNrVerifier(boolean acceptTestIdNrs) {
 		this.acceptTestIdNrs = acceptTestIdNrs;
-	}
-
-	/**
-	 * @return the instance of {@link ICustomFieldValidator}.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #create(boolean)}} instead.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	public static IdNrVerifier getInstance() {
-		return new IdNrVerifier(false);
 	}
 
 	/**
@@ -161,10 +148,7 @@ public class IdNrVerifier implements ICustomFieldValidator {
 			idnr = convertResult.getConvertedValue();
 		}
 		CustomFieldTypeErrorEnum error = checkIdNr(idnr);
-		return CustomFieldTypeErrorUtil.getResult(error, errorMsgLocale,
-				(CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST == error) ?
-						CustomFieldTypeErrorKeys.TEST_ID_NUMMER :
-						CustomFieldTypeErrorKeys.UNGUELTIGE_ID_NUMMER);
+		return CustomFieldTypeErrorUtil.getResult(error, errorMsgLocale, CustomFieldTypeErrorKeys.UNGUELTIGE_ID_NUMMER);
 	}
 
 	/**
@@ -184,14 +168,8 @@ public class IdNrVerifier implements ICustomFieldValidator {
 		if (!checkKorrektePruefziffer(idnr)) {
 			return CustomFieldTypeErrorEnum.IDNR_PRUEFZIFFER_UNGUELTIG;
 		}
-		if (idnr.startsWith("0")) {
-			if (acceptTestIdNrs) {
-				return CustomFieldTypeErrorEnum.KEIN_FEHLER;
-			} else {
-				// This remains for compatibility reasons and will be removed with A12K-3589.
-				// After that, a normal error should be returned and all special handling in the runtime can be eliminated.
-				return CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST;
-			}
+		if (idnr.startsWith("0") && !acceptTestIdNrs) {
+			return CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST;
 		}
 
 		return CustomFieldTypeErrorEnum.KEIN_FEHLER;
@@ -293,32 +271,16 @@ public class IdNrVerifier implements ICustomFieldValidator {
 
 	@NonNull @Override
 	public ICustomFieldTypeConversionResult convertInternal2Display(@NonNull String xmlValue) {
-		ICustomFieldTypeValidationParam valParam = new CustomFieldTypeValidationParamImpl(Locale.GERMANY,
-				CustomFieldTypeValidationParamImpl.UNSPECIFIED_LENGTH, CustomFieldTypeValidationParamImpl.UNSPECIFIED_LENGTH);
-		Optional<ICustomFieldTypeCheckError> checkResult = validate(xmlValue, valParam, false);
-		if (checkResult.isPresent() &&
-				!checkResult.get().getErrorKey().equals(CustomFieldTypeErrorKeys.TEST_ID_NUMMER)) {
+		CustomFieldTypeErrorEnum error = checkIdNr(xmlValue);
+		if (error != CustomFieldTypeErrorEnum.KEIN_FEHLER && error != CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST) {
+			Optional<ICustomFieldTypeCheckError> checkResult = CustomFieldTypeErrorUtil.getResult(error, Locale.GERMANY,
+					CustomFieldTypeErrorKeys.UNGUELTIGE_ID_NUMMER);
+			String errorMessage = checkResult.map(r -> r.getErrorMessage()).orElse("");
 			return new CustomFieldTypeConversionResultImpl(xmlValue,
-					"Konvertiere nur gültige Identifikationsnummern. " + checkResult.get().getErrorMessage());
+					"Konvertiere nur gültige Identifikationsnummern. " + errorMessage);
 		}
 		return new CustomFieldTypeConversionResultImpl(
 				xmlValue.substring(0, 2) + ' ' + xmlValue.substring(2, 5) + ' ' + xmlValue.substring(5, 8)
 						+ ' ' + xmlValue.substring(8), null);
-	}
-
-	// A12K-3589 remove this SuppressWarnings
-	@SuppressWarnings("removal")
-	@Override
-	public @NonNull ICustomFieldTypeConversionResult convertDisplay2Internal(@NonNull String displayValue,
-			@NonNull Map<String, Object> configData) {
-		return convertDisplay2Internal(displayValue);
-	}
-
-	// A12K-3589 remove this SuppressWarnings
-	@SuppressWarnings("removal")
-	@Override
-	public @NonNull ICustomFieldTypeConversionResult convertInternal2Display(@NonNull String internalValue,
-			@NonNull Map<String, Object> configData) {
-		return convertInternal2Display(internalValue);
 	}
 }

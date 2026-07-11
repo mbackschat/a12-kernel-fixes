@@ -41,14 +41,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblem;
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModelRoot;
 import com.mgmtp.a12.kernel.md.model.a12internal.Element;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.FieldType;
 import com.mgmtp.a12.kernel.md.serializer.model.a12internal.services.DocumentModelSerializer;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ObjectMapper;
 
 public class SerializationUtils {
 
@@ -58,15 +60,15 @@ public class SerializationUtils {
 		throw new UnsupportedOperationException("This may not be instantiated.");
 	}
 
-	public static void writeBoolean(JsonGenerator gen, String fieldName, boolean value) throws IOException {
+	public static void writeBoolean(JsonGenerator gen, String fieldName, boolean value) {
 		if (value) {
-			gen.writeBooleanField(fieldName, value);
+			gen.writeBooleanProperty(fieldName, value);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	public static <T> T copy(T t) {
-		ObjectMapper om = JsonMapper.getMapper();
+		ObjectMapper om = KernelJsonMapper.getMapper();
 		try {
 			Class<?> readClass = t.getClass();
 			if (t instanceof Element && !(t instanceof DocumentModelRoot)) {
@@ -76,8 +78,8 @@ public class SerializationUtils {
 				readClass = FieldType.class;
 			}
 			return (T) om.readValue(om.writeValueAsString(t), readClass);
-		} catch (IOException e) {
-			throw new UncheckedIOException("Error while copy the element.", e);
+		} catch (JacksonException e) {
+			throw new RuntimeException("Error while copy the element.", e);
 		}
 	}
 
@@ -97,10 +99,11 @@ public class SerializationUtils {
 	 * 		the {@link DocumentModel} to be copied or reduced. May not be {@code null}.
 	 * @param elementIdsInResult
 	 * 		the set of IDs of elements to be included in the reduced {@link DocumentModel}. May not be {@code null} but can be empty.
-	 * @param problemConsumer notifications might be reported here if there are inconsistencies in the DM. If errors occur, this
-	 *                        could possibly indicate that maybe, additional inconsistencies could be present in the resulting copy,
-	 *                        indirectly caused by the original inconsistency. If strict behavior is desired, the provided
-	 *                        problemConsumer should abort with an exception if any reported problem has severity of level ERROR.
+	 * @param problemConsumer
+	 * 		notifications might be reported here if there are inconsistencies in the DM. If errors occur, this
+	 * 		could possibly indicate that maybe, additional inconsistencies could be present in the resulting copy,
+	 * 		indirectly caused by the original inconsistency. If strict behavior is desired, the provided
+	 * 		problemConsumer should abort with an exception if any reported problem has severity of level ERROR.
 	 * @return a {@link DocumentModel} which is a copy or a part of {@code documentModel}
 	 */
 	public static DocumentModel copy(
@@ -113,7 +116,7 @@ public class SerializationUtils {
 			if (elementIdsInResult.isEmpty()) {
 				SERIALIZER.serialize(documentModel, pipedWriter, problemConsumer::accept);
 			} else {
-				ObjectMapper mapper = JsonMapper.createMapper(elementIdsInResult);
+				ObjectMapper mapper = KernelJsonMapper.createMapper(elementIdsInResult);
 				mapper.writeValue(pipedWriter, documentModel);
 			}
 			pipedWriter.close();
@@ -152,9 +155,9 @@ public class SerializationUtils {
 		public void run() {
 			try {
 				copy = SERIALIZER.deserialize(this);
-			} catch (IOException e) {
+			} catch (JacksonException e) {
 				exception = e;
-				throw new UncheckedIOException("The given document model could not be deserialized.", e);
+				throw new RuntimeException("The given document model could not be deserialized.", e);
 			}
 		}
 

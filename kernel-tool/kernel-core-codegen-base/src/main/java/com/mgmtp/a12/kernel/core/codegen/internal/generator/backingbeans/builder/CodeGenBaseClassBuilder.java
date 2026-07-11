@@ -32,15 +32,6 @@
 
 package com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.builder;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.MissingResourceException;
-import java.util.stream.Stream;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.BaseCodeGenConstants;
@@ -50,28 +41,20 @@ import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.B
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.StringFormatUtil;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGeneratorParameters;
 
+import lombok.Getter;
+
 /**
  * Basic backing bean to generate a class file for different languages.
  */
+@Getter
 public abstract class CodeGenBaseClassBuilder<D extends IBaseCodeGenData, P extends BasePackageInformation> {
 
 	protected final D data;
 	protected final P packageInformation;
 
-	private static List<String> copyRightHeader;
-	private static final Charset charsetCopyRightHeader = StandardCharsets.UTF_8;
-
-	public CodeGenBaseClassBuilder(D data, P packageInformation) {
+	protected CodeGenBaseClassBuilder(D data, P packageInformation) {
 		this.data = data;
 		this.packageInformation = packageInformation;
-	}
-
-	public D getData() {
-		return data;
-	}
-
-	public P getPackageInformation() {
-		return packageInformation;
 	}
 
 	public String getGeneratedFileInformation() {

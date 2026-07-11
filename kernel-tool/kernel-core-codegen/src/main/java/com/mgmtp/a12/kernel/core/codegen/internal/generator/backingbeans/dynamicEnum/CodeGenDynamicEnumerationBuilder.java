@@ -38,13 +38,12 @@ import java.util.stream.Collectors;
 
 import com.mgmtp.a12.kernel.core.calc.internal.dynEnum.ConsistentValueOpImpl;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.CodeGenData;
-import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.CodeGenFilterCondition;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.EntityId;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.EntityIdsCollector;
+import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.AbstractCodeGenCalcBuilder;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.conditions.CodeGenCondition;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.conditions.EntityListAndValueConditionMixedList;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.CodeGenOperation;
-import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.CodeGenParseTreeHelper;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.conversion.CodeGenCreator;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IEntityId;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.ICondition;
@@ -54,25 +53,18 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IDynamic
 /**
  * Builder for the template parameter class {@link CodeGenDynamicEnumeration}.
  */
-public class CodeGenDynamicEnumerationBuilder {
-	private final CodeGenData data;
+public class CodeGenDynamicEnumerationBuilder extends AbstractCodeGenCalcBuilder {
 	private final IDynamicEnumerationInfo dynEnumInfo;
 	private final EntityId dynEnumField;
 	private final List<CodeGenDynamicEnumerationValue> enumValues;
-	private final EntityIdsCollector entityIdsCollector;
 	private final CodeGenCondition safeGuard;
-	private final CodeGenParseTreeHelper codeGenParseTreeHelper;
 
 	public CodeGenDynamicEnumerationBuilder(IDynamicEnumerationInfo dynEnumInfo, CodeGenData data,
 			Function<IEntityId, String> uniqueFieldNamesMapper, boolean expandGroups) {
-		String uniqueFieldName = uniqueFieldNamesMapper.apply(dynEnumInfo.getDynamicEnumerationField());
-		String baseYear = data.getBaseYear();
-		codeGenParseTreeHelper = new CodeGenParseTreeHelper(data.getEc(), expandGroups, uniqueFieldName, baseYear,
+		super(data, expandGroups,
+				uniqueFieldNamesMapper.apply(dynEnumInfo.getDynamicEnumerationField()),
 				uniqueFieldNamesMapper);
 		this.dynEnumInfo = codeGenParseTreeHelper.expandAndTransformDynEnumInfo(dynEnumInfo);
-
-		this.entityIdsCollector = new EntityIdsCollector("");
-		this.data = data;
 		this.dynEnumField = CodeGenCreator.convertEntity(dynEnumInfo.getDynamicEnumerationField(), uniqueFieldNamesMapper,
 				entityIdsCollector);
 		this.safeGuard = dynEnumInfo.getSafeGuard() == null ? null
@@ -118,27 +110,12 @@ public class CodeGenDynamicEnumerationBuilder {
 		return dynEnumField;
 	}
 
-	CodeGenData getData() {
-		return data;
-	}
-
 	List<CodeGenDynamicEnumerationValue> getEnumValueOperations() {
 		return enumValues;
-	}
-
-	EntityIdsCollector getRtControllerParamsCreationCodeCollector() {
-		return entityIdsCollector;
 	}
 
 	public CodeGenCondition getSafeGuard() {
 		return safeGuard;
 	}
 
-	public EntityIdsCollector getFilterEntityIdsCollector() {
-		return codeGenParseTreeHelper.getFilterConditionEntityIdsCollector();
-	}
-
-	public List<CodeGenFilterCondition> getFilterConditions() {
-		return codeGenParseTreeHelper.getFilterConditions();
-	}
 }

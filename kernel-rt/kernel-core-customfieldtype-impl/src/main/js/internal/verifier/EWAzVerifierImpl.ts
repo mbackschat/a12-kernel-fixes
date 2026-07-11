@@ -31,28 +31,28 @@
  */
 
 import type {
-	ICustomFieldTypeCheckError,
-	ICustomFieldTypeConversionResult,
-	ICustomFieldTypeValidationParam,
-	ICustomFieldValidator
+    ICustomFieldTypeCheckError,
+    ICustomFieldTypeConversionResult,
+    ICustomFieldTypeValidationParam,
+    ICustomFieldValidator
 } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
-import { customFieldTypeConversionResult } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
+import {customFieldTypeConversionResult} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
-import type { IFadat } from "../../IFadat.js";
+import type {IFadat} from "../../IFadat.js";
 
-import { CustomFieldTypeErrorEnum } from "../error/CustomFieldTypeErrorEnum.js";
-import { CustomFieldTypeErrorKeys } from "../error/CustomFieldTypeErrorKeys.js";
-import { CustomFieldTypeErrorUtil } from "../error/CustomFieldTypeErrorUtil.js";
+import {CustomFieldTypeErrorEnum} from "../error/CustomFieldTypeErrorEnum.js";
+import {CustomFieldTypeErrorKeys} from "../error/CustomFieldTypeErrorKeys.js";
+import {CustomFieldTypeErrorUtil} from "../error/CustomFieldTypeErrorUtil.js";
 
-import { PruefzifferVerfahren } from "../utils/PruefzifferVerfahren.js";
+import {PruefzifferVerfahren} from "../utils/PruefzifferVerfahren.js";
 
-import { CustomFieldTypeValidationParamImpl } from "../CustomFieldTypeValidationParamImpl.js";
-import { EWAzProperties } from "../utils/EWAzProperties.js";
+import {CustomFieldTypeValidationParamImpl} from "../CustomFieldTypeValidationParamImpl.js";
+import {EWAzProperties} from "../utils/EWAzProperties.js";
 
-import { GermanTaxNumberDefiningData } from "../defdatastnr/GermanTaxNumberDefiningData.js";
+import {GermanTaxNumberDefiningData} from "../defdatastnr/GermanTaxNumberDefiningData.js";
 
-import { AbstractFadatRelatedCustomFieldType } from "./AbstractFadatRelatedCustomFieldType.js";
-import { SteuernummerVerifierImpl } from "./SteuernummerVerifierImpl.js";
+import {SteuernummerValidationHelper} from "./SteuernummerValidationHelper.js";
+import {FadatLookupUtil} from "./FadatLookupUtil.js";
 
 /**
  * Checks the Einheitswert-Aktenzeichen.
@@ -87,7 +87,7 @@ import { SteuernummerVerifierImpl } from "./SteuernummerVerifierImpl.js";
  *
  */
 
-export class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType implements ICustomFieldValidator {
+export class EWAzVerifierImpl implements ICustomFieldValidator {
 	// Formale Prüfung: 12- bis 18-stellige Zahl.
 	private static readonly _VALID_EWAZ = /^([0-9]{2})([0-9]{2})([045])[0-9]{8,14}$/;
 	private static readonly _SPLIT_DISPLAY_VALUE_PATTERN = "(.*)(@)([A-Z]{2})";
@@ -127,8 +127,10 @@ export class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType implem
 		EWAzVerifierImpl._LAENDERKUERZEL_NUMMERN.set("TH", 41); // Thüringen
 	})();
 
+	private readonly _fadat: IFadat | undefined;
+
 	public constructor(fadat: IFadat | undefined) {
-		super(fadat);
+		this._fadat = fadat;
 	}
 
 	private static _getLaenderKuerzel(buLaNr: number): string {
@@ -239,7 +241,7 @@ export class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType implem
 		const bundesfinanzamtsnummer = Number(bundeslandnummerStr.concat(matcher[2]));
 		if (
 			!EWAzProperties.getBundesfinanzamtsnummern(bundeslandnummer2st).has(bundesfinanzamtsnummer)
-			&& !this.existsEWAzTestFederalTaxOfficeNumber(bundesfinanzamtsnummer)
+			&& !FadatLookupUtil.existsEWAzTestFederalTaxOfficeNumber(this._fadat, bundesfinanzamtsnummer)
 		) {
 			return CustomFieldTypeErrorEnum.EWAZ_FINANZAMT_FEHLER;
 		}
@@ -251,7 +253,8 @@ export class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType implem
 		const verfahren: PruefzifferVerfahren.Verfahren =
 			EWAzProperties.getVerfahrenDef(buLaNummer);
 		if (verfahren === PruefzifferVerfahren.Verfahren.STNR) {
-			if (new SteuernummerVerifierImpl(this._fadat).istEWAzAlsSteuernummerGueltig(ewaz)) {
+			const stnrHelper = new SteuernummerValidationHelper(SteuernummerValidationHelper.VALID_STNR);
+			if (stnrHelper.checkEWAzAlsSteuernummer(ewaz) !== CustomFieldTypeErrorEnum.KEIN_FEHLER) {
 				return CustomFieldTypeErrorEnum.EWAZ_PRUEFZIFFER_FEHLER;
 			}
 		} else {
@@ -325,7 +328,7 @@ export class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType implem
 		for (let i = 0; i < faktoren.length; i++) {
 			sum += faktoren[i] * Number(ewaz.charAt(i));
 		}
-		return PruefzifferVerfahren.einerstelle(sum) === pruefziffer;
+		return PruefzifferVerfahren.valuesAreEqual(PruefzifferVerfahren.einerstelle(sum), pruefziffer);
 	}
 
 	private _pruefeMitA2Verfahren(ewaz: string, pruefziffer: number, faktoren: number[]): boolean {
@@ -425,7 +428,7 @@ export class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType implem
 			finanzamtNr,
 			finanzamtNrAnzStellen
 		);
-		const bundeslandNrStr: string = bundeslandNr.toString()
+		const bundeslandNrStr: string = bundeslandNr.toString();
 		if (!bufaNr.startsWith(bundeslandNrStr)) {
 			return customFieldTypeConversionResult(
 				ewAzDisplayValueWithLaenderkuerzel,

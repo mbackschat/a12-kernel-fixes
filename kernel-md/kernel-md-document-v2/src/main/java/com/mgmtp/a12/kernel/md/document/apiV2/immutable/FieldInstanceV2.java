@@ -35,15 +35,12 @@ package com.mgmtp.a12.kernel.md.document.apiV2.immutable;
 import com.mgmtp.a12.kernel.md.document.internal.service.implV2.immutable.ImmutableFieldInstanceV2Impl;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 import com.mgmtp.a12.utils.conversion.InstantRange;
-import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion;
 
 @OnlyForUsage
 public interface FieldInstanceV2 {
 	/**
-	 * @return the value of the field instance or null if the field instance has no value.<br/>
-	 * 		<b>NOTE</b> in contrast to {@code IFieldInstance#getValue()}, this method does <em>not</em> return an optional.
-	 * 		<b>NOTE</b> in contrast to {@code IFieldInstance#getValue()}, dates are represented by {@link java.time.Instant} and date
-	 * 		ranges are represented by {@link InstantRange}.
+	 * @return the value of the field instance or {@code null} if the field instance has no value.
+	 * 		Dates are represented by {@link java.time.Instant} and date ranges are represented by {@link InstantRange}.
 	 */
 	Object value();
 
@@ -70,37 +67,5 @@ public interface FieldInstanceV2 {
 	 */
 	static FieldInstanceV2 ofValue(Object value) {
 		return ImmutableFieldInstanceV2Impl.ofValueInternal(value);
-	}
-
-	/**
-	 * @param v1Value
-	 * 		the value of a document v1 field value type (e.g. Dates instead of Instant, Date[] instead of Instant pairs),
-	 * 		as it is returned by {@code IFieldInstance#getValue().orElse(null)}
-	 * @deprecated IDocument (V1) and the associated BasicTypeV1 are deprecated. With a corresponding V2 value,
-	 *        {@link #ofValue(Object)} can be used instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	static FieldInstanceV2 ofV1Value(Object v1Value) {
-		return ImmutableFieldInstanceV2Impl.ofV1ValueInternal(v1Value);
-	}
-
-	/**
-	 * @deprecated this method is no longer needed, because IDocument (V1) and the associated BasicTypeV1 are deprecated.
-	 */
-	@Deprecated(since = "30.0.0")
-	default Object toV1Value() {
-		return BasicTypeV1V2Conversion.basicTypeV2ToV1(this.value());
-	}
-
-	/**
-	 * @param v1Value
-	 * 		the value of a document v1 field value type (e.g. Dates instead of Instant, Date[] instead of Instant pairs),
-	 * 		as it is returned by {@code IFieldInstance#getValue().orElse(null)}
-	 * @deprecated IDocument (V1) and the associated BasicTypeV1 are deprecated. With a corresponding V2 value,
-	 *        {@link #withValue(Object)} can be used instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	default FieldInstanceV2 withV1Value(Object v1Value) {
-		return this.withValue(BasicTypeV1V2Conversion.basicTypeV1ToV2(v1Value));
 	}
 }

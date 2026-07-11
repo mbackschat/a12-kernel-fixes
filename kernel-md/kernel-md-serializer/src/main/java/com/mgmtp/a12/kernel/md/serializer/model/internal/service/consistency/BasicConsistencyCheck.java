@@ -42,7 +42,6 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.core.utils.internal.consistency.DocumentModelConsistencyProblem;
 import com.mgmtp.a12.kernel.core.utils.internal.consistency.DocumentModelConsistencyProblemReporter;
 import com.mgmtp.a12.kernel.md.model.api.IComputation;
@@ -51,7 +50,6 @@ import com.mgmtp.a12.kernel.md.model.api.IElement;
 import com.mgmtp.a12.kernel.md.model.api.IField;
 import com.mgmtp.a12.kernel.md.model.api.IFieldTypeDefinition;
 import com.mgmtp.a12.kernel.md.model.api.IGroup;
-import com.mgmtp.a12.kernel.md.model.api.IIdNamed;
 import com.mgmtp.a12.kernel.md.model.api.ILocalizedTextMap;
 import com.mgmtp.a12.kernel.md.model.api.IRule;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IEnumerationType;
@@ -66,6 +64,8 @@ import com.mgmtp.a12.kernel.md.model.internal.service.utils.LocalizedTextMapVisi
 import com.mgmtp.a12.model.consistency.Problem;
 import com.mgmtp.a12.model.notification.Severity;
 
+import lombok.NonNull;
+
 public class BasicConsistencyCheck extends DocumentModelVisitor {
 	private final DocumentModelConsistencyProblemReporter problemReporter;
 	private final String modelId;
@@ -77,58 +77,61 @@ public class BasicConsistencyCheck extends DocumentModelVisitor {
 
 	public static List<Problem> checkModel(IDocumentModel model) {
 		List<DocumentModelConsistencyProblem> problems = new ArrayList<>();
-		checkModelInternal(model, problems::add);
+		checkModel(model, problems::add);
 		return new ArrayList<>(problems);
 	}
 
-	public static void checkModel(IDocumentModel model, IProblemReporter pr) {
-		checkModelInternal(model, DocumentModelConsistencyProblemReporter.fromIProblemReporter(pr));
-	}
-
-	private static void checkModelInternal(IDocumentModel model, DocumentModelConsistencyProblemReporter pr) {
+	public static void checkModel(IDocumentModel model, DocumentModelConsistencyProblemReporter pr) {
 		BasicConsistencyCheck visitor = new BasicConsistencyCheck(model.getHeader().getId(), pr);
 		new DocumentModelWalker().acceptDocumentModel(model, visitor);
 		LocalizedTextMapVisitor.visitLocalizedTextMaps(model, visitor::checkLocalizedTextMap);
+		checkDocumentUniquenessCriteria(model, pr);
 	}
 
 	public static void checkFieldTypeDefinitions(IDocumentModel model, Collection<IFieldTypeDefinition> fieldTypeDefinitions,
-			IProblemReporter pr) {
-		BasicConsistencyCheck visitor = new BasicConsistencyCheck(model.getHeader().getId(),
-				DocumentModelConsistencyProblemReporter.fromIProblemReporter(pr));
+			DocumentModelConsistencyProblemReporter pr) {
+		BasicConsistencyCheck visitor = new BasicConsistencyCheck(model.getHeader().getId(), pr);
 		fieldTypeDefinitions.forEach(visitor::visitFieldTypeDefinition);
 	}
 
-	public static void checkElements(IDocumentModel model, Collection<IElement> elements, IProblemReporter pr) {
-		BasicConsistencyCheck visitor = new BasicConsistencyCheck(model.getHeader().getId(),
-				DocumentModelConsistencyProblemReporter.fromIProblemReporter(pr));
+	public static void checkElements(IDocumentModel model, Collection<IElement> elements,
+			DocumentModelConsistencyProblemReporter pr) {
+		BasicConsistencyCheck visitor = new BasicConsistencyCheck(model.getHeader().getId(), pr);
 		new DocumentModelWalker().acceptElements(elements, visitor);
 	}
 
-	private void checkLocalizedTextMap(ILocalizedTextMap text, Object origin, String property) {
-		text.forEach((l, t) -> {
-			if (t == null) {
-				addLocalizedTextError(origin, property, l);
+	private static void checkDocumentUniquenessCriteria(IDocumentModel model, DocumentModelConsistencyProblemReporter pr) {
+		model.getContent().getDocumentUniquenessCriteria().forEach(criterion -> {
+			criterion.getErrorMessage().forEach((locale, text) -> {
+				if (text == null) {
+					pr.reportProblem(
+							new DocumentModelConsistencyProblem(model.getHeader().getId(), model,
+									BasicDocumentModelConsistencyCategory.LOCALIZED_TEXT_UNIQUENESS_CRITERION_NULL_PROBLEM,
+									Severity.ERROR, criterion.getName(), locale.toString()));
+				}
+			});
+		});
+	}
+
+	private void checkLocalizedTextMap(ILocalizedTextMap localizedTextMap, Object origin, String property) {
+		localizedTextMap.forEach((locale, text) -> {
+			if (text == null) {
+				addLocalizedTextError(origin, property, locale);
 			}
 		});
 	}
 
-	private void addLocalizedTextError(Object source, String property, Locale locale) {
-		String id;
-		BasicDocumentModelConsistencyCategory category;
-		if (source instanceof IElement) {
-			category = BasicDocumentModelConsistencyCategory.LOCALIZED_TEXT_ELEMENT_NULL_PROBLEM;
-			id = ((IIdNamed) source).getId();
-			problemReporter.reportProblem(
-					new DocumentModelConsistencyProblem(modelId, source, category, Severity.ERROR, id, property,
-							locale.toString()));
-		} else if (source instanceof IFieldTypeDefinition) {
-			category = BasicDocumentModelConsistencyCategory.LOCALIZED_TEXT_TYPEDEF_NULL_PROBLEM;
-			id = ((IIdNamed) source).getId();
-			problemReporter.reportProblem(
-					new DocumentModelConsistencyProblem(modelId, source, category, Severity.ERROR, id, property,
-							locale.toString()));
-		} else {
-			throw new IllegalArgumentException("Unknown source for localized text: " + source.getClass().getName());
+	private void addLocalizedTextError(@NonNull Object source, String property, @NonNull Locale locale) {
+		switch (source) {
+			case IElement element -> problemReporter.reportProblem(
+					new DocumentModelConsistencyProblem(modelId, source,
+							BasicDocumentModelConsistencyCategory.LOCALIZED_TEXT_ELEMENT_NULL_PROBLEM, Severity.ERROR,
+							element.getId(), property, locale.toString()));
+			case IFieldTypeDefinition typedef -> problemReporter.reportProblem(
+					new DocumentModelConsistencyProblem(modelId, source,
+							BasicDocumentModelConsistencyCategory.LOCALIZED_TEXT_TYPEDEF_NULL_PROBLEM, Severity.ERROR,
+							typedef.getId(), property, locale.toString()));
+			default -> throw new IllegalArgumentException("Unknown source for localized text: " + source.getClass().getName());
 		}
 	}
 
@@ -165,11 +168,11 @@ public class BasicConsistencyCheck extends DocumentModelVisitor {
 
 	@Override
 	public VisitProcess visitField(IField field) {
-		if (field.getFieldType() instanceof IEnumerationType) {
-			checkEnumerationType((IEnumerationType) field.getFieldType(), field);
+		if (field.getFieldType() instanceof IEnumerationType enumerationType) {
+			checkEnumerationType(enumerationType, field);
 		}
-		if (field.getFieldType() instanceof ITypeDefType) {
-			checkTypeDefType((ITypeDefType) field.getFieldType(), field);
+		if (field.getFieldType() instanceof ITypeDefType typeDefType) {
+			checkTypeDefType(typeDefType, field);
 		}
 		return VisitProcess.CONTINUE_TRAVERSAL;
 	}

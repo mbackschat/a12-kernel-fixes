@@ -46,7 +46,6 @@ public class LexerTerminals_de extends ListResourceBundle {
 			{ "LfdNr", BaseErrorTextParameterLexer.ROOT_GROUP_INDEX },
 			{ "RegelKontext", BaseErrorTextParameterLexer.RULE_GROUP },
 			{ "Usb", BaseErrorTextParameterLexer.USB },
-			{ "Vordruckname", BaseErrorTextParameterLexer.VORDRUCKNAME },
 			{ "Vordruckzeile", BaseErrorTextParameterLexer.VORDRUCKZEILE },
 			{ "Referenzjahr", BaseErrorTextParameterLexer.REFERENZJAHR },
 			{ "Wert", BaseErrorTextParameterLexer.VALUE },

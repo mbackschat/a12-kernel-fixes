@@ -40,21 +40,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.IDocumentModelMigratorResult;
 import com.mgmtp.a12.kernel.md.model.migration.internal.DocumentModelMigratorImpl;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationResultType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.json.DocumentModelMigratorResultImpl;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
-import com.mgmtp.a12.model.migration.MigrationResult;
-import com.mgmtp.a12.model.migration.MigrationTool;
+
+import tools.jackson.databind.JsonNode;
 
 /**
  * This service offers migration of document models.
  */
 @OnlyForUsage
-public class DocumentModelMigrator implements MigrationTool {
+public class DocumentModelMigrator {
 
 	private final Map<String, String> customTypeDefUuidsByUniqueId;
 
@@ -86,7 +85,6 @@ public class DocumentModelMigrator implements MigrationTool {
 	 * @return a collection with the migration results, see also {@link MigrationResult}. Is never {@code null} or empty. The order
 	 * 		of results may not match the order of the given {@code models}.
 	 */
-	@Override
 	public List<MigrationResult> migrate(List<String> models) {
 		FailableDocModelsById loadedDMs = DocumentModelMigratorImpl.createDocModelsById(models);
 
@@ -100,8 +98,8 @@ public class DocumentModelMigrator implements MigrationTool {
 		LinkedHashMap<String, JsonNode> modelJsonsById = loadedDMs.docModelsById();
 		Map<String, String> modelsById = getModelsById(models, modelJsonsById.keySet());
 
-		DocumentModelMigratorImpl internalMigrator = new DocumentModelMigratorImpl(new MigrationCache(customTypeDefUuidsByUniqueId),
-				null);
+		DocumentModelMigratorImpl internalMigrator = DocumentModelMigratorImpl.createForwardMigrator(
+				new MigrationCache(customTypeDefUuidsByUniqueId), null);
 		List<MigrationResult> results = new ArrayList<>();
 		for (IDocumentModelMigratorResult result : internalMigrator.migrate(modelJsonsById, null)) {
 			DocumentModelMigratorResultImpl internalResult = (DocumentModelMigratorResultImpl) result;

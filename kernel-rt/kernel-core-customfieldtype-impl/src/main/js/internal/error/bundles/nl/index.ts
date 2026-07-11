@@ -98,10 +98,7 @@ set(
 	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IBAN_LEERZEICHEN_UNGUELTIG],
 	"Ongeldige IBAN."
 );
-set(
-	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST],
-	"Veld is een testidentificatienummer dat alleen geldig is voor testen."
-);
+set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST], "Ongeldig identificatienummer.");
 set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_NICHT_NUMERISCH], "Ongeldig identificatienummer.");
 set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_ZIFFERNFOLGE_FEHLER], "Ongeldig identificatienummer.");
 set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_LAENGE_UNGUELTIG], "Ongeldig identificatienummer.");

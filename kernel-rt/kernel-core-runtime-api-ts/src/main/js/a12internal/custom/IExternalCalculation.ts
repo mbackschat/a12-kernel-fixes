@@ -34,7 +34,7 @@ import type { SupportedType } from "@com.mgmtp.a12.utils/utils-localization";
 
 import type { IIdentifier } from "../validation/IIdentifier.js";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ICalculator } from "../validation/ICalculator.js";
+import type { ICalculator } from "../validation/ICalculator.js";
 
 // The API specified here mirrors the API in @kernel-md-facade/compute.ts
 // Please check if changes made here need to be applied there as well.
@@ -55,7 +55,7 @@ export interface IExternalCalculation {
 
 	/**
 	 * Specifies the output field of the {@link IExternalCalculation}.
-	 * 
+	 *
 	 * The field must not be the output of another calculation or {@link IExternalCalculation}.
 	 *
 	 * For example for dependent fields in Form Models, this would be the dependent field itself.
@@ -64,7 +64,7 @@ export interface IExternalCalculation {
 
 	/**
 	 * A callback that computes changes to be applied to instances of the output field.
-	 * 
+	 *
 	 * The callback will be invoked exactly once per invocation of {@link ICalculator#calculateAll}
 	 * (assuming no fatal errors occurred), i.e. it must properly handle repeatable fields.
 	 *
@@ -77,7 +77,7 @@ export interface IExternalCalculation {
 export namespace IExternalCalculation {
 	/**
 	 * The parameter *operands* contains an {@link Operand} for every input field, in the order they were specified in {@link IExternalCalculation.inputs}.
-	 * 
+	 *
 	 * The return value may specify an arbitrary number of {@link Result}s, meaning that changes to the output field are optional.
 	 * For all {@link Result}s, {@link Result.field} must be an instance of {@link IExternalCalculation.output}.
 	 * If multiple {@link Result}s target the same field instance, the field instance's value will be determined by the first {@link Result} targeting it.
@@ -88,7 +88,7 @@ export namespace IExternalCalculation {
 	 * Provides access to all instances of {@link Operand.field} that:
 	 *  - exist in the Document at the time {@link IExternalCalculation#execute} is invoked, or
 	 *  - were filled in the Document passed to {@link ICalculator#calculateAll}.
-	 * 
+	 *
 	 * <b>Note:</b> A repeatable field instance *exists* if its innermost repeatable group is filled, even if the field instance itself is not *filled*.
 	 */
 	export interface Operand {
@@ -125,19 +125,19 @@ export namespace IExternalCalculation {
 
 		/**
 		 * The existing field instance(s) which *value* should be applied to.
-		 * 
+		 *
 		 * Allows the specification of indices as {@link IIdentifier.ALL_INDICES}. The set of field instances to change will then consist
 		 * of all *existing* field instances of the target field that match the other (explicitly set) indices.
-		 * 
+		 *
 		 * If *field* does not match any existing instance (even if no wildcards are used), no changes will be made, and no error will be thrown.
-		 * 
+		 *
 		 * <b>Note:</b> A repeatable field instance *exists* if its innermost repeatable group is filled, even if the field instance itself is not *filled*.
 		 */
 		readonly field: IIdentifier;
 
 		/**
 		 * The value to be applied to the field instance(s) described by *field*.
-		 * 
+		 *
 		 * For the provided values it is assumed that they:
 		 * - have normalized linebreaks (`\n` instead of `\r\n`)
 		 * - do not start with a blank (" ")

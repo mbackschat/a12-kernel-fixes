@@ -278,11 +278,6 @@ export interface IMetaField extends IMetaEntity {
      * @param customFieldTypeFactory
      *            required for the conversion of custom field types if required by `dataFormats` (either
      *            via {@link DataFormats.convertCustomFieldTypesAll} or {@link DataFormats.convertCustomFieldTypesList})
-     * @param nonLenient
-     *            If `true`, incorrectly placed thousands separators will cause validation errors and no conversion takes place.
-     *            Otherwise, the conversion will be lenient, so that incorrectly placed thousands separators will be ignored
-     *            and the conversion takes places.
-     *            Note: This parameter only affects the conversion of number fields.
      * @param result
      *            will contain error messages, if they occur.
      *
@@ -317,7 +312,6 @@ export interface IMetaField extends IMetaEntity {
         dataFormats: DataFormats | null,
         result: IResult,
         customFieldTypeFactory?: ICustomFieldTypeFactory,
-        nonLenient?: boolean,
     ): SupportedType;
 
     /**

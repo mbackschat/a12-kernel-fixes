@@ -98,7 +98,7 @@ export class MetaModelImpl
 		IFormatDefinition
 	>();
 
-	private _globalFields: Set<RtExternalIdentifier> = new HashSet<RtExternalIdentifier>();
+	private _globalFields: Set<RtExternalIdentifier> = new HashSet<RtExternalIdentifier>() as any;
 
 	private _berechneteFelderServer: HashSet<IMetaField> = new HashSet<IMetaField>();
 	private _dynamicEnumerationFields: HashSet<IMetaField> = new HashSet<IMetaField>();
@@ -582,7 +582,7 @@ export class MetaModelImpl
 				return undefined;
 			}
 			return MetaModelImpl.transformToIdsWithFullName(
-				this._getPflichtFelderInternal(aIntern),
+				this._getPflichtFelderInternal(aIntern) as any,
 				this._metaDataValidierung
 			);
 		} catch (_error) {

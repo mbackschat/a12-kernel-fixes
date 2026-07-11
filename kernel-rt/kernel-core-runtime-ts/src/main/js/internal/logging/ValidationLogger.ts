@@ -30,7 +30,6 @@
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
 import type { Logger } from "@com.mgmtp.a12.utils/utils-logging";
-import { LogLevel } from "@com.mgmtp.a12.utils/utils-logging";
 
 import { Settings } from "@com.mgmtp.a12.utils/utils-logging";
 
@@ -57,8 +56,8 @@ export class ValidationLogger {
 	constructor(logger: Logger) {
 		this._logger = logger;
 		try {
-			this._traceEnabled = Settings.isActive(LogLevel.TRACE);
-			this._debugEnabled = Settings.isActive(LogLevel.LOG);
+			this._traceEnabled = Settings.isActive("trace");
+			this._debugEnabled = Settings.isActive("log");
 		} catch (_e) {
 			this._traceEnabled = false;
 			this._debugEnabled = false;

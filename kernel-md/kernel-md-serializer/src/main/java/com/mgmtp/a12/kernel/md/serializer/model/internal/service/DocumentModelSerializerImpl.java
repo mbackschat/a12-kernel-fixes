@@ -35,22 +35,20 @@ package com.mgmtp.a12.kernel.md.serializer.model.internal.service;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mgmtp.a12.kernel.core.base.utils.internal.Consumer2ProblemReporter;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblem;
-import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelSerializer;
 import com.mgmtp.a12.kernel.md.model.internal.wrapper.DocumentModelWrapper;
 import com.mgmtp.a12.kernel.md.serializer.model.a12internal.services.DocumentModelSerializer;
 import com.mgmtp.a12.kernel.md.serializer.model.internal.service.consistency.BasicConsistencyCheck;
-import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.JsonMapper;
+import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.KernelJsonMapper;
 import com.mgmtp.a12.model.notification.RankedNotification;
+import com.mgmtp.a12.model.notification.Severity;
 
 import lombok.NonNull;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * This service offers (de)serialization of a {@link IDocumentModel}.
@@ -61,43 +59,42 @@ public class DocumentModelSerializerImpl implements IDocumentModelSerializer {
 	 * See
 	 * {@link IDocumentModelSerializer#deserialize(Reader)}.
 	 */
-	public IDocumentModel deserialize(@NonNull Reader reader) throws IOException {
-		Objects.requireNonNull(reader);
-
+	public @NonNull IDocumentModel deserialize(@NonNull Reader reader) throws IOException {
 		return new DocumentModelWrapper(new DocumentModelSerializer().deserialize(reader));
 	}
 
 	/**
 	 * See {@link IDocumentModelSerializer#serialize(IDocumentModel, Writer, Consumer)}.
 	 */
-	@Override public void serialize(@NonNull IDocumentModel documentModel, @NonNull Writer writer,
-			@NonNull Consumer<RankedNotification> notificationReceiver)
-			throws IOException {
-		Objects.requireNonNull(documentModel);
-		DocumentModel intDocumentModel = ExternalDocumentModelSerializerService.getInternDocumentModel(documentModel);
-		serializeInternal(intDocumentModel, writer, notificationReceiver, true);
+	@Override public void serialize(
+			@NonNull IDocumentModel documentModel,
+			@NonNull Writer writer,
+			@NonNull Consumer<RankedNotification> notificationReceiver
+	) throws IOException {
+		serializeInternal(documentModel, writer, notificationReceiver, true);
 	}
 
-	public void serializeInternal(
-			DocumentModel documentModel,
-			Writer writer,
-			Consumer<? super IProblem> notificationReceiver,
+	public static void serializeInternal(
+			@NonNull IDocumentModel documentModel,
+			@NonNull Writer writer,
+			@NonNull Consumer<RankedNotification> notificationReceiver,
 			boolean abortOnErrors
-	) throws IOException {
-		Objects.requireNonNull(documentModel);
-		Objects.requireNonNull(notificationReceiver);
-		Objects.requireNonNull(writer);
-
-		Consumer2ProblemReporter errorRecordingReceiver = new Consumer2ProblemReporter(notificationReceiver);
-		BasicConsistencyCheck.checkModel(new DocumentModelWrapper(documentModel), errorRecordingReceiver);
-		if (abortOnErrors && errorRecordingReceiver.hasErrorOccurred()) {
+	) {
+		AtomicBoolean hasErrorOccurred = new AtomicBoolean(false);
+		BasicConsistencyCheck.checkModel(documentModel, problem -> {
+			if (problem.getSeverity().isAtLeastAsSevereAs(Severity.ERROR)) {
+				hasErrorOccurred.set(true);
+			}
+			notificationReceiver.accept(problem);
+		});
+		if (abortOnErrors && hasErrorOccurred.get()) {
 			return;
 		}
 
-		getMapper().writeValue(writer, documentModel);
+		getMapper().writeValue(writer, ExternalDocumentModelSerializerService.getInternDocumentModel(documentModel));
 	}
 
 	public static ObjectMapper getMapper() {
-		return JsonMapper.getMapper();
+		return KernelJsonMapper.getMapper();
 	}
 }

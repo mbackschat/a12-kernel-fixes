@@ -48,6 +48,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IFieldIdOpe
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IFieldIdOperationWithParameters;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.INumberOfRootGroupsOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.INumberOfUsbOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.EntityListConditionName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.RootGroupConditionName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.ast.ASTVisitor;
@@ -289,6 +290,10 @@ public class CodeGenHelper {
 				return false;
 			}
 
+			@Override public boolean visit(ISetOpOperation p) {
+				auslassungsFehlerSetzen();
+				return false;
+			}
 		}
 
 		b.traverse(new Visitor());

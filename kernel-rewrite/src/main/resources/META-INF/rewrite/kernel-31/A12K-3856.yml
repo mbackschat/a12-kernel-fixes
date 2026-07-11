@@ -1,0 +1,13 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.31.A12K-3856
+displayName: Migration for A12K-3856
+description: Migration for A12K-3856.
+recipeList:
+  # Rename IDocumentModelMigrator#getOldestSupportedSourceVersion
+#  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+#        methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.migration.IDocumentModelMigrator getOldestSupportedSourceVersion()'
+#        comment: 'Use the `getFirstSupportedSourceVersion()`  instead.'
+  - org.openrewrite.java.ChangeMethodName:
+              methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.migration.IDocumentModelMigrator getOldestSupportedSourceVersion()'
+              newMethodName: 'getFirstSupportedSourceVersion'

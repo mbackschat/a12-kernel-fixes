@@ -31,9 +31,5 @@
  */
 export enum ValidType {
 	Valid,
-	Invalid,
-	/**
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Not needed anymore, when IdNrVerifier is created properly.
-	 */
-	Test
+	Invalid
 }

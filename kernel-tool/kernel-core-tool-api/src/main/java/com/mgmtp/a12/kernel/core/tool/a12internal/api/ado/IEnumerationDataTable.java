@@ -36,21 +36,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.mgmtp.a12.kernel.core.tool.internal.EnumerationDataTable;
+import com.mgmtp.a12.model.utils.OnlyForUsage;
+
+import lombok.NonNull;
+
 /**
  * This class is used to access CSV-Data. The getters should not be used outside kernel.
- * You should not implement this interface, but use the class Table in kernel-core-facade project.
  */
+@OnlyForUsage
 public interface IEnumerationDataTable {
+
+	static @NonNull IEnumerationDataTable of(@NonNull String name, byte[] csvBytes) {
+		return new EnumerationDataTable(name, csvBytes);
+	}
 
 	/**
 	 * @return a map from column name to the list of values for this column for the table.
 	 */
-	public Map<String, List<String>> getColumns();
+	Map<String, List<String>> getColumns();
 
 	/**
 	 * @return the string representation of the table as a UTF-8 encoded byte array.
 	 */
-	public byte[] getBytes();
+	byte[] getBytes();
 
 	/**
 	 * @param columnName
@@ -58,7 +67,7 @@ public interface IEnumerationDataTable {
 	 * @return <code>true</code> if there is a display column for the given enumeration column,
 	 * 		<code>false</code> otherwise.
 	 */
-	public boolean hasDisplayColumn(String columnName);
+	boolean hasDisplayColumn(String columnName);
 
 	/**
 	 * @param enumColumnName
@@ -68,12 +77,12 @@ public interface IEnumerationDataTable {
 	 * @return the distinct values of the column corresponding to the specified category in the
 	 * 		table.
 	 */
-	public Set<String> getDistinctCategoryValues(String enumColumnName, String category);
+	Set<String> getDistinctCategoryValues(String enumColumnName, String category);
 
 	/**
 	 * @param columnName
 	 * 		the column name to return the distinct values for.
 	 * @return the distinct values of the given column in the table.
 	 */
-	public Set<String> getDistinctValues(String columnName);
+	Set<String> getDistinctValues(String columnName);
 }

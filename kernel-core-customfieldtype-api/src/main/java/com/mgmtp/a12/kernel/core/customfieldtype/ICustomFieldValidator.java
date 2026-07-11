@@ -31,9 +31,7 @@
  */
 package com.mgmtp.a12.kernel.core.customfieldtype;
 
-import java.util.Collections;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 
 import lombok.NonNull;
@@ -47,8 +45,7 @@ import lombok.NonNull;
  * for the validation of values of a document. Further validations should be implemented at the appropriate extension point
  * (e.g. in Data Services).
  */
-@SuppressWarnings("removal")
-public interface ICustomFieldValidator extends ICustomFieldType {
+public interface ICustomFieldValidator {
 
 	/**
 	 * Validates the value and returns a result with all the information required to create an
@@ -108,7 +105,7 @@ public interface ICustomFieldValidator extends ICustomFieldType {
 	 */
 	default @NonNull ICustomFieldTypeConversionResult convertDisplay2Internal(@NonNull String displayValue) {
 		// this custom field type has no differing display format
-		return convertDisplay2Internal(displayValue, Collections.emptyMap());
+		return noConversionNeededResult(displayValue);
 	}
 
 	/**
@@ -134,66 +131,6 @@ public interface ICustomFieldValidator extends ICustomFieldType {
 	 * 		Never returns {@code null}.
 	 */
 	default @NonNull ICustomFieldTypeConversionResult convertInternal2Display(@NonNull String internalValue) {
-		// this custom field type has no differing display format
-		return convertInternal2Display(internalValue, Collections.emptyMap());
-	}
-
-	/**
-	 * Validates the value and returns a result with all the information required to create an
-	 * error.
-	 *
-	 * @param value
-	 * 		the value to be validated.
-	 * @param valParam
-	 * 		Wrapper for further parameters, such as {@link Locale}.
-	 * 		Please note that the implementation of this method should not use the values given
-	 * 		by {@link ICustomFieldTypeValidationParam#getMinLength()} and
-	 *        {@link ICustomFieldTypeValidationParam#getMaxLength()} for custom field types with
-	 * 		constant min. and max. length. For details see the javadoc of those methods.
-	 * @param isDisplayValue
-	 * 		The user of the validation/computation API can use the class
-	 * 		'PresentationInformation' to specify if conversion should be executed for certain
-	 * 		custom field types (see key 'CONVERT_CUSTOM_FIELD_TYPES_ALL' or
-	 * 		'CONVERT_CUSTOM_FIELD_TYPES_LIST' in javadoc of 'PresentationInformation'). This
-	 * 		should be set if differing formats of internal and
-	 * 		display value exist in this application (e.g. it is possible, that you just
-	 * 		have differing values on client-side, but on server-side you just have internal
-	 * 		values). If nothing is specified in 'PresentationInformation' for this custom
-	 * 		field type, this parameter will be {@code false}.<br>
-	 * 		If {@code true} the parameter {@code value} has to be converted from display
-	 * 		format to internal format by using {@link #convertDisplay2Internal(String, Map)}
-	 * 		before the actual validation can be performed.
-	 * @param configData
-	 * 		The user of the validation/computation API can provide this 'configData' in
-	 * 		com.mgmtp.a12.kernel.core.rt.a12internal.ValidationMode#setAdditionalInformation(String key, Object value).
-	 * 		In some projects this is necessary to configure the behaviour at runtime of the application.
-	 * @return If an error occurred an instance of {@link ICustomFieldTypeCheckError} describing the
-	 * 		error, otherwise empty.
-	 *
-	 * @deprecated implement {@link ICustomFieldValidator#validate(String, ICustomFieldTypeValidationParam, boolean)} instead.
-	 * 		Will be removed with A12K-3589.
-	 */
-	@Override
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	default @NonNull Optional<ICustomFieldTypeCheckError> validate(
-			@NonNull String value,
-			@NonNull ICustomFieldTypeValidationParam valParam,
-			boolean isDisplayValue,
-			@NonNull Map<String, Object> configData
-	) {
-		return validate(value, valParam, isDisplayValue);
-	}
-
-	@Override
-	default @NonNull ICustomFieldTypeConversionResult convertDisplay2Internal(@NonNull String displayValue,
-			@NonNull Map<String, Object> configData) {
-		// this custom field type has no differing display format
-		return noConversionNeededResult(displayValue);
-	}
-
-	@Override
-	default @NonNull ICustomFieldTypeConversionResult convertInternal2Display(@NonNull String internalValue,
-			@NonNull Map<String, Object> configData) {
 		// this custom field type has no differing display format
 		return noConversionNeededResult(internalValue);
 	}

@@ -38,9 +38,11 @@ import java.util.Date;
 import com.mgmtp.a12.utils.conversion.InstantRange;
 
 /**
- * functionality for converting between field values of basic type V1 (as used in IDocument) and V2 (as used in DocumentV2)
+ * Functionality for converting between field values of basic type V1 (e.g. {@link Date} for dates,
+ * {@code Date[]} for date ranges) and V2 (e.g. {@link Instant} for dates, {@link InstantRange} for date ranges).
+ * V1 types are used by the core-runtime layer ({@code IMetaField}); V2 types are used by {@code DocumentV2}.
  *
- * @deprecated Use methods that expect {@code DocumentV2} instead of {@code IDocument}.
+ * @deprecated Use methods that expect {@code DocumentV2} instead of V1 types where possible. This class will be removed with A12K-3948.
  */
 @Deprecated(since = "30.0.0")
 public class BasicTypeV1V2Conversion {

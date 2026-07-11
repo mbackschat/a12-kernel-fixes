@@ -6,10 +6,11 @@ plugins {
 description = "external interface for accessing functions commonly used by tools"
 
 dependencies {
-    api project(':kernel-core-parsetree-api')
+    api project(':kernel-internal-base-utils')
+    api project(':kernel-internal-core-parsetree-api')
     api libs.baseModelApi
     api libs.baseModelConsistency
-
+    
     compileOnly libs.baseModelUtils // Only annotations
 
     implementation libs.commonsLang3

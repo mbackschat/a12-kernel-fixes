@@ -32,36 +32,34 @@
 
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
+import static com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils.MAPPER;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
-import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
+import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
-public class ChangeAnnotationStructureStep extends BaseJsonNodeMigrationStep {
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeType;
+import tools.jackson.databind.node.ObjectNode;
 
-	public ChangeAnnotationStructureStep(MigrationCache cache,
-			MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+public final class ChangeAnnotationStructureStep {
+
+	private ChangeAnnotationStructureStep() {
 	}
 
-	@Override public void execute(JsonNode model, MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		JsonNode typeDefsNode = model.findValue(ModelJsonUtil.TYPE_DEFS);
 		if (typeDefsNode != null) {
 			if (!typeDefsNode.isArray()) {
-				throwContentNotSupportedException("The 'typeDefinitions' node is not an array.");
+				throw MigrationUtils.contentNotSupportedException("The 'typeDefinitions' node is not an array.");
 			}
 			migrateAnnotationsInArrayNode(typeDefsNode);
 		}
@@ -69,7 +67,7 @@ public class ChangeAnnotationStructureStep extends BaseJsonNodeMigrationStep {
 		JsonNode rootGroupsNode = model.findValue(ModelJsonUtil.ROOT_GROUPS);
 		if (rootGroupsNode != null) {
 			if (!rootGroupsNode.isArray()) {
-				throwContentNotSupportedException("The 'rootGroups' node is not an array.");
+				throw MigrationUtils.contentNotSupportedException("The 'rootGroups' node is not an array.");
 			}
 			migrateAnnotationsInArrayNode(rootGroupsNode);
 		}
@@ -86,10 +84,10 @@ public class ChangeAnnotationStructureStep extends BaseJsonNodeMigrationStep {
 	/**
 	 * only for groups since they are the only elements which have elements
 	 */
-	private void migrateAnnotationsInElementsNodes(List<JsonNode> elementsNodes) {
+	private static void migrateAnnotationsInElementsNodes(List<JsonNode> elementsNodes) {
 		for (JsonNode elementsNode : elementsNodes) {
 			if (!elementsNode.isArray()) {
-				throwContentNotSupportedException(
+				throw MigrationUtils.contentNotSupportedException(
 						"The document model contains at least one group whose 'elements' node is not an array.");
 			}
 			migrateAnnotationsInArrayNode(elementsNode);
@@ -99,15 +97,15 @@ public class ChangeAnnotationStructureStep extends BaseJsonNodeMigrationStep {
 	/**
 	 * for an array whose items might contain the 'annotations' node
 	 */
-	private void migrateAnnotationsInArrayNode(JsonNode arrayNode) {
-		Iterator<JsonNode> nodes = arrayNode.elements();
+	private static void migrateAnnotationsInArrayNode(JsonNode arrayNode) {
+		Iterator<JsonNode> nodes = arrayNode.iterator();
 		while (nodes.hasNext()) {
 			JsonNode node = nodes.next();
 			migrateAnnotations(node);
 		}
 	}
 
-	private void migrateAnnotations(JsonNode jsonNode) {
+	private static void migrateAnnotations(JsonNode jsonNode) {
 		JsonNode annotationsNode = jsonNode.path(ModelJsonUtil.ANNOTATIONS);
 		if (annotationsNode.isMissingNode() // no annotations
 				|| annotationsNode.isArray() // this node is already in the form we want
@@ -118,21 +116,20 @@ public class ChangeAnnotationStructureStep extends BaseJsonNodeMigrationStep {
 		((ObjectNode) jsonNode).replace(ModelJsonUtil.ANNOTATIONS, newAnnotations);
 	}
 
-	private ArrayNode createNewAnnotations(JsonNode annotationsNode) {
+	private static ArrayNode createNewAnnotations(JsonNode annotationsNode) {
 		Iterator<Entry<String, JsonNode>> iterator = annotationsNode.properties().iterator();
 		ArrayNode newAnnotations = MAPPER.createArrayNode();
 		while (iterator.hasNext()) {
 			Entry<String, JsonNode> annotation = iterator.next();
 			if (annotation.getValue().getNodeType() != JsonNodeType.NULL
-					&& !annotation.getValue().isTextual()) {
-				throw new MigrationException(new MigrationError(MigrationErrorType.MODEL_CONTENT_NOT_SUPPORTED)
-						.withMessage(
-								"The document model contains at least an annotation whose value is not text."));
+					&& !annotation.getValue().isString()) {
+				throw MigrationUtils.contentNotSupportedException(
+						"The document model contains at least an annotation whose value is not text.");
 			}
 			ObjectNode newAnnotation = MAPPER.createObjectNode();
 			newAnnotation.put(ModelJsonUtil.ANNOTATION_NAME, annotation.getKey());
 			if (annotation.getValue().getNodeType() != JsonNodeType.NULL) {
-				newAnnotation.put(ModelJsonUtil.ANNOTATION_VALUE, annotation.getValue().asText());
+				newAnnotation.put(ModelJsonUtil.ANNOTATION_VALUE, annotation.getValue().asString());
 			}
 			newAnnotations.add(newAnnotation);
 		}

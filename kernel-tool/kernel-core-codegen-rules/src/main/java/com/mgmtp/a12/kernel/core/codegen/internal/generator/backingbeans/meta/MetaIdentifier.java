@@ -46,7 +46,7 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGen
 
 /**
  * Parameter class for the template of the initialization of
- * com.mgmtp.a12.kernel.core.rt._30_8.internal.formatdef.Identifier_t in the generated code.
+ * com.mgmtp.a12.kernel.core.rt._31_1.internal.formatdef.Identifier_t in the generated code.
  */
 @StringTemplateGroup("meta_rules")
 public class MetaIdentifier extends STParameterClassBase {

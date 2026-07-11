@@ -33,46 +33,26 @@ package com.mgmtp.a12.kernel.md.rt.api;
 
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
 
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
 
 // (keep this impl package-private)
-// A12K-3589 remove this SuppressWarnings
-@SuppressWarnings("removal")
 record DocumentProcessingConfigImpl(
 		Locale languageOfErrorMessages,
 		ICustomConditionFactory customConditionFactory,
 		ICustomFieldTypeFactory customFieldTypeFactory,
-		@Deprecated(since = "30.6.0", forRemoval = true)
-		Map<String, Object> additionalInformation,
 		Date currentDateForTest
 ) implements DocumentProcessingConfig {
 
-
-	@SuppressWarnings("DeprecatedIsStillUsed")
-	@Deprecated(since = "30.6.0", forRemoval = true)
 	public DocumentProcessingConfigImpl(
 			Locale languageOfErrorMessages,
 			ICustomConditionFactory customConditionFactory,
 			ICustomFieldTypeFactory customFieldTypeFactory,
-			Map<String, Object> additionalInformation,
 			Date currentDateForTest
 	) {
 		this.languageOfErrorMessages = languageOfErrorMessages;
-		//noinspection removal
-		this.additionalInformation = additionalInformation;
 		this.customConditionFactory = customConditionFactory;
 		this.customFieldTypeFactory = customFieldTypeFactory;
 		this.currentDateForTest = currentDateForTest;
-	}
-
-	public DocumentProcessingConfigImpl(
-			Locale languageOfErrorMessages,
-			ICustomConditionFactory customConditions,
-			ICustomFieldTypeFactory customFieldTypes,
-			Date currentDateForTest
-	) {
-		this(languageOfErrorMessages, customConditions, customFieldTypes, null, currentDateForTest);
 	}
 }

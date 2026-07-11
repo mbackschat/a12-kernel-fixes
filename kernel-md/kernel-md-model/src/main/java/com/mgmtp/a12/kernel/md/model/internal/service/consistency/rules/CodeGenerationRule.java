@@ -32,12 +32,11 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.service.consistency.rules;
 
+import static com.mgmtp.a12.kernel.md.model.internal.service.utils.DMProblemUtils.convertSourceToString;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
 import com.mgmtp.a12.kernel.core.utils.internal.consistency.DocumentModelConsistencyProblem;
@@ -51,29 +50,21 @@ import com.mgmtp.a12.kernel.md.model.internal.service.consistency.DocumentModelC
 import com.mgmtp.a12.kernel.md.model.internal.service.consistency.DocumentModelConsistencyRule;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.DocumentModelUtils;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.ElementUtils;
-import com.mgmtp.a12.kernel.md.model.internal.service.utils.RankedNotificationUtils;
 import com.mgmtp.a12.kernel.md.model.internal.wrapper.DocumentModelWrapper;
 import com.mgmtp.a12.model.notification.RankedNotification;
 import com.mgmtp.a12.model.notification.Severity;
 
 public class CodeGenerationRule extends DocumentModelConsistencyRule {
-	private static final Logger LOG = LoggerFactory.getLogger(CodeGenerationRule.class);
 
 	@Override
 	public void checkModel(final IDocumentModel model, DocumentModelConsistencyProblemReporter pr) {
 		final IDocumentModelService service = new ExternalDocumentModelService();
 
 		Collection<RankedNotification> notifications = new ArrayList<>();
-		service.generateValidationCode(model, new GroovyCodeGeneratorConfig(null), null, notifications::add);
+		service.generateValidationCode(model, new GroovyCodeGeneratorConfig(), null, notifications::add);
 
 		if (!notifications.isEmpty()) {
 			reportProblems(pr, notifications, model);
-			return;
-		}
-		if (!service.extractUsedVariants(model).isEmpty()) {
-			LOG.warn("The given document model {} contains variants. "
-					+ "A complete check was done only for the default variant (empty string). "
-					+ "Therefore, the check may not be complete.", model.getHeader().getId());
 		}
 	}
 
@@ -96,7 +87,7 @@ public class CodeGenerationRule extends DocumentModelConsistencyRule {
 				convertCodegenSource(model, notification.getSource()),
 				DocumentModelCategory.DOCUMENT_MODEL_CODEGENERATION_PROBLEM,
 				Severity.ERROR,
-				RankedNotificationUtils.convertSourceToString(notification),
+				convertSourceToString(notification),
 				notification.getMessage());
 	}
 

@@ -75,12 +75,12 @@ public class CodeGenRulesBuilder extends CodeGenEREntitiesBuilder<CodeGenData> {
 		this.expandGroups = expandGroups;
 
 		this.ruleInfos = new ArrayList<>(data.getRuleInfos(problemReporter));
-		if (problemReporter.hasProblemOccurred()) {
+		if (problemReporter.hasErrorOccurred()) {
 			return;
 		}
 
 		List<RuleInfo> autogenRuleInfos = data.getAutogenRuleInfos(problemReporter);
-		if (problemReporter.hasProblemOccurred()) {
+		if (problemReporter.hasErrorOccurred()) {
 			return;
 		}
 		ruleInfos.addAll(autogenRuleInfos);

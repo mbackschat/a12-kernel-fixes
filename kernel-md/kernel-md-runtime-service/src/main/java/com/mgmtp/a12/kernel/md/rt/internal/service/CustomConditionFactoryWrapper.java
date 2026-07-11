@@ -50,6 +50,6 @@ public class CustomConditionFactoryWrapper implements ICustomConditionFactory {
 	@Override
 	public Optional<ICustomCondition> createCustomConditionV2(String customConditionName) {
 		var customCondition = customConditionFactory.createCustomConditionV2(customConditionName);
-		return customCondition.map(CustomConditionWrapper::new);
+		return customCondition.map(CustomConditionWrapperMdToVk::wrap);
 	}
 }

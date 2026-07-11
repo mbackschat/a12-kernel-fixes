@@ -29,7 +29,7 @@
  * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
- 
+
 export const content =
 [
 {
@@ -52,7 +52,17 @@ export const content =
 			"description": "The product over two repeatable fields is calculated for each repetition of the product and those products will be added up for all repetitions (A1*B1 + A2*B2 + A3*B3...)."
 		}
     },
-	{
+    {
+        "de-DE": {
+            "name": "SummeVonTermen",
+            "description": "Die Summe eines Terms über eine Menge von Wiederholungen, angegeben durch einen gesternten Pfad und den Term."
+        },
+        "en-US": {
+            "name": "SumOfTerms",
+            "description": "The sum of a term over a set of iterations specified by a path with asterisks and a term."
+        }
+    },
+    {
 		"de-DE": {
 			"name" : "MaxWert",
 			"description": "Maximaler Wert aller angegebenen Felder. Ist ein Feld nicht angegeben, wird es ignoriert."
@@ -533,7 +543,7 @@ export const content =
 	{
 		"de-DE": {
 			"name" : "FeldWertAlsZahl",
-			"description": "Liefert den Wert des Feldes als Zahl. Das Feld kann vom Typ String mit dem Muster [0-9]+ (Vorlage Ziffernfolge) sein. Zusätzlich muss die maximale Länge kleiner als 16 sein. FeldWertAlsZahl kann auch angewendet werden auf ein Feld vom Typ Enumeration, wenn alle möglichen Werte numerisch sind und eine Länge kleiner als 16 haben. Für andere Feldtypen ist die Operation nicht erlaubt."
+			"description": "Liefert den Wert des Feldes als Zahl. Das Feld kann vom Typ String mit dem Muster [0-9]+ sein. Zusätzlich muss die maximale Länge kleiner als 16 sein. FeldWertAlsZahl kann auch angewendet werden auf ein Feld vom Typ Enumeration, wenn alle möglichen Werte numerisch sind und eine Länge kleiner als 16 haben. Für andere Feldtypen ist die Operation nicht erlaubt."
 		},
 		"en-US": {
 			"name" : "FieldValueAsNumber",

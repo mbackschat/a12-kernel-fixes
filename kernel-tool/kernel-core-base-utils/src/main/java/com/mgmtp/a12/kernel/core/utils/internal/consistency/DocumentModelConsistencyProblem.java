@@ -34,8 +34,6 @@ package com.mgmtp.a12.kernel.core.utils.internal.consistency;
 
 import java.util.Locale;
 
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblem;
-import com.mgmtp.a12.kernel.core.utils.internal.MVKCoreError;
 import com.mgmtp.a12.model.consistency.ConsistencyCategory;
 import com.mgmtp.a12.model.consistency.ConsistencyProblem;
 import com.mgmtp.a12.model.consistency.Problem;
@@ -44,13 +42,14 @@ import com.mgmtp.a12.model.notification.Severity;
 public class DocumentModelConsistencyProblem implements Problem {
 	private final ConsistencyProblem problem;
 
-	public DocumentModelConsistencyProblem(final String modelId, final Object source, final ConsistencyCategory category,
-			final Severity severity, final String... parameters) {
+	public DocumentModelConsistencyProblem(
+			String modelId,
+			Object source,
+			ConsistencyCategory category,
+			Severity severity,
+			String... parameters
+	) {
 		this.problem = new ConsistencyProblem(modelId, category, source, severity, (Object[]) parameters);
-	}
-
-	public IProblem convertToIProblem() {
-		return new MVKCoreError(this.getMessage(), getSeverity(), getSource());
 	}
 
 	@Override public String getModelId() {

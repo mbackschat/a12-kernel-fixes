@@ -6,15 +6,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.Entity;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.execution.StructuralMapperVK;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.model.FieldMapping;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.model.Fold;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.model.MappingBlock;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.model.ResolutionStrategy;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.model.Slice;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.model.StructuralMappingModelForCodegen;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.structuralmapping.EntityRegistry;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.Entity;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.execution.StructuralMapperVK;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.model.FieldMapping;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.model.Fold;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.model.MappingBlock;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.model.ResolutionStrategy;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.model.Slice;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.model.StructuralMappingModelForCodegen;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.structuralmapping.EntityRegistry;
 
 public class <t.className> {
 	private static final Map\<String, Entity> sourceEntitiesByFullName = createSourceEntitiesByFullName();

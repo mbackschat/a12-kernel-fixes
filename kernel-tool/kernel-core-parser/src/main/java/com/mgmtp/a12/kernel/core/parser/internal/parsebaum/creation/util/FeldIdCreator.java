@@ -76,6 +76,20 @@ public class FeldIdCreator {
 	 */
 	public static IEntityId create(EntitySpecContext ctx, ParseTreeCreator tc) {
 		ExpandMode expandMode = ExpandMode.limitToExpand(tc.getExpandMode());
+		return createWithExpandMode(ctx, tc, expandMode);
+	}
+
+	/**
+	 * Create an entity id from an {@link EntitySpecContext} with a specific {@link ExpandMode}.
+	 * the context to extract the information for the IEntityId from.
+	 *
+	 * @param tc
+	 * 		the {@link ParseTreeCreator} containing the parsing and expand information.
+	 * @param expandMode
+	 * 		the {@link ExpandMode} to be applied.
+	 * @return the generated {@link IEntityId}.
+	 */
+	public static IEntityId createWithExpandMode(EntitySpecContext ctx, ParseTreeCreator tc, ExpandMode expandMode) {
 		List<IEntityId> fieldList = FeldIdCreator.createFeldIdListe(ctx, tc.getParser(), expandMode);
 		assert fieldList.size() == 1 : "The expanded entity contains more than one element!";
 		return fieldList.get(0);

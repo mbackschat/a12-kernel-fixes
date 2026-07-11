@@ -142,7 +142,6 @@ class TestCustomFieldTypeSnippetsForDocs {
 		};
 		IDocumentDynamicServiceConfig serviceConfig = new IDocumentDynamicServiceConfig() {
 			@Override public IModelCodeCache getCache() {return modelCodeCache;}
-			@Override public Optional<String> getVariant() {return Optional.empty();}
 			@Override public Optional<ILabelProvider> getLabelProvider() {return Optional.empty();}
 		};
 		// @formatter:on

@@ -21,6 +21,8 @@ public void calc_<t.uniqueName>(final CalculationController controller) throws V
 	
 	<t.filterParamsCreationCode; separator = "\n">
 	<t.filterCode; separator= "\n">
+	<t.setOpParamsCreationCode; separator = "\n">
+    <t.setOperationCode; separator="\n">
 	
 	<t.rtControllerParamsCreationCode; separator = "\n">
 

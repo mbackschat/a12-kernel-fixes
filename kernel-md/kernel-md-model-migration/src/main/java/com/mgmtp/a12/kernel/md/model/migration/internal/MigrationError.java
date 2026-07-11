@@ -32,7 +32,6 @@
 package com.mgmtp.a12.kernel.md.model.migration.internal;
 
 import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Describes occurred migration error.
@@ -111,9 +110,6 @@ public class MigrationError {
 
 	@Override
 	public String toString() {
-		return new ToStringBuilder(this).append("errorType", errorType)
-				.append("elementId", elementId)
-				.append("message", message)
-				.toString();
+		return "%s [%s]".formatted(message, errorType);
 	}
 }

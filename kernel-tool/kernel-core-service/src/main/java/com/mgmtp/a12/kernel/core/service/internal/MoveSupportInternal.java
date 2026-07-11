@@ -33,9 +33,11 @@
 package com.mgmtp.a12.kernel.core.service.internal;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.SequencedSet;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -60,6 +62,8 @@ import com.mgmtp.a12.kernel.core.service.internal.errortext.FehlertextUtil;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.BaseErrorTextParameterLexer;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.languages.ErrortextParameterMultiLanguageHandler;
+
+import lombok.NonNull;
 
 /**
  * Support for updating rules (and computations?) when fields, groups or rules are moved or renamed.
@@ -89,11 +93,15 @@ public class MoveSupportInternal {
 	 *   kernel api to inform the user about potentially invalid DMs after the move and before saving, if desired.</li>
 	 *   <li>We do not check if a referenced field, group or rule exists, only if the path format is correct.</li>
 	 *   <li>We do not detect whether a name is a single-element relative path or a shortname. All such references are treated as
-	 *   single-element relative paths. Note: shortnames do not exist in A12 (as of 2023-03-29) (except in error text parameters!)
+	 *   single-element relative paths. Note: shortnames do not exist in A12 (as of 2023-03-29) (except in error text parameters,
+	 *   e.g. for the 'index(shortname)' construct !)
 	 *   and ExtMP's A12-Export converts shortnames to regular paths.</li>
 	 *   <li>The parser assumes that we are in an A12 DV (not H-DV). Note: even if the parser is reconfigured, it will not
 	 *   currently detect slash-less references to "Vordrucke"</li>
-	 *   <li>References with * are not touched</li>
+	 *   <li>Entity path specifications containing starred ('*') groups are adjusted as well,
+	 *   	if each starred group of the current path is also contained in the resulting full path specification of
+	 *   	the entity after the move. Otherwise, they remain untouched.
+	 *   </li>
 	 *   <li>If a group is specified to be moved, the move applies to all groups and fields within that group too, unless there
 	 *   is a more specific move that applies to the subgroup or field.
 	 *   </li>
@@ -109,9 +117,9 @@ public class MoveSupportInternal {
 	 */
 	public String changeConditionTextForMove(
 			String ruleConditionText,
-			String ruleCurrentFullname,
-			Map<String, String> entityMoves,
-			Locale conditionLanguage
+			@NonNull String ruleCurrentFullname,
+			@NonNull Map<String, String> entityMoves,
+			@NonNull Locale conditionLanguage
 	) {
 		return changeConditionSnippetForMove(
 				GrammarOnly_ConditionParser::bedingung_start,
@@ -123,14 +131,18 @@ public class MoveSupportInternal {
 	}
 
 	protected String changeConditionSnippetForMove(
-			Function<GrammarOnly_ConditionParser, ParseTree> grammarRule,
+			@NonNull Function<GrammarOnly_ConditionParser, ParseTree> grammarRule,
 			String snippet,
-			String ruleCurrentFullname,
-			Map<String, String> entityMoves,
-			Locale conditionLanguage
+			@NonNull String ruleCurrentFullname,
+			@NonNull Map<String, String> entityMoves,
+			@NonNull Locale conditionLanguage
 	) {
+
 		if (StringUtils.isEmpty(snippet)) {
 			return snippet;
+		}
+		if (StringUtils.isEmpty(ruleCurrentFullname)) {
+			throw new IllegalArgumentException("Expected nonempty rule current fullname (but was empty).");
 		}
 		ConditionMultiLanguageHandler mlh =
 				new ConditionMultiLanguageHandler(conditionLanguage);
@@ -156,15 +168,15 @@ public class MoveSupportInternal {
 	 * Similar to {@link #changeConditionTextForMove(String, String, Map, Locale)}
 	 */
 	public Map<Locale, String> changeErrorTextsForMove(
-			Map<Locale, String> errorTexts,
-			String ruleCurrentFullname,
-			Map<String, String> entityMoves,
-			Locale conditionLanguage
+			@NonNull Map<Locale, String> errorTexts,
+			@NonNull String ruleCurrentFullname,
+			@NonNull Map<String, String> entityMoves,
+			@NonNull Locale conditionLanguage
 	) {
 		return Java8Utils.mapMapValuesPreserveOrder(errorTexts, (String errorText) ->
 				FehlertextUtil.mapParamsInFehlertext(errorText, (String param) -> {
 
-				ErrortextParameterMultiLanguageHandler mlh = new ErrortextParameterMultiLanguageHandler(conditionLanguage);
+					ErrortextParameterMultiLanguageHandler mlh = new ErrortextParameterMultiLanguageHandler(conditionLanguage);
 
 					List<MoveSupportParseTreeListener.EntityReference> entityReferences;
 					try {
@@ -200,18 +212,13 @@ public class MoveSupportInternal {
 
 	private String updateEntityPathsIn(
 			String snippet,
-			String ruleCurrentFullname,
-			List<MoveSupportParseTreeListener.EntityReference> entityReferences,
-			Map<String, String> entityMoves,
+			@NonNull String ruleCurrentFullname,
+			@NonNull List<MoveSupportParseTreeListener.EntityReference> entityReferences,
+			@NonNull Map<String, String> entityMoves,
 			MkUpdatedReferenceString mkNewReferenceString
 	) {
 		String newRuleFullname = findNewFullname(ruleCurrentFullname, entityMoves);
 		StringBuilder newSnippet = new StringBuilder(snippet);
-
-		//TODO A12K-3824: Assert: check consistency of entity Moves
-		// entityMoves: check unique values
-		//TODO A12K-3824: Assert: check consistency of parsed entities: tryMove each entity (and prefixes?) and search for
-		// collisions
 
 		entityReferences.stream()
 				.sorted((a, b) -> Integer.compare(b.rangeInCondition().start(), a.rangeInCondition().start()))
@@ -219,8 +226,7 @@ public class MoveSupportInternal {
 
 					String newEntityFullName = findNewFullname(eRef.fullName(), entityMoves);
 					if (!eRef.fullName().equals(newEntityFullName) || !ruleCurrentFullname.equals(newRuleFullname)) {
-						Set<String> starredGroupNewFullnames = findNewFullNames(eRef.starredGroupFullNames(),
-								entityMoves);
+						Set<String> starredGroupNewFullnames = findNewFullNames(eRef.starredGroupFullNames(), entityMoves);
 						if (fullNameHasAllStarredGroupFullnamesAsAncestors(newEntityFullName,
 								starredGroupNewFullnames)) {
 							String newEntityRefString = mkNewReferenceString.apply(eRef, newEntityFullName, newRuleFullname,
@@ -305,7 +311,7 @@ public class MoveSupportInternal {
 	 * Checks if the entity at fullName, or any of its ancestors (parent groups, grandparent groups, etc.) occurs in entityMoves
 	 * and returns the updated fullName with the most specific matching move applied.
 	 */
-	protected static String findNewFullname(String fullName, Map<String, String> entityMoves) {
+	protected static String findNewFullname(@NonNull String fullName, @NonNull Map<String, String> entityMoves) {
 		Validate.isTrue(fullName.startsWith("/"));
 		String prefix = fullName;
 		String newPrefix;
@@ -321,15 +327,14 @@ public class MoveSupportInternal {
 		return fullName;
 	}
 
-	private static Set<String> findNewFullNames(Set<String> oldFullNames, Map<String, String> entityMoves) {
-		var retVal = new HashSet<String>();
+	public static SequencedSet<String> findNewFullNames(@NonNull Set<String> oldFullNames,
+			@NonNull Map<String, String> entityMoves) {
+		var retVal = new LinkedHashSet<String>();
 		for (var oldFullName : oldFullNames) {
 			var oldOrNewFullName = findNewFullname(oldFullName, entityMoves);
 
-			if (retVal.contains(oldOrNewFullName)) { //TODO A12K-3824: when check is done at other position, delete it here
+			if (!retVal.add(oldOrNewFullName)) {
 				assert false : "MoveSupport found conflicting entity move, more than one entity moved to  " + oldOrNewFullName;
-			} else {
-				retVal.add(oldOrNewFullName);
 			}
 		}
 		return retVal;

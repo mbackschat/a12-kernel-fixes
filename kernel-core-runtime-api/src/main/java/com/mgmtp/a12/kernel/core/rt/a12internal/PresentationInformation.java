@@ -31,7 +31,7 @@
  */
 package com.mgmtp.a12.kernel.core.rt.a12internal;
 
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -132,7 +132,7 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
  * {@link PresentationInformation#FALSE}</li>
  * <li><code>{@link #DATE_TIME_FORMAT}</code>: defines the presentation format for date time. It is
  * independent of other date specifications and is given as a format string for
- * {@link SimpleDateFormat} and will be used to parse or convert a date time value
+ * {@link DateTimeFormatter} and will be used to parse or convert a date time value
  * from/to a string representation. In the format, only the pattern letters y, M, d, H, h, m, s, and
  * a are allowed. A year specification (y) must always be included. Only the letter 'T' or
  * whitespace is allowed as separator between date and time.
@@ -147,7 +147,7 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
  * </li>
  * <li><code>{@link #TIME_FORMAT}</code>: defines the presentation format for time. It is
  * independent of other date (time) specifications and of {@link #DATE_TIME_FORMAT}. It is given as
- * a format string for {@link SimpleDateFormat} and will be used to parse or convert a time value
+ * a format string for {@link DateTimeFormatter} and will be used to parse or convert a time value
  * from/to a string representation. In the format, only the pattern letters H, h, m, s, and a are
  * allowed.
  * <p>

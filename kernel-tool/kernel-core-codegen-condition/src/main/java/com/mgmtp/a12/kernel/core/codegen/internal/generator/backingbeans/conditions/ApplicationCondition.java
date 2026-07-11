@@ -65,6 +65,7 @@ public class ApplicationCondition extends CodeGenCondition implements IApplicati
 	 * @return Unique-Name des Aktionsfeldes der Regel bzw. null, falls wir noch nicht bei der
 	 * 		Prüfung einer Regel sind und dieser Namen deshalb noch nicht gesetzt wurde.
 	 */
+	@SuppressWarnings("unused") // used in template
 	public String getUniqueAktionsFeld() {
 		return uniqueAktionsFeld;
 	}

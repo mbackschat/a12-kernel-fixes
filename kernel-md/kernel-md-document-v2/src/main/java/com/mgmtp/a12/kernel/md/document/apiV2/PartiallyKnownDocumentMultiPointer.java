@@ -35,7 +35,6 @@ package com.mgmtp.a12.kernel.md.document.apiV2;
 import java.util.List;
 import java.util.Optional;
 
-import com.mgmtp.a12.kernel.md.document.api.IEntityInstance;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 import lombok.NonNull;
@@ -63,14 +62,6 @@ public interface PartiallyKnownDocumentMultiPointer {
 
 	static PartiallyKnownDocumentMultiPointer of(@NonNull String fullName, int[] repetitions) {
 		return PartiallyKnownDocumentMultiPointerImpl.of(fullName, repetitions);
-	}
-
-	/**
-	 * @deprecated because IEntityInstance is deprecated
-	 */
-	@Deprecated(since = "30.0.0")
-	static PartiallyKnownDocumentMultiPointer of(@NonNull IEntityInstance entityInstance) {
-		return of(entityInstance.getPath(), entityInstance.getRepetitions());
 	}
 
 	/**

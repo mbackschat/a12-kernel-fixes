@@ -34,17 +34,10 @@ package com.mgmtp.a12.kernel.core.onTheFlyTesting.a12internal.api;
 
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
-import com.mgmtp.a12.kernel.core.customfieldtype.CustomFieldTypeService;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
-import com.mgmtp.a12.kernel.core.onTheFlyTesting.internal.OnTheFlyTestingService;
 import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
-import com.mgmtp.a12.kernel.core.rt.a12internal.custom.impl.CustomConditionService;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICustomCondition;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IResult;
 
 public interface IOnTheFlyTestingValidationParameter {
@@ -69,50 +62,18 @@ public interface IOnTheFlyTestingValidationParameter {
 	IResult getResult();
 
 	/**
-	 * These should only be used in conjunction with {@link OnTheFlyTestingService}.
-	 *
-	 * @return all fields for which default values are to be used during validation
-	 *
-	 * @deprecated will be removed with A12K-3593
-	 */
-	@Deprecated(since = "30.2.0")
-	Set<IIdentifier> getDefaultValues();
-
-	/**
-	 * @return a map from the name of a custom condition to an implementation thereof.
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #customConditionFactory()}
-	 * instead.
-	 */
-	@Deprecated(since = "30.6.0")
-	Map<String, ICustomCondition> getCustomConditionsByName();
-
-	/**
-	 * Additional information that will be passed to the project specific implementation of the predefined field types.
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #customFieldTypeFactory()} or {@link #customConditionFactory()}
-	 * instead. In your implementation of {@link ICustomFieldTypeFactory} or {@link ICustomConditionFactory} you can already create the objects in the
-	 * suitable configuration. Therefore, it is not necessary to pass this data all the way through any longer.
-	 */
-	@Deprecated(since = "30.6.0")
-	Map<String, Object> getAdditionalInformation4PredefinedFieldTypes();
-
-	/**
 	 * If set, the rule language construct <code>Today</code> will evaluate to this value instead of
 	 * the actual current date.<br>
-	 * @deprecated implement {@link #currentDateForTest()} instead. Will be removed with A12K-3589.
 	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	Date getCurrentDateForTest();
+	Date currentDateForTest();
 
-	default Date currentDateForTest() {
-		return getCurrentDateForTest();
-	}
 	/**
-	 * @return The {@link ICustomConditionFactory}. If you still use the deprecated static registration of your implementations via {@link CustomConditionService} return {@code null}.
+	 * @return The {@link ICustomConditionFactory}.
 	 */
 	ICustomConditionFactory customConditionFactory();
 
 	/**
-	 * @return The {@link ICustomFieldTypeFactory}. If you still use the deprecated static registration of your implementations via {@link CustomFieldTypeService} return {@code null}.
+	 * @return The {@link ICustomFieldTypeFactory}.
 	 */
 	ICustomFieldTypeFactory customFieldTypeFactory();
 }

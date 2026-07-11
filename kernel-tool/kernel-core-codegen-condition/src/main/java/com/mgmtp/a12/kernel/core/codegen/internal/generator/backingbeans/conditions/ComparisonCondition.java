@@ -35,57 +35,42 @@ package com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.condit
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.CodeGenConditionConstants;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.CodeGenOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.IComparisonCondition;
-import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.ComparisonOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.OperationType;
+
+import lombok.Getter;
 
 /**
  * Parameter Class for template Comparison condition
  */
+@Getter
 public class ComparisonCondition extends CodeGenCondition implements IComparisonCondition {
+	private final ComparisonOperation cmpOp;
+	private final CodeGenOperation operation1;
+	private final CodeGenOperation operation2;
 
-	private final ComparisonOperation vglOp;
-	private final CodeGenOperation op1;
-	private final CodeGenOperation op2;
-
-	public ComparisonCondition(IComparisonCondition b, CodeGenOperation op1, CodeGenOperation op2) {
-		this.vglOp = b.getCmpOp();
-		this.op1 = op1;
-		this.op2 = op2;
+	public ComparisonCondition(IComparisonCondition b, CodeGenOperation operation1, CodeGenOperation operation2) {
+		this.cmpOp = b.getCmpOp();
+		this.operation1 = operation1;
+		this.operation2 = operation2;
 	}
 
-	@Override
-	public IOperation getOperation1() {
-		return op1;
+	public String getOperation1Code() {
+		return operation1.toCode();
 	}
 
-	@Override
-	public IOperation getOperation2() {
-		return op2;
-	}
-
-	@Override
-	public ComparisonOperation getCmpOp() {
-		return vglOp;
-	}
-
-	public String getOp1Code() {
-		return op1.toCode();
-	}
-
-	public String getOp2Code() {
-		return op2.toCode();
+	public String getOperation2Code() {
+		return operation2.toCode();
 	}
 
 	public String getCompKind() {
-		if (op1.getType() == OperationType.NUMBER) {
+		if (operation1.getType() == OperationType.NUMBER) {
 			return "";
 		}
-		if (vglOp == ComparisonOperation.NM || vglOp == ComparisonOperation.WM) {
+		if (cmpOp == ComparisonOperation.NM || cmpOp == ComparisonOperation.WM) {
 			return CodeGenConditionConstants.PATTERN_STRING;
 		} else {
-			return op1.getType().getRuntimeName();
+			return operation1.getType().getRuntimeName();
 		}
 	}
-
 }

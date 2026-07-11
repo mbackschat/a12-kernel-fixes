@@ -40,22 +40,17 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import com.mgmtp.a12.kernel.core.parser.internal.check.CheckImplAbstractClass;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.CheckOpUtils;
-import com.mgmtp.a12.kernel.core.parser.internal.check.util.FieldUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorTypesEnum;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.FullChecks_ConditionParser;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.ADDSUB_OPContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.BRACKET_OPContext;
-import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.EinfacheOperationContext;
-import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.EntitySpecContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.MULTDIV_OPContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.OperationContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.POWER_OPContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.SINGLE_OPContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParserBaseListener;
-import com.mgmtp.a12.kernel.core.parser.internal.util.EntityRef;
 import com.mgmtp.a12.kernel.core.parser.internal.util.OperationResultType;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IField;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -199,40 +194,11 @@ public class CheckOperationImpl extends CheckImplAbstractClass {
 			return;
 		}
 		if (CheckOpUtils.isOpLikeString(opType1) && CheckOpUtils.isOpLikeString(opType2)) {
-			checkWithoutDisplayValues(ctx.op1);
-			checkWithoutDisplayValues(ctx.op2);
 			addStringOpType(ctx);
 			return;
 		}
 		String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_NO_STRING_OR_NUMBER_FOR_ADD);
 		throw createMVKParserError(ctx, errMessage);
-	}
-
-	private void checkWithoutDisplayValues(OperationContext opCtx) {
-		if (!(opCtx instanceof SINGLE_OPContext singleOpContext)) {
-			return;
-		}
-		EinfacheOperationContext eoCtx = singleOpContext.einfacheOperation();
-		if (eoCtx.feldWertOp() == null) {
-			return;
-		}
-		EntitySpecContext entitySpec = eoCtx.feldWertOp().entitySpec();
-		EntityRef entityRef = getEntityRef(entitySpec);
-		if (entityRef.getCategoryName() != null) {
-			// category access is allowed
-			return;
-		}
-		IField field = (IField) entityRef.getEntity();
-		if (!FieldUtils.isEnum(field)) {
-			// non-enums are unproblematic -> at the moment only strings and enums are allowed
-			return;
-		}
-		if (!FieldUtils.isEnumWithDisplayValues(field.getType())) {
-			// enums without display values are ok
-			return;
-		}
-		String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_NO_STRING_OR_NUMBER_FOR_ADD);
-		throw createMVKParserError(opCtx, errMessage);
 	}
 
 	private void checkNoFractionalDigitsInExponent(OperationContext ctx) {

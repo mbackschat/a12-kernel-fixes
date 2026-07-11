@@ -11,8 +11,9 @@ dependencies {
     api libs.kernelCoreRuntimeApi
     api libs.commonsLang3
 
-    implementation libs.slf4jApi
+    api project(':kernel-conversion-java')
 
+    implementation libs.slf4jApi
 
 }
 

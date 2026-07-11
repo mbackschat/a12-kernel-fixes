@@ -106,7 +106,7 @@ public class XMLWriterCodeGenerator extends ModelBasedCodeGenerator {
 					i + 1).build();
 		}
 
-		return !problemReporter.hasProblemOccurred();
+		return !problemReporter.hasErrorOccurred();
 	}
 
 	@Override

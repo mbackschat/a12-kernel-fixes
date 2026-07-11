@@ -32,7 +32,10 @@
 
 package com.mgmtp.a12.kernel.core.parser.internal.check;
 
+import java.util.function.Predicate;
+
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
 
 import com.mgmtp.a12.kernel.core.parser.internal.error.MVKParserError;
@@ -115,9 +118,23 @@ public class CheckImplLenientBaseClass {
 	}
 
 	protected GrammarOnly_ConditionParser.EntitySpecContext getEnclosingEntitySpecContext(ParserRuleContext parent) {
-		while (parent != null && !(parent instanceof GrammarOnly_ConditionParser.EntitySpecContext)) {
-			parent = parent.getParent();
+		return (GrammarOnly_ConditionParser.EntitySpecContext) findAncestorContext(parent,
+				c -> c instanceof GrammarOnly_ConditionParser.EntitySpecContext);
+	}
+
+	/**
+	 * Go up the parse tree and check all the RuleContexts on the path, if it matches the predicate.
+	 *
+	 * @param currentContext
+	 * 		the context, whose ancestors and itself is checked against the predicate.
+	 * @param contextPredicate
+	 * 		the predicate applied for the currentContext and all its ancestors.
+	 * @return the first <code>RuleContext</code> that matches the predicate on the path up or <code>null</code>
+	 */
+	protected RuleContext findAncestorContext(RuleContext currentContext, Predicate<RuleContext> contextPredicate) {
+		while (currentContext != null && !contextPredicate.test(currentContext)) {
+			currentContext = currentContext.getParent();
 		}
-		return (GrammarOnly_ConditionParser.EntitySpecContext) parent;
+		return currentContext;
 	}
 }

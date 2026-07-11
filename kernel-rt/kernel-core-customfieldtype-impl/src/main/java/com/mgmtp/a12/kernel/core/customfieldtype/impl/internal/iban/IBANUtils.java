@@ -49,7 +49,7 @@ public class IBANUtils {
 	}
 
 	/**
-	 * @brief Ist die Prüfziffer der IBAN gültig?
+	 * Ist die Prüfziffer der IBAN gültig?
 	 * 		<p>
 	 * 		Pruefziffernberechnung gemaess "IBAN-Prüfziffernberechnung", 06/03, Swiss Interbank
 	 * 		Clearing AG (ISO 7064 nach dem Modulo 9710 Verfahren)

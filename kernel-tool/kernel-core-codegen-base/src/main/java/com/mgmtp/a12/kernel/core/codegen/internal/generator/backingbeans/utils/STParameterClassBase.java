@@ -51,10 +51,8 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGen
  * <p>
  * WARNING: This class uses the {@link CodeGenContext}-instance that lies as {@link ThreadLocal} in
  * the thread context of the current thread. That class must be initialized beforehand!
- *
- * @TODO: Completely eliminate occurrences of the term "backing bean" and change it to
- * 		"parameter class".
  */
+// TODO: Completely eliminate occurrences of the term "backing bean" and change it to "parameter class".
 public abstract class STParameterClassBase implements ICodeOutput {
 
 	private static final String TEMPLATE_BASE_DIR = "templates";

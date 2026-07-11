@@ -75,7 +75,7 @@ public class CustomFieldTypeValidationParamImpl implements ICustomFieldTypeValid
 
 	/**
 	 * <b>Note:</b> The min. length should NOT be used by the validation in the implementation of
-	 * {@link com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator#validate} if the
+	 * {@link com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator#validate(String, ICustomFieldTypeValidationParam, boolean)} if the
 	 * value is constant for the predefined type i.e. if it can not be specified by the user of the
 	 * predefined type. Currently it is the case for all predefined types except
 	 * <code>EMail</code><br>
@@ -89,7 +89,7 @@ public class CustomFieldTypeValidationParamImpl implements ICustomFieldTypeValid
 
 	/**
 	 * <b>Note:</b> The max. length should NOT be used by the validation in the implementation of
-	 * {@link com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator#validate} if the
+	 * {@link com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator#validate(String, ICustomFieldTypeValidationParam, boolean)} if the
 	 * value is constant for the predefined type i.e. if it can not be specified by the user of the
 	 * predefined type. Currently it is the case for all predefined types except
 	 * <code>EMail</code><br>

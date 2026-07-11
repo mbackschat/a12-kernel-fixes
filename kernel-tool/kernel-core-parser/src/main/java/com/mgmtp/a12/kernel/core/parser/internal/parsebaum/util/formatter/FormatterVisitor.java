@@ -75,6 +75,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOper
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOperationWithParameter;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IPointInTimeOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateAddOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateConstructionOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateDiffOperation;
@@ -771,6 +772,26 @@ public class FormatterVisitor extends ASTVisitor {
 		fData.append(")");
 		fData.endModus();
 		addCommentAfter(feldOpTeil);
+	}
+
+	@Override
+	public boolean visit(ISetOpOperation setOp) {
+		addCommentBefore(setOp);
+		fData.append(mlh.getTerminalNameByGermanTerminalName(setOp.getOperatorName().getRuntimeName()));
+		fData.append("(");
+		fData.startModus(FormatModus.ARG_LIST);
+		return true;
+	}
+
+	@Override public boolean visitNext(int i, ISetOpOperation p) {
+		fData.appendNoBreak(", ");
+		return true;
+	}
+
+	@Override public void endVisit(ISetOpOperation setOp) {
+		fData.append(")");
+		fData.endModus();
+		addCommentAfter(setOp);
 	}
 
 	@Override

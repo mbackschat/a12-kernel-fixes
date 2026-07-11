@@ -32,7 +32,6 @@
 package com.mgmtp.a12.kernel.core.parser.internal.check.bedingung;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -40,7 +39,6 @@ import java.util.regex.PatternSyntaxException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.mgmtp.a12.kernel.core.parser.internal.check.CheckImplAbstractClass;
-import com.mgmtp.a12.kernel.core.parser.internal.check.util.CheckEntityListenUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.CheckOpUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.FieldUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorTypesEnum;
@@ -52,7 +50,6 @@ import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_Conditi
 import com.mgmtp.a12.kernel.core.parser.internal.util.DateFormat;
 import com.mgmtp.a12.kernel.core.parser.internal.util.OperationResultType;
 import com.mgmtp.a12.kernel.core.parser.internal.util.OperationResultType.OperationResultBaseType;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEnumerationType;
 import com.mgmtp.a12.kernel.core.utils.internal.CommonUtils;
 import com.mgmtp.a12.kernel.core.utils.internal.PatternUtils;
 
@@ -347,7 +344,6 @@ public class CheckVergleichsBedingungImpl extends CheckImplAbstractClass {
 		OperationResultType rt2 = getOpType(o2Ctx);
 
 		if (isTypeAnEnum(rt1) && isTypeAnEnum(rt2) && !isForwardCheck) {
-			checkEnumVsEnum(rt1, rt2, o1Ctx, o2Ctx);
 			return;
 		}
 
@@ -380,53 +376,6 @@ public class CheckVergleichsBedingungImpl extends CheckImplAbstractClass {
 		//check enumeration values in case of a string constant.
 		if (CheckOpUtils.isConstant(stringCtx)) {
 			checkEnumValue(stringCtx, enumResultType);
-		} else if (enumResultType.getCategory() == null) { // comparison with categories is valid.
-			// Only enumerations without display values are allowed, when compared with a string field value
-			IEnumerationType enumType = (IEnumerationType) enumResultType.getFieldType();
-			if (FieldUtils.isEnumWithDisplayValues(enumType) && isFeldWertOp(stringCtx)) {
-				String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_INVALID_COMPARE_ENUM_TO_STRING);
-				throw createMVKParserError(enumCtx, errMessage);
-			}
-		}
-	}
-
-	private boolean isFeldWertOp(OperationContext opCtx) {
-		return (opCtx instanceof SINGLE_OPContext simpleOpCtx) && (simpleOpCtx.einfacheOperation().feldWertOp() != null);
-	}
-
-	private void checkEnumVsEnum(OperationResultType rt1, OperationResultType rt2, OperationContext o1Ctx, OperationContext o2Ctx) {
-		if (rt1.getCategory() != null || rt2.getCategory() != null) {
-			// Comparison with categories should be OK
-			return;
-		}
-		checkEnumValuesWithoutCategories(rt1, rt2, o1Ctx, o2Ctx);
-	}
-
-	private void checkEnumValuesWithoutCategories(OperationResultType rt1, OperationResultType rt2, OperationContext o1Ctx,
-			OperationContext o2Ctx) {
-		IEnumerationType enumType1 = (IEnumerationType) rt1.getFieldType();
-		IEnumerationType enumType2 = (IEnumerationType) rt2.getFieldType();
-		if (FieldUtils.isTableEnumWithoutTable(enumType1) || FieldUtils.isTableEnumWithoutTable(enumType2)) {
-			// No checks for non-codegen IEC
-			return;
-		}
-		if (!FieldUtils.isEnumWithDisplayValues(enumType1)) {
-			if (FieldUtils.isEnumWithDisplayValues(enumType2)) {
-				String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_INVALID_COMPARE_ENUM_TO_STRING);
-				throw createMVKParserError(o2Ctx, errMessage);
-			} else {
-				// None has a display value
-				return;
-			}
-		} else if (!FieldUtils.isEnumWithDisplayValues(enumType2)) {
-			String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_INVALID_COMPARE_ENUM_TO_STRING);
-			throw createMVKParserError(o1Ctx, errMessage);
-		}
-
-		Optional<String> errMsgOpt = CheckEntityListenUtils.checkDisplayValues(enumType1, enumType2,
-				fullParser.getMVKErrorHandler());
-		if (errMsgOpt.isPresent()) {
-			throw createMVKParserError(o1Ctx, errMsgOpt.get());
 		}
 	}
 

@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig",
+  "extends": "../../tsconfig.json",
   "include": [
     "./src"
   ],
@@ -11,7 +11,7 @@
   "compilerOptions": {
     "outDir": "./lib",
     "rootDir": "./src",
-    "downlevelIteration": true
+    "types": ["node",  "mocha"]
   },
   "typedocOptions": {
     // keep name in sync with links in kernel-documentation-dev/Readme.adoc

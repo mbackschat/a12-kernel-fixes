@@ -37,13 +37,12 @@ import java.util.function.Function;
 
 import com.mgmtp.a12.kernel.core.calc.internal.util.CalculationUtils;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.CodeGenData;
-import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.CodeGenFilterCondition;
+import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.AbstractCodeGenCalcBuilder;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.EntityId;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.EntityIdsCollector;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.conditions.CodeGenCondition;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.CodeGenOperation;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.CalculatedFieldIterationLimitCreator;
-import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.CodeGenParseTreeHelper;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.IterationLimitCreatorBase;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.conversion.CodeGenCreator;
 import com.mgmtp.a12.kernel.core.extmpspecifics.internal.utils.ExtmpUtils;
@@ -60,32 +59,26 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.config.IProjectSpecificSet
 /**
  * Builder for the template parameter class {@link CodeGenCalculatedField}.
  */
-public class CodeGenCalculatedFieldBuilder {
-	protected final CodeGenData data;
+public class CodeGenCalculatedFieldBuilder extends AbstractCodeGenCalcBuilder {
 	private final List<ICalculationInfo> calcInfos;
 	private final boolean isHModel;
 	private final long maxDigitsGlobal;
 	private final EntityId calculatedField;
 	private final List<CodeGenCalculationAlternative> calcAlternatives;
-	private final EntityIdsCollector entityIdsCollector;
-	private final CodeGenParseTreeHelper codeGenParseTreeHelper;
 
 	public CodeGenCalculatedFieldBuilder(List<ICalculationInfo> calcInfos, CodeGenData data,
 			Function<IEntityId, String> uniqueFieldNamesMapper, boolean expandGroups) {
-		this.data = data;
+		super(data, expandGroups,
+				uniqueFieldNamesMapper.apply(calcInfos.get(0).getCalculatedField()),
+				uniqueFieldNamesMapper);
 		this.isHModel = ExtmpUtils.isHModel(data.getModelSpecificSettings());
 		this.maxDigitsGlobal = IProjectSpecificSettings.MAXDIGITS_IN_NUMBERS;
 
-		// calcInfos need to have the same calculated field, so take the first one.
-		String uniqueCalculatedFieldName = uniqueFieldNamesMapper.apply(calcInfos.get(0).getCalculatedField());
-		this.codeGenParseTreeHelper = new CodeGenParseTreeHelper(data.getEc(), expandGroups, uniqueCalculatedFieldName,
-				data.getBaseYear(), uniqueFieldNamesMapper);
 		List<ICalculationInfo> calcInfosWithExpandedCommonPrecondition = calcInfos.stream()
 				.map(CalculationUtils::expandCommonPrecondition)
 				.toList();
 		this.calcInfos = codeGenParseTreeHelper.expandAndTransformCalcInfos(calcInfosWithExpandedCommonPrecondition);
 
-		this.entityIdsCollector = new EntityIdsCollector("");
 		this.calculatedField = CodeGenCreator.convertEntity(calcInfos.get(0).getCalculatedField(), uniqueFieldNamesMapper,
 				entityIdsCollector);
 
@@ -151,16 +144,8 @@ public class CodeGenCalculatedFieldBuilder {
 		return new CalculatedFieldIterationLimitCreator(calculatedField, data, getParallelIterationLevel());
 	}
 
-	CodeGenData getData() {
-		return data;
-	}
-
 	List<CodeGenCalculationAlternative> getCalculationAlternatives() {
 		return calcAlternatives;
-	}
-
-	EntityIdsCollector getRtControllerParamsCreationCodeCollector() {
-		return entityIdsCollector;
 	}
 
 	boolean isParallelIteration() {
@@ -179,13 +164,5 @@ public class CodeGenCalculatedFieldBuilder {
 			return -1;
 		}
 		return EntityUtils.getIndexFieldLevel(calculatedField.getFullName(), data.getEc());
-	}
-
-	public EntityIdsCollector getFilterEntityIdsCollector() {
-		return codeGenParseTreeHelper.getFilterConditionEntityIdsCollector();
-	}
-
-	public List<CodeGenFilterCondition> getFilterConditions() {
-		return codeGenParseTreeHelper.getFilterConditions();
 	}
 }

@@ -58,6 +58,7 @@ import { RtExternalIdentifier } from "../util/RtExternalIdentifier.js";
 import { RtIdentifierTemplate } from "../util/RtIdentifierTemplate.js";
 import { RtInternalIdentifier } from "../util/RtInternalIdentifier.js";
 
+import { IFormaleFehlerConstants } from "../util/IFormaleFehlerConstants.js";
 import type { LocalizableDefaults } from "../util/LocalizableUtil.js";
 import { LocalizableUtil } from "../util/LocalizableUtil.js";
 
@@ -128,7 +129,7 @@ export class MainValidatorController extends RuntimeController {
 		const externId: RtExternalIdentifier = this.validationCache.convert2Extern(id);
 
 		// get the ICustomCondition passed by the project
-		const applBed = this.validationCache.getCustomCondition(applName);
+		const applBed = this.modus.customConditionFactory?.createCustomCondition(applName);
 
 		// Wenn keine ICustomCondition mit dem angegebenen Namen vorhanden ist, werfe Exception
 		if (!applBed) {
@@ -472,7 +473,7 @@ export class MainValidatorController extends RuntimeController {
 				fehlerTyp,
 				localizable,
 				false,
-				new ArraySet<number[]>()
+				new ArraySet<number[]>() as any
 			);
 		} else {
 			// since ErrorType.<value> returns a number and 0 is a valid value for the enum
@@ -487,7 +488,7 @@ export class MainValidatorController extends RuntimeController {
 				idx,
 				key,
 				fehlerTyp,
-				new ArraySet<number[]>()
+				new ArraySet<number[]>() as any
 			);
 		}
 	}
@@ -539,7 +540,7 @@ export class MainValidatorController extends RuntimeController {
 				? this._getRefOmissionFields(idx, this._regelName, erroneousRepetitions)
 				: new HashSet<RtExternalIdentifier>();
 		const unknowns: HashSet<RtExternalIdentifier> = this._extractUnknowns(referencedFields);
-		this._addValidatorMessageToResult(key, fehlerTyp, localizable, idExtern, referencedFields, refOmissionFields, unknowns);
+		this._addValidatorMessageToResult(key, fehlerTyp, localizable, idExtern, referencedFields as any, refOmissionFields as any, unknowns as any);
 	}
 
 	private _addValidatorMessageToResult(
@@ -667,21 +668,33 @@ export class MainValidatorController extends RuntimeController {
 	): void {
 		const id = RtInternalIdentifier.createFromIterationState(errorFieldUniqueName, idx);
 		const idExtern = this.validationCache.convert2Extern(id);
+		this.validationCache.markFieldAsInvalidForValidation(id, idExtern);
+
 		const args: LocalizableArgs = this._getLocalizableArgs(errorFieldUniqueName, id, idExtern);
-		let defaults;
-		if (errorMsgId == RuntimeFormalErrorEnum.PFLICHT_FELD_FEHLER) {
-			defaults = this.metaData.getErrorMessage4Req(errorFieldUniqueName);
-		} else {
-			defaults = FehlerHandler.getAllErrorTexts(errorMsgId);
+		if (errorMsgId == RuntimeFormalErrorEnum.PFLICHT_FELD_FEHLER && this.metaData.isExplicitlyMandatory(errorFieldUniqueName)) {
+			// For mandatory field errors with possible overridden error messages, we create an error with fallback
+			this._createMandatoryErrorWithFallback(id, idExtern, args, errorType);
+			return;
 		}
+		const defaults = FehlerHandler.getAllErrorTexts(errorMsgId);
 		const errorLocalizable: Localizable = LocalizableUtil.createLocalizableFormalError(
 			errorMsgId,
 			args,
 			defaults
 		);
 
-		this._formalChecker.addFormalError(this.pruefErgebnis, idExtern, errorId, errorLocalizable, errorType);
-		this.validationCache.markFieldAsInvalidForValidation(id, idExtern);
+		this._formalChecker.addFormalError(this.pruefErgebnis, idExtern, errorId, [errorLocalizable], errorType);
+	}
+
+	private _createMandatoryErrorWithFallback(id: RtInternalIdentifier, idExtern: RtExternalIdentifier, args: LocalizableArgs, errorType: ErrorType) {
+		const key1 = LocalizableUtil.createFieldRequiredErrorKey(idExtern, this.metaData);
+		// These might be empty
+		const defaults1 = this.metaData.getErrorMessage4Req(id.getName());
+		const error: Localizable = { key: key1, args, defaults: defaults1 };
+		const key2 = LocalizableUtil.createFormalErrorKey(RuntimeFormalErrorEnum.PFLICHT_FELD_FEHLER)
+		const defaults2 = FehlerHandler.getAllErrorTexts(RuntimeFormalErrorEnum.PFLICHT_FELD_FEHLER)
+		const fallbackError: Localizable = { key: key2, args, defaults: defaults2 }
+		this._formalChecker.addFormalError(this.pruefErgebnis, idExtern, IFormaleFehlerConstants.FEHLER_PFLICHTFELD, [error, fallbackError], errorType)
 	}
 
 	private _getLocalizableArgs(

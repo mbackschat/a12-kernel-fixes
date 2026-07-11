@@ -32,9 +32,12 @@
 
 package com.mgmtp.a12.kernel.core.extmpspecifics.a12internal.api.xml;
 
+import lombok.Getter;
+
 /**
  * AssignmentTypes (aka. zuordnung_typ).
  */
+@Getter
 public enum AssignmentType {
 	X("Kein Mapping"),
 	V("Vordruck"),
@@ -43,13 +46,9 @@ public enum AssignmentType {
 	S("Kontext und Feld"),
 	NONE("Nicht erfasst");
 
-	protected final String printableName;
+	private final String printableName;
 
-	private AssignmentType(String printableName) {
+	AssignmentType(String printableName) {
 		this.printableName = printableName;
-	}
-
-	public String getPrintableName() {
-		return printableName;
 	}
 }

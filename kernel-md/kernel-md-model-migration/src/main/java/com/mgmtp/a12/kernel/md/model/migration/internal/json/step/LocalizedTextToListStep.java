@@ -32,18 +32,19 @@
 
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
+import static com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils.MAPPER;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * The representation of the localized text values has changed in json from a map from locale to
@@ -60,7 +61,7 @@ import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConf
  * <li>variantErrorMessages (as values of the map)</li>
  * </ul>
  */
-public class LocalizedTextToListStep extends BaseJsonNodeMigrationStep {
+public final class LocalizedTextToListStep {
 
 	private static final String HELPER_TEXT = "helperText";
 	private static final String LABEL = "label";
@@ -68,35 +69,29 @@ public class LocalizedTextToListStep extends BaseJsonNodeMigrationStep {
 	private static final String INTERNAL_DESCRIPTION = "internalDescription";
 	private static final String EXTERNAL_DESCRIPTION = "externalDescription";
 
-	private static final ObjectMapper MAPPER = new ObjectMapper();
-
 	private static final List<String> relevantFields = List.of(LABEL, ERROR_MESSAGE, INTERNAL_DESCRIPTION, EXTERNAL_DESCRIPTION,
 			HELPER_TEXT);
 
-	public LocalizedTextToListStep(MigrationCache cache, MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+	private LocalizedTextToListStep() {
 	}
 
-	@Override
-	public void execute(JsonNode model, MigrationLogger migrationLogger) {
-		relevantFields.forEach(f -> this.convertLocalizedTexts(model, f));
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
+		relevantFields.forEach(f -> convertLocalizedTexts(model, f));
 		// Variant error messages are inside of a map and therefore have to be handled separately
 		model.findValues("Rule").forEach(r -> handleVariantErrorMessages(r.get("variantErrorMessages")));
 	}
 
-	private void handleVariantErrorMessages(JsonNode jsonNode) {
+	private static void handleVariantErrorMessages(JsonNode jsonNode) {
 		if (jsonNode == null || !jsonNode.isObject()) {
 			return;
 		}
-		Iterator<String> fieldNameIterator = jsonNode.fieldNames();
-		while (fieldNameIterator.hasNext()) {
-			String fieldName = fieldNameIterator.next();
+		for (String fieldName : jsonNode.propertyNames()) {
 			convertLocalizedTextSubElement((ObjectNode) jsonNode, fieldName);
 		}
 	}
 
-	private void convertLocalizedTexts(JsonNode model, String elementName) {
+	private static void convertLocalizedTexts(JsonNode model, String elementName) {
 		List<JsonNode> localizedTextParents = model.findParents(elementName);
 		for (JsonNode localizedTextParent : localizedTextParents) {
 			if (!localizedTextParent.isObject()) {
@@ -106,7 +101,7 @@ public class LocalizedTextToListStep extends BaseJsonNodeMigrationStep {
 		}
 	}
 
-	private void convertLocalizedTextSubElement(ObjectNode localizedTextParent, String subElement) {
+	private static void convertLocalizedTextSubElement(ObjectNode localizedTextParent, String subElement) {
 		JsonNode localizedTextMapNode = localizedTextParent.get(subElement);
 		if (localizedTextMapNode == null || !localizedTextMapNode.isObject()) {
 			return;
@@ -114,7 +109,7 @@ public class LocalizedTextToListStep extends BaseJsonNodeMigrationStep {
 		localizedTextParent.set(subElement, convertLocalizedTextNode(localizedTextMapNode));
 	}
 
-	private JsonNode convertLocalizedTextNode(JsonNode localizedTextMapNode) {
+	private static JsonNode convertLocalizedTextNode(JsonNode localizedTextMapNode) {
 		Iterator<Entry<String, JsonNode>> fieldIterator = localizedTextMapNode.properties().iterator();
 		ArrayNode newValues = MAPPER.createArrayNode();
 		while (fieldIterator.hasNext()) {

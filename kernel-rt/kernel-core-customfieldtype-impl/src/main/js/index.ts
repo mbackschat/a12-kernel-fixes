@@ -34,7 +34,6 @@ export { BICVerifier } from "./BICVerifier.js";
 export { BundesfinanzamtsnummerVerifier } from "./BundesfinanzamtsnummerVerifier.js";
 export { BundessteuernummerVerifier } from "./BundessteuernummerVerifier.js";
 export { EWAzVerifier } from "./EWAzVerifier.js";
-export { GermanTaxNumberDefiningDataService } from "./GermanTaxNumberDefiningDataService.js";
 export { IBANVerifier } from "./IBANVerifier.js";
 export { IdNrVerifier } from "./IdNrVerifier.js";
 export { deserializeFadat } from "./IFadat.js";

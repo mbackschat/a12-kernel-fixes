@@ -32,40 +32,30 @@
 
 package com.mgmtp.a12.kernel.core.service.internal.errortext;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils;
-import com.mgmtp.a12.kernel.core.extmpspecifics.internal.utils.ExtmpUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
-import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.ExpandMode;
-import com.mgmtp.a12.kernel.core.parser.internal.util.AnalyseService;
-import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.ICondition;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.api.IErrortextParameter;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.api.IFieldParameter;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.api.IGroupIndexParameter;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.api.IIndexFieldParameter;
-import com.mgmtp.a12.kernel.core.service.internal.errortext.api.IRootgroupNameParameter;
-import com.mgmtp.a12.kernel.core.service.internal.errortext.api.IRootgroupRowParameter;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.api.ISemanticIndex;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.api.ISimpleFieldParameter;
-import com.mgmtp.a12.kernel.core.service.internal.errortext.creation.impl.SemanticIndex;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEC;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IField;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelSpecificSettings;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblem;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IServiceConfiguration;
+import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.core.utils.internal.CommonUtils;
+import com.mgmtp.a12.kernel.core.utils.internal.MVKCoreError;
 import com.mgmtp.a12.kernel.core.utils.internal.ProblemReporter;
 import com.mgmtp.a12.model.notification.Severity;
 
@@ -84,6 +74,68 @@ public class FehlertextUtil {
 		throw new IllegalStateException("Utility class");
 	}
 
+	public static List<String> checkErrorTextAndExtractParameters(
+			String errorText,
+			@NonNull FehlertextErrorLookup problemMessageLookup,
+			@NonNull IProblemReporter pr,
+			Object problemSource,
+			boolean isExtmp
+	) {
+		// (1) Whether an error message is required should be checked somewhere else
+		if (StringUtils.isEmpty(errorText)) {
+			return List.of();
+		}
+		// (2) Line breaks are not allowed
+		if (!checkLineSeparators(errorText)) {
+			pr.reportProblem(
+					new MVKCoreError(problemMessageLookup.getErrorMessage(FehlertextErrorType.INVALID_LINEBREAK), problemSource));
+			return List.of();
+		}
+
+		// (3) The encoding must be ISO-8859-15 for ExtMP and Unicode for A12
+		if (isExtmp) {
+			if (!isFehlertextCharsetOK(errorText)) {
+				pr.reportProblem(
+						new MVKCoreError(problemMessageLookup.getErrorMessage(FehlertextErrorType.WRONG_ENCODING, "ISO-8859-15"),
+								problemSource));
+				return List.of();
+			}
+		} else {
+			if (!isFehlertextCharsetUnicodeOK(errorText)) {
+				pr.reportProblem(
+						new MVKCoreError(problemMessageLookup.getErrorMessage(FehlertextErrorType.WRONG_ENCODING, "Unicode"),
+								problemSource));
+				return List.of();
+			}
+		}
+
+		// (4) Control characters are not allowed
+		if (!checkControlCharacters(errorText)) {
+			pr.reportProblem(
+					new MVKCoreError(problemMessageLookup.getErrorMessage(FehlertextErrorType.INVALID_CHARACTERS), problemSource));
+			return List.of();
+		}
+
+		// (5) There must be an even number of $ signs
+		if (!checkWrongNumberOfDollars(errorText)) {
+			pr.reportProblem(
+					new MVKCoreError(problemMessageLookup.getErrorMessage(FehlertextErrorType.WRONG_NUMBER_OF_DOLLARS),
+							problemSource));
+			return List.of();
+		}
+
+		// extract parameters
+		String[] parts = errorText.split("\\$");
+		List<String> parameters = new ArrayList<>();
+		for (int i = 1; i < parts.length; i = i + 2) {
+			String value = parts[i];
+			if (!StringUtils.isEmpty(value)) {
+				parameters.add(value);
+			}
+		}
+		return parameters;
+	}
+
 	/**
 	 * Überprüft das Encoding des Fehlertextes auf ISO-8859-15.
 	 */
@@ -96,267 +148,6 @@ public class FehlertextUtil {
 	 */
 	public static boolean isFehlertextCharsetUnicodeOK(String fehlerText) {
 		return CommonUtils.checkEncoding(fehlerText, "Unicode");
-	}
-
-	/**
-	 * Replaces entity references in an error text if an entity is renamed or moved.
-	 * <p>
-	 * Precondition:
-	 * The error text has to be correct.
-	 *
-	 * @param errorText
-	 * 		the error text to be changed
-	 * @param newRuleFullName
-	 * 		new full name of the rule whose error text is changed (used to determine, how the
-	 * 		new entity has to be referenced)
-	 * @param fullNameUpdater
-	 * 		determines the newFullName of a referenced entity from its oldFullName
-	 * @param rule
-	 * 		rule whose error text is changed
-	 * @param condition
-	 * 		parsed condition of the rule. Note: the condition has to be expanded
-	 *        {@link ExpandMode#EXPAND}
-	 * @param isDecoration
-	 * 		true if the adjustments are done as part of a decoration, otherwise false
-	 * @return the updated error text
-	 */
-	public static String replaceReferenceInErrorText(String errorText, String newRuleFullName,
-			UnaryOperator<String> fullNameUpdater,
-			IServiceConfiguration serviceConfiguration, IRule rule, ICondition condition, boolean isDecoration) {
-		RuleErrorTextParameterService parameterService = new RuleErrorTextParameterService(serviceConfiguration.getIEC(),
-				serviceConfiguration.getModelSpecificSettings());
-		String[] parts = errorText.split("\\$", -1);
-		ProblemReporter pm = new ProblemReporter();
-		for (int i = 1; i < parts.length; i += 2) { // only parts between two dollars are error text parameters
-			String param = parts[i];
-			if (!StringUtils.isEmpty(param)) {
-				IErrortextParameter parsedParam = parseParam(parameterService, rule, condition, param, pm);
-				if (errorTextParamContainsEntityReference(parsedParam, isDecoration)) {
-					parts[i] = replaceReferenceInErrorTextParameter(param, parsedParam, newRuleFullName,
-							fullNameUpdater, serviceConfiguration, rule, isDecoration);
-				}
-			}
-		}
-		return StringUtils.join(parts, "$");
-	}
-
-	private static IErrortextParameter parseParam(RuleErrorTextParameterService parameterService, IRule rule, ICondition condition,
-			String param, ProblemReporter pm) {
-		IErrortextParameter parsedParam = parameterService.parseParameter(rule, condition, param, pm);
-		if (pm.hasProblemOccurred(Severity.ERROR)) {
-			throw new IllegalArgumentException("Error text invalid:\n" + pm.getProblems().stream().map(IProblem::getMessage)
-					.collect(Collectors.joining("\n")));
-		}
-		return parsedParam;
-	}
-
-	/**
-	 * @param param
-	 * 		parsed error text parameter (part between the dollars of an error text parameter)
-	 * @return true, if the error text parameter is one of $#&lt;groupPath&gt;...$,
-	 * 		$&lt;field&gt;...$, false otherwise
-	 */
-	private static boolean errorTextParamContainsEntityReference(IErrortextParameter param, boolean isDecoration) {
-		return param instanceof IGroupIndexParameter || param instanceof ISimpleFieldParameter
-				|| param instanceof IRootgroupNameParameter || param instanceof IRootgroupRowParameter
-				/**
-				 * For parallel iteration the index field parameter does not reference a concrete
-				 * entity (because two index fields are involved) - that is why normally the index
-				 * field parameter is not replaced.
-				 * In contrast, for decorations the corresponding index field in the parallel group
-				 * would be renamed as well and the new name would match, so adapting the parameter
-				 * is safe. Additionally, it has to be adapted because otherwise the parameter would
-				 * be invalid after the renaming.
-				 */
-				|| (param instanceof IIndexFieldParameter && isDecoration);
-	}
-
-	/**
-	 * Replaces a reference of the old entity with a reference of the new entity. If the old entity
-	 * was not referenced in the parameter, the unmodified parameter is returned.
-	 * <p>
-	 * Precondition:
-	 * <ol>
-	 * <li>The error text parameter is correct.</li>
-	 * <li>The error text parameter is one of $#&lt;groupPath&gt;$, $&lt;field&gt;$ or
-	 * $&lt;field&gt;.Wert$</li>
-	 * </ol>
-	 *
-	 * @param origStringForNoModifyCase
-	 * @param param
-	 * 		parsed error text parameter (part between the dollars of an error text parameter)
-	 * @param newRuleFullName
-	 * 		used to determine, how the new entity has to be referenced
-	 * @param fullNameUpdater
-	 * 		used for determining the new full name of an entity
-	 * @param rule
-	 * 		rule whose error text is changed
-	 * @param isDecoration
-	 * 		true if the adjustment is done as part of a decoration, otherwise false
-	 * @return the updated error text parameter
-	 */
-	private static String replaceReferenceInErrorTextParameter(String origStringForNoModifyCase, IErrortextParameter param,
-			String newRuleFullName,
-			UnaryOperator<String> fullNameUpdater, IServiceConfiguration serviceConfiguration, IRule rule, boolean isDecoration) {
-		String oldRuleFullName = rule.getFullName();
-		if (param instanceof IGroupIndexParameter groupIndexParameter) { // parameter $#<groupPath>$
-			replaceIterationParameterInErrorText(groupIndexParameter, oldRuleFullName, newRuleFullName, fullNameUpdater,
-					serviceConfiguration);
-		} else if (param instanceof IRootgroupRowParameter rrParam) {
-			rrParam.setField(getReplacement4VordruckzeileOrVordrucknameParam(rrParam.getField(), oldRuleFullName, fullNameUpdater,
-					serviceConfiguration));
-		} else if (param instanceof IRootgroupNameParameter rnParam) {
-			rnParam.setField(getReplacement4VordruckzeileOrVordrucknameParam(rnParam.getField(), oldRuleFullName, fullNameUpdater,
-					serviceConfiguration));
-		} else if (param instanceof ISimpleFieldParameter fieldParam) {
-			fieldParam.setEntityRefInErrorText(
-					replaceEntityReference(fieldParam.getEntityRefInErrorText(), oldRuleFullName, newRuleFullName, fullNameUpdater,
-							serviceConfiguration));
-			if (fieldParam.getSemanticIndex() != null) {
-				String newSemanticIndex = replaceSemanticIndexReference(
-						fieldParam.getSemanticIndex().getSemanticIndexSpec(),
-						oldRuleFullName,
-						newRuleFullName, fullNameUpdater, serviceConfiguration);
-				var semanticIndexRefFullName = fieldParam.getSemanticIndex().getSemanticIndexRefFullName();
-				String newSemanticIndexFullname =
-						semanticIndexRefFullName != null ?
-								replaceSemanticIndexReference(semanticIndexRefFullName
-										, oldRuleFullName, newRuleFullName, fullNameUpdater, serviceConfiguration
-								) : null;
-
-				fieldParam.setSemanticIndex(new SemanticIndex(newSemanticIndex, newSemanticIndexFullname));
-			}
-		} else if (param instanceof IIndexFieldParameter indexFieldParam && isDecoration) {
-
-			IField refIndexField = getRefIndexField(indexFieldParam, rule, serviceConfiguration);
-			if (refIndexField != null) {
-				String oldFieldFullName = refIndexField.getFullName();
-				String newFieldFullName = fullNameUpdater.apply(oldFieldFullName);
-				if (!oldFieldFullName.equals(newFieldFullName)) {
-					indexFieldParam.setEntityRefInErrorText(EntityUtils.getShortName(newFieldFullName));
-				}
-			}
-		} else {
-			return origStringForNoModifyCase; // when we _know_ that nothing can possibly have changed, return the original String,
-			// in order to avoid accidental normalizations that might happen (e.g. token types that have aliases)
-		}
-		Locale lang = serviceConfiguration.getModelSpecificSettings().getLanguageUsedInConditionText();
-		return param.format(lang);
-	}//TODO[A12K-3890]: clean this method, if obsolete. Background:
-	// in the current implementation, the properties of parameters from IErrortextParameter are only adjusted
-	// partially, i.e. we set  IIndexFieldParameter.setEntityRefInErrorText but do not update IIndexFieldParameter
-	// .getFieldFullName is done.
-	// This is (or was) intended, because only the .entityRefInErrorText is process by consumers of replace.. methods in this
-	// util class.
-	// We expect with A12K-3890 that most of these methods become obsolete, and thereby need no further adjustment until then
-
-	private static String getReplacement4VordruckzeileOrVordrucknameParam(String fieldName, String oldRulePath,
-			UnaryOperator<String> pathUpdater, IServiceConfiguration serviceConfiguration) {
-		String oldPath = determineOldFullName(fieldName, oldRulePath, serviceConfiguration);
-		String newPath = pathUpdater.apply(oldPath);
-		if (fieldName.equals(oldPath)) {
-			return newPath;
-		} else {
-			String oldShortName = EntityUtils.getShortName(oldPath);
-			if (fieldName.equals(oldShortName)) {
-				String newShortName = EntityUtils.getShortName(newPath);
-				String oldRuleGroupPath = EntityUtils.getParentPath(oldRulePath);
-				boolean useShortName = ExtmpUtils.isHModel(serviceConfiguration.getModelSpecificSettings())
-						|| EntityUtils.shouldShortNameBeUsed(oldRuleGroupPath, oldPath, newPath, serviceConfiguration);
-				return useShortName ? newShortName : newPath;
-			}
-		}
-		return fieldName;
-	}
-
-	private static IField getRefIndexField(IIndexFieldParameter indexFieldParam, IRule rule,
-			IServiceConfiguration serviceConfiguration) {
-		IEC ec = serviceConfiguration.getIEC();
-
-		IEntity errorEntity = ec.get(rule.getErrorEntity().getFullName());
-		Set<IField> indexFieldsOnErrorEntityPath = AnalyseService.getIndexFields(errorEntity, ec);
-		List<IField> relevantIndexFields = indexFieldsOnErrorEntityPath.stream()
-				.filter(f -> EntityUtils.getShortName(f.getFullName()).equals(indexFieldParam.getEntityRefInErrorText()))
-				.toList();
-		return relevantIndexFields.size() == 1 ? relevantIndexFields.get(0) : null;
-	}
-
-	private static String replaceEntityReference(String entityName, String oldRuleFullName, String newRuleFullName,
-			UnaryOperator<String> fullNameUpdater, IServiceConfiguration serviceConfiguration) {
-		String oldEntityFullName = determineOldFullName(entityName, oldRuleFullName, serviceConfiguration);
-		String newEntityFullName = fullNameUpdater.apply(oldEntityFullName);
-		if (oldEntityFullName.equals(newEntityFullName)) {
-			return entityName;
-		}
-		String oldShortName = EntityUtils.getShortName(oldEntityFullName);
-		boolean useShortName = entityName.equals(oldShortName) && EntityUtils.shouldShortNameBeUsed(newRuleFullName,
-				oldEntityFullName, newEntityFullName, serviceConfiguration);
-		IEntity entity = serviceConfiguration.getIEC().get(oldEntityFullName);
-		boolean isHModel = ExtmpUtils.isHModel(serviceConfiguration.getModelSpecificSettings());
-
-		if (useShortName) {
-			return EntityUtils.getShortName(newEntityFullName);
-		}
-		return isHModel
-				? EntityUtils.getNameBuiltForConditionTextHModel(newRuleFullName, newEntityFullName, entity.isField(), false)
-				: EntityUtils.getNameBuiltForErrorTextParameterA12Model(newRuleFullName, newEntityFullName);
-	}
-
-	private static void replaceIterationParameterInErrorText(IGroupIndexParameter param, String oldRuleFullName,
-			String newRuleFullName, UnaryOperator<String> fullNameUpdater, IServiceConfiguration serviceConfiguration) {
-		String groupPath = param.getGroup();
-		var semanticIndex = param.getSemanticIndex();
-
-		if (semanticIndex != null) {
-			String newSemanticIndexSpec
-					= replaceSemanticIndexReference(semanticIndex.getSemanticIndexSpec(), oldRuleFullName, newRuleFullName,
-					fullNameUpdater,
-					serviceConfiguration);
-			if (!semanticIndex.getSemanticIndexSpec().equals(newSemanticIndexSpec)) {
-
-				var semanticIndexRefFullName = semanticIndex.getSemanticIndexRefFullName();
-				String newSemanticIndexFullname =
-						semanticIndexRefFullName != null ?
-								replaceSemanticIndexReference(semanticIndexRefFullName
-										, oldRuleFullName, newRuleFullName, fullNameUpdater, serviceConfiguration
-								) : null;
-
-				param.setSemanticIndex(new SemanticIndex(newSemanticIndexSpec, newSemanticIndexFullname));
-			}
-		}
-
-		if (param.getGroup() != null) { // Only change if not rule group
-			String newGroupName = replaceEntityReference(groupPath, oldRuleFullName, newRuleFullName, fullNameUpdater,
-					serviceConfiguration);
-			if (!newGroupName.equals(groupPath)) {
-				param.setGroup(newGroupName);
-			}
-		}
-	}
-
-	private static String replaceSemanticIndexReference(String semanticIndex, String oldRuleFullName, String newRuleFullName,
-			UnaryOperator<String> fullNameUpdater, IServiceConfiguration serviceConfiguration) {
-		if (semanticIndex.startsWith("\"")) {
-			return semanticIndex;
-		} else {
-			return replaceEntityReference(semanticIndex, oldRuleFullName, newRuleFullName, fullNameUpdater, serviceConfiguration);
-		}
-	}
-
-	private static String determineOldFullName(String entityName, String oldRuleFullName,
-			IServiceConfiguration serviceConfiguration) {
-		if (EntityUtils.isAbsolutePath(entityName)) {
-			return entityName;
-		}
-		IEntity fieldWithUniqueName = getUniquelyNamedField(entityName, serviceConfiguration.getIEC());
-		return fieldWithUniqueName == null ?
-				EntityUtils.getParentPathWithSlash(oldRuleFullName) + entityName :
-				fieldWithUniqueName.getFullName();
-	}//TODO[A12K-3890]: method should become obsolete
-
-	private static IEntity getUniquelyNamedField(String entityName, IEC ec) {
-		Set<String> fullNames = ec.shortName2FullName(EntityUtils.getShortName(entityName));
-		return fullNames.size() == 1 ? ec.get(fullNames.iterator().next()) : null;
 	}
 
 	/**
@@ -382,41 +173,45 @@ public class FehlertextUtil {
 	}
 
 	/**
-	 * specifically for A12 export, because <f1>.Vordruckzeile and <f1>.Vordruckname are not handled (those are replaced during A12 export)
+	 * specifically for A12 export, because <f1>.Vordruckzeile parameters are not handled (those are replaced during A12
+	 * export)
 	 */
-	public static String translateParamsInRuleErrorMsgAndReplaceShortnamesForA12Export(String errorMsg, IRule rule, IEC ec,
-			IModelSpecificSettings modelSpecificSettings
+	public static @NonNull String translateParamsInRuleErrorMsgAndReplaceShortnamesForA12Export(
+			@NonNull String errorMsg,
+			@NonNull IRule rule,
+			@NonNull IEC ec,
+			@NonNull IModelSpecificSettings modelSpecificSettings,
+			@NonNull Locale targetLocale
 	) {
-		return translateParamsInRuleErrorMsg(errorMsg, rule, ec, modelSpecificSettings,
-				(IErrortextParameter parsedParam) -> {
-					if (parsedParam instanceof IFieldParameter parsedField
-							// "indexField" (see grammar) references are always by shortName, and relative or absolute
-							// paths are not allowed there. Note: the name of the index field is only necessary at all if
-							// there are multiple index fields on the path of the error field, or so.
-							// (see checkIndexFieldRef in FullChecks_ErrorTextParameterParser)
-							&& !(parsedField instanceof IIndexFieldParameter)
-					) {
+		return translateParamsInRuleErrorMsg(errorMsg, rule, ec, modelSpecificSettings, targetLocale,
+				parsedParam -> switch (parsedParam) {
+					// "indexField" (see grammar) references are always by shortName, and relative or absolute
+					// paths are not allowed there. Note: the name of the index field is only necessary at all if
+					// there are multiple index fields on the path of the error field, or so.
+					// (see checkIndexFieldRef in FullChecks_ErrorTextParameterParser)
+					case IFieldParameter parsedField when !(parsedField instanceof IIndexFieldParameter) -> {
 						replaceShortnameWithAbsOrRelPath(parsedField, rule);
-						return parsedField;
-					} else if (parsedParam instanceof IGroupIndexParameter groupIndexParam) {
-						replaceShortnameWithAbsOrRelPath(groupIndexParam, rule);
-						return groupIndexParam;
-					} else {
-						// Note: <f1>.Vordruckzeile and <f1>.Vordruckname also seem to allow shortname refs for f1, but they are
-						// replaced during A12 export by the corresponding constant values, so we don't need to handle them here
-						return parsedParam;
+						yield parsedField;
 					}
+					case IGroupIndexParameter groupIndexParam -> {
+						replaceShortnameWithAbsOrRelPath(groupIndexParam, rule);
+						yield groupIndexParam;
+					}
+					// Note: <f1>.Vordruckzeile parameters also seem to allow shortname refs for f1, but they are
+					// replaced during A12 export by the corresponding constant values, so we don't need to handle them here
+					case null, default -> parsedParam;
 				});
 	}
 
 	private static void replaceShortnameWithAbsOrRelPath(IFieldParameter parsedField, IRule rule) {
-		if(parsedField.getFieldFullName() != null //at the time of implementation the null case could not happen, yet we are defensive in not throwing
-			&& !parsedField.getEntityRefInErrorText().contains(EntityUtils.SEPARATOR) //rel paths or absolute paths are not replaced
+		if (parsedField.getFieldFullName() != null //at the time of implementation the null case could not happen, yet we are defensive in not throwing
+				&& !parsedField.getEntityRefInErrorText()
+				.contains(EntityUtils.SEPARATOR) //rel paths or absolute paths are not replaced
 		) {
 			parsedField.setEntityRefInErrorText(makeRelOrAbsPath(parsedField.getFieldFullName(), rule));
 		}
 
-		if(parsedField instanceof ISimpleFieldParameter parsedSimpleField) { // the other sub-interface, IIndexFieldParameter, corresponds to the index(...) language construct in the errtextparam grammar that does not currently support non-shortnames
+		if (parsedField instanceof ISimpleFieldParameter parsedSimpleField) { // the other sub-interface, IIndexFieldParameter, corresponds to the index(...) language construct in the errtextparam grammar that does not currently support non-shortnames
 			parsedSimpleField.setSemanticIndex(
 					replaceShortNameInSemanticIndexSpec(parsedSimpleField.getSemanticIndex(), rule));
 		}
@@ -437,10 +232,10 @@ public class FehlertextUtil {
 	 * </ul>
 	 */
 	private static ISemanticIndex replaceShortNameInSemanticIndexSpec(ISemanticIndex semanticIndex, IRule rule) {
-		if(semanticIndex == null) {
+		if (semanticIndex == null) {
 			return null;
 		}
-		var semIdxFullName =  semanticIndex.getSemanticIndexRefFullName();
+		var semIdxFullName = semanticIndex.getSemanticIndexRefFullName();
 		String semIdxSpec = semanticIndex.getSemanticIndexSpec();
 		if (semIdxFullName != null // if this is null, the ISemanticIndex probably uses a constant rather than a field ref
 				&& semIdxSpec != null // this should never actually be null, at least not if semIdxFullName != null
@@ -463,7 +258,7 @@ public class FehlertextUtil {
 	}
 
 	/**
-	 * Translate the parameter found in the given rule error message to English.
+	 * Translate the parameter found in the given rule error message to the provided target locale.
 	 *
 	 * @param errorMsg
 	 * 		error message to be translated, may not be null. The error message has to be
@@ -473,10 +268,16 @@ public class FehlertextUtil {
 	 * @param mapParsedParamAndMaybeModify
 	 * 		optional; skipped if null. The supplied function is allowed to modify or destroy the
 	 * 		given parameter as a side effect.
+	 * @param targetLocale
+	 * 		the locale to translate the parameters to
 	 * @return the translated rule error message.
 	 */
-	public static String translateParamsInRuleErrorMsg(String errorMsg, IRule rule, IEC ec,
-			IModelSpecificSettings modelSpecificSettings,
+	public static @NonNull String translateParamsInRuleErrorMsg(
+			@NonNull String errorMsg,
+			@NonNull IRule rule,
+			@NonNull IEC ec,
+			@NonNull IModelSpecificSettings modelSpecificSettings,
+			@NonNull Locale targetLocale,
 			Function<IErrortextParameter, IErrortextParameter> mapParsedParamAndMaybeModify
 	) {
 		RuleErrorTextParameterService parameterService = new RuleErrorTextParameterService(ec, modelSpecificSettings);
@@ -492,7 +293,7 @@ public class FehlertextUtil {
 			if (mapParsedParamAndMaybeModify != null) {
 				parsedParam = mapParsedParamAndMaybeModify.apply(parsedParam);
 			}
-			param = parsedParam.format(Locale.US);
+			param = parsedParam.format(targetLocale);
 			return param;
 		});
 	}

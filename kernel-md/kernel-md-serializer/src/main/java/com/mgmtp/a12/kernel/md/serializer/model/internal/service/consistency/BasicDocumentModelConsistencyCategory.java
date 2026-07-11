@@ -51,6 +51,7 @@ public enum BasicDocumentModelConsistencyCategory implements ConsistencyCategory
 	ENUM_TYPE_DUPLICATE_CATEGORIES("problem.document.basic.enumTypeDuplicateCategories"),
 	LOCALIZED_TEXT_ELEMENT_NULL_PROBLEM("problem.document.basic.element.localizedTextNull"),
 	LOCALIZED_TEXT_TYPEDEF_NULL_PROBLEM("problem.document.basic.typedef.localizedTextNull"),
+	LOCALIZED_TEXT_UNIQUENESS_CRITERION_NULL_PROBLEM("problem.document.basic.documentUniquenessCriterion.localizedTextNullOrEmpty"),
 	INDEX_FIELD_NAME_EMPTY("problem.document.basic.any.indexFieldNameEmpty"),
 	SORT_FIELD_NAME_EMPTY("problem.document.basic.any.sortFieldNameEmpty"),
 	TYPEDEF_TYPE_REF_EMPTY("problem.document.basic.any.typedefTypeRefEmpty"),

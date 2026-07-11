@@ -56,7 +56,7 @@ public class SemanticIndices4ErrorFieldVisitor extends ASTVisitor {
 
 	private boolean inFilterCondition = false;
 
-	public SemanticIndices4ErrorFieldVisitor(String errorFieldName) {
+	private SemanticIndices4ErrorFieldVisitor(String errorFieldName) {
 		this.errorFieldName = errorFieldName;
 	}
 

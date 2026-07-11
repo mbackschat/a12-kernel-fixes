@@ -48,9 +48,10 @@ import { IFormaleFehlerConstants } from "../util/IFormaleFehlerConstants.js";
 import { LocalizableUtil } from "../util/LocalizableUtil.js";
 import { RtExternalIdentifier } from "../util/RtExternalIdentifier.js";
 import { RtInternalIdentifier } from "../util/RtInternalIdentifier.js";
-import { ValidType } from "../util/ValidType.js";
 
 import { IteratorWrapper } from "../util/IteratorWrapper.js";
+
+import { ValidType } from "../util/ValidType.js";
 
 import { FormalChecker } from "./FormalChecker.js";
 import type { IMetaDataValidierung } from "./IMetaDataValidierung.js";
@@ -73,9 +74,6 @@ export class CheckCommand {
 	protected _validationCache: ValidationCache;
 	protected _formalChecker: FormalChecker;
 
-	// Globale Daten für eine Auswertung
-	// Zähler für Anzahl gefundener Testfehler
-	protected _anzTestFehler = 0;
 
 	constructor(
 		validator: IValidatorIntern | undefined,
@@ -122,7 +120,7 @@ export class CheckCommand {
 	): void {
 		const startMesspunkt: number = this._logger.startMesspunkt();
 		const relevantFieldsCache: Map<string, Set<RtInternalIdentifier>> | null = relevantFields != null
-			? this._makeRelevanteFelderCache(this._addAllParentGroups(relevantFields))
+			? this._makeRelevanteFelderCache(this._addAllParentGroups(relevantFields) as any)
 			: null;
 
 		for (const idExtern of new IteratorWrapper(this._validationCache.getDaten().iterator())) {
@@ -165,9 +163,6 @@ export class CheckCommand {
 			if (fieldValueCheck.validity === ValidType.Invalid) {
 				this._validationCache.addInvalidFieldValue(idIntern, RtExternalIdentifier.ensureImpl(idExtern));
 			} else {
-				if (fieldValueCheck.validity === ValidType.Test) {
-					this._anzTestFehler++;
-				}
 				if (fieldValueCheck.normalizedValue !== undefined && fieldValueCheck.internalXmlValue !== undefined) {
 					this._validationCache.addValidFieldValueIfAbsent(idIntern, fieldValueCheck.normalizedValue, fieldValueCheck.internalXmlValue);
 				} else { // considered valid, but the value should not be interned
@@ -221,7 +216,7 @@ export class CheckCommand {
 					value.getName(),
 					Array.from({ length: value.getIndices().length }, () => 0)),
 				IFormaleFehlerConstants.FEHLER_FELD_UNBEKANNT,
-				LocalizableUtil.createLocalizableFormalError(RuntimeFormalErrorEnum.FEHLER_FELD_UNBEKANNT)
+				[LocalizableUtil.createLocalizableFormalError(RuntimeFormalErrorEnum.FEHLER_FELD_UNBEKANNT)]
 			);
 		}
 	}
@@ -252,7 +247,7 @@ export class CheckCommand {
 			}
 			set.add(id);
 		}
-		return result;
+		return result as any;
 	}
 
 	private _addAllParentGroups(

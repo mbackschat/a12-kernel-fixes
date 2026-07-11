@@ -32,21 +32,13 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.service.consistency.rules;
 
-import com.mgmtp.a12.kernel.core.utils.internal.consistency.DocumentModelConsistencyProblem;
 import com.mgmtp.a12.kernel.core.utils.internal.consistency.DocumentModelConsistencyProblemReporter;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
-import com.mgmtp.a12.kernel.md.model.internal.service.consistency.DocumentModelCategory;
 import com.mgmtp.a12.kernel.md.model.internal.service.consistency.DocumentModelConsistencyRule;
 import com.mgmtp.a12.kernel.md.serializer.model.internal.service.consistency.BasicConsistencyCheck;
 
 public class BasicConsistencyCheckFromSerializerRule extends DocumentModelConsistencyRule {
 	@Override public void checkModel(IDocumentModel model, DocumentModelConsistencyProblemReporter pr) {
-		BasicConsistencyCheck.checkModel(model, iProblem -> pr.reportProblem(new DocumentModelConsistencyProblem(
-				model.getHeader().getId(),
-				model,
-				DocumentModelCategory.DOCUMENT_MODEL_CONSISTENCY_CHECK_FROM_SERIALIZER_PROBLEM,
-				iProblem.getSeverity(),
-				iProblem.getMessage()
-		)));
+		BasicConsistencyCheck.checkModel(model, pr);
 	}
 }

@@ -32,18 +32,13 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
-import java.util.Optional;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.mgmtp.a12.kernel.md.model.a12internal.Rule;
-import com.mgmtp.a12.kernel.md.model.a12internal.VariantFilter;
+
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 public class RuleSerializer extends StdSerializer<Rule> {
-
-	private static final long serialVersionUID = 5841770312742112434L;
 
 	public RuleSerializer() {
 		this(null);
@@ -54,28 +49,19 @@ public class RuleSerializer extends StdSerializer<Rule> {
 	}
 
 	@Override
-	public void serialize(Rule value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+	public void serialize(Rule value, JsonGenerator gen, SerializationContext provider) {
 		gen.writeStartObject();
-		gen.writeStringField("errorEntityRelPath", value.getErrorEntity().getRelativePath());
-		gen.writeStringField("errorCode", value.getErrorCode());
-		gen.writeStringField("errorCondition", value.getErrorCondition());
-		gen.writeObjectField("severity", value.getSeverity());
+		gen.writeStringProperty("errorEntityRelPath", value.getErrorEntity().getRelativePath());
+		gen.writeStringProperty("errorCode", value.getErrorCode());
+		gen.writeStringProperty("errorCondition", value.getErrorCondition());
+		gen.writePOJOProperty("severity", value.getSeverity());
 		if (!value.getErrorMessage().isEmpty()) {
-			gen.writeFieldName("errorMessage");
-			JsonMapper.getWriterForNoNonEmpty().writeValue(gen, value.getErrorMessage());
+			gen.writeName("errorMessage");
+			KernelJsonMapper.getWriterForNoNonEmpty().writeValue(gen, value.getErrorMessage());
 		}
 		if (!value.getGuiPatterns().isEmpty()) {
-			gen.writeFieldName("guiPatterns");
-			JsonMapper.getWriterForNoNonEmpty().writeValue(gen, value.getGuiPatterns());
-		}
-		Optional<VariantFilter> variantFilter = value.getVariantFilter();
-		if (variantFilter.isPresent()) {
-			gen.writeFieldName("variantFilter");
-			JsonMapper.getWriterForNoNonEmpty().writeValue(gen, variantFilter.get());
-		}
-		if (!value.getVariantErrorMessages().isEmpty()) {
-			gen.writeFieldName("variantErrorMessages");
-			JsonMapper.getWriterForNoNonEmpty().writeValue(gen, value.getVariantErrorMessages());
+			gen.writeName("guiPatterns");
+			KernelJsonMapper.getWriterForNoNonEmpty().writeValue(gen, value.getGuiPatterns());
 		}
 		gen.writeEndObject();
 	}

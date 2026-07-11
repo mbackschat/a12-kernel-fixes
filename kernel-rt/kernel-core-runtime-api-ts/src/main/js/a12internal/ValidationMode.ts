@@ -88,24 +88,12 @@ export class ValidationMode {
 	public _dataFormats: DataFormats = {} as DataFormats;
 
 	/**
-	 * Additional information that will be passed to the project specific implementation of the
-	 * custom field types.
-	 * 
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589.
-	 */
-	private _additionalInformation: Map<string, any> = new Map<string, any>();
-
-	/**
 	 * The factory for the custom conditions that should be used.
-	 *
-	 * Note: If provided, this will take precedence over the implementations that were statically registered via {@link CustomConditionService}.
 	 */
 	public customConditionFactory: ICustomConditionFactory | undefined;
 
 	/**
 	 * The factory for the custom field types that should be used.
-	 *
-	 * Note: If provided, this will take precedence over the implementations that were statically registered via {@link CustomFieldTypeService}.
 	 */
 	public customFieldTypeFactory: ICustomFieldTypeFactory | undefined;
 
@@ -156,47 +144,6 @@ export class ValidationMode {
 	 */
 	public setDataFormats(dataFormats: DataFormats) {
 		this._dataFormats = dataFormats;
-	}
-
-	/**
-	 * Set the additional information for a specified key.
-	 * (See {@link getAllAdditionalInformation})
-	 *
-	 * @param key 	the key, for which the value will be specified.
-	 * @param value 	the value for the specified key.
-	 * 
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use customConditions() or customFieldTypes() instead. In your
-	 * 		implementation of {@link ICustomFieldTypeFactory} or {@link ICustomConditionFactory} you can already create the
-	 * 		objects in the suitable configuration. Therefore, it is not necessary to pass this data all the way through any
-	 * 		longer.
-	 */
-	public setAdditionalInformation(key: string, value: any) {
-		this._additionalInformation.set(key, value);
-	}
-
-	/**
-	 * Get the additional information for a specified key.
-	 * (See {@link getAllAdditionalInformation})
-	 *
-	 * @param key 	the key, for which the value will be retrieved.
-	 * @return the value for the specified key.
-	 * 
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589.
-	 */
-	public getAdditionalInformation(key: string): any {
-		return this._additionalInformation.get(key);
-	}
-
-	/**
-	 * @return the additional information that will be passed to the project specific implementation of
-	 *         the custom field types.
-	 * 
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #customFieldTypeFactory()}  instead. In your
-	 * 		implementation of {@link ICustomFieldTypeFactory} you can already create the objects in the suitable configuration.
-	 * 		Therefore, it is not necessary to pass this data all the way through any longer.
-	 */
-	public getAllAdditionalInformation(): Map<string, any> {
-		return this._additionalInformation;
 	}
 
 	public getCurrentDateForTest(): Date | undefined {

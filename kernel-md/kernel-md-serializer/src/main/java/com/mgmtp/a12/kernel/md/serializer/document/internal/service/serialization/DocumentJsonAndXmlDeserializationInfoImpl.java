@@ -39,7 +39,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import com.fasterxml.jackson.databind.node.ValueNode;
 import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentDeserializationConfig;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
@@ -57,6 +56,7 @@ import com.mgmtp.a12.kernel.md.serializer.document.internal.service.serializatio
 import com.mgmtp.a12.model.notification.RankedNotification;
 
 import lombok.NonNull;
+import tools.jackson.databind.node.ValueNode;
 
 public class DocumentJsonAndXmlDeserializationInfoImpl
 		implements DocumentV2JsonReader.IDeserializationInfo, DocumentV2XmlReader.IDeserializationInfo {
@@ -93,7 +93,7 @@ public class DocumentJsonAndXmlDeserializationInfoImpl
 	@Override public Optional<FieldInstanceV2> parseFieldValue(ValueNode value) {
 		// special case of document id. It is like a string field but not present in the dm
 		if (("/" + DocumentSerializerImpl.ID).equals(fullName)) {
-			if (!value.isTextual()) {
+			if (!value.isString()) {
 				// int/float was previously allowed
 				if (value.isNumber()) {
 					assert false : "The document id is a number, but should be a string";
@@ -102,10 +102,10 @@ public class DocumentJsonAndXmlDeserializationInfoImpl
 							"The value type of the document id is not supported. The id should be a string.");
 				}
 			}
-			return Optional.of(FieldInstanceV2.ofValue(value.asText()));
+			return Optional.of(FieldInstanceV2.ofValue(value.asString()));
 		}
 
-		String strValue = value.isNull() ? null : value.asText(); // note: we don't _need_ to stringify numbers and booleans,
+		String strValue = value.isNull() ? null : value.asString(); // note: we don't _need_ to stringify numbers and booleans,
 		// but the old impl was like this, and it makes subsequent processing more uniform
 		// from json, we could in principle skip the lookup in the dm for values of type number or boolean, but since we need
 		// the dm to disambiguate string and date/time values, and for parsing date/time values, it seems less suprising and more
@@ -124,8 +124,7 @@ public class DocumentJsonAndXmlDeserializationInfoImpl
 
 		String strValue = fieldElement.textContent();
 		if (strValue.isEmpty() &&
-				("true".equals(fieldElement.attributes().get("xsi:nil"))
-						|| config.isReadEmptyAsNull() && !"true".equals(fieldElement.attributes().get("emptyValue")))
+				"true".equals(fieldElement.attributes().get("xsi:nil"))
 		) {
 			strValue = null;
 		}
@@ -138,7 +137,7 @@ public class DocumentJsonAndXmlDeserializationInfoImpl
 	/**
 	 * @param strValueNullable
 	 * 		the string value of the field, as stored in the xml serialization format or as obtained from
-	 *        {@link ValueNode#asText()} from our json serialization format (both string representations "happen" to be the same at this
+	 *        {@link ValueNode#asString()} from our json serialization format (both string representations "happen" to be the same at this
 	 * 		point, after normalization of the null representation).
 	 */
 	private Optional<FieldInstanceV2> parseStringValueCommon(String strValueNullable) {
@@ -170,8 +169,12 @@ public class DocumentJsonAndXmlDeserializationInfoImpl
 	/**
 	 * If parsing of a value failed ({@link FieldValueConverter.ConversionResult#success()} is false), fall back to the original
 	 * unparsed string value.
-	 * This is done for compatibility with the previous parsing behavior, and should probably be removed in the next breaking
-	 * release.
+	 * </p>
+	 * This is done for compatibility with the previous parsing behavior, we considered removing this fallback to simplify the
+	 * serialization semantics and enforce more consistent data, but decided that it seems to worth it to "clean up" the old json
+	 * serialization format, and we should focus both our effort and migration effort of users on a fresh, dm-independent
+	 * serialization format for a12 documents.
+	 * </p>
 	 * Assumes that in case of failed conversion, an error has already been reported
 	 */
 	private Optional<FieldInstanceV2> handleValueConversionResultFallback(FieldValueConverter.ConversionResult conversionResult,
@@ -179,8 +182,10 @@ public class DocumentJsonAndXmlDeserializationInfoImpl
 		if (conversionResult.success()) {
 			return Optional.of(FieldInstanceV2.ofValue(conversionResult.convertedValueNullable()));
 		} else {
-			// [A12K-3638] now the more sensible thing would probably be to return Optional.empty() and not include the broken value in the result, but to
-			// preserve compatibility in the upcoming non-breaking release, let's nonetheless include the string value
+			// Note: we had previously planned to remove the following fallback behavior, but decided to leave it unchanged and
+			//       focus on a fresh, simpler, dm-independent serialization format instead, see comment in the javadoc of this
+			//       method. _some_ considerations related to the fallback are kept below, in case we should reevaluate the
+			//       "leave-as-is" decision later:
 			// Some preliminary thoughts:
 			// - passing the broken value through has some merit with the reasoning "we must deserialize it first so the user can fix it and an error gets reported anyway"
 			// - but if users ignore the error, broken values could maybe be completely hidden unless validation is called? (_serialiation takes strings

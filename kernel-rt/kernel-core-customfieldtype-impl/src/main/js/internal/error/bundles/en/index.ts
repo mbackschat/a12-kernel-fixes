@@ -98,10 +98,7 @@ set(
 	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IBAN_LEERZEICHEN_UNGUELTIG],
 	"Invalid IBAN: If the provided IBAN contains spaces, the spaces must be after every 4th character."
 );
-set(
-	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST],
-	"Field is a test identification number that is only valid for testing."
-);
+set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST], "Invalid identification number.");
 set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_NICHT_NUMERISCH], "Invalid identification number.");
 set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_ZIFFERNFOLGE_FEHLER], "Invalid identification number.");
 set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_LAENGE_UNGUELTIG], "Invalid identification number.");

@@ -46,8 +46,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.FieldTypeConstants;
-import com.mgmtp.a12.kernel.md.document.api.IFieldInstance;
-import com.mgmtp.a12.kernel.md.document.api.services.IDocumentService;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
 import com.mgmtp.a12.kernel.md.model.api.IElement;
 import com.mgmtp.a12.kernel.md.model.api.IField;
@@ -74,10 +72,15 @@ import com.mgmtp.a12.utils.conversion.a12internal.util.NumberUtil;
 import lombok.NonNull;
 
 /**
- * Implements the functionality for
- * {@link IDocumentService#convertToJavaType(IFieldInstance, String, Consumer)}.
+ * Converts field values between {@link BasicTypeV2} and the string representations of our json/xml serialization formats.
  * <p>
- * This converts field values between {@link BasicTypeV2} and the string representations of our json/xml serialization formats.
+ * The converted value will be one of {@link java.math.BigDecimal}, {@link java.time.Instant},
+ * {@link com.mgmtp.a12.utils.conversion.InstantRange}, {@link Boolean}, {@link String} or {@code null}.
+ * The target type is determined based on the {@link com.mgmtp.a12.kernel.md.model.api.fieldtypes.IFieldType} of the
+ * corresponding {@link com.mgmtp.a12.kernel.md.model.api.IField}.
+ * <p>
+ * This functionality is exposed via {@link com.mgmtp.a12.kernel.md.document.apiV2.services.IDmAwareDocService#convertToJavaTypeV2}
+ * and used internally for document deserialization.
  */
 public class FieldValueConverter {
 	public static final int DEFAULT_BASE_YEAR = 2000;
@@ -142,7 +145,7 @@ public class FieldValueConverter {
 	}
 
 	public static @NonNull ConversionResult convertToJavaTypeV2(
-			final String path,
+			final String pathOnlyRelevantForErrorReporting,
 			final List<Integer> indexesOnlyRelevantForErrorReporting,
 			final IField field,
 			final String value,
@@ -150,12 +153,12 @@ public class FieldValueConverter {
 			final Consumer<RankedNotification> notificationReceiver,
 			TimeZone timeZone
 	) {
-		return convertToJavaTypeV2Internal(path, indexesOnlyRelevantForErrorReporting, field, value, baseYear, notificationReceiver,
-				timeZone);
+		return convertToJavaTypeV2Internal(pathOnlyRelevantForErrorReporting, indexesOnlyRelevantForErrorReporting, field, value,
+				baseYear, notificationReceiver, timeZone);
 	}
 
 	private static @NonNull ConversionResult convertToJavaTypeV2Internal(
-			final String path,
+			final String pathOnlyRelevantForErrorReporting,
 			final List<Integer> indexesOnlyRelevantForErrorReporting,
 			final IField field,
 			String value,
@@ -165,30 +168,30 @@ public class FieldValueConverter {
 	) {
 		final Optional<IFieldType> optionalType = field.getEffectiveType();
 		if (optionalType.isEmpty()) {
-			notificationReceiver.accept(error(String.format(FIELD_TYPE_RESOLUTION_NEEDED, path)));
+			notificationReceiver.accept(error(String.format(FIELD_TYPE_RESOLUTION_NEEDED, pathOnlyRelevantForErrorReporting)));
 			return ConversionResult.failure();
 		}
 		IFieldType type = optionalType.get();
 		return switch (type) {
-			case IBooleanType bType -> parseBoolean(path, indexesOnlyRelevantForErrorReporting, value, notificationReceiver);
+			case IBooleanType bType -> parseBoolean(pathOnlyRelevantForErrorReporting, indexesOnlyRelevantForErrorReporting, value,
+					notificationReceiver);
 			case IDateType dType ->
-					parseDate(dType.getFormat(), dType.arePartiallyKnownDatesAllowed(), path, indexesOnlyRelevantForErrorReporting,
-							value, baseYear,
-							notificationReceiver, timeZone);
-			case IDateFragmentType dfType ->
-					parseDate(dfType.getFormatOfFragment(), false, path, indexesOnlyRelevantForErrorReporting, value, baseYear,
-							notificationReceiver,
-							timeZone);
+					parseDate(dType.getFormat(), dType.arePartiallyKnownDatesAllowed(), pathOnlyRelevantForErrorReporting,
+							indexesOnlyRelevantForErrorReporting, value, baseYear, notificationReceiver, timeZone);
+			case IDateFragmentType dfType -> parseDate(dfType.getFormatOfFragment(), false, pathOnlyRelevantForErrorReporting,
+					indexesOnlyRelevantForErrorReporting, value, baseYear, notificationReceiver, timeZone);
 			case INumberType numberType ->
-					parseNumber(path, indexesOnlyRelevantForErrorReporting, value, numberType.isLeadingZerosAllowed(),
-							notificationReceiver);
+					parseNumber(pathOnlyRelevantForErrorReporting, indexesOnlyRelevantForErrorReporting, value,
+							numberType.isLeadingZerosAllowed(), notificationReceiver);
 			case IStringType stringType -> ConversionResult.success(value);
 			case IEnumerationType enumerationType -> ConversionResult.success(value);
-			case IConfirmType confirmType -> parseConfirm(path, indexesOnlyRelevantForErrorReporting, value, notificationReceiver);
+			case IConfirmType confirmType ->
+					parseConfirm(pathOnlyRelevantForErrorReporting, indexesOnlyRelevantForErrorReporting, value,
+							notificationReceiver);
 			case ICustomFieldType customFieldType -> ConversionResult.success(value);
 			case IDateRangeType dateRange ->
-					parseDateRange(dateRange, path, indexesOnlyRelevantForErrorReporting, value, baseYear, notificationReceiver,
-							timeZone);
+					parseDateRange(dateRange, pathOnlyRelevantForErrorReporting, indexesOnlyRelevantForErrorReporting, value,
+							baseYear, notificationReceiver, timeZone);
 			default -> throw new IllegalArgumentException(
 					"Encountered unknown field data type '" + type.getClass().getSimpleName() + "'.");
 		};
@@ -197,8 +200,9 @@ public class FieldValueConverter {
 	/**
 	 * This conversion logic must be similar (or even equal) to 'FormatDefinitionDatum#convertToBasicType'.
 	 */
-	private static @NonNull ConversionResult parseDate(final String dateFormat, final boolean arePartiallyKnownDatesAllowed,
-			final String path,
+	private static @NonNull ConversionResult parseDate(final @NonNull String dateFormat,
+			final boolean arePartiallyKnownDatesAllowed,
+			final String pathOnlyRelevantForErrorReporting,
 			final List<Integer> indexesOnlyRelevantForErrorReporting, final String value, int baseYear,
 			final Consumer<RankedNotification> notificationReceiver,
 			final TimeZone timeZone) {
@@ -214,8 +218,8 @@ public class FieldValueConverter {
 		} catch (RuntimeException e) {
 			notificationReceiver.accept(error(String.format(CANNOT_CONVERT_TO,
 					indexesOnlyRelevantForErrorReporting != null ?
-							DocumentPointer.of(path, indexesOnlyRelevantForErrorReporting) :
-							path, "date representation")));
+							DocumentPointer.of(pathOnlyRelevantForErrorReporting, indexesOnlyRelevantForErrorReporting) :
+							pathOnlyRelevantForErrorReporting, "date representation")));
 			return ConversionResult.failure();
 		}
 	}
@@ -225,7 +229,7 @@ public class FieldValueConverter {
 	 *
 	 * @return a {@link ConversionResult} that contains a java.util.Date[] or null if successful
 	 */
-	private static @NonNull ConversionResult parseDateRange(IDateRangeType drType, final String path,
+	private static @NonNull ConversionResult parseDateRange(IDateRangeType drType, final String pathOnlyRelevantForErrorReporting,
 			final List<Integer> indexesOnlyRelevantForErrorReporting,
 			final String value, int baseYear, final Consumer<RankedNotification> notificationReceiver, TimeZone timeZone) {
 		// treat "" like null, convert both to null (without reporting an error for "", despite the non-standard representation)
@@ -242,8 +246,8 @@ public class FieldValueConverter {
 		} catch (RuntimeException e) {
 			notificationReceiver.accept(error(
 					String.format(CANNOT_CONVERT_TO, indexesOnlyRelevantForErrorReporting != null ?
-									DocumentPointer.of(path, indexesOnlyRelevantForErrorReporting) :
-									path,
+									DocumentPointer.of(pathOnlyRelevantForErrorReporting, indexesOnlyRelevantForErrorReporting) :
+									pathOnlyRelevantForErrorReporting,
 							"date range representation")));
 			return ConversionResult.failure();
 		}
@@ -263,7 +267,7 @@ public class FieldValueConverter {
 	/**
 	 * This conversion logic must call the same logic as in 'FormatDefinitionZahl#convertToBasicType(..)'.
 	 */
-	private static @NonNull ConversionResult parseNumber(final String path,
+	private static @NonNull ConversionResult parseNumber(final String pathOnlyRelevantForErrorReporting,
 			final List<Integer> indexesOnlyRelevantForErrorReporting, final String value,
 			final boolean leadingZerosAllowed,
 			final Consumer<RankedNotification> notificationReceiver) {
@@ -281,8 +285,8 @@ public class FieldValueConverter {
 		} catch (final NumberFormatException nfe) {
 			notificationReceiver.accept(error(
 					String.format(CANNOT_CONVERT_TO, indexesOnlyRelevantForErrorReporting != null ?
-							DocumentPointer.of(path, indexesOnlyRelevantForErrorReporting) :
-							path, "number")));
+							DocumentPointer.of(pathOnlyRelevantForErrorReporting, indexesOnlyRelevantForErrorReporting) :
+							pathOnlyRelevantForErrorReporting, "number")));
 			return ConversionResult.failure();
 		}
 	}
@@ -290,7 +294,7 @@ public class FieldValueConverter {
 	/**
 	 * @return a {@link ConversionResult} with Boolean (or null) value if successful
 	 */
-	private static @NonNull ConversionResult parseConfirm(final String path,
+	private static @NonNull ConversionResult parseConfirm(final String pathOnlyRelevantForErrorReporting,
 			final List<Integer> indexesOnlyRelevantForErrorReporting, final String value,
 			final Consumer<RankedNotification> notificationReceiver) {
 		// treat "" like null, convert both to null (without reporting an error for "", despite the non-standard representation)
@@ -302,8 +306,8 @@ public class FieldValueConverter {
 		} else {
 			notificationReceiver.accept(error(
 					String.format(CANNOT_CONVERT_TO, indexesOnlyRelevantForErrorReporting != null ?
-							DocumentPointer.of(path, indexesOnlyRelevantForErrorReporting) :
-							path, "confirm")));
+							DocumentPointer.of(pathOnlyRelevantForErrorReporting, indexesOnlyRelevantForErrorReporting) :
+							pathOnlyRelevantForErrorReporting, "confirm")));
 			return ConversionResult.failure();
 		}
 	}
@@ -311,7 +315,7 @@ public class FieldValueConverter {
 	/**
 	 * @return a {@link ConversionResult} with Boolean (or null) value if successfull
 	 */
-	private static @NonNull ConversionResult parseBoolean(final String path,
+	private static @NonNull ConversionResult parseBoolean(final String pathOnlyRelevantForErrorReporting,
 			final List<Integer> indexesOnlyRelevantForErrorReporting, final String value,
 			final Consumer<RankedNotification> notificationReceiver) {
 		// treat "" like null, convert both to null (without reporting an error for "", despite the non-standard representation)
@@ -326,8 +330,8 @@ public class FieldValueConverter {
 		} else {
 			notificationReceiver.accept(error(
 					String.format(CANNOT_CONVERT_TO, indexesOnlyRelevantForErrorReporting != null ?
-									DocumentPointer.of(path, indexesOnlyRelevantForErrorReporting) :
-									path,
+									DocumentPointer.of(pathOnlyRelevantForErrorReporting, indexesOnlyRelevantForErrorReporting) :
+									pathOnlyRelevantForErrorReporting,
 							"boolean")));
 			return ConversionResult.failure();
 		}

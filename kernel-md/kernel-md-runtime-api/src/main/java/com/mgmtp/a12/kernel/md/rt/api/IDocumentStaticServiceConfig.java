@@ -34,7 +34,6 @@ package com.mgmtp.a12.kernel.md.rt.api;
 
 import java.util.Optional;
 
-import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.model.api.services.IValidationCodeGeneratorConfig;
 
 /**
@@ -48,7 +47,7 @@ public interface IDocumentStaticServiceConfig extends IDocumentServiceConfig {
 
 	/**
 	 * @param documentModelId
-	 * 		the document model id according to {@link IDocumentModelIdProvider#getDocumentModelId(IDocumentModel, String)}.
+	 * 		the document model id according to {@link IDocumentModelIdProvider#getDocumentModelId}.
 	 * @return the java package for the specified document model, that means, the java package which the generated java code resides
 	 * 		in. This value must fit to the value returned in your implementation of
 	 *        {@link IValidationCodeGeneratorConfig#getPackageName()} when you generated the code you want to use here.
@@ -61,7 +60,7 @@ public interface IDocumentStaticServiceConfig extends IDocumentServiceConfig {
 
 	/**
 	 * @param documentModelId
-	 * 		the document model id according to {@link IDocumentModelIdProvider#getDocumentModelId(IDocumentModel, String)}.
+	 * 		the document model id according to {@link IDocumentModelIdProvider#getDocumentModelId}.
 	 * 		This parameter can be evaluated, for example, if the application uses a large number of document models
 	 * 		that are to be dynamically exchanged individually. In this case, a specific class loader could be used
 	 * 		to access the generated code of a document model.
@@ -70,9 +69,9 @@ public interface IDocumentStaticServiceConfig extends IDocumentServiceConfig {
 	 * 		returned here, it must extend the default classloader - e.g. as follows:
 	 * 		<br>
 	 * 		<pre>{@code
-	 * 			URL[] urls = new URL[]{pathToGeneratJar.toUri().toURL()};
-	 * 			ClassLoader myClassLoader = new URLClassLoader(urls, Thread.currentThread().getContextClassLoader());
-	 *      }</pre>
+	 * 					URL[] urls = new URL[]{pathToGeneratJar.toUri().toURL()};
+	 * 					ClassLoader myClassLoader = new URLClassLoader(urls, Thread.currentThread().getContextClassLoader());
+	 *             }</pre>
 	 */
 	default Optional<ClassLoader> getModelCodeClassLoader(String documentModelId) {
 		return Optional.empty();

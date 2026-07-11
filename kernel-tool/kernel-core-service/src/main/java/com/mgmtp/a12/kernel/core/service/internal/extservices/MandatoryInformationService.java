@@ -507,7 +507,7 @@ public class MandatoryInformationService {
 				for (RegelInfo rInfo : ruleInfo) {
 					if (rInfo.istGleichFuerAlleLfdNr()) {
 						Collection<IEntityId> ids = ReferencedIdsUtil.getDirektReferenzierteIFeldIds(rInfo.getNormalizedBedingung(),
-								ReferencedIdsMode.IGNORE_FILTERCONDITION, ec, true);
+								ReferencedIdsMode.IGNORE_SET_EXPRESSIONS, ec, true);
 						Collection<String> refFeldNamen = ids.stream().map(IEntityId::getFullName).toList();
 						if (refFeldNamen.contains(pf.getFullName())) {
 							rInfo.setNichtGleichFuerAlleLfdNr();

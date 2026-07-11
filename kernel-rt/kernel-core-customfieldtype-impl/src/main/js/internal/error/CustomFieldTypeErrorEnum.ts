@@ -57,9 +57,6 @@ export enum CustomFieldTypeErrorEnum {
 	IBAN_PRUEFZIFFER_FEHLER,
 	IBAN_LEERZEICHEN_UNGUELTIG,
 
-	/**
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Not needed anymore, when IdNrVerifier is created properly.
-	 */
 	IDNR_NUR_FUER_TEST,
 	IDNR_NICHT_NUMERISCH,
 	IDNR_ZIFFERNFOLGE_FEHLER,

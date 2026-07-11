@@ -33,6 +33,7 @@ package com.mgmtp.a12.kernel.md.rt.internal.service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,7 +57,7 @@ public class DocumentPointerConverter {
 		return indexes.stream().mapToLong(i -> i).toArray();
 	}
 
-	private static List<Integer> convertToRepetitions(final int[] repetitions) {
+	private static List<Integer> toIntList(final int[] repetitions) {
 		return Arrays.stream(repetitions).boxed().toList();
 	}
 
@@ -82,18 +83,25 @@ public class DocumentPointerConverter {
 				.collect(Collectors.toSet());
 	}
 
+	public static Set<PartiallyKnownDocumentMultiPointer> convertToPartiallyKnownDocumentMultiPointerSet(@NonNull final Set<IIdentifier> identifiers) {
+		return identifiers
+				.stream()
+				.map(DocumentPointerConverter::convertToPartiallyKnownDocumentMultiPointer)
+				.collect(Collectors.toSet());
+	}
+
 	public static DocumentMultiPointer convertToDocumentMultiPointer(@NonNull IIdentifier identifier) {
-		int[] repetitions = EntityInstanceConverter.convertToRepetitions(identifier.getIndices());
-		return DocumentMultiPointer.of(identifier.getName(), convertToRepetitions(repetitions));
+		int[] repetitions = toIntArray(identifier.getIndices());
+		return DocumentMultiPointer.of(identifier.getName(), toIntList(repetitions));
 	}
 
 	public static DocumentPointer convertToDocumentPointer(@NonNull IIdentifier identifier) {
-		int[] repetitions = EntityInstanceConverter.convertToRepetitions(identifier.getIndices());
-		return DocumentPointer.of(identifier.getName(), convertToRepetitions(repetitions));
+		int[] repetitions = toIntArray(identifier.getIndices());
+		return DocumentPointer.of(identifier.getName(), toIntList(repetitions));
 	}
 
 	public static PartiallyKnownDocumentMultiPointer convertToPartiallyKnownDocumentMultiPointer(@NonNull IIdentifier identifier) {
-		int[] repetitions = EntityInstanceConverter.convertToRepetitions(identifier.getIndices());
+		int[] repetitions = toIntArray(identifier.getIndices());
 		return PartiallyKnownDocumentMultiPointer.of(identifier.getName(), repetitions);
 	}
 
@@ -101,5 +109,10 @@ public class DocumentPointerConverter {
 		return entityInstances.stream()
 				.map(DocumentPointerConverter::convertToIIdentifier)
 				.collect(Collectors.toSet());
+	}
+
+	private static int[] toIntArray(final long[] indices) {
+		Objects.requireNonNull(indices);
+		return Arrays.stream(indices).mapToInt(i -> (int) i).toArray();
 	}
 }

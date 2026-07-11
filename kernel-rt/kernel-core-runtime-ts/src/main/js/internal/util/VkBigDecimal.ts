@@ -34,7 +34,7 @@ import { Big } from "big.js";
 
 import { DefaultHashFunc } from "@com.mgmtp.a12.utils/utils-collections";
 
-import { BigDecimal } from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+import { BigDecimal } from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import type { VkValue } from "./VkValue.js";
 
@@ -618,6 +618,16 @@ export class VkBigDecimal extends BigDecimal implements VkValue {
 			[this._zahl.round(VkBigDecimal.DEFAULT_SCALE, Big.roundHalfUp).valueOf(), this._wertUngueltig,
 			this._isEmpty]
 		);
+	}
+
+	public toComparableString(): string {
+		if (this._wertUngueltig) {
+			return "invalid";
+		} else if (this._isEmpty) {
+			return "empty";
+		} else {
+			return this._zahl.toFixed(VkBigDecimal.DEFAULT_SCALE, Big.roundHalfUp);
+		}
 	}
 
 	public toString(): string {

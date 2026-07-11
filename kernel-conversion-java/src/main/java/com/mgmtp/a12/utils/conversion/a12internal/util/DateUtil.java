@@ -32,9 +32,14 @@
 
 package com.mgmtp.a12.utils.conversion.a12internal.util;
 
-import java.util.Calendar;
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,18 +49,13 @@ import com.mgmtp.a12.utils.conversion.InterpretationOfYear;
 
 import lombok.NonNull;
 
-/**
- * ATTENTION.
- * For performance optimization please be aware of:
- * SimpleDateFormat: Date formats are not synchronized. It is recommended to create separate format instances for each thread.
- * If multiple threads access a format concurrently, it must be synchronized externally.
- */
 @Experimental
 public class DateUtil {
 
-	public static final String TIME_ZONE_BERLIN = "Europe/Berlin";
 	public static final String YEAR_FORMAT = "yyyy";
 	public static final String YEAR_FORMAT_LETTER = "y";
+
+	public static final LocalDate DEFAULT_LOCAL_DATE = LocalDate.of(1970, 1, 1);
 
 	private DateUtil() {
 		throw new IllegalStateException("Utility class");
@@ -101,27 +101,18 @@ public class DateUtil {
 	 */
 	public static Date createDate(int day, int month, int year, TimeZone timeZone) {
 		try {
-			GregorianCalendar calendar = new GregorianCalendar(timeZone);
-			calendar.setLenient(false);
-			calendar.set(year, month - 1, day); //month is 0-based in the Gregorian calendar
-			DateUtil.clearTime(calendar);
-			return calendar.getTime();
-		} catch (RuntimeException e) {
-			// For wrong values, we return null
+			LocalDate localDate = LocalDate.of(year, month, day);
+			return Date.from(localDate.atStartOfDay(timeZone.toZoneId()).toInstant());
+		} catch (DateTimeException e) {
 			return null;
 		}
 	}
 
 	static String getLastDayOfMonth(DateAndFormat dateWithFormat) {
-		Date date = ValidationDateParser.parseDateWithoutSyntaxCheck(dateWithFormat);
-
-		Calendar cal = new GregorianCalendar(dateWithFormat.getTimeZone());
-		cal.setLenient(false);
-		cal.setTime(date);
-		cal.set(Calendar.DAY_OF_MONTH, 1);
-		cal.add(Calendar.MONTH, 1);
-		cal.add(Calendar.DAY_OF_MONTH, -1);
-		return String.valueOf(cal.get(Calendar.DAY_OF_MONTH));
+		Instant instant = ValidationDateParser.parseDateWithoutSyntaxCheck(dateWithFormat).toInstant();
+		ZonedDateTime zdt = instant.atZone(dateWithFormat.getTimeZone().toZoneId());
+		LocalDate lastDate = zdt.toLocalDate().with(TemporalAdjusters.lastDayOfMonth());
+		return String.valueOf(lastDate.getDayOfMonth());
 	}
 
 	/**
@@ -180,10 +171,19 @@ public class DateUtil {
 	 * @return the date separator which is specified in the passed format, otherwise an empty string if none is specified.
 	 */
 	public static String getDateSeparator(String dateFormat) {
-		for (int i = 0; i < dateFormat.length(); i++) {
+		char firstC;
+		int i = 0;
+		do {
+			firstC = dateFormat.charAt(i++);
+		} while (!isDatePart(firstC));
+		for (; i < dateFormat.length(); i++) {
 			char c = dateFormat.charAt(i);
 			if (!isDatePart(c)) {
 				return String.valueOf(c);
+			}
+			if (c != firstC) {
+				// If we have a transition between two date parts without separator, we have the empty separator
+				return "";
 			}
 		}
 		return "";
@@ -233,7 +233,7 @@ public class DateUtil {
 	 * @return <code>false</code>, if the {@link InterpretationOfYear} is not set or
 	 * 		if the end date lies before the start date. Otherwise true.
 	 */
-	public static boolean isYearNotBaseYear(String startDate, String endDate, String checkFormat,
+	public static boolean isYearNotBaseYear(@NonNull String startDate, @NonNull String endDate, @NonNull String checkFormat,
 			boolean dateRangeSeparatorOptAtEnd, InterpretationOfYear interpretationOfYear, TimeZone timeZone) {
 		if (interpretationOfYear == InterpretationOfYear.STANDARD) {
 			return false;
@@ -248,7 +248,7 @@ public class DateUtil {
 			Date dateRangeStartDate = ValidationDateParser.parseDate(dateRangeStart);
 			Date dateRangeEndDate = ValidationDateParser.parseDate(dateRangeEnd);
 			return dateBefore(dateRangeEndDate, dateRangeStartDate);
-		} catch (java.text.ParseException e) {
+		} catch (DateTimeParseException e) {
 			// If one of the dates is not valid with a leap year,
 			// the error will be reported later; the base year is ok as a year.
 			return false;
@@ -261,7 +261,9 @@ public class DateUtil {
 	 * 	<li>In some cases (depending on the configuration of DataFormats), a date separator is allowed at the end of the date value (e.g. 01.01.).
 	 * 		In that case, the date and the format are aligned with regard to the separator at the end.</li>
 	 * 	<li>If the format contains day and month, but no year, then the format is supplemented with the missing year format
-	 * 		and the date string is supplemented with the corresponding year - so that February 29th. is treated correctly.</li>
+	 * 		and the date string is supplemented with the corresponding year - so that February 29th. is treated correctly.
+	 * 		Note [A12K-4139]: this does not currenly handle the case of month-only dates that would be relevant for InterpretationOfYear _if_ InterpretationOfYear supported month-only dates.
+	 * 		</li>
 	 * </ol>
 	 */
 	public static void completeDateAndFormat(DateAndFormat dateWithFormat, String origFormat,
@@ -274,7 +276,7 @@ public class DateUtil {
 		// If the date does not contain a year, append the base year and change the format.
 		// Necessary due to check for February 29th.
 		// However, the 29th is only checked if the month and day are included in the format.
-		if (formatContainsOnlyDayMonth(origFormat)) {
+		if (formatContainsOnlyDayMonth(origFormat)) { // [A12K-4139] does not handle the month-only case, but since we don't currently support it overall (according to extmp modeler docs, at least), that seems ok for now.
 			dateWithFormat.completeWithYear(baseYear);
 		}
 	}
@@ -291,7 +293,8 @@ public class DateUtil {
 	 * Required for the date range formats DD.MM-DD.MM (InterpretationOfYear == TO) or
 	 * DD.MM-DD.MM (InterpretationOfYear == FROM), since the year is <b>NOT</b> the base year by default.
 	 */
-	public static int[] getSupplementaryYears(String dateFormat, String[] dateRange, InterpretationOfYear interpretationOfYear,
+	public static int[] getSupplementaryYears(@NonNull String dateFormat, String[] dateRange,
+			InterpretationOfYear interpretationOfYear,
 			int baseYear, boolean dateRangeSeparatorOptAtEnd, TimeZone timeZone) {
 		int[] supplementaryYears = { baseYear, baseYear };
 		if (DateUtil.isYearNotBaseYear(dateRange[0], dateRange[1], dateFormat, dateRangeSeparatorOptAtEnd, interpretationOfYear,
@@ -309,7 +312,7 @@ public class DateUtil {
 	/**
 	 * @return the start and end of a date range as DateAndFormat.
 	 */
-	public static DateAndFormat[] getDateRange(String value, String dateRangeSeparator, String dateFormat,
+	public static DateAndFormat[] getDateRange(String value, String dateRangeSeparator, @NonNull String dateFormat,
 			Boolean dateRangeSeparatorOptAtEnd, Integer baseYear,
 			InterpretationOfYear interpretationOfYear,
 			TimeZone timeZone) {
@@ -329,33 +332,14 @@ public class DateUtil {
 	}
 
 	/**
-	 * Sets the fields {@link Calendar#HOUR_OF_DAY},{@link Calendar#MINUTE}, {@link Calendar#SECOND}
-	 * and {@link Calendar#MILLISECOND} of the given calendar to 0.
-	 */
-	public static void clearTime(Calendar date) {
-		date.set(Calendar.HOUR_OF_DAY, 0);
-		date.set(Calendar.MINUTE, 0);
-		date.set(Calendar.SECOND, 0);
-		date.set(Calendar.MILLISECOND, 0);
-	}
-
-	/**
 	 * @return a {@link Date}-object for the data type "TimeType".
 	 * 		The date is set to 01.01.1970 with the given values for hour, minute, second and timeZone.
 	 */
 	public static Date createTime(int hour, int minute, int second, TimeZone timeZone) {
-		Calendar cal = new GregorianCalendar(timeZone);
-		cal.setLenient(false);
 		try {
-			cal.set(Calendar.YEAR, 1970);
-			cal.set(Calendar.MONTH, 0);
-			cal.set(Calendar.DAY_OF_MONTH, 1);
-			cal.set(Calendar.HOUR_OF_DAY, hour);
-			cal.set(Calendar.MINUTE, minute);
-			cal.set(Calendar.SECOND, second);
-			cal.set(Calendar.MILLISECOND, 0);
-			return cal.getTime();
-		} catch (RuntimeException exc) {
+			LocalTime localTime = LocalTime.of(hour, minute, second);
+			return Date.from(localTime.atDate(DEFAULT_LOCAL_DATE).atZone(timeZone.toZoneId()).toInstant());
+		} catch (DateTimeException e) {
 			return null;
 		}
 	}
@@ -371,25 +355,9 @@ public class DateUtil {
 		if (date == null || time == null) {
 			return null;
 		}
-		Calendar cal = getCalendarForDate(date, timeZone);
-		Calendar timeCal = getCalendarForDate(time, timeZone);
-		int[] timeFields = { Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND };
-		try {
-			for (int timeField : timeFields) {
-				cal.set(timeField, timeCal.get(timeField));
-			}
-			cal.set(Calendar.MILLISECOND, 0);
-			return cal.getTime();
-		} catch (RuntimeException exc) {
-			return null;
-		}
-	}
-
-	public static Calendar getCalendarForDate(Date date, TimeZone timeZone) {
-		Calendar result = new GregorianCalendar(timeZone);
-		result.setLenient(false);
-		result.setTime(date);
-		return result;
+		LocalTime localTime = time.toInstant().atZone(timeZone.toZoneId()).toLocalTime().withNano(0);
+		LocalDate localDate = date.toInstant().atZone(timeZone.toZoneId()).toLocalDate();
+		return Date.from(localTime.atDate(localDate).atZone(timeZone.toZoneId()).toInstant());
 	}
 
 	/**
@@ -436,7 +404,7 @@ public class DateUtil {
 	 * @throws Error
 	 * 		if the base year is not valid or the value cannot be parsed to a {@link Date}-object (see also method description).
 	 */
-	public static Object createDateIfPossible(String value, String dateFormat, int baseYearOrDefault,
+	public static Object createDateIfPossible(@NonNull String value, @NonNull String dateFormat, int baseYearOrDefault,
 			boolean arePartiallyKnownDatesAllowed, TimeZone timeZone) {
 		DateAndFormat dateWithFormat = new DateAndFormat(value, dateFormat, timeZone);
 		if (!ValidationDateParser.isSyntacticallyCorrect(dateWithFormat)) {
@@ -481,12 +449,12 @@ public class DateUtil {
 	/**
 	 * @return the start and end of a date range as Date objects.
 	 */
-	public static Date[] createDateRange(String internalValue, String separator, String format,
+	public static Date[] createDateRange(@NonNull String internalValue, String separator, @NonNull String format,
 			InterpretationOfYear interpretationOfYear, int baseYearOrDefault, TimeZone timeZone) {
 		return createDateRange(internalValue, separator, format, interpretationOfYear, baseYearOrDefault, false, timeZone);
 	}
 
-	public static Date[] createDateRange(String internalValue, String separator, String format,
+	public static Date[] createDateRange(@NonNull String internalValue, String separator, @NonNull String format,
 			InterpretationOfYear interpretationOfYear, int baseYearOrDefault, boolean syntaxCheck, TimeZone timeZone) {
 		DateAndFormat[] dates = DateUtil.getDateRange(internalValue, separator, format, true, baseYearOrDefault,
 				interpretationOfYear, timeZone);

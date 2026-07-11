@@ -43,8 +43,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class StnrVerifierDeserializer {
 
@@ -120,7 +120,7 @@ public class StnrVerifierDeserializer {
 	 */
 	private static void traverseBundeslaender(JsonNode bundeslaender, GermanTaxNumberDefiningDataBuilder container) {
 		for (JsonNode bundesland : bundeslaender) {
-			String kuerzel = bundesland.path("kuerzel").asText();
+			String kuerzel = bundesland.path("kuerzel").asString();
 
 			// 1. Nummern des aktuellen Bundeslands
 			Set<Integer> myBundeslandNrn = getBundeslandnummern(container, bundesland.path("nr"), kuerzel);
@@ -151,8 +151,8 @@ public class StnrVerifierDeserializer {
 		for (JsonNode method : methods) {
 			String verfahrenId = deriveRequiredFieldValue(method, "verfahrenId");
 			Integer bufanr = deriveIntOrNull(method, "bufanr");
-			String bezirkVon = method.path("bezirkVon").asText(null);
-			String bezirkBis = method.path("bezirkBis").asText(null);
+			String bezirkVon = method.path("bezirkVon").asString(null);
+			String bezirkBis = method.path("bezirkBis").asString(null);
 
 			Iterator<Integer> it = myBundeslandNrn.iterator();
 			while (it.hasNext()) {
@@ -166,10 +166,10 @@ public class StnrVerifierDeserializer {
 		Integer stFaNr = deriveRequiredFieldValueAsInt(format, "stellenFinanzamtsnr");
 		Integer stBezirkNr = deriveRequiredFieldValueAsInt(format, "stellenBezirksnr");
 		Integer stUNr = deriveRequiredFieldValueAsInt(format, "stellenUnterscheidungsnr");
-		String prefix = format.path("prefix").asText(null);
-		String trennz1 = format.path("trennzeichen1").asText(null);
-		String trennz2 = format.path("trennzeichen2").asText(null);
-		String trennz3 = format.path("trennzeichen3").asText(null);
+		String prefix = format.path("prefix").asString(null);
+		String trennz1 = format.path("trennzeichen1").asString(null);
+		String trennz2 = format.path("trennzeichen2").asString(null);
+		String trennz3 = format.path("trennzeichen3").asString(null);
 		GermanTaxNumberFormatting formatting = new GermanTaxNumberFormatting(stFaNr, stBezirkNr, stUNr, prefix, trennz1, trennz2,
 				trennz3);
 		Iterator<Integer> it = myBundeslandNrn.iterator();
@@ -197,7 +197,7 @@ public class StnrVerifierDeserializer {
 	private static String deriveRequiredFieldValue(JsonNode node, String fieldName) {
 		JsonNode text = node.get(fieldName);
 		if (text != null) {
-			return text.asText();
+			return text.asString();
 		}
 		// Integrationsproblem
 		throw new IllegalArgumentException(String.format("Das durch \"%s\" definierte Objekt muss das Feld \"%s\" enthalten.",

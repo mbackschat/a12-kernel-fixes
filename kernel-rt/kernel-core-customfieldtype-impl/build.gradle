@@ -14,7 +14,7 @@ dependencies {
     implementation libs.jacksonDatabind
 
     compileOnly libs.baseModelUtils // Only annotations
-    compileOnly project(':kernel-md-runtime-api') // Only in JavaDoc
+    compileOnly project(':kernel-internal-md-runtime-api') // Only in JavaDoc
 
 
 }

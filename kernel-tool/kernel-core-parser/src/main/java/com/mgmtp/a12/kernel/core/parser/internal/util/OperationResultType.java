@@ -58,8 +58,7 @@ public class OperationResultType {
 		BOOLYN,
 		CONSTY,
 		CONSTN,
-		BASE_YEAR,
-		UNSPECIFIED
+		BASE_YEAR
 	}
 
 	private final OperationResultBaseType baseType;
@@ -144,11 +143,6 @@ public class OperationResultType {
 
 	public static OperationResultType createEnumerationType(IEnumerationType enumType, String category) {
 		return new OperationResultType(OperationResultBaseType.ENUM, enumType, null, null, category, null, false);
-	}
-
-	public static OperationResultType createUnspecifiedType(IFieldType fieldType) {
-		//for unspecified type.
-		return new OperationResultType(OperationResultBaseType.UNSPECIFIED, fieldType, null, null, null, null, false);
 	}
 
 	public OperationResultBaseType getBaseType() {

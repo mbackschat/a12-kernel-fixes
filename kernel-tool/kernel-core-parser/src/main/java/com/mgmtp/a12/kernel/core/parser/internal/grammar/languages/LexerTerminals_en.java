@@ -138,6 +138,7 @@ public class LexerTerminals_en extends ListResourceBundle {
 			{ "StartOfDateRange", Base_ConditionLexer.START_AUS_DATUM_BEREICH },
 			{ "Sum", Base_ConditionLexer.SUMME },
 			{ "SumOfProducts", Base_ConditionLexer.SUMME_VON_PRODUKTEN },
+			{ "SumOfTerms", Base_ConditionLexer.SUMME_VON_TERMEN },
 			{ "SuppressWarning", Base_ConditionLexer.UNTERDRUECKE_WARNUNG },
 			{ "Time", Base_ConditionLexer.TIME },
 			{ "TimeFromDateTime", Base_ConditionLexer.ZEIT_AUS_DATETIME },

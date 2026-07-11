@@ -209,6 +209,7 @@ public class RegelReferenzenErmittler {
 				tmpResult.stream()
 						.map(e -> ReferencedIdsUtil.replaceIndices4RepNotUnqIfRequired(
 								e, inRepetitionNotUnique, levelToStartDuplicateSearch))
+						.map(ReferencedIdsUtil::replaceInternalIndicesByWildcard)
 						.forEach(result::add);
 				return true;
 			}

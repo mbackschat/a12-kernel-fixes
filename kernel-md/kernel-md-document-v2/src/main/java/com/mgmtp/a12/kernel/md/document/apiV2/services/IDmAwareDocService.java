@@ -38,14 +38,13 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import com.mgmtp.a12.kernel.md.document.api.IFieldInstance;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentSerializationConfig;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.FieldInstanceV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2;
-import com.mgmtp.a12.model.utils.OnlyForUsage;
 import com.mgmtp.a12.model.notification.RankedNotification;
+import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 import lombok.NonNull;
 
@@ -55,7 +54,7 @@ import lombok.NonNull;
  * An instance of this service can be created with {@code DocumentServiceFactory#createDmAwareDocService(String)}.
  * <br/><br/>
  * Instances of this service are specific to one particular document model.
- * Instances of this service are <em>not</em> specific to a particular <em>document</em> (in contrast to {@code IDocumentService}).
+ * Instances of this service are <em>not</em> specific to a particular <em>document</em>.
  * <br/><br/>
  * Note: for additional DocumentV2-related util methods (that are <em>not</em> DM-related), see also
  * {@link com.mgmtp.a12.kernel.md.document.apiV2.utils.DocumentV2Utils}
@@ -63,19 +62,17 @@ import lombok.NonNull;
 @OnlyForUsage
 public interface IDmAwareDocService {
 	/**
-	 * similar to
-	 * {@link com.mgmtp.a12.kernel.md.document.api.services.IDocumentService#convertToJavaType(IFieldInstance, String, Consumer)},
-	 * but returns an object that is suitable for {@code DocumentV2} rather than {@code IDocument}; i.e. {@link Instant} instead of
-	 * Date and {@code com.mgmtp.a12.utils.conversion.InstantRange} instead of {@code Date[]}.
+	 * Converts a field value from the string representation that is used in json-serialized documents, to the object representation
+	 * that is used in {@code DocumentV2}
+	 * (i.e. {@link java.math.BigDecimal}, {@link Instant}, {@link com.mgmtp.a12.utils.conversion.InstantRange}, {@link Boolean},
+	 * {@link String}).
+	 * The target type is determined based on the field at fieldFullName in the documentModel that is associated with this
+	 * IDmAwareDocService.
 	 */
 	Object convertToJavaTypeV2(@NonNull String fieldFullName, String value,
 			@NonNull Consumer<RankedNotification> notificationReceiver);
 
 	/**
-	 * similar to
-	 * {@link com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService#getById(String)},
-	 * but returns only <em>group</em> instances.
-	 *
 	 * @param groupId
 	 * 		the id of the group, as specified in the DM.
 	 * @return for each group instance of the group identified by groupId that is present in the document, a pair with the
@@ -85,10 +82,6 @@ public interface IDmAwareDocService {
 			@NonNull String groupId);
 
 	/**
-	 * similar to
-	 * {@link com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService#getById(String)},
-	 * but returns only <em>field</em> instances.
-	 *
 	 * @param fieldId
 	 * 		the id of the field, as specified in the DM.
 	 * @return for each field instance of the field identified by fieldId that is present in the document, a pair with the
@@ -97,23 +90,6 @@ public interface IDmAwareDocService {
 	 */
 	Collection<Map.Entry<DocumentPointer, FieldInstanceV2>> getFieldInstancesById(@NonNull DocumentV2 document,
 			@NonNull String fieldId);
-
-	/**
-	 * Checks the provided {@link DocumentV2} if all fields of non-repeatable groups are present.
-	 * The repeatability is defined in the corresponding {@link com.mgmtp.a12.kernel.md.model.api.IDocumentModel}.
-	 * <p>
-	 *
-	 * @param document
-	 * 		the document to check
-	 * @param notificationReceiver
-	 * 		the {@link RankedNotification}s, found during the process, will be reported to this callback.
-	 * @return {@code true} if no cases were found, otherwise {@code false}.
-	 *
-	 * @deprecated is not necessary for the usage of the document, the validation can handle missing fields and groups.
-	 */
-	@Deprecated(since = "30.0.0")
-	boolean checkPresenceOfFieldInstancesInNonRepeatableGroups(@NonNull DocumentV2 document,
-			@NonNull Consumer<RankedNotification> notificationReceiver);
 
 	/**
 	 * Validate the structure of a given {@link DocumentV2} against the {@link com.mgmtp.a12.kernel.md.model.api.IDocumentModel}.
@@ -166,8 +142,7 @@ public interface IDmAwareDocService {
 	 * Remove all groups and fields that are not defined in the configured DM.
 	 * <p>
 	 * This does not throw an error (but will remove the field/group element) if a field is present at a path where a group is
-	 * defined or vice versa. For this use
-	 * {@code IDocumentRtService#checkStructuralConsistencyWithDm(DocumentV2, Consumer)}.
+	 * defined or vice versa. For this use {@link #checkStructuralConsistencyWithDm(DocumentV2, Consumer)}.
 	 *
 	 * @param document
 	 * 		the document to remove the unknown elements from.

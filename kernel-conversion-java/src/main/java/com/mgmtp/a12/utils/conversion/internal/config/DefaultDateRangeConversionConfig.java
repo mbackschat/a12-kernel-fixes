@@ -38,13 +38,15 @@ import java.util.TimeZone;
 import com.mgmtp.a12.utils.conversion.InterpretationOfYear;
 import com.mgmtp.a12.utils.conversion.config.DateRangeConversionConfig;
 
+import lombok.NonNull;
+
 public class DefaultDateRangeConversionConfig extends DefaultDateBasicConversionConfig implements DateRangeConversionConfig {
 
 	private final InterpretationOfYear interpretationOfYear;
 	private final SingleDate singleDate;
 
 	public DefaultDateRangeConversionConfig(String modelId, List<String> modelPath, int baseYear, TimeZone timeZone,
-			String format, InterpretationOfYear interpretationOfYear, SingleDate singleDate) {
+			@NonNull String format, InterpretationOfYear interpretationOfYear, SingleDate singleDate) {
 		super(modelId, modelPath, baseYear, timeZone, format);
 		this.interpretationOfYear = interpretationOfYear;
 		this.singleDate = singleDate;
@@ -59,5 +61,5 @@ public class DefaultDateRangeConversionConfig extends DefaultDateBasicConversion
 	public SingleDate singleDate() {
 		return singleDate;
 	}
-	
+
 }

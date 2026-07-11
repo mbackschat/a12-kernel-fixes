@@ -45,15 +45,17 @@ import com.mgmtp.a12.kernel.core.utils.a12internal.metaModel.customConditions.Ch
 import com.mgmtp.a12.kernel.core.utils.a12internal.metaModel.customConditions.CheckFieldName;
 import com.mgmtp.a12.kernel.core.utils.a12internal.metaModel.customConditions.CheckHintList;
 import com.mgmtp.a12.kernel.core.utils.a12internal.metaModel.customConditions.CheckRuleName;
+import com.mgmtp.a12.kernel.core.utils.a12internal.metaModel.customConditions.NameValidationService;
 import com.mgmtp.a12.kernel.core.utils.internal.metaModel.customConditions.CheckStringPattern;
-import com.mgmtp.a12.kernel.core.utils.internal.services.NameValidationService;
 import com.mgmtp.a12.kernel.core.utils.internal.services.serviceparams.FormalErrorCodesProvider;
 
 public class CheckConfiguration {
 
 	public Map<String, ICustomCondition> getCustomConditions(IModelSpecificSettings modelSpecificSettings) {
-		NameValidationService nameValidator = getNameValidationService(modelSpecificSettings.getLanguageUsedInConditionText());
+		return getCustomConditions(getNameValidationService(modelSpecificSettings.getLanguageUsedInConditionText()));
+	}
 
+	protected Map<String, ICustomCondition> getCustomConditions(NameValidationService nameValidator) {
 		Map<String, ICustomCondition> appConditions = new HashMap<>();
 		appConditions.put("ungueltigerFehlerCode", new CheckErrorCode(nameValidator));
 		appConditions.put("ungueltigerRegelName", new CheckRuleName(nameValidator));
@@ -70,7 +72,6 @@ public class CheckConfiguration {
 		appConditions.put("ungueltigeBeschreibung", new CheckDescription());
 		appConditions.put("invalidValueInHintList", new CheckHintList());
 		return appConditions;
-
 	}
 
 	public ValidationMode getValidationMode(IModelSpecificSettings modelSpecificSettings) {

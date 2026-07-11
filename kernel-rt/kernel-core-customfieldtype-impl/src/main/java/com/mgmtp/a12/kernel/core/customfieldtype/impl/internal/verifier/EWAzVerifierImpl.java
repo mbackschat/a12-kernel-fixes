@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeCheckError;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeConversionResult;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeValidationParam;
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.IFadat;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.CustomFieldTypeConversionResultImpl;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.CustomFieldTypeValidationParamImpl;
@@ -92,7 +93,7 @@ import lombok.NonNull;
  * Prüfziffernberechnungsverfahrens geprüft.
  * </p>
  */
-public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
+public class EWAzVerifierImpl implements ICustomFieldValidator {
 
 	// Formale Prüfung: 12- bis 18-stellige Zahl.
 	private static final Pattern VALID_EWAZ = Pattern.compile("([0-9]{2})([0-9]{2})([045])[0-9]{8,14}");
@@ -142,8 +143,10 @@ public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 		return LAENDERKUERZEL_NUMMERN.get(buLaString);
 	}
 
-	public EWAzVerifierImpl(IFadat fadat) {
-		super(fadat);
+	private final @NonNull IFadat fadat;
+
+	public EWAzVerifierImpl(@NonNull IFadat fadat) {
+		this.fadat = fadat;
 	}
 
 	/**
@@ -164,15 +167,14 @@ public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 	 * {@link IllegalArgumentException} geworfen.
 	 */
 	@Override
-	protected Optional<ICustomFieldTypeCheckError> validate(
+	public @NonNull Optional<ICustomFieldTypeCheckError> validate(
 			@NonNull String value,
 			@NonNull ICustomFieldTypeValidationParam valParam,
-			boolean isDisplayValue,
-			@NonNull ParamsProvider pp
+			boolean isDisplayValue
 	) {
 		Locale errorMsgLocale = valParam.getErrorMsgLocale();
 		if (isDisplayValue) {// der Wert muss vor der Validierung in XML-Format konvertiert werden
-			ICustomFieldTypeConversionResult convertResult = convertDisplay2Internal(value, pp);
+			ICustomFieldTypeConversionResult convertResult = convertDisplay2Internal(value);
 
 			if (convertResult.getErrorMessage().isPresent()) {// Fehler bei der Konvertierung
 				return CustomFieldTypeErrorUtil.getResult(CustomFieldTypeErrorEnum.EWAZ_FORMALER_FEHLER, errorMsgLocale,
@@ -189,7 +191,7 @@ public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 			return CustomFieldTypeErrorUtil.getResult(CustomFieldTypeErrorEnum.EWAZ_FORMALER_FEHLER, errorMsgLocale,
 					CustomFieldTypeErrorKeys.UNGUELTIGES_EWAZ);
 		}
-		CustomFieldTypeErrorEnum error = checkEinheitswertAktenzeichen(value, buLaNummer, pp);
+		CustomFieldTypeErrorEnum error = checkEinheitswertAktenzeichen(value, buLaNummer);
 		return CustomFieldTypeErrorUtil.getResult(error, errorMsgLocale,
 				CustomFieldTypeErrorKeys.UNGUELTIGES_EWAZ);
 	}
@@ -199,9 +201,12 @@ public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 	 * Fehlermeldung bzw. {@link CustomFieldTypeErrorEnum#KEIN_FEHLER}, wenn das
 	 * Einheitswert-Aktenzeichen gültig ist.
 	 *
+	 * @param ewaz
+	 * 		Einheitswert-Aktenzeichen
 	 * @param buLaNummer
+	 * 		Bundeslandnummer
 	 */
-	private CustomFieldTypeErrorEnum checkEinheitswertAktenzeichen(String ewaz, int buLaNummer, ParamsProvider pp) {
+	private CustomFieldTypeErrorEnum checkEinheitswertAktenzeichen(@NonNull String ewaz, int buLaNummer) {
 		// Nach der formalen Prüfung muss das Einheitswert-Aktenzeichen je nach Bundesland 12-18 Stellen besitzen.
 		Matcher matcher = VALID_EWAZ.matcher(ewaz);
 		int stelligkeit = EWAzProperties.getStelligkeit(buLaNummer);
@@ -218,7 +223,7 @@ public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 		int bundeslandnummer2st = Integer.parseInt(bundeslandnummerStr);
 		int bundesfinanzamtsnummer = Integer.parseInt(bundeslandnummerStr.concat(matcher.group(2)));
 		if (!EWAzProperties.getBundesfinanzamtsnummern(bundeslandnummer2st).contains(bundesfinanzamtsnummer) &&
-				!existsEWAzTestFederalTaxOfficeNumber(bundesfinanzamtsnummer, pp)) {
+				!fadat.getEWAzTestFederalTaxOfficeNumber().contains(bundesfinanzamtsnummer)) {
 			return CustomFieldTypeErrorEnum.EWAZ_FINANZAMT_FEHLER;
 		}
 		String formatschluesselStr = matcher.group(3);
@@ -228,8 +233,8 @@ public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 		}
 		Verfahren verfahren = EWAzProperties.getVerfahrenDef(buLaNummer);
 		if (verfahren == Verfahren.STNR) {
-			SteuernummerVerifierImpl v = new SteuernummerVerifierImpl(givenFADAT);
-			if (v.checkEWAzAlsSteuernummer(ewaz, pp) != CustomFieldTypeErrorEnum.KEIN_FEHLER) {
+			SteuernummerValidationHelper stnrHelper = new SteuernummerValidationHelper(SteuernummerValidationHelper.VALID_STNR);
+			if (stnrHelper.checkEWAzAlsSteuernummer(ewaz) != CustomFieldTypeErrorEnum.KEIN_FEHLER) {
 				return CustomFieldTypeErrorEnum.EWAZ_PRUEFZIFFER_FEHLER;
 			}
 		} else {
@@ -247,6 +252,7 @@ public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 	 * [3.-5. (Ofl) bzw. 5.-7. Stelle (XML-Format)] zulässig sind.
 	 *
 	 * @param ewaz
+	 * 		Einheitswert-Aktenzeichen
 	 */
 	private boolean istSHFormatGueltig(String ewaz) {
 		int bezirksnummer = Integer.parseInt(ewaz.substring(5, 8));
@@ -258,6 +264,7 @@ public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 	 * Stelle (XML-Format) nur die Grundbesitzart 1 oder 3 angegeben werden kann.
 	 *
 	 * @param ewaz
+	 * 		Einheitswert-Aktenzeichen
 	 */
 	private boolean istNWFormatGueltig(String ewaz) {
 		String grundbesitzart = ewaz.substring(8, 9);
@@ -313,11 +320,11 @@ public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 	 * @return Einheitswert-Aktenzeichen in Oberflächendarstellung
 	 */
 	@Override
-	protected ICustomFieldTypeConversionResult convertInternal2Display(final String xmlEwAz, ParamsProvider pp) {
+	public @NonNull ICustomFieldTypeConversionResult convertInternal2Display(@NonNull String xmlEwAz) {
 		ICustomFieldTypeValidationParam valParam = new CustomFieldTypeValidationParamImpl(Locale.GERMANY,
 				CustomFieldTypeValidationParamImpl.UNSPECIFIED_LENGTH, CustomFieldTypeValidationParamImpl.UNSPECIFIED_LENGTH);
 		// Gültigkeitsprüfung und Setzen der bundeslandspezifischen Eigenschaften
-		Optional<ICustomFieldTypeCheckError> checkResult = validate(xmlEwAz, valParam, false, pp);
+		Optional<ICustomFieldTypeCheckError> checkResult = validate(xmlEwAz, valParam, false);
 		if (checkResult.isPresent()) {
 			return new CustomFieldTypeConversionResultImpl(xmlEwAz,
 					"Konvertiere nur gültige Aktenzeichen. " + checkResult.get().getErrorMessage());
@@ -338,13 +345,9 @@ public class EWAzVerifierImpl extends AbstractFadatRelatedCustomFieldType {
 	 * @param ewAzDisplayValueWithLaenderkuerzel
 	 * 		- der String enthält neben dem Einheitswert-Aktenzeichen in Oberflächendarstellung
 	 * 		auch das Bundeslandkürzel getrennt durch das Zeichen '@'.
-	 * @param pp
-	 * 		Befüllte Schnittstelle {@link IGermanTaxNumberDefiningData}. Darf nicht
-	 *        {@code null} sein.
 	 */
 	@Override
-	protected ICustomFieldTypeConversionResult convertDisplay2Internal(final String ewAzDisplayValueWithLaenderkuerzel,
-			ParamsProvider pp) {
+	public @NonNull ICustomFieldTypeConversionResult convertDisplay2Internal(@NonNull String ewAzDisplayValueWithLaenderkuerzel) {
 		Matcher mToSplitDisplayValue = SPLIT_DISPLAY_VALUE.matcher(ewAzDisplayValueWithLaenderkuerzel);
 		if (!mToSplitDisplayValue.matches()) {
 			throw new IllegalArgumentException(

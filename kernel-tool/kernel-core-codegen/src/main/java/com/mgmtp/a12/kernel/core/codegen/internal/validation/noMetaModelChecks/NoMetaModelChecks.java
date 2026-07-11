@@ -42,7 +42,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -412,7 +411,7 @@ public class NoMetaModelChecks {
 			}
 		}
 
-		return !problemReporter.hasProblemOccurred();
+		return !problemReporter.hasErrorOccurred();
 	}
 
 	/**
@@ -617,17 +616,14 @@ public class NoMetaModelChecks {
 		return maxRep[0] == maxRepParent[0];
 	}
 
-	private boolean checkFieldErrorText(IField field, BiPredicate<String, Locale> check) {
-		String fehlertext = null;
+	private void checkFieldErrorText(IField field) {
+		FieldErrortextChecker fec = new FieldErrortextChecker(field, data.getModelSpecificSettings(), true);
 		for (Locale languageLocale : languages) {
-			fehlertext = FieldUtils.getErrorText(field.getType(), languageLocale);
-
-			if (fehlertext != null && !check.test(fehlertext, languageLocale)) {
-				return false;
+			String errorText = FieldUtils.getErrorText(field.getType(), languageLocale);
+			if (errorText != null) {
+				fec.checkErrorText(errorText, languageLocale, problemReporter);
 			}
 		}
-
-		return true;
 	}
 
 	/**
@@ -675,10 +671,8 @@ public class NoMetaModelChecks {
 					entity.getFullName(), parentPath);
 		}
 
-		if (entity instanceof IField) {
-			FieldErrortextChecker fec = new FieldErrortextChecker(data.getModelSpecificSettings(), problemReporter);
-			IField field = (IField) entity;
-			checkFieldErrorText(field, (errorText, locale) -> fec.checkErrorText(errorText, field, true));
+		if (entity instanceof IField field) {
+			checkFieldErrorText(field);
 			checkEnumValues(field);
 		}
 

@@ -32,17 +32,13 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
-import java.io.Serial;
 import java.util.Optional;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 public class OptionalSerializer extends StdSerializer<Optional> {
-
-	@Serial private static final long serialVersionUID = -1047618364152731947L;
 
 	public OptionalSerializer() {
 		this(null);
@@ -53,15 +49,15 @@ public class OptionalSerializer extends StdSerializer<Optional> {
 	}
 
 	@Override
-	public void serialize(Optional value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+	public void serialize(Optional value, JsonGenerator gen, SerializationContext provider) {
 		if (value == null || value.isEmpty()) {
 			return;
 		}
-		gen.writeObject(value.get());
+		gen.writePOJO(value.get());
 	}
 
 	@Override
-	public boolean isEmpty(SerializerProvider provider, Optional value) {
+	public boolean isEmpty(SerializationContext provider, Optional value) {
 		return value == null || value.isEmpty();
 	}
 }

@@ -31,10 +31,8 @@
  */
 package com.mgmtp.a12.kernel.core.rt.a12internal.custom;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICustomCondition;
 
@@ -46,49 +44,14 @@ import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICustomCondition;
 public interface ICustomConditionFactory {
 
 	/**
-	 * {@link ICustomConditionService} uses this method to register the factory with its condition
-	 * names.
-	 *
-	 * @return A set of names of the custom conditions which can be created by this factory. Never
-	 * 		returns {@code null} or contains {@code null} or the empty-string.
-	 *
-	 * @deprecated since version 29.2.0. The implementation is now obsolete. It will be removed with A12K-3589.
-	 */
-	@Deprecated(since = "29.2.0")
-	default Set<String> getSupportedConditionNames() {
-		return new HashSet<>();
-	}
-
-	/**
-	 * {@link ICustomConditionService} uses this method to create new instances of custom conditions
-	 * without knowing the condition names supported by the factory.
-	 *
-	 * @param customConditionName
-	 * @return A new instance of the custom condition specified by {@code customConditionName} or
-	 * 		{@code null} if the factory does not support this custom condition.
-	 *		<b>Note:</b> There must not be thrown an exception if the factory does not support this custom condition
-	 *		(multiple factories can be registered).
-	 *
-	 * @deprecated since version 29.2.0. The implementation is now obsolete. It will be removed with A12K-3589.
-	 */
-	@Deprecated(since = "29.2.0")
-	default ICustomCondition createCustomCondition(String customConditionName) {
-		return null;
-	}
-
-	/**
-	 * {@link ICustomConditionService} uses this method to create new instances of custom conditions
-	 * without knowing the condition names supported by the factory.
+	 * Create new instances of custom conditions specified by name.
 	 *
 	 * @param customConditionName
 	 * @return A new instance of the custom condition specified by {@code customConditionName} or
 	 * 		empty if the factory does not support this custom condition.
-	 *		<b>Note:</b> There must not be thrown an exception if the factory does not support this custom condition
-	 *		(multiple factories can be registered).
+	 *		<b>Note:</b> There must not be thrown an exception if the factory does not support this custom condition.
 	 */
-	default Optional<ICustomCondition> createCustomConditionV2(String customConditionName) {
-		return Optional.ofNullable(createCustomCondition(customConditionName));
-	}
+	Optional<ICustomCondition> createCustomConditionV2(String customConditionName);
 
 /**
  * Create new instances of custom condition factories from a map of custom conditions.

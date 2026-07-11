@@ -1,7 +1,7 @@
 CodeGenTypescriptDefCode(t) ::= <<
-import { IMetaModel } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/meta/IMetaModel";
-import { ICalculator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/validation/ICalculator";
-import { IValidator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/lib/main/js/validation/IValidator";
+import { IMetaModel } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import { ICalculator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import { IValidator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 export interface GeneratedCodeScript {
 	// eslint-disable-next-line @typescript-eslint/ban-types

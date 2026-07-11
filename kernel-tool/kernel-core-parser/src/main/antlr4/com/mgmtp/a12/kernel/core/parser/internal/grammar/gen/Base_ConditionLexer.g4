@@ -149,6 +149,7 @@ START_AUS_DATUM_BEREICH: 'StartAusDatumBereich';
 STUNDEN_AUS_ZEIT: 'StundenAusZeit';
 SUMME: 'Summe';
 SUMME_VON_PRODUKTEN: 'SummeVonProdukten';
+SUMME_VON_TERMEN: 'SummeVonTermen';
 TAG_AUS_DATUM: 'TagAusDatum';
 TIME: 'Zeit';
 UND1: 'Und';

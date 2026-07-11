@@ -32,48 +32,29 @@
 
 package com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.dynamicEnum;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.CodeGenFilterCondition;
+import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.AbstractCodeGenCalcBean;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.EntityId;
-import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.EntityIdsCollector;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.conditions.CodeGenCondition;
-import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.STParameterClassBase;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.StringTemplateGroup;
 
 /**
  * Models the calculation code for dynamic enumeration values.
  */
 @StringTemplateGroup("dynamicEnum")
-public class CodeGenDynamicEnumeration extends STParameterClassBase {
+public class CodeGenDynamicEnumeration extends AbstractCodeGenCalcBean {
 	private final EntityId dynEnumField;
 
 	private final List<CodeGenDynamicEnumerationValue> enumValueOperations;
 
 	private final CodeGenCondition safeGuard;
 
-	private final String modelName;
-
-	private final EntityIdsCollector rtCtrlParamCodeCollector;
-
-	private final EntityIdsCollector filterEntityIdsCollector;
-
-	private final Collection<CodeGenFilterCondition> filterConditions;
-
 	CodeGenDynamicEnumeration(CodeGenDynamicEnumerationBuilder builder) {
+		super(builder);
 		this.dynEnumField = builder.getDynEnumField();
 		this.enumValueOperations = builder.getEnumValueOperations();
 		this.safeGuard = builder.getSafeGuard();
-		this.modelName = builder.getData().getParams().getName();
-		this.rtCtrlParamCodeCollector = builder.getRtControllerParamsCreationCodeCollector();
-		this.filterEntityIdsCollector = builder.getFilterEntityIdsCollector();
-		this.filterConditions = builder.getFilterConditions();
-	}
-
-	public String getName() {
-		return this.modelName;
 	}
 
 	public EntityId getEnumerationField() {
@@ -102,21 +83,4 @@ public class CodeGenDynamicEnumeration extends STParameterClassBase {
 		return safeGuard != null;
 	}
 
-	public List<String> getRtControllerParamsCreationCode() {
-		return rtCtrlParamCodeCollector.getAll().stream()
-				.map(co -> co.toCode("varAssignment"))
-				.collect(Collectors.toList());
-	}
-
-	public List<String> getFilterParamsCreationCode() {
-		return filterEntityIdsCollector.getAll().stream()
-				.map(co -> co.toCode("varAssignment"))
-				.collect(Collectors.toList());
-	}
-
-	public List<String> getFilterCode() {
-		return filterConditions.stream()
-				.map(CodeGenFilterCondition::toCode)
-				.collect(Collectors.toList());
-	}
 }

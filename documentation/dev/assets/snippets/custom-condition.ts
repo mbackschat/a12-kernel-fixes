@@ -38,14 +38,14 @@ import { ModelPath } from "@com.mgmtp.a12.base/base-model-api";
 
 import {
     createCustomConditionFactory,
-    Document,
+    type Document,
     DocumentRtServiceFactory,
     DocumentServiceFactory,
     EntityInstancePath,
-    EntityInstanceValueMapping,
+    type EntityInstanceValueMapping,
     GeneratedCodeAccessorFactory,
-    ICustomCondition,
-    ICustomConditionFactory
+    type ICustomCondition,
+    type ICustomConditionFactory
 } from "@com.mgmtp.a12.kernel/kernel-md-facade";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -107,6 +107,7 @@ class IsNotReverseCustomCondition implements ICustomCondition {
         }
 
         const fieldValues = instancesByField.map(([fieldInstance]) =>
+            // getAssignedObject() may return null, undefined or "" when a field is not filled in the document
             this._documentService.getAssignedObject(document, fieldInstance));
         if (fieldValues.some(fieldValue => typeof fieldValue !== "string")) {
             return null;

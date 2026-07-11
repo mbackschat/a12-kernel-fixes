@@ -32,9 +32,7 @@
 
 package com.mgmtp.a12.kernel.md.rt.internal.service;
 
-import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICalculator;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
+import com.mgmtp.a12.kernel.core.rt.a12internal.IGeneratedCodeAccessFactory;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.rt.api.IModelCode;
 import com.mgmtp.a12.kernel.md.rt.api.IModelCodeCache;
@@ -43,26 +41,12 @@ import com.mgmtp.a12.kernel.md.rt.api.IStaticModelCodeCache;
 
 public interface IModelProvider {
 
-	/**
-	 * @return the validator from the code.
-	 */
-	IValidator getValidator(IDocumentModel documentModel, String variant);
-
-	/**
-	 * @return the calculator from the code.
-	 */
-	ICalculator getCalculator(IDocumentModel documentModel, String variant);
-
-	/**
-	 * @return the meta data of the model form the code.
-	 */
-	IMetaModel getMetaModel(IDocumentModel documentModel, String variant);
+	IGeneratedCodeAccessFactory getGeneratedCodeAccessFactory(String documentModelId);
 
 	/**
 	 * @return the string with which the generated code (generated out of the given document model) is cached, see
 	 *        {@link IStaticModelCodeCache#addModelCode(String, IStaticModelCode)} and
 	 *        {@link IModelCodeCache#addModelCode(String, IModelCode)}.
 	 */
-	String createModelCodeIdentifier(IDocumentModel documentModel, String variant);
-
+	String createModelCodeIdentifier(IDocumentModel documentModel);
 }

@@ -12,7 +12,9 @@ C_<t.name>.prototype.calc_<t.uniqueName> = function (controller) {
 	
 	<t.filterParamsCreationCode; separator = "\n">
 	<t.filterCode; separator= "\n">
-	
+	<t.setOpParamsCreationCode; separator = "\n">
+    <t.setOperationCode; separator="\n">
+
 	<t.rtControllerParamsCreationCode; separator = "\n">
 	try {
 		var innerIterator = iter.iterator();

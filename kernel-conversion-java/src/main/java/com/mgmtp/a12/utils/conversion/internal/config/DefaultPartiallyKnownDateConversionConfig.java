@@ -39,13 +39,15 @@ import java.util.TimeZone;
 import com.mgmtp.a12.utils.conversion.DatePrecision;
 import com.mgmtp.a12.utils.conversion.config.PartiallyKnownDateConversionConfig;
 
+import lombok.NonNull;
+
 public class DefaultPartiallyKnownDateConversionConfig extends DefaultDateBasicConversionConfig implements
 		PartiallyKnownDateConversionConfig {
 
 	private final DatePrecision datePrecision;
 
 	public DefaultPartiallyKnownDateConversionConfig(String modelId, List<String> modelPath, int baseYear, TimeZone timeZone,
-			String format,
+			@NonNull String format,
 			DatePrecision datePrecision) {
 		super(modelId, modelPath, baseYear, timeZone, format);
 		this.datePrecision = datePrecision;

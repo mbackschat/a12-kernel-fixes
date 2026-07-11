@@ -39,17 +39,19 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOper
 /**
  *
  */
-public class OpListOperationWithParameter extends OpListOperation {
+public class OpListOperationWithParameter extends OpListOperation implements IOpListOperationWithParameter {
+	private final int numberOfDecimalPlaces;
 
-	private final String parameterCode;
-
-	public OpListOperationWithParameter(IOpListOperationWithParameter op, List<CodeGenOperation> ops, String parameterCode) {
+	public OpListOperationWithParameter(IOpListOperationWithParameter op, List<CodeGenOperation> ops) {
 		super(op, ops);
-		this.parameterCode = parameterCode;
+		this.numberOfDecimalPlaces = op.getNumberOfDecimalPlaces();
 	}
 
 	public String getParameterCode() {
-		return parameterCode;
+		return Integer.toString(Math.max(0, numberOfDecimalPlaces));
 	}
 
+	@Override public int getNumberOfDecimalPlaces() {
+		return numberOfDecimalPlaces;
+	}
 }

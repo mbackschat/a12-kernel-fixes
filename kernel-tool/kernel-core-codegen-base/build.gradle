@@ -6,11 +6,10 @@ plugins {
 description = "kernel-core-codegen-base: Base package for code generation for different object oriented programming languages"
 
 dependencies {
-    api project(':kernel-core-base-utils')
-    api project(':kernel-core-tool-api')
+    api project(':kernel-internal-base-utils')
+    api project(':kernel-internal-core-tool-api')
     api libs.st4
-
+    
     implementation libs.commonsLang3
     implementation libs.slf4jApi
-    implementation libs.commonsIo
 }

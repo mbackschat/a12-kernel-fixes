@@ -95,7 +95,8 @@ public class DataTransferServiceAdapter implements IMappingServiceA12Internal {
 
 	/**
 	 * like {@link #transferData(List, DocumentV2, DataTransferConfig)}, with
-	 * {@code IDataTransferService.DataTransferConfig.of(locale)} for the config, i.e. with no {@code additionalInformation}
+	 * {@code IDataTransferService.DataTransferConfig.builder(locale).build()} for the config,
+	 * i.e. with no {@code customFieldTypeFactory}, no {@code customConditionFactory}
 	 * and no {@code currentDateForTest} set (or any other additional config attributes that may be introduced some day).
 	 */
 	public MappingResult transferData(

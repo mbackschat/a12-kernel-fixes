@@ -44,21 +44,16 @@ in the application.
 
 === Dynamic
 
-[NOTE]
-====
-The dynamic mapping API is currently experimental and may still change in a breaking way in future releases.
-====
-
 It is possible to obtain an `IMappingService` (link:./assets/doc/java/com/mgmtp/a12/kernel/mapping/rt/api/IMappingService.html[javadoc]) by dynamically generating
 mapping code at runtime. This can be achieved on-the-fly via
 `MappingServiceFactory#createMappingServiceFromDynamicCode` (link:./assets/doc/java/com/mgmtp/a12/kernel/mapping/facade/MappingServiceFactory.html[javadoc]).
 
 ==== CLI to generate static mapping source code
 
-The executable library _kernel-md-datatransfer-codegen-<Kernel
+The executable library _kernel-md-facade-<Kernel
 version>-MappingCodeGenerator-CLI.jar_ can be used to generate Java code for
 static integration.
-Please execute the command `java -jar kernel-md-datatransfer-codegen-<Kernel
+Please execute the command `java -jar kernel-md-facade-<Kernel
 version>-MappingCodeGenerator-CLI.jar`
 to see how to use the artifact.
 The output is a ZIP archive that contains the generated mapping code as well as gradle files which are needed to compile the code, see next section.

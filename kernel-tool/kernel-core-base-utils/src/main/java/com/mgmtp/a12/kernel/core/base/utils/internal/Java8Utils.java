@@ -33,6 +33,7 @@
 package com.mgmtp.a12.kernel.core.base.utils.internal;
 
 import java.io.PrintWriter;
+import java.io.Serial;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,12 +44,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.SequencedSet;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -90,7 +93,7 @@ public class Java8Utils {
 	}
 
 	public static <T, R, S> Map<T, S> mapMapValuesPreserveOrder(Map<T, R> map, Function<R, S> mapper) {
-		LinkedHashMap<T, S> newMap = new LinkedHashMap<>(map.size());
+		LinkedHashMap<T, S> newMap = LinkedHashMap.newLinkedHashMap(map.size());
 		map.forEach((k, v) -> newMap.put(k, mapper.apply(v)));
 		return newMap;
 	}
@@ -99,7 +102,7 @@ public class Java8Utils {
 	 * Maps a list with the given function and returns the result as a list.
 	 */
 	public static <I, O> List<O> mapList(List<I> l, Function<I, O> fn) {
-		return l.stream().map(fn).collect(Collectors.toList());
+		return l.stream().map(fn).toList();
 	}
 
 	public static <T> List<T> filterList(List<T> l, Predicate<T> test) {
@@ -117,7 +120,7 @@ public class Java8Utils {
 	}
 
 	public static <T> T getLast(List<T> list) {
-		return list.get(list.size() - 1);
+		return list.getLast();
 	}
 
 	public static <T> List<T> subList(List<T> list, int fromIndex, int toIndex) {
@@ -175,7 +178,7 @@ public class Java8Utils {
 	 * {@link Java8Utils#toMap(Function, Function, BinaryOperator)} methods.
 	 */
 	private static class NullMergeableHashMap<K, V> extends HashMap<K, V> {
-		private static final long serialVersionUID = -6695505014590198703L;
+		@Serial private static final long serialVersionUID = -6695505014590198703L;
 
 		@Override
 		public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
@@ -484,16 +487,16 @@ public class Java8Utils {
 	 * @return the optional list of elements.
 	 */
 	public static <T> Optional<List<T>> reduceToOptionalList(Stream<Optional<T>> stream) {
-		List<Optional<T>> listOfOptionals = stream.collect(Collectors.toList());
-		if (listOfOptionals.stream().anyMatch(o -> !o.isPresent())) {
+		List<Optional<T>> listOfOptionals = stream.toList();
+		if (listOfOptionals.stream().anyMatch(Optional::isEmpty)) {
 			return Optional.empty();
 		}
 		return Optional.of(listOfOptionals.stream().map(Optional::get).collect(Collectors.toList()));
 	}
 
 	@SafeVarargs
-	public static <T> Set<T> toSet(T... values) {
-		HashSet<T> result = new HashSet<>();
+	public static <T> SequencedSet<T> toSet(T... values) {
+		LinkedHashSet<T> result = new LinkedHashSet<>();
 		Collections.addAll(result, values);
 		return result;
 	}
@@ -585,6 +588,10 @@ public class Java8Utils {
 
 	public static <T> List<T> sorted(Collection<T> c, Comparator<T> comparator) {
 		return c.stream().sorted(comparator).collect(Collectors.toList());
+	}
+
+	public static <T extends Comparable<T>> List<T> sorted(Collection<T> c) {
+		return sorted(c, Comparator.naturalOrder());
 	}
 
 	/**

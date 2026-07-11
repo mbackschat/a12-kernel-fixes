@@ -76,11 +76,10 @@ public class CheckHintList implements ICustomCondition {
 
 	private static IIdentifier createPatternId(IIdentifier errorField) {
 		long[] indices = Arrays.copyOf(errorField.getIndices(), errorField.getIndices().length - 2);
-		// We assume that the templateName field is in the parent group as the error field ("PatternProperty/pattern")
 		String valuesName = ElementPathUtils.getParentPath(errorField.getName()); // parent group
 		String hintListsName = ElementPathUtils.getParentPath(valuesName);
 		String stringTypeName = ElementPathUtils.getParentPath(hintListsName);
-		String templateNameFieldFullName = ElementPathUtils.createPath(stringTypeName, "pattern");
-		return new IdentifierImpl(templateNameFieldFullName, indices);
+		String patternFieldFullName = ElementPathUtils.createPath(stringTypeName, "pattern");
+		return new IdentifierImpl(patternFieldFullName, indices);
 	}
 }

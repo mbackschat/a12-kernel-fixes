@@ -230,7 +230,8 @@ einfacheOperation:
                  | feldOp 
                  | feldOperOp
                  | rundenOp 
-                 | rundenOperOp 
+                 | rundenOperOp
+                 | setOperOp
                  | feldListenAnzahlOp
                  | anzahlWertOp
                  | feldOpMitParams 
@@ -318,12 +319,17 @@ rundenOpName: 'AbrundenWert' | 'AufrundenWert' | 'RundenWert';
 rundenOperOp: rundenOperOpName '(' operation (',' z=ZiffernFolge)? ')'{this.checkRundenOperOp(_localctx);}; 
 rundenOperOpName: 'Abrunden' | 'Aufrunden' | 'Runden';
 
+setOperation: operation;
+
+setOperOp: setOperOpName '(' iterationEntity = entitySpec ',' { this.initSetExpression(_localctx.entitySpec()); } setOperation { this.resetSetExpression(_localctx.entitySpec()); } ')' {this.checkSetOperOp(_localctx);};
+setOperOpName: 'SummeVonTermen';
+
 /** 
  * feldListenAnzahlOp
  * 
  * checker class: CheckFeldListenAnzahlOpImpl
  * creator class: FeldListenAnzahlOpCreator
- * interface in parse tree: IEntityListOperation
+ * interface in parse tree: IEntityListOperation or INumberOfRootGroupsOperation
  */
 feldListenAnzahlOp: feldListenAnzahlOpName '(' entityListe ')'{this.checkFeldListenAnzahlOp(_localctx);};
 feldListenAnzahlOpName: 'AnzahlAngegebenerKontexte' | 'AnzahlAngegebenerFelder' | 'AnzahlVerschiedenerWerte';
@@ -558,7 +564,7 @@ entityListe :	entitySpec ( ',' entitySpec )* ;
  */
 entitySpec:  (outer = '$')? regelKontextEntity ('Fuer' semanticIndex)? {this.checkEntitySpec(_localctx);}|
              {this.isHModel()}? entityHModel ('->' categoryName=nameOhnePunkt)? {this.checkEntitySpec(_localctx);}|
-             {this.isA12Model()}? (outer='$')? entity ('->' categoryName=nameOhnePunkt)? ('Fuer' semIdx=semanticIndex)? ('Mit' {this.initFilterCondition(_localctx);} filterCond=bedingung {this.resetFilterCondition(_localctx);})? {this.checkEntitySpec(_localctx);};
+             {this.isA12Model()}? (outer='$')? entity ('->' categoryName=nameOhnePunkt)? ('Fuer' semIdx=semanticIndex)? (mit='Mit' {this.initSetExpression(_localctx);} filterCond=bedingung {this.resetSetExpression(_localctx);})? {this.checkEntitySpec(_localctx);};
              
              
 /** 

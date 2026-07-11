@@ -34,27 +34,18 @@ package com.mgmtp.a12.kernel.core.rt.a12internal.datatransfer;
 
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
 
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
 
 public class DataTransferConfigBuilder {
 	private Locale validationLanguage;
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	private Map<String, Object> additionalInformation = Map.of();
 	private ICustomFieldTypeFactory customFieldTypeFactory = null;
 	private ICustomConditionFactory customConditionFactory = null;
 	private Date currentDateForTest = null;
 
 	public DataTransferConfigBuilder(Locale validationLanguage) {
 		this.validationLanguage = validationLanguage;
-	}
-
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	public DataTransferConfigBuilder additionalInformation(Map<String, Object> additionalInformation) {
-		this.additionalInformation = additionalInformation;
-		return this;
 	}
 
 	/**
@@ -84,10 +75,8 @@ public class DataTransferConfigBuilder {
 		return this;
 	}
 
-	// A12K-3589 remove this SuppressWarnings
-	@SuppressWarnings("removal")
 	public IDataTransferService.DataTransferConfig build() {
-		return new DataTransferConfigImpl(validationLanguage, additionalInformation, customFieldTypeFactory, customConditionFactory, currentDateForTest);
+		return new DataTransferConfigImpl(validationLanguage, customFieldTypeFactory, customConditionFactory, currentDateForTest);
 	}
 
 }

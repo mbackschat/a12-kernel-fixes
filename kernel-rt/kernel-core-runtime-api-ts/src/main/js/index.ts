@@ -31,13 +31,11 @@
  */
 
 // automatic exports
-export type * from "./custom/ICustomFieldType.js";
 export type * from "./custom/ICustomFieldTypeCheckError.js";
 export type * from "./custom/ICustomFieldTypeConversionResult.js";
 export * from "./custom/ICustomFieldTypeFactory.js";
 export type * from "./custom/ICustomFieldTypeValidationParam.js";
 export * from "./custom/ICustomFieldValidator.js";
-export * from "./custom/impl/CustomFieldTypeService.js";
 export * from "./formatdef/error/bundles/index.js";
 export * from "./formatdef/error/keys.js";
 export * from "./formatdef/error/localization.js";

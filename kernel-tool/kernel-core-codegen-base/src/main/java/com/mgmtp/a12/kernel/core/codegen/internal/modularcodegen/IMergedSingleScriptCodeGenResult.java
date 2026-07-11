@@ -34,7 +34,6 @@ package com.mgmtp.a12.kernel.core.codegen.internal.modularcodegen;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public interface IMergedSingleScriptCodeGenResult<E extends IEntryPoints> extends ICodeGenResult<E> {
@@ -53,11 +52,6 @@ public interface IMergedSingleScriptCodeGenResult<E extends IEntryPoints> extend
 			List<String> contentParts, List<String> filePathForScript) {
 		return new MergedSingleScriptCodeGenResultImpl<>(entryPoints, fileHeader, importsLines, globals, contentParts,
 				filePathForScript);
-	}
-
-	@Override default byte[] toZip() {
-		return CodeGenResultUtils.sourcesToZip(
-				Map.of(String.join("/", filePathForScript()), toSingleFileBytesIfApplicableOrThrow()));
 	}
 
 	/**

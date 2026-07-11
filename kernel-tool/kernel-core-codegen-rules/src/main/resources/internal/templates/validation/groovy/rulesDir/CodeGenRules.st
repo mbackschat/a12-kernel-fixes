@@ -14,16 +14,22 @@ class <t.groovyPackageClassnamePrefix>R_<t.name> implements IValidatorIntern {
 
 	<t.preliminaryRulesPerErrorFieldMethodsCode; separator="\n">
 
-    private final Map\<String, Consumer\<MainValidatorController\>\> uniqueFieldNameToPreliminaryValidationFunc = Map.ofEntries(
-        <t.uniqueFieldNamesWithPreliminaryRules:{uniqueFieldName|Map.entry("<uniqueFieldName>", this.&validatePreliminaryRulesForField__<uniqueFieldName>)}; separator=",\n">
-    );
+	private Closure\<Map\<String, Consumer\<MainValidatorController\>\>\> createUniqueFieldNameToPreliminaryValidationFuncMap = {
+		Map\<String, Consumer\<MainValidatorController\>\> m = [:];
 
-    public void validatePreliminaryRulesForField(MainValidatorController controller, String uniqueFieldName) {
-        def validationFunc = uniqueFieldNameToPreliminaryValidationFunc.get(uniqueFieldName);
-        if (validationFunc != null) {
-            validationFunc(controller);
-        }
-    }
+		<t.uniqueFieldNamesWithPreliminaryRules:{uniqueFieldName|m["<uniqueFieldName>"] = this.&validatePreliminaryRulesForField__<uniqueFieldName>}; separator=";\n">;
+
+		return m;
+	}
+
+	private final Map\<String, Consumer\<MainValidatorController\>\> uniqueFieldNameToPreliminaryValidationFunc = createUniqueFieldNameToPreliminaryValidationFuncMap();
+
+	public void validatePreliminaryRulesForField(MainValidatorController controller, String uniqueFieldName) {
+		def validationFunc = uniqueFieldNameToPreliminaryValidationFunc.get(uniqueFieldName);
+		if (validationFunc != null) {
+			validationFunc(controller);
+		}
+	}
 
 	public void validatePreliminaryRules(MainValidatorController controller) {
 		<t.preliminaryRulesPerRootGroupCalls>

@@ -32,20 +32,14 @@
 package com.mgmtp.a12.kernel.md.rt.api;
 
 import java.util.Collection;
-import java.util.Locale;
-import java.util.function.Consumer;
 
-import com.mgmtp.a12.kernel.md.document.api.IDocument;
-import com.mgmtp.a12.kernel.md.document.api.IFieldInstance;
-import com.mgmtp.a12.kernel.md.document.api.services.DocumentDeserializationConfig;
-import com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 import lombok.NonNull;
 
 /**
- * The result of a document computation (see {@link IDocumentRtService#compute(IDocument, Locale)}).
+ * The result of a document computation (see {@link IDocumentRtService#compute(DocumentV2, DocumentProcessingConfig)}).
  */
 @OnlyForUsage
 public interface IDocumentComputationResult {
@@ -57,7 +51,7 @@ public interface IDocumentComputationResult {
 
 	/**
 	 * @return the {@link IComputedFieldInstance}s without formal errors (i.e. {@link IComputedFieldInstance#getErrorMessage()} is
-	 * 		empty). Does not include cleared field instances (i.e. {@link IComputedFieldInstance#getValue()} is {@code ""} or empty).
+	 * 		empty). Does not include cleared field instances (i.e. {@link IComputedFieldInstance#getValueV2()} is {@code ""}).
 	 * 		Is never {@code null}.
 	 */
 	@NonNull Collection<IComputedFieldInstance> getComputedFieldInstancesWithoutErrors();
@@ -91,67 +85,13 @@ public interface IDocumentComputationResult {
 	@NonNull Collection<IMessage> getFormalErrorsInOperands();
 
 	/**
-	 * @return the {@link IDocument} based on which this {@link IDocumentComputationResult} was computed. Not a copy (i.e. includes
-	 * 		alls modifications made to the document since the computation. Is never {@code null}.
-	 *
-	 * @deprecated the {@link DocumentV2} has to be provided to the {@link #applyTo(DocumentV2)} method
-	 */
-	@Deprecated(since = "30.0.0")
-	IDocument getDocument();
-
-	/**
-	 * Applies the computed field instances, which were computed without an error, to the document
-	 * from which the computation was performed (see also {@link #getDocument()}):
-	 * <ul>
-	 * <li>If the document already contains field instances which correspond to the computed ones,
-	 * the corresponding field instances in the document will be updated with the corresponding
-	 * computed value.</li>
-	 * <li>Otherwise, {@link IFieldInstance}s, which correspond to the computed ones, are internally
-	 * created and added to the document (in no specific order).</li>
-	 * </ul>
-	 * <p>
-	 * <b>Important note:</b> This method does change the original document mentioned above.
-	 *
-	 * @param errorHandler
-	 * 		operation which should be performed if an error occurred while computing the
-	 * 		corresponding {@link IComputedFieldInstance}. May not be {@code null}.
-	 * @deprecated since Kernel version 29.0.0. Use {@link #applyTo(IDocument)} instead.
-	 */
-	@Deprecated(since = "29.0.0") // can only be removed when A12-17017 is done
-	void apply(Consumer<IComputedFieldInstance> errorHandler);
-
-	/**
-	 * Modifies the provided {@link IDocument} by applying the changes in {@link #getComputedFieldInstancesWithChanges} and clearing
-	 * those field instances that are contained in {@link #getComputedFieldInstancesWithErrors} or in
+	 * Applies the changes to the given {@link DocumentV2} and returns the result
+	 * as an updated DocumentV2 (leaving the original unchanged).
+	 * Clearing those field instances that are contained in {@link #getComputedFieldInstancesWithErrors} or in
 	 * {@link #getClearedFieldInstances}.
 	 *
 	 * @param document
-	 * 		the {@link IDocument} to apply the changes to. May not be {@code null}.
-	 * @deprecated use {@link #applyTo(DocumentV2)} instead
-	 */
-	@Deprecated(since = "30.0.0")
-	void applyTo(IDocument document);
-
-	/**
-	 * similar to {@link #applyTo(IDocument)}, but applies the changes to the given {@link DocumentV2} and returns the result
-	 * as an updated DocumentV2 (leaving the original unchanged).
+	 * 		the {@link DocumentV2} to apply the changes to.
 	 */
 	DocumentV2 applyTo(@NonNull DocumentV2 document);
-
-	/**
-	 * Extension of {@link #applyTo(IDocument)} (see description there).
-	 * <p>
-	 * Use this method only if you used your own implementation of {@link IDocument}/{@link IFieldInstance} while performing the
-	 * computation (see also {@link DocumentDeserializationConfig#getDocumentFactory()}). Otherwise, you should use
-	 * {@link #applyTo(IDocument)}.
-	 *
-	 * @param document
-	 * 		the {@link IDocument} to apply the changes to. May not be {@code null}.
-	 * @param documentFactory
-	 * 		the {@link IDocumentFactory} from which {@link IFieldInstance}s should be created if necessary (see
-	 *        {@link IComputedFieldInstance#applyTo(IDocument)}). May not be {@code null}.
-	 * @deprecated use {@link #applyTo(DocumentV2)} instead
-	 */
-	@Deprecated(since = "30.0.0")
-	void applyTo(IDocument document, IDocumentFactory documentFactory);
 }

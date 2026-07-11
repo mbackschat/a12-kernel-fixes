@@ -39,8 +39,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.mgmtp.a12.kernel.md.document.api.IEntityInstance;
-
 import lombok.NonNull;
 
 /**
@@ -69,7 +67,7 @@ class PartiallyKnownDocumentMultiPointerImpl implements PartiallyKnownDocumentMu
 	private void checkValidity() {
 		// we assert that, just in case this changes in the future, and we have to handle the additional values
 		// if this assert triggers, then we have to adapt the javadoc
-		assert (repetitions.stream().noneMatch(val -> val < 0 && val != IEntityInstance.UNKNOWN)) :
+		assert (repetitions.stream().noneMatch(val -> val < 0 && val != PartiallyKnownDocumentMultiPointer.UNKNOWN)) :
 				"The repetition indexes are only expected to be >= 0 or -5";
 	}
 

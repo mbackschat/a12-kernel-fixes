@@ -73,6 +73,7 @@ import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldop
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.OpListOperation;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.OpListOperationWithParameter;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.PointInTimeOperation;
+import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.SetOpOperation;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.date.DateAddOperation;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.date.DateConstructionOperation;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.fieldoperations.date.DateDiffOperation;
@@ -109,6 +110,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOper
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOperationWithParameter;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IPointInTimeOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateAddOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateConstructionOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateDiffOperation;
@@ -357,7 +359,8 @@ public class CodeGenCreator extends ASTVisitor {
 	@Override
 	public void endVisit(IEntityIdList p) {
 		int firstElement = entityIdDeq.size() - p.getEntityIdList().size();
-		assert firstElement == 0;
+		// firstElement might not be 0. E.g. in SumOfTerms(G*, [Z] + Sum(G/Z*)), it would be 1 for the EntityIdList in the Sum
+		// because G* would already be on the stack
 		List<EntityId> entities = new ArrayList<>(entityIdDeq.subList(firstElement, entityIdDeq.size()));
 		// Remove elements, that are now in entities. RemoveLastN would be nice.
 		for (int i = 0; i < p.getEntityIdList().size(); i++) {
@@ -482,12 +485,6 @@ public class CodeGenCreator extends ASTVisitor {
 		opStack.push(new FieldIdOperationWithParameters(op, parameter, entityId));
 	}
 
-	/**
-	 * {@link CodeGenCreator#getParameterCode(IFieldIdOperationWithParameters)}
-	 *
-	 * @param op
-	 * @return
-	 */
 	private String getParameterCode(IFieldIdOperationWithParameters op) {
 		return switch (op.getOperatorName()) {
 			case ValueAsDate ->
@@ -505,20 +502,29 @@ public class CodeGenCreator extends ASTVisitor {
 
 	@Override
 	public void endVisit(IOpListOperation op) {
-		List<CodeGenOperation> ops = new ArrayList<>();
-		for (int i = 0; i < op.getOperations().size(); i++) {
-			ops.add(0, opStack.pop()); // preserve order
-		}
+		List<CodeGenOperation> ops = popNOps(op.getOperations().size());
 		opStack.push(new OpListOperation(op, ops));
 	}
 
 	@Override
+	public void endVisit(ISetOpOperation p) {
+		CodeGenOperation operation = opStack.pop();
+		EntityId iterationEntity = entityIdDeq.removeLast();
+		opStack.push(new SetOpOperation(p, iterationEntity, operation));
+	}
+
+	@Override
 	public void endVisit(IOpListOperationWithParameter op) {
+		List<CodeGenOperation> ops = popNOps(op.getOperations().size());
+		opStack.push(new OpListOperationWithParameter(op, ops));
+	}
+
+	private List<CodeGenOperation> popNOps(int op) {
 		List<CodeGenOperation> ops = new ArrayList<>();
-		for (int i = 0; i < op.getOperations().size(); i++) {
-			ops.add(0, opStack.pop()); // preserve order
+		for (int i = 0; i < op; i++) {
+			ops.addFirst(opStack.pop()); // preserve order
 		}
-		opStack.push(new OpListOperationWithParameter(op, ops, Integer.toString(Math.max(0, op.getNumberOfDecimalPlaces()))));
+		return ops;
 	}
 
 	@Override
@@ -575,24 +581,22 @@ public class CodeGenCreator extends ASTVisitor {
 	}
 
 	private CodeGenOperation createDatumParameter(CodeGenOperation fop) {
-		if (fop == null) {
-			return null;
-		}
-		if (fop instanceof FieldIdOperation) {
-			fop.setType(OperationType.NUMBER);
-			return fop;
-		}
-		if (fop instanceof ConstantOperation) { // string constant has to be transformed to number constant
-			fop.setType(OperationType.NUMBER);
-			return fop;
-		}
-		if (fop instanceof DateExtractionOperation) {
-			fop.setType(OperationType.NUMBER);
-			return fop;
-		}
-
-		throw new IllegalArgumentException("InternalError: unexpected class " + fop.getClass().getName());
-
+		return switch (fop) {
+			case null -> null;
+			case FieldIdOperation _fieldIdOperation -> {
+				fop.setType(OperationType.NUMBER);
+				yield fop;
+			}
+			case ConstantOperation _constantOperation -> {
+				fop.setType(OperationType.NUMBER);
+				yield fop;
+			}
+			case DateExtractionOperation _dateExtractionOperation -> {
+				fop.setType(OperationType.NUMBER);
+				yield fop;
+			}
+			default -> throw new IllegalArgumentException("InternalError: unexpected class " + fop.getClass().getName());
+		};
 	}
 
 	@Override
@@ -623,10 +627,7 @@ public class CodeGenCreator extends ASTVisitor {
 
 	@Override
 	public void endVisit(ICompositeOperation op) {
-		List<CodeGenOperation> ops = new ArrayList<>();
-		for (int i = 0; i < op.getOperations().size(); i++) {
-			ops.add(0, opStack.pop()); // preserve order
-		}
+		List<CodeGenOperation> ops = popNOps(op.getOperations().size());
 		opStack.push(new CompositeOperation(op, ops));
 	}
 
@@ -634,10 +635,7 @@ public class CodeGenCreator extends ASTVisitor {
 	public void endVisit(IValueListCondition b) {
 		EntityId entityId = entityIdDeq.removeLast();
 
-		List<CodeGenOperation> ops = new ArrayList<>();
-		for (int i = 0; i < b.getValueList().size(); i++) {
-			ops.add(0, opStack.pop()); //preserve order
-		}
+		List<CodeGenOperation> ops = popNOps(b.getValueList().size());
 
 		bedingungsStack.push(new ValueListCondition(b, entityId, ops));
 	}
@@ -671,7 +669,7 @@ public class CodeGenCreator extends ASTVisitor {
 	public void endVisit(ICompositeCondition b) {
 		List<CodeGenCondition> bedingungen = new ArrayList<>();
 		for (int i = 0; i < b.getConditionList().size(); i++) {
-			bedingungen.add(0, bedingungsStack.pop()); // preserve order
+			bedingungen.addFirst(bedingungsStack.pop()); // preserve order
 		}
 
 		bedingungsStack.push(new CompositeCondition(b.getLogOp(), b.hasBrackets(), bedingungen));

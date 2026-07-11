@@ -39,7 +39,6 @@ import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IField;
 import com.mgmtp.a12.kernel.core.utils.internal.metaModel.customConditions.CustomConditionUtil;
-import com.mgmtp.a12.kernel.core.utils.internal.services.NameValidationService;
 
 /**
  * Uses the {@link NameValidationService} to check the short name of {@link IField#getFullName()}.

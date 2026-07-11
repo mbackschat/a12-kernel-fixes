@@ -35,31 +35,30 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mgmtp.a12.kernel.core.base.utils.internal.CharsetUtil;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
 
 /**
  * A12K-3107: Step to simplify restricted charsets of the supportedCharacters nodes in A12 document models
  */
-public class SimplifyCharsetStep extends BaseJsonNodeMigrationStep {
+public final class SimplifyCharsetStep {
 
 	public static final IProblemReporter DONT_REPORT_PROBLEMS = x -> {
 	};
 	public static final CharsetUtil DEFAULT_CHARSET_UTIL = new CharsetUtil();
 
-	public SimplifyCharsetStep(final MigrationCache cache, final MigrationStepConfigType stepConfigType,
-			final ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+	private SimplifyCharsetStep() {
 	}
 
-	@Override public void execute(final JsonNode model, final MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		for (final JsonNode supportedCharactersNode : model.findValues(ModelJsonUtil.SUPPORTED_CHARACTERS)) {
 			// All restricted charsets should be string arrays.
 			// If we encounter malformed charset definitions, we don't touch anything
@@ -67,8 +66,8 @@ public class SimplifyCharsetStep extends BaseJsonNodeMigrationStep {
 				boolean weirdValueEncountered = false;
 				final List<String> charset = new ArrayList<>();
 				for (final JsonNode value : supportedCharactersNode) {
-					if (value.isTextual()) {
-						charset.add(value.asText());
+					if (value.isString()) {
+						charset.add(value.asString());
 					} else {
 						weirdValueEncountered = true; // paranoid
 						break;

@@ -44,7 +44,7 @@ dependencies {
 
 tasks.register('copy_grammarFiles', Copy) {
     // copy the grammar files from kernel-core-parser
-    from(project(":kernel-core-parser").sourceSets.main.antlr.srcDirs)
+    from(project(":kernel-internal-core-parser").sourceSets.main.antlr.srcDirs)
             .include("**/*.g4")
 
     destinationDir(file(antlrSrcDir))

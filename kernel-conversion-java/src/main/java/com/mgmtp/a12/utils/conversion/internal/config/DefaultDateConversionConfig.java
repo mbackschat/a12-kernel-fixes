@@ -37,9 +37,12 @@ import java.util.TimeZone;
 
 import com.mgmtp.a12.utils.conversion.config.DateConversionConfig;
 
+import lombok.NonNull;
+
 public class DefaultDateConversionConfig extends DefaultDateBasicConversionConfig implements DateConversionConfig {
 
-	public DefaultDateConversionConfig(String modelId, List<String> modelPath, int baseYear, TimeZone timeZone, String format) {
+	public DefaultDateConversionConfig(String modelId, List<String> modelPath, int baseYear, TimeZone timeZone,
+			@NonNull String format) {
 		super(modelId, modelPath, baseYear, timeZone, format);
 	}
 

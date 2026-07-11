@@ -46,7 +46,6 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IMVK_Service;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 public class ReferencedEntitiesInRule {

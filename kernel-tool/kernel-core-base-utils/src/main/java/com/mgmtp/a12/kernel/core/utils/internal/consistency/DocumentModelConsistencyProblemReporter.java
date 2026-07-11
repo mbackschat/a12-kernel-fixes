@@ -32,13 +32,7 @@
 
 package com.mgmtp.a12.kernel.core.utils.internal.consistency;
 
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
-
 @FunctionalInterface
 public interface DocumentModelConsistencyProblemReporter {
 	void reportProblem(DocumentModelConsistencyProblem problem);
-
-	static DocumentModelConsistencyProblemReporter fromIProblemReporter(IProblemReporter pr) {
-		return problem -> pr.reportProblem(problem.convertToIProblem());
-	}
 }

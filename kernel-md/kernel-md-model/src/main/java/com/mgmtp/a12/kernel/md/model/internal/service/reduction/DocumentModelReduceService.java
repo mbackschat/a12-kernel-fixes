@@ -65,6 +65,8 @@ import com.mgmtp.a12.kernel.md.model.internal.service.mapping.Rule;
 import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.SerializationUtils;
 import com.mgmtp.a12.model.notification.RankedNotification;
 
+import lombok.NonNull;
+
 /**
  * Offers the functionality to create a reduced {@link DocumentModel}.
  * <br/>
@@ -77,12 +79,10 @@ public class DocumentModelReduceService {
 	private final MVKService mvkService;
 	private final ElementContainerImpl elementContainer;
 
-	public DocumentModelReduceService(final DocumentModel documentModel) {
-		Objects.requireNonNull(documentModel);
+	public DocumentModelReduceService(@NonNull DocumentModel documentModel) {
 		this.documentModel = documentModel;
-		DocumentModelService documentModelService = new DocumentModelService();
 		// following casts should be ok, otherwise we have an implementation error
-		this.mvkService = (MVKService) documentModelService.getMvkServiceForModel(documentModel, null);
+		this.mvkService = (MVKService) new DocumentModelService().getMvkServiceForModel(documentModel);
 		this.elementContainer = ((ElementContainerImpl) mvkService.getIEC());
 	}
 

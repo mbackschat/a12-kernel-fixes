@@ -31,25 +31,26 @@
  */
 package com.mgmtp.a12.kernel.md.rt.internal.service;
 
+import com.mgmtp.a12.kernel.core.rt.a12internal.IGeneratedCodeAccessFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICalculator;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
 
-public class ValidationModelGroovyCode extends ModelGroovyCode {
+public class ValidationModelGroovyCode extends ModelGroovyCode implements IGeneratedCodeAccessFactory {
 
 	public ValidationModelGroovyCode(String modelHash, String generatedPlainCode) {
 		super(modelHash, generatedPlainCode);
 	}
 
 	public IValidator getValidator() {
-		return (IValidator) modelCode().invokeMethod("getValidator", null);
+		return (IValidator) getOrCompileModelCode().invokeMethod("getValidator", null);
 	}
 
 	public ICalculator getCalculator() {
-		return (ICalculator) modelCode().invokeMethod("getCalculator", null);
+		return (ICalculator) getOrCompileModelCode().invokeMethod("getCalculator", null);
 	}
 
-	public IMetaModel getMetaModel() {
-		return (IMetaModel) modelCode().invokeMethod("getMetaModel", null);
+	public IMetaModel getMetaObject() {
+		return (IMetaModel) getOrCompileModelCode().invokeMethod("getMetaModel", null);
 	}
 }

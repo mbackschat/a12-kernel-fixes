@@ -35,6 +35,8 @@ package com.mgmtp.a12.utils.conversion.config;
 import com.mgmtp.a12.model.utils.Experimental;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
+import lombok.NonNull;
+
 /**
  * Data type for dates.
  */
@@ -42,7 +44,7 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
 public interface DateConversionConfig extends DateBasicConversionConfig {
 
 	@Override
-	default String format() {
+	default @NonNull String format() {
 		return "yyyy-MM-dd";
 	}
 

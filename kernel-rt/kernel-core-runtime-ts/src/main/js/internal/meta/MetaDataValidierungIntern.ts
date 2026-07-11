@@ -29,12 +29,10 @@
  * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
-import { TimeZonedDate } from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+import { TimeZonedDate } from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import type { HashSet, IMetaField, IMetaGroup, IMetaRule } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 import { IMetaKeys } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
-
-import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
 import type { IDynEnumsIntern } from "../core/IDynEnumsIntern.js";
 import type { IMetaDataValidierung } from "../core/IMetaDataValidierung.js";
@@ -47,7 +45,6 @@ import type { RtInternalIdentifier } from "../util/RtInternalIdentifier.js";
 
 import { EntityUtil } from "../util/EntityUtil.js";
 
-import { FehlerHandler } from "../formatdef/error/FehlerHandler.js";
 import type { TrieNode } from "../util/TrieNode.js";
 
 import type { MetaModelImpl } from "./MetaModelImpl.js";
@@ -239,13 +236,7 @@ export class MetaDataValidierungIntern implements IMetaDataValidierung {
 
 	public getErrorMessage4Req(fieldFullName: string): LocalizableDefaults {
 		const metaField: IMetaField = this.getMetaField(fieldFullName);
-		// the key FIELD_CUSTOM_ERROR_MESSAGE_FOR_REQUIRED does not consider index fields which were not explicitly marked as required
-		const isImplicitlyRequired: boolean = metaField.getValue(IMetaKeys.FIELD_INDEX_FIELD)
-			&& !metaField.getValue(IMetaKeys.FIELD_EXPLICITLY_MANDATORY);
-		if (isImplicitlyRequired) {
-			return FehlerHandler.getAllErrorTexts(RuntimeFormalErrorEnum.PFLICHT_FELD_FEHLER);
-		}
-		return metaField.getValue(IMetaKeys.FIELD_CUSTOM_ERROR_MESSAGE_FOR_REQUIRED);
+		return metaField.getValue(IMetaKeys.FIELD_CUSTOM_ERROR_MESSAGE_FOR_REQUIRED) ?? {};
 	}
 
 	public getParameterMapping(ruleName: string): Map<string, string> {

@@ -1,7 +1,6 @@
 {
   "name": "root",
-  "version": "30.8.1",
-  "license": "(EUPL-1.2 OR LicenseRef-commercial)",
+  "version": "31.1.0",
   "private": true,
   "scripts": {
     "clean": "npm run clean:build_files ; npm run clean:node_modules",
@@ -10,14 +9,14 @@
     "doc": "typedoc"
   },
   "devDependencies": {
-    "@com.mgmtp.a12.devtools/tsconfig": "^1.1.0",
-    "typedoc": "^0.28.15"
+    "@com.mgmtp.a12.devtools/tsconfig": "^2.0.0",
+    "typedoc": "^0.28.19"
   },
   "overrides": {
     "xmlbuilder2": "^4.0.1",
     "@cyclonedx/cyclonedx-library": "^9.0.0",
     "serialize-javascript": "^7.0.5",
-    "eslint": "^9.39.4"
+    "ws": "^8.21.0"
   },
   "workspaces": [
     "kernel-md/kernel-md-facade",

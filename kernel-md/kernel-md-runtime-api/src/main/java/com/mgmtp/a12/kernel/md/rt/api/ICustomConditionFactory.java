@@ -31,10 +31,8 @@
  */
 package com.mgmtp.a12.kernel.md.rt.api;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import lombok.NonNull;
 
@@ -50,49 +48,15 @@ import lombok.NonNull;
 public interface ICustomConditionFactory {
 
 	/**
-	 * com.mgmtp.a12.kernel.md.facade.DocumentRtCustomExtensionService uses this method to register
-	 * the factory with its condition names.
-	 *
-	 * @return A set of names of the custom conditions which can be created by this factory. Never
-	 * 		returns {@code null} or contains {@code null} or the empty-string.
-	 *
-	 * @deprecated since version 29.2.0. The implementation is now obsolete. It will be removed with A12K-3589.
-	 */
-	@Deprecated(since = "29.2.0")
-	default Set<String> getSupportedConditionNames() {
-		return new HashSet<>();
-	}
-
-	/**
-	 * com.mgmtp.a12.kernel.md.facade.DocumentRtCustomExtensionService uses this method to create
-	 * new instances of the custom conditions which are provided by this factory.
-	 *
-	 * @param customConditionName
-	 * 		The name of the custom condition which should be created. May not be {@code null}.
-	 * @return A new instance of the custom condition specified by {@code customConditionName}.
-	 * 		Never returns {@code null}.
-	 *
-	 * @deprecated since version 29.2.0. The implementation is now obsolete. It will be removed with A12K-3589.
-	 */
-	@Deprecated(since = "29.2.0")
-	default ICustomCondition createCustomCondition(String customConditionName) {
-		throw new NoSuchMethodError("createCustomCondition not implemented");
-	}
-
-	/**
-	 * com.mgmtp.a12.kernel.md.facade.DocumentRtCustomExtensionService uses this method to create
-	 * new instances of custom conditions without knowing the condition names supported by the factory.
+	 * Create new instances of custom conditions specified by name.
 	 *
 	 * @param customConditionName
 	 * 		The name of the custom condition which should be created.
 	 * @return A new instance of the custom condition specified by {@code customConditionName} or
 	 * 		empty if the factory does not support this custom condition.
-	 *		<b>Note:</b> There must not be thrown an exception if the factory does not support this custom condition
-	 *		(multiple factories can be registered).
+	 *		<b>Note:</b> There must not be thrown an exception if the factory does not support this custom condition.
 	 */
-	default Optional<ICustomCondition> createCustomConditionV2(@NonNull String customConditionName) {
-		throw new NoSuchMethodError("createCustomConditionV2 not yet implemented");
-	}
+	Optional<ICustomCondition> createCustomConditionV2(@NonNull String customConditionName);
 
 	/**
 	 * Create new instances of custom condition factories from a map of custom conditions.

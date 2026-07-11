@@ -44,7 +44,7 @@ import lombok.NonNull;
 
 class DocumentPointerImpl implements DocumentPointer {
 	private final List<PathPart> pathParts;
-	private static final Pattern pathPartPattern = Pattern.compile("([\\w_-]+)(\\[(\\d+)?\\])?");
+	private static final Pattern pathPartPattern = Pattern.compile("([\\w\\-]+)(\\[(\\d+)?])?");
 
 	private DocumentPointerImpl(List<PathPart> pathParts) {
 		pathParts = Collections.unmodifiableList(new ArrayList<>(pathParts));

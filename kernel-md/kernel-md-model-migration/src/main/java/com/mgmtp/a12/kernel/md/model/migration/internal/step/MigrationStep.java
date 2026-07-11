@@ -31,29 +31,69 @@
  */
 package com.mgmtp.a12.kernel.md.model.migration.internal.step;
 
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
+import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
+import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
+import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
+import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfig;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Migration step.
  */
-public interface MigrationStep<T> extends ModelRepresentationTransformer<T> {
+@RequiredArgsConstructor
+public class MigrationStep {
+	protected final MigrationCache cache;
+	protected final MigrationStepConfig stepConfig;
+	protected final ICustomMigrationConfig customMigConfig;
+	protected final Implementation implementation;
+
+	@FunctionalInterface
+	public interface Implementation {
+		void execute(@NonNull JsonNode model, @NonNull MigrationLogger migrationLogger, @NonNull MigrationCache cache,
+				@NonNull ICustomMigrationConfig customMigConfig);
+	}
+
+	/**
+	 * Transforms the given model.
+	 *
+	 * @param model
+	 * 		the model
+	 * @param migrationLogger
+	 * 		the logger to report occurred errors and infos
+	 */
+	public void execute(JsonNode model, MigrationLogger migrationLogger) {
+		implementation.execute(model, migrationLogger, cache, customMigConfig);
+	}
 
 	/**
 	 * Gets expected source model version.
 	 *
 	 * @return the source model version
 	 */
-	String getSourceModelVersion();
+	public String getSourceModelVersion() {
+		return stepConfig.sourceModelVersion();
+	}
 
 	/**
 	 * Gets version of document model after migration.
 	 *
 	 * @return the target version
 	 */
-	String getTargetModelVersion();
+	public String getTargetModelVersion() {
+		return stepConfig.targetModelVersion();
+	}
 
 	/**
 	 * @return the configuration of this step
 	 */
-	MigrationStepConfigType getConfigType();
+	public MigrationStepConfig getConfig() {
+		return stepConfig;
+	}
+
+	@Override public String toString() {
+		return stepConfig.sourceModelVersion() + " -> " + stepConfig.targetModelVersion();
+	}
 }

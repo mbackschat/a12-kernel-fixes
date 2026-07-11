@@ -32,33 +32,15 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.service.codegen;
 
-import java.util.Optional;
-
 import com.mgmtp.a12.kernel.md.model.api.services.IValidationCodeGeneratorConfig;
 
 import lombok.NonNull;
 
 public class GroovyCodeGeneratorConfig implements IValidationCodeGeneratorConfig {
 
-	private final String variant;
-
-	public GroovyCodeGeneratorConfig(String variant) {
-		this.variant = variant;
-	}
-
 	@Override
 	public @NonNull ProgrammingLanguage getProgrammingLanguage() {
 		return ProgrammingLanguage.GROOVY;
-	}
-
-	@Override
-	public Optional<String> getVariant() {
-		return Optional.ofNullable(variant);
-	}
-
-	@Override
-	public Optional<String> getPackageName() {
-		return Optional.empty();
 	}
 
 	@Override

@@ -40,7 +40,6 @@ import java.util.function.Consumer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +56,7 @@ import com.mgmtp.a12.kernel.core.service.internal.errortext.creation.ErrortextPa
 import com.mgmtp.a12.kernel.core.service.internal.errortext.error.RuleErrorTextParameterDefaultErrorStategy;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.FullChecks_ErrorTextParameterParser;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.FullErrorTextParameterLexer;
+import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.EntitySpecContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.ParameterContext;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEC;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
@@ -156,7 +156,7 @@ public class RuleErrorTextParameterService {
 	}
 
 	private record ParseResult(ParameterContext parameterContext,
-							   Map<ParserRuleContext, FullChecks_ErrorTextParameterParser.EntityRef> ctx2ParsedEntities) {
+							   Map<EntitySpecContext, FullChecks_ErrorTextParameterParser.EntityRef> ctx2ParsedEntities) {
 	}
 
 	private ParseResult createParameterParserAndParseParameter(IRule rule, ICondition condition, String errorTextParameter,

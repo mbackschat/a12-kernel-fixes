@@ -33,14 +33,11 @@
 package com.mgmtp.a12.kernel.core.onTheFlyTesting.internal;
 
 import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import com.mgmtp.a12.kernel.core.onTheFlyTesting.a12internal.api.IOnTheFlyTestingValidationParameter;
 import com.mgmtp.a12.kernel.core.onTheFlyTesting.a12internal.api.IValidationInvoker;
 import com.mgmtp.a12.kernel.core.rt.a12internal.ValidationMode;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICustomCondition;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
 
 import groovy.lang.Script;
@@ -48,7 +45,6 @@ import groovy.lang.Script;
 /**
  * Used to invoke validation on the generated code.
  */
-@SuppressWarnings("removal")
 class GeneratedCodeInvoker implements IValidationInvoker {
 
 	Script modelGroovyCode;
@@ -68,23 +64,19 @@ class GeneratedCodeInvoker implements IValidationInvoker {
 		try {
 			ValidationMode mode = createValidationMode(params);
 
-			addDefaultValuesToData(metaModel, params);
-			Map<String, ICustomCondition> customConditions = params.getCustomConditionsByName();
-
 			IValidator validator = (IValidator) modelGroovyCode.invokeMethod("getValidator", null);
-			Method mValidateAllWithDefaults = null;
+			Method mValidateAll = null;
 			for (Method m : validator.getClass().getMethods()) {
-				if ("validateAllWithDefaults".equals(m.getName())) {
-					mValidateAllWithDefaults = m;
+				if ("validateAll".equals(m.getName()) && m.getParameterCount() == 3) {
+					mValidateAll = m;
 					break;
 				}
 			}
-			if (mValidateAllWithDefaults == null) {
+			if (mValidateAll == null) {
 				throw new IllegalArgumentException(
-						String.format("Method 'validateAllWithDefaults' not found in '%s'", validator.getClass().getName()));
+						String.format("Method 'validateAll' not found in '%s'", validator.getClass().getName()));
 			}
-			mValidateAllWithDefaults.invoke(validator, params.getData(), customConditions, params.getResult(), mode,
-					params.getDefaultValues());
+			mValidateAll.invoke(validator, params.getData(), params.getResult(), mode);
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Failed to execute validation.", e);
 		}
@@ -95,16 +87,8 @@ class GeneratedCodeInvoker implements IValidationInvoker {
 		mode.setLanguage(params.getLanguage());
 		mode.setCurrentDateForTest(params.currentDateForTest());
 		mode.setPresentationInformation(null);// Notwendig, damit DateTime-Formate in XML-Darstellung validiert werden.
-		if(params.getAdditionalInformation4PredefinedFieldTypes()!=null) {
-			params.getAdditionalInformation4PredefinedFieldTypes().forEach((k, v) -> mode.setAdditionalInformation(k, v));
-		}
 		mode.setCustomConditionFactory(params.customConditionFactory());
 		mode.setCustomFieldTypeFactory(params.customFieldTypeFactory());
 		return mode;
-	}
-
-	private void addDefaultValuesToData(IMetaModel metaModel, IOnTheFlyTestingValidationParameter params) {
-		DefaultValuesHandler defaultsHandler = new DefaultValuesHandler(metaModel, params.getData(), params.getDefaultValues());
-		defaultsHandler.addDefaultValuesToData();
 	}
 }

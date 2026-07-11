@@ -51,7 +51,7 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IField;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IFieldType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IGroup;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IEntityChangeSet;
-import com.mgmtp.a12.kernel.core.utils.internal.IMissingEntityEC;
+import com.mgmtp.a12.kernel.core.tool.internal.IMissingEntityEC;
 
 public class MissingEntityEC implements IEC, IMissingEntityEC {
 

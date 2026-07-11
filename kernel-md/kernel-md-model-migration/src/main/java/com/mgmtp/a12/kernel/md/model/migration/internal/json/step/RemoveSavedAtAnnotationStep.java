@@ -33,52 +33,47 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
-import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
+import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
+
+import tools.jackson.databind.JsonNode;
 
 /**
  * The annotation "savedAt" was updated automatically by the Data Modeler and UI Designer when saving a model therein. In its
  * current state, Data Services is not using this annotation anymore. Thus, it should be removed.
  */
-public class RemoveSavedAtAnnotationStep extends BaseJsonNodeMigrationStep {
+public final class RemoveSavedAtAnnotationStep {
 
 	private static final String HEADER = "header";
 	private static final String ANNOTATIONS = "annotations";
 	private static final String SAVED_AT = "savedAt";
 	private static final String NAME = "name";
 
-	public RemoveSavedAtAnnotationStep(MigrationCache cache, MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+	private RemoveSavedAtAnnotationStep() {
 	}
 
-	@Override
-	public void execute(JsonNode model, MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		removeSavedAtAnnotationIfExists(model.path(HEADER).get(ANNOTATIONS));
 	}
 
-	private void removeSavedAtAnnotationIfExists(JsonNode annotationsNode) {
+	private static void removeSavedAtAnnotationIfExists(JsonNode annotationsNode) {
 		if (annotationsNode == null) {
 			return;
 		}
 
 		if (annotationsNode.isArray()) {
-			for (Iterator<JsonNode> annotationIterator = annotationsNode.elements(); annotationIterator.hasNext(); ) {
+			for (Iterator<JsonNode> annotationIterator = annotationsNode.iterator(); annotationIterator.hasNext(); ) {
 				JsonNode annotationNode = annotationIterator.next();
 
-				if (SAVED_AT.equals(annotationNode.get(NAME).asText())) {
+				if (SAVED_AT.equals(annotationNode.get(NAME).asString())) {
 					annotationIterator.remove();
 				}
 			}
 		} else {
-			throw new MigrationException(new MigrationError(MigrationErrorType.MODEL_CONTENT_NOT_SUPPORTED)
-					.withMessage("The document model header attribute 'annotations' is not a json array object."));
+			throw MigrationUtils.contentNotSupportedException("The document model header attribute 'annotations' is not a json array object.");
 		}
 	}
 }

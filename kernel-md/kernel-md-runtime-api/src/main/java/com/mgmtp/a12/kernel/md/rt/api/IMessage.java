@@ -36,7 +36,6 @@ import java.util.Optional;
 
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
-import com.mgmtp.a12.kernel.md.document.api.IEntityInstance;
 import com.mgmtp.a12.kernel.md.document.apiV2.PartiallyKnownDocumentMultiPointer;
 import com.mgmtp.a12.kernel.md.model.api.IRule;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
@@ -97,40 +96,18 @@ public interface IMessage {
 	 */
 	String getErrorText();
 
-	/**
-	 * @return the erroneous entity instance
-	 *
-	 * @deprecated use {@link #getErrorFieldPointer()} instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	IEntityInstance getEntityInstance();
-
 	PartiallyKnownDocumentMultiPointer getErrorFieldPointer();
 
 	/**
-	 * @return field instances as {@link IEntityInstance}s that might have caused the error
-	 *
-	 * @deprecated use {@link #getReferencedFieldsPointers()} instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	Collection<IEntityInstance> getReferencedFields();
-
-	/**
-	 * see {@link #getReferencedFields()}. Note that the returned pointers may contain wildcard indices (repetitions with value 0)
+	 * @return field instances as {@link PartiallyKnownDocumentMultiPointer}s that might have caused the error. Note that the
+	 * 		returned pointers may contain wildcard indices (repetitions with value 0)
 	 */
 	Collection<PartiallyKnownDocumentMultiPointer> getReferencedFieldsPointers();
 
 	/**
-	 * @return field instances as {@link IEntityInstance}s that might be responsible for generating omission errors.
-	 *
-	 * @deprecated use {@link #getRefOmissionErrorResponsiblePointers()} instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	Collection<IEntityInstance> getRefOmissionErrorResponsible();
-
-	/**
-	 * see {@link #getRefOmissionErrorResponsible()}. Note that the returned pointers may contain wildcard indices (repetitions with
-	 * value 0)
+	 * @return field instances as {@link PartiallyKnownDocumentMultiPointer}s that might be responsible for generating omission errors.
+	 * 		Note that the returned pointers may contain wildcard indices (repetitions with
+	 * 		value 0)
 	 */
 	Collection<PartiallyKnownDocumentMultiPointer> getRefOmissionErrorResponsiblePointers();
 
@@ -146,7 +123,7 @@ public interface IMessage {
 
 	/**
 	 * @return the path to the {@link IRule} that caused the error
-	 * 		or an empty {@link java.util.Optional#empty()} in case of formal errors
+	 * 		or an {@link java.util.Optional#empty()} in case of formal errors
 	 */
 	Optional<String> getRulePath();
 

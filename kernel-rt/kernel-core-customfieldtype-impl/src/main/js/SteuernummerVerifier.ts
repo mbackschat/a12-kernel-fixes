@@ -37,10 +37,10 @@ import type { IFadat, deserializeFadat } from "./IFadat.js";
 import { SteuernummerVerifierImpl } from "./internal/verifier/SteuernummerVerifierImpl.js";
 // used for typedoc
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { IGermanTaxNumberDefiningData } from "./internal/defdatastnr/IGermanTaxNumberDefiningData.js";
+import type { IGermanTaxNumberDefiningData } from "./internal/defdatastnr/IGermanTaxNumberDefiningData.js";
 // used for typedoc
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { IGermanTaxNumberFormatting } from "./internal/defdatastnr/IGermanTaxNumberFormatting.js";
+import type { IGermanTaxNumberFormatting } from "./internal/defdatastnr/IGermanTaxNumberFormatting.js";
 
 /**
  * The {@link ICustomFieldValidator} implementation for the German tax number - the so called 'Steuernummer'.
@@ -150,13 +150,6 @@ import { IGermanTaxNumberFormatting } from "./internal/defdatastnr/IGermanTaxNum
  * </ul>
  */
 export class SteuernummerVerifier {
-
-	/**
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link create} instead.
-	 */
-	public static getInstance(): ICustomFieldValidator {
-		return new SteuernummerVerifierImpl(undefined);
-	}
 
 	/**
 	 * @param fadat

@@ -38,6 +38,8 @@ import java.util.Set;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.defdata.impl.FADATJsonDeserializer;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
+import lombok.NonNull;
+
 /**
  * Fadat is an abbreviation for “Finanzamtsdaten” (tax office data). This information is needed for several
  * {@link com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator} implementations.
@@ -45,9 +47,10 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
  */
 @OnlyForUsage
 public interface IFadat {
-	Set<Integer> getFederalTaxOfficeNumbers();
 
-	Set<Integer> getEWAzTestFederalTaxOfficeNumber();
+	@NonNull Set<Integer> getFederalTaxOfficeNumbers();
+
+	@NonNull Set<Integer> getEWAzTestFederalTaxOfficeNumber();
 
 	/**
 	 * Deserializes to {@link IFadat}.
@@ -56,7 +59,8 @@ public interface IFadat {
 	 * 		A reader to the file that has been exported from ExtMP.
 	 * @param testTaxOfficesAllowed
 	 * 		use {@code true}, if numbers of test tax offices and EWAz test tax office numbers should be added to the
-	 * 		sets that are returned by {@link IFadat#getFederalTaxOfficeNumbers()} and {@link IFadat#getEWAzTestFederalTaxOfficeNumber()}.
+	 * 		sets that are returned by {@link IFadat#getFederalTaxOfficeNumbers()} and
+	 *        {@link IFadat#getEWAzTestFederalTaxOfficeNumber()}.
 	 * 		If <code>false</code>, they are not added.
 	 * @return the deserialized {@link IFadat}.
 	 *

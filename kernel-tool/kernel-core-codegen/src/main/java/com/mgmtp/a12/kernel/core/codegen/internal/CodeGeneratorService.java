@@ -34,13 +34,13 @@ package com.mgmtp.a12.kernel.core.codegen.internal;
 import static com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils.mapList;
 
 import java.util.Collection;
-import java.util.Locale;
 
 import com.mgmtp.a12.kernel.core.calc.internal.util.CalculationUtils;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.CodeGenData;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.CodeGeneratorCollection;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.ICodeGenerator;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.PacketCodeGenerator;
+import com.mgmtp.a12.kernel.core.codegen.internal.modularcodegen.CodeGenResultUtils;
 import com.mgmtp.a12.kernel.core.codegen.internal.modularcodegen.EntryPointCollection;
 import com.mgmtp.a12.kernel.core.codegen.internal.modularcodegen.ICodeGenResult;
 import com.mgmtp.a12.kernel.core.codegen.internal.modularcodegen.SourceCodeCollectorV2;
@@ -50,14 +50,12 @@ import com.mgmtp.a12.kernel.core.extmpspecifics.internal.utils.ExtmpUtils;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEC;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGeneratorParameters;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGeneratorParameters.ProgrammingLanguage;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelSpecificSettings;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.config.IProjectSpecificSettings;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.ICodeGeneratorService;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IServiceConfiguration;
 
-public class CodeGeneratorService implements ICodeGeneratorService {
+public class CodeGeneratorService {
 
 	/**
 	 * Entity Container providing all information about the fields and the groups.
@@ -75,45 +73,38 @@ public class CodeGeneratorService implements ICodeGeneratorService {
 		this.modelSpecificSettings = serviceConfiguration.getModelSpecificSettings();
 	}
 
-	/// Returns the source code as zip or null in case of an error. All problems are reported to the problem reporter:
-	/// - rules are not valid
-	/// - error messages of the rules are not valid
-	/// - a rule or a field exists which does not provide an error text for a [Locale] specified by
-	/// [ICodeGeneratorParameters#getLanguages()]
-	/// - programming language specified by [ICodeGeneratorParameters#getProgrammingLanguage()] is not supported
-	/// - required settings for the specified programming language are not provided or are invalid
-	/// - decimal separator specified by [ICodeGeneratorParameters#getDecimalSeparator()] is not valid
-	/// - the name [ICodeGeneratorParameters#getName()] is not valid
-	///
-	/// The resulting source code will be encoded depending on [ICodeGeneratorParameters#getProgrammingLanguage()]:
-	/// - UTF-8 for [ProgrammingLanguage#JAVA], [ProgrammingLanguage#JAVA_SCRIPT_VK], [ProgrammingLanguage#JAVA_SCRIPT_REDUCED],
-	/// [ProgrammingLanguage#GROOVY], [ProgrammingLanguage#CPLUS]
-	/// - CP1252 for [ProgrammingLanguage#VBA]
-	///
-	/// @param rules
-	/// 		specifies the rules of the model, may not be null
-	/// @param params
-	/// 		specifies the code generation params, may not be null
-	/// @param pm
-	/// 		problem reporter, may not be null
-	/// @return zipped source code as a byte array
+	/**
+	 * Returns the source code as zip or null in case of an error. All problems are reported to the problem reporter:
+	 * - rules are not valid
+	 * - error messages of the rules are not valid
+	 * - a rule or a field exists which does not provide an error text for a [Locale] specified by
+	 * [ICodeGeneratorParameters#getLanguages()]
+	 * - programming language specified by [ICodeGeneratorParameters#getProgrammingLanguage()] is not supported
+	 * - required settings for the specified programming language are not provided or are invalid
+	 * - decimal separator specified by [ICodeGeneratorParameters#getDecimalSeparator()] is not valid
+	 * - the name [ICodeGeneratorParameters#getName()] is not valid
+	 * <p>
+	 * The resulting source code will be encoded depending on [ICodeGeneratorParameters#getProgrammingLanguage()]:
+	 * - UTF-8 for [ProgrammingLanguage#JAVA], [ProgrammingLanguage#JAVA_SCRIPT_VK], [ProgrammingLanguage#JAVA_SCRIPT_REDUCED],
+	 * [ProgrammingLanguage#GROOVY], [ProgrammingLanguage#CPLUS]
+	 * - CP1252 for [ProgrammingLanguage#VBA]
+	 *
+	 * @param rules
+	 * 		specifies the rules of the model, may not be null
+	 * @param params
+	 * 		specifies the code generation params, may not be null
+	 * @param pm
+	 * 		problem reporter, may not be null
+	 * @return zipped source code as a byte array. For [ProgrammingLanguage#JAVA], the zip is laid out as a standalone
+	 * 		Gradle Java project (see [CodeGenResultUtils#applyGradleJavaLayout]). For other target languages the zip uses
+	 * 		a flat, package-relative layout.
+	 */
 	public byte[] getSourceCodeAsZip(Collection<? extends IRule> rules, ICodeGeneratorParameters params, IProblemReporter pm) {
 		ICodeGenResult<?> genResult = getSourceCodeAsCodeGenResult(rules, params, pm);
 		if (genResult != null) {
-			return codeGenResultToBytes(genResult, params.isPlain());
+			return CodeGenResultUtils.toBytes(genResult, params.isPlain(), params.getProgrammingLanguage());
 		}
 		return null;
-	}
-
-	/**
-	 * converts from an ICodeGenResult to zip bytes or plain source file bytes, in a way that maintains compatibility with the
-	 * old ZipSourceCodeCollector/PlainSourceCodeCollector logic.
-	 */
-	public static byte[] codeGenResultToBytes(ICodeGenResult<?> genResult, boolean isPlain) {
-		if (genResult == null) { // handle cascading nulls here, to provide better convenience for callers
-			return null;
-		}
-		return isPlain ? genResult.toSingleFileBytesIfApplicableOrThrow() : genResult.toZip();
 	}
 
 	public ICodeGenResult<EntryPointCollection> getSourceCodeAsCodeGenResult(

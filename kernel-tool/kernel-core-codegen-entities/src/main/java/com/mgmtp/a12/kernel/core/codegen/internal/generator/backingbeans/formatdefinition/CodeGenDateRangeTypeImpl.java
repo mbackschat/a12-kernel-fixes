@@ -38,6 +38,10 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IDateRangeType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IDateType.PartlyKnownDateType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IFieldType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGeneratorParameters.ProgrammingLanguage;
+import com.mgmtp.a12.utils.conversion.InterpretationOfYear;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Definiert einen DatumsBereich
@@ -48,9 +52,10 @@ public class CodeGenDateRangeTypeImpl extends CodeGenFeldTypBasis {
 	private String dateFormat;
 	private String separator;
 	private String interpretationOfYear;
+	private String jahresinterpretation;
 
 	//wird auf TRUE gesetzt, wenn  auf Datum > 1900 geprüft werden soll
-	private boolean zusatzPruefung;
+	@Setter @Getter private boolean zusatzPruefung;
 
 	private Locale aktuelleSprache;
 	private ProgrammingLanguage lang;
@@ -66,13 +71,16 @@ public class CodeGenDateRangeTypeImpl extends CodeGenFeldTypBasis {
 
 		switch (dateRangeType.getInterpretationOfYear()) {
 			case STANDARD:
-				interpretationOfYear = "Standard";
+				interpretationOfYear = InterpretationOfYear.STANDARD.name();
+				jahresinterpretation = "Standard";
 				break;
 			case PREVIOUS:
-				interpretationOfYear = "Vorjahr";
+				interpretationOfYear = InterpretationOfYear.TO.name();
+				jahresinterpretation = "Vorjahr";
 				break;
 			case SUBSEQUENT:
-				interpretationOfYear = "Folgejahr";
+				interpretationOfYear = InterpretationOfYear.FROM.name();
+				jahresinterpretation = "Folgejahr";
 				break;
 		}
 
@@ -118,14 +126,6 @@ public class CodeGenDateRangeTypeImpl extends CodeGenFeldTypBasis {
 		return dateFormat;
 	}
 
-	public boolean isZusatzPruefung() {
-		return zusatzPruefung;
-	}
-
-	public void setZusatzPruefung(boolean zusatzPruefung) {
-		this.zusatzPruefung = zusatzPruefung;
-	}
-
 	/**
 	 * berechnet einen Hashcode zur Verwendung in Hash Containern Implementierung von hashCode und
 	 * equals (Algorithmus analog Joshua Bloch Effective Java)
@@ -167,6 +167,10 @@ public class CodeGenDateRangeTypeImpl extends CodeGenFeldTypBasis {
 	 * "TT.MM-TT.MM (bis/von ist Referenzjahr)".
 	 */
 	public String getJahresinterpretationCode() {
+		return jahresinterpretation;
+	}
+
+	public String getInterpretationOfYearCode() {
 		return interpretationOfYear;
 	}
 

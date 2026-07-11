@@ -86,7 +86,7 @@ public class EntityRef {
 	private ICondition filterCondition = null;
 	// This flag is set during parsing
 	private boolean hasFilterCondition = false;
-	private boolean inFilterCondition = false;
+	private boolean inSetExpression = false;
 
 	private int startIdxInCondition = -1;
 	private int stopIdxInCondition = -1;
@@ -314,12 +314,12 @@ public class EntityRef {
 		this.filterCondition = filterCondition;
 	}
 
-	public boolean isInFilterCondition() {
-		return inFilterCondition;
+	public boolean isInSetExpression() {
+		return inSetExpression;
 	}
 
-	public void setInFilterCondition(boolean inFilterCondition) {
-		this.inFilterCondition = inFilterCondition;
+	public void setInSetExpression(boolean inSetExpression) {
+		this.inSetExpression = inSetExpression;
 	}
 
 	public boolean hasFilterCondition() {

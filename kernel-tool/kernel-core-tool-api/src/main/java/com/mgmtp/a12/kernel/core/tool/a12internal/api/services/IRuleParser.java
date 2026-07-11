@@ -41,6 +41,8 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
+import lombok.NonNull;
+
 @OnlyForUsage
 public interface IRuleParser extends IRuleConsistencyCheck {
 
@@ -56,7 +58,7 @@ public interface IRuleParser extends IRuleConsistencyCheck {
 	 * 		problem reporter, may not be null
 	 * @return null if the condition is not valid, else a parse tree
 	 */
-	ICondition parseConditionExpand(IRule rule, String conditionText, IProblemReporter pr);
+	ICondition parseConditionExpand(@NonNull IRule rule, @NonNull String conditionText, @NonNull IProblemReporter pr);
 
 	/**
 	 * Is used for rule conditions. Parses the condition text using
@@ -70,7 +72,7 @@ public interface IRuleParser extends IRuleConsistencyCheck {
 	 * 		problem reporter, may not be null
 	 * @return null if the condition is not valid, else a parse tree
 	 */
-	ICondition parseConditionNoExpand(IRule rule, String conditionText, IProblemReporter pr);
+	ICondition parseConditionNoExpand(@NonNull IRule rule, @NonNull String conditionText, @NonNull IProblemReporter pr);
 
 	/**
 	 * Creates a copy of <code>condition</code>, that is expanded. The result is the same as if the
@@ -92,7 +94,7 @@ public interface IRuleParser extends IRuleConsistencyCheck {
 	 * @param rule
 	 * 		all error texts of the rule are checked, may not be null
 	 * @param condition
-	 * 		parsed condition of the rule, should not be non-null if fields are referenced in an error text (otherwise a
+	 * 		parsed condition of the rule, should not be null if fields are referenced in an error text (otherwise a
 	 * 		problem is reported to the problem manager)
 	 * @param locales
 	 * 		specifies the error texts which are checked, the collection and its content may not be null
@@ -103,8 +105,8 @@ public interface IRuleParser extends IRuleConsistencyCheck {
 	 * 		problem reporter, may not be null
 	 * @return true, if the error messages are correct and false otherwise.
 	 */
-	boolean hasValidErrorText(IRule rule, ICondition condition, Collection<Locale> locales, boolean extendProblemMessages,
-			IProblemReporter pm);
+	boolean hasValidErrorText(@NonNull IRule rule, ICondition condition, @NonNull Collection<Locale> locales,
+			boolean extendProblemMessages, @NonNull IProblemReporter pm);
 
 	/**
 	 * In contrast to {@link #hasValidErrorText(IRule, Collection, boolean, IProblemReporter)}} the given
@@ -124,21 +126,20 @@ public interface IRuleParser extends IRuleConsistencyCheck {
 	 * 		problem reporter, may not be null
 	 * @return true, if the error messages are correct and false otherwise.
 	 */
-	boolean hasValidErrorText(IRule rule, Map<Locale, String> errorTexts, Collection<Locale> locales, boolean extendProblemMessages,
-			IProblemReporter pm);
+	boolean hasValidErrorText(@NonNull IRule rule, @NonNull Map<Locale, String> errorTexts, @NonNull Collection<Locale> locales,
+			boolean extendProblemMessages, @NonNull IProblemReporter pm);
 
 	/**
 	 * In contrast to {@link #hasValidErrorText(IRule, ICondition, Collection, boolean, IProblemReporter)}} the given
 	 * <code>errorTexts</code> are checked and NOT the error messages contained in the <code>rule</code> object. Can be used to
 	 * check application specific error messages.
-	 * <br>
 	 * <p>
-	 * Precondition: The <code>condition</code> has to be expanded, i.e. the condition has to be parsed with
-	 * {@link #parseConditionExpand(IRule, String, IProblemReporter)}. Otherwise the referenced fields are not determined
-	 * correctly.
+	 * Precondition: If a <code>condition</code> is provided, it has to be expanded, i.e. the condition has to be parsed with
+	 * {@link #parseConditionExpand(IRule, String, IProblemReporter)}. Otherwise, if there are referenced fields in the error texts
+	 * and either no condition is provided or it is not expanded, a problem might be reported to the problem manager.
 	 */
-	boolean hasValidErrorText(IRule rule, Map<Locale, String> errorTexts, Collection<Locale> locales, boolean extendProblemMessages,
-			IProblemReporter pm, ICondition condition);
+	boolean hasValidErrorText(@NonNull IRule rule, @NonNull Map<Locale, String> errorTexts, @NonNull Collection<Locale> locales,
+			boolean extendProblemMessages, @NonNull IProblemReporter pm, ICondition condition);
 
 	/**
 	 * The method is intended to be used mgm-internally to implement the test data generator (Maybe in future also other
@@ -151,7 +152,7 @@ public interface IRuleParser extends IRuleConsistencyCheck {
 	 * 		problem reporter, may not be null
 	 * @return null if the condition is not valid, else a parse tree
 	 */
-	ICondition parseBedingungExpand(IRule rule, IProblemReporter pm);
+	ICondition parseBedingungExpand(@NonNull IRule rule, @NonNull IProblemReporter pm);
 
 	/**
 	 * The method is intended to be used mgm-internally to implement the test data generator (Maybe in future also other
@@ -164,7 +165,7 @@ public interface IRuleParser extends IRuleConsistencyCheck {
 	 * 		problem reporter, may not be null
 	 * @return null if the condition is not valid, else a parse tree
 	 */
-	ICondition parseBedingungExpandPartially(IRule rule, IProblemReporter pm);
+	ICondition parseBedingungExpandPartially(@NonNull IRule rule, @NonNull IProblemReporter pm);
 
 	/**
 	 * The method is intended to be used mgm-internally to implement the test data generator (Maybe in future also other
@@ -177,17 +178,17 @@ public interface IRuleParser extends IRuleConsistencyCheck {
 	 * 		problem reporter, may not be null
 	 * @return null if the condition is not valid, else a parse tree
 	 */
-	ICondition parseBedingungNoExpand(IRule rule, IProblemReporter pm);
+	ICondition parseBedingungNoExpand(@NonNull IRule rule, @NonNull IProblemReporter pm);
 
 	/**
 	 * Like {@link #parseBedingungNoExpand(IRule, IProblemReporter)}, but for condition texts that don't necessarily correspond
 	 * to a full rule condition. Rule-global consistency checks are omitted.
 	 */
-	ICondition parseBedingungSnippetNoExpand(String operationText, IRule rule, IProblemReporter pm);
+	ICondition parseBedingungSnippetNoExpand(@NonNull String operationText, @NonNull IRule rule, @NonNull IProblemReporter pm);
 
 	/**
 	 * Like {@link #parseBedingungSnippetNoExpand(String, IRule, IProblemReporter)} but for snippets that parse to an IOperation
 	 * instead of an ICondition.
 	 */
-	IOperation parseOperationSnippetNoExpand(String operationSnippet, IRule rule, IProblemReporter pm);
+	IOperation parseOperationSnippetNoExpand(@NonNull String operationSnippet, @NonNull IRule rule, @NonNull IProblemReporter pm);
 }

@@ -74,7 +74,6 @@ public class ErrortextParameterMultiLanguageHandler extends AbstractMultiLanguag
 		 */
 		switch (tokenType) {
 			case BaseErrorTextParameterLexer.VALUE:
-			case BaseErrorTextParameterLexer.VORDRUCKNAME:
 			case BaseErrorTextParameterLexer.VORDRUCKZEILE:
 			case BaseErrorTextParameterLexer.ROOT_GROUP_INDEX:
 			case BaseErrorTextParameterLexer.LINE:

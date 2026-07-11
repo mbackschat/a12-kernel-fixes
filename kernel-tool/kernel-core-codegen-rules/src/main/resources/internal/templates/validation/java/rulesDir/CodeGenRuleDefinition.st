@@ -45,6 +45,8 @@ public void <t.uniqueRuleName>(final MainValidatorController controller, long[] 
 
 	<t.filterParamsCreationCode; separator = "\n">
 	<t.filterCode; separator= "\n">
+	<t.setOpParamsCreationCode; separator = "\n">
+	<t.setOperationCode; separator="\n">
 
 	<t.rtControllerParamsCreationCode; separator = "\n">
 

@@ -94,7 +94,7 @@ public class IterationChecker {
 		//Get all references of the condition
 		Set<EntityRefInRule> allRefs = parser.getEntityMap().getEntityMap().entrySet()
 				.stream()
-				.filter(e -> !e.getValue().isInFilterCondition() || e.getValue().isOuter())
+				.filter(e -> !e.getValue().isInSetExpression() || e.getValue().isOuter())
 				.map(e -> new EntityRefInRule(e.getKey(), e.getValue()))
 				.collect(Collectors.toCollection(LinkedHashSet::new));
 

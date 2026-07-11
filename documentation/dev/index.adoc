@@ -26,7 +26,6 @@ THIS SOFTWARE IS PROVIDED “AS IS” AND WITHOUT WARRANTY OF ANY KIND, WHETHER 
 :codeSnippetsDocDeserializationJava: {snippetBaseDir}/DocumentDeserialization.java
 :codeSnippetsDMServiceJava: {snippetBaseDir}/IDocumentModelService.java
 :codeSnippetsMigrationJava: {snippetBaseDir}/DocumentModelMigrator.java
-:codeSnippetsDocumentModelConsistencyCheckJava: {snippetBaseDir}/DocumentModelConsistencyCheck.java
 // SNIPPET_END
 
 = Kernel
@@ -57,14 +56,6 @@ The interfaces, classes and resources in those artifacts can be grouped in follo
 === Java Artifacts
 
 If you want to use Kernel in Java, you only need to define a dependency to _kernel-md-facade_ and you will get access to the whole public API and also at runtime all necessary transitive dependencies are available.
-The following artifacts contain public API:
-
-* _kernel-core-customfieldtype-api_
-* _kernel-md-document-api_
-* _kernel-md-document-v2_
-* _kernel-md-model-api_
-* _kernel-md-runtime-api_
-* _kernel-md-serializer_
 
 Also consult the link:./assets/doc/java/com/mgmtp/a12/kernel/md/facade/package-summary.html[Javadoc] of the entry points in _kernel-md-facade_.
 An overview of the Java packages containing all interfaces and classes of the Kernel API can be also found in this
@@ -72,10 +63,8 @@ link:./assets/doc/java/index.html[Javadoc].
 
 [NOTE]
 ====
-The libraries _kernel-core-customfieldtype-api_ and _kernel-core-runtime-api_ are versioned separately.
-The actual versions of these libraries are defined in the _kernel-bom pom_ that is published to artifactory.
-It is recommended to use this Kernel _pom_
-for the dependency management.
+The actual versions of Kernel libraries is defined in the _kernel-bom pom_ that is published to artifactory.
+It is recommended to use this Kernel _pom_ for the dependency management.
 Thus, it is sufficient to update the version of _kernel-bom pom_, when e.g. upgrading to a new Kernel version, instead of having to adapt several places.
 ====
 
@@ -317,8 +306,8 @@ The migration tool is a command line tool which can be used to migrate document 
 With every new Kernel release, there will be an indication in the section "Migration instructions" in the developer documentation at getA12.com whether a migration is necessary and how it can be executed.
 Normally, the execution follows the pattern:
 
-* Download the artifact `kernel-tool-model-migration-<kernel_version>-jar-with-dependencies.jar`
-* Execute `java -jar kernel-tool-model-migration-<kernel_version>-jar-with-dependencies.jar -h` to see how to use the artifact
+* Download the artifact `kernel-md-facade-<kernel_version>-migrator-cli.jar`
+* Execute `java -jar kernel-md-facade-<kernel_version>-migrator-cli.jar -h` to see how to use the artifact
 
 It is possible to change the behavior of the logging by providing a custom log4j properties file.
 To do so, you need to pass the URI of the configuration file as a JVM argument.
@@ -347,15 +336,6 @@ FieldNotFilled(X)
 
 With the analysis tool, the user is able to check if the current existing document models are still valid after this change.
 
-==== Extension of _BaseTestDocumentModelConsistency.java_:
-
-[source,java]
-----
-include::{codeSnippetsDocumentModelConsistencyCheckJava}[tags=consistencyCheck]
-----
-
-Finally, this class can be executed as regression check in jenkins.
-
 === Localization ===
 
 Localization is currently implemented in TypeScript only.
@@ -370,7 +350,8 @@ Error messages come in four flavors:
 
 * formal error messages
 * rule error messages
-* field error messages, and
+* field error messages
+* custom required field error messages, and
 * custom field type error messages
 
 For general information on how to customize localization please refer to the `Customization` chapter of the _A12 Localization Documentation_ in project Utils.
@@ -405,6 +386,15 @@ Again, `modelId` is the id of the document model. `FieldFullPath` now is the ful
 For enumeration error messages, if no error message is defined, the formal error message with the formal error key
 `ENUMERATION_DEFAULT_ERROR` is used:
 `kernel.formalErrors.ENUMERATION_DEFAULT_ERROR`.
+
+===== Custom required field error messages =====
+
+For fields marked as required, custom error messages can replace the formal error for required fields.
+The respective key is `documentModel.fieldRequiredErrorMessage.<modelId>.<fieldFullPath>`.
+This is completely analogous to the field error messages described above with a small difference in the second part of the key.
+
+The returned error message also has a fallback localizable, like it is used for enumeration error messages. For this fallback, the general formal error message key for `PFLICHT_FELD_FEHLER` is used:
+`kernel.formalErrors.PFLICHT_FELD_FEHLER`.
 
 ===== Custom field type error messages =====
 
@@ -486,7 +476,6 @@ In Kernel the sources are divided into the following three parts:
 * *Public API* - All sources that are neither "internal" nor "a12internal" (see below)
 * A12 Internal API
 ** All sources in folders named "a12internal" or sub-folders thereof, or for Java sources in packages named "a12internal" or sub-packages thereof
-** All targets being annotated with _OnlyForA12InternalUsage_
 * Internal
 ** All sources in folders named "internal" or sub-folders thereof, or for Java sources in packages named "internal" or sub-packages thereof.
 ** Also all sources in modules whose "artifactId" contains "internal" (e.g. "com.mgmtp.a12.kernel:kernel-internal-test-master").
@@ -532,231 +521,100 @@ a|    * Changing the serialization of A12 Document require no migration.
 
 == Migration Instructions
 
-=== 2025.06-ext4
-
-* Kernel version: 30.7.0
-* Minimum compatible Document Model version: 28.0.0
-* Latest Document Model version: 28.4.0
-  ** A migration from 28.3.0 to 28.4.0 was added due to a rename in the condition language and error text parameters that only
-  affects DMs that have `conditionLanguage` set to `de_DE` and have a `baseYear` set. If there are issues during the migration see
-  A12-18143 for more information.
-
-==== Deprecation
-
-* [A12K-3464] - The following API should be replaced as shown:
-
-[cols="1,1,1,2"]
-|===
-|Programming language
-|Deprecated
-|Replacement
-|Hint
-
-|_Java_ and _Typescript_
-|_ICustomFieldType_ and its methods that accept a `Map<String, Object>` parameter for configuration.  
-|Implement _ICustomFieldValidator_ instead of _ICustomFieldType_ and implement the overloaded methods that do not accept 
-a `Map<String, Object>`  parameter.
-|This is a pure renaming since the name `ICustomFieldType` is also used for a class in the Document Model API, which 
-often leads to confusion. Additionally, the `Map<String, Object>` parameter is not needed any longer.
-
-4+|The public runtime API (see `IDocumentRtService` and `IMappingService`) has been extended to
-allow project-specific implementations for validating custom field types and custom conditions to be passed to the APIs.
-Users can now populate a `DocumentProcessingConfig` accordingly and pass their instance to the APIs. In this context,
-several APIs have been marked as deprecated and replaced with new ones.
-
-|_Java_
-|_MappingConfig_
-|Use _DocumentProcessingConfig_ instead.
-|Uniform naming of the configuration class.
-
-|_Java_
-|The pairing of `CustomFieldTypeService` with `ICustomFieldTypeService`, `CustomConditionService` with `ICustomConditionService`,
-and `DocumentRtCustomExtensionService`
-|Instead, new runtime APIs should be used, with the corresponding settings defined in `DocumentProcessingConfig`
-(see _IDocumentRtService_ below).
-|The previously used static registration is impractical in server operations.
-
-|_Typescript_
-|`CustomFieldTypeService` and `DocumentRtCustomExtensionService`
-|Provide your implementations via `GeneratedCodeRtConfig.customFieldTypeFactory` and `GeneratedCodeRtConfig.customConditionFactory` instead.
-|Kernel's APIs have been extended to allow project-specific implementations for validating custom field types and custom conditions to be passed directly.
-
-4+|_ICustomFieldTypeFactory_
-
-|_Java_
-|Methods  `createCustomFieldType` and `createCustomFieldTypeV2` that return `ICustomFieldType`
-|Implement `createCustomFieldValidator` instead.
-|
-
-|_Java_
-|Methods  `getSupportedTypeNames`
-|No longer needed, can be deleted in your implementation.
-|
-
-4+|_IDocumentRtService_
-|_Java_
-|Methods that do not accept `DocumentProcessingConfig`.
-|Methods have been overloaded with versions that accept a `DocumentProcessingConfig` parameter. Use those instead.
-|
-|===
-
-===== Java
-
-* [A12K-2893] - The alternative experimental `pojo` mode for `TypedAccessorGenerator` is now marked as deprecated. Use `overlay` mode instead. If you still need pojo mode, please contact the A12-Kernel team. The recommended default `overlay` mode is not affected.
-
-
-=== 2025.06-ext2
-
-==== Deprecation
-
-===== Java
-
-* [A12K-3504] - The method `ICustomConditionFactory#createCustomCondition(String)` which was deprecated in release 29.2.0 has
-  now a default
-  implementation, so you can remove the corresponding implementation.
-
-=== 2025.06
+=== 2026.06
 
 CAUTION: Please have a look at link:/docs/overall/migration_guide/index.html[Migration to latest A12] chapter for an explanation of general steps on how to upgrade before starting with the component migration to 2025.06.
 
-* Kernel version: 30.0.0
-* Minimum compatible Document Model version: 28.0.0
-* Latest Document Model version: 28.3.0
-** [A12K-3234] - The document model json structure now supports the optional attribute _includeLevel_ for a group with allowed values _SINGLE_RG_ and _MODEL_ROOT_ (The attribute is only allowed if the group specifies an include, i.e. if _modelAlias_ is also set) . If the attribute is not set, it will be deserialized like _SINGLE_RG_, which corresponds to the classical behavior of includes.
-
+* Kernel version: 31.1.0
+* Minimum compatible Document Model version: 29.4.0
+* Latest Document Model version: 29.4.0
+    * [A12K-4118] - A migration from 28.4.0 to 28.5.0 was added to support a new optional string field `packet` in the DM content.
+    * [A12K-3995] - A migration from 28.5.0 to 28.6.0 was added to support a list of Document Uniqueness Criteria in the DM content.
+    * [A12K-4102] - A migration from 28.6.0 to 29.0.0 was added to restructure the properties used for including documents.
+    * [A12K-3986] - A migration from 29.0.0 to 29.1.0 was added to remove variant filters and variant error messages from Document Models.
+    * [A12K-3981] - A migration from 29.1.0 to 29.2.0 was added for Document Models, converting fields of type `Unspecified` to
+      `String` and adding `_take_reference_configuration` annotation.
+    * [A12K-4187] - A migration from 29.2.0 to 29.3.0 was added for CDM query root Document Models. If the document model header contains an
+      annotation named `cdm.queryRoot`, all model references with purpose `include` are copied with purpose `composedData` and
+      appended to the existing model references.
+    * [A12K-4250] - A migration from 29.3.0 to 29.4.0 was added to remove fieldtype annotations from Document Models.
+ 
 ==== Breaking Changes
 
 ===== Java
 
-* [A12K-3166] - The annotation _@OnlyForUsage_ was added to the interface _IRequirednessConfig_.
-* [A12K-3174] - The support for Java 17 has ended.
-Please use Java 21.
-* [A12K-3259] - Some deprecated methods were removed with the following replacements:
+* [A12K-4296] - `BatchDocumentModelExpander` and its corresponding CLI have been removed without a direct replacement. Use A12 Workspace Conversion to expand Document Models instead. Remove any usage of `BatchDocumentModelExpander` and adapt build steps that invoked the old CLI.
+* [A12K-4021] - The method `IDocumentModelService#expand` has been removed. Use A12 Workspace Conversion instead to expand a Document Model together with its includes.
+* [A12K-4211] - `IDocumentModelService#extractImportedTypeDefinitions` has been removed. To obtain the type definitions including those from imported models, first expand the model via A12 Workspace Conversion and then read them from `IDocumentModel.getContent().getTypeDefinitions()`.
+* [A12K-4108] - The method `IDocumentModelService#collapse` has been removed without replacement, as it is no longer useful. Remove any usage of it.
+* [A12K-4284] - The modules `kernel-tool-model-migration` and `kernel-md-typed-accessor-gen` were merged into `kernel-md-facade`. Please adjust the access to the respective CLI jars:
+** `kernel-tool-model-migration-<Kernel version>-jar-with-dependencies.jar` is now `kernel-md-facade-<Kernel version>-migrator-cli.jar`
+** `kernel-md-typed-accessor-gen-<Kernel version>-TypedAccessorGenerator-CLI.jar` is now `kernel-md-facade-<Kernel version>-typed-accessor-gen-cli.jar`
+* [A12K-3657] - The CLI jar for generating mapping code has been renamed from `kernel-md-datatransfer-codegen-<Kernel version>-MappingCodeGenerator-CLI.jar` to `kernel-md-facade-<Kernel version>-MappingCodeGenerator-CLI.jar`. Update any build scripts or invocations that reference the old jar name.
+* [A12K-3592] - `TypedAccessorGenerator` now always generates enum class names starting with a capital letter, consistent with Java class naming conventions (for example, a field named `myEnum` now generates the class `MyEnum` instead of `myEnum`). If you reference generated enum classes whose field names start with a lowercase letter, or have committed such generated code, regenerate the code and update the references to the capitalized class names.
+* [A12K-3960] - Several enum classes in Kernel's generated metamodel typings were renamed so that their simple class name now starts with a capital letter, consistent with Java class naming conventions (similar to the change for generated typed accessors under A12K-3592). The affected classes are:
+** `com.mgmtp.a12.kernel.mmtypings.mm_mappingmodel_2.views._mm_mappingmodel_2._content._source.IncludeLevel`
+** `com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.Type`
+** `com.mgmtp.a12.kernel.mmtypings.mm_combinationmodel_1.views._mm_combinationmodel_1._content._combinationsteps.Type`
++
+These typings are normally only used internally by Kernel. If your code references these classes directly, update the references to the new capitalized class names.
 
-[cols="1,1"]
-|===
-|Removed
-|New method
-
-2+|_IDocumentStaticServiceConfig_
-
-|_getMappingProperties()_
-|Use _getModelPackage(String)_ instead.
-
-2+|_IComputedFieldInstance_
-
-|_apply(IDocumentFactory, Consumer<IComputedFieldInstance>)_
-|Use _applyTo(DocumentV2)_ instead.
-
-2+|_IDocumentComputationResult_
-
-|_apply(IDocumentFactory, Consumer<IComputedFieldInstance>)_
-|Use _applyTo(DocumentV2)_ instead.
-
-|_getComputedFieldInstances()_
-|Use _getComputedFieldInstancesWithoutErrors()_ and _getComputedFieldInstancesWithErrors()_ instead.
-
-2+|_IMessage_
-
-|_getErrorFieldAsPointer()_
-|Use _getErrorFieldPointer()_ instead.
-
-|_getReferencedFieldsAsPointers()_
-|Use _getReferencedFieldsPointers()_ instead.
-
-|_getRefOmissionErrorResponsibleAsPointers()_
-|Use _getRefOmissionErrorResponsiblePointers()_ instead.
-|===
-
-* [A12K-3188] - Adaption of _IComputedFieldInstance_, _ICustomCondition_, _IDocumentComputationResult_, _IDocumentRtService_,
-_IMessage_ (Part of the rewrite scripts): see javadoc for details.
-* [A12K-3188] - Renaming of _CauseEntityInstance_ to _PartiallyKnownDocumentMultiPointer_.
-
-* [A12K-3188] - Adaption of _DocumentPointer_ (Part of the rewrite scripts): 'toFullName' renamed to 'fullName', 'toRepetitionIndices' renamed to 'repetitions'.
-* [A12K-3188] - Adaption of _CauseEntityInstance_/_PartiallyKnownDocumentMultiPointer_ (Part of the rewrite scripts):
-
-[cols="1,1"]
-|===
-|Change
-|New method
-
-|_constructor_
-|The class is now an interface, use the method _of_ instead of the constructor.
-
-|_asDocumentPointer()_
-|Renamed to _toDocumentPointer_
-
-|_convertibleToDocumentPointer_
-|Is no longer necessary, as _toDocumentPointer_ checks if a _DocumentPointer_ can be created.
-
-|_toFullName_
-|Renamed to _fullName_
-
-|_toRepetitions_
-|Renamed to _repetitions_
-|===
-
-* [A12K-2756] - The method _DocumentRtService.coalesceBooleans()_ was removed without replacement.
+* [A12K-4106] - The Custom Field Type implementation `IdNrVerifier` no longer emits the special formal error code `testIDNummer` for test IDs (IDs that are valid according to the check-digit procedure but start with the otherwise invalid digit "0"). Use `IdNrVerifier#create(boolean acceptTestIdNrs)` to control whether such test IDs are accepted; the dedicated `testIDNummer` error code is no longer produced.
+* [A12K-4106] - Several APIs for custom field types and custom conditions that were deprecated in 2025.06 / 2025.06-ext4 (see A12K-3464, and A12K-3009 for the TypeScript counterparts) have been removed. Provide your implementations via `DocumentProcessingConfig#customFieldTypeFactory` and `DocumentProcessingConfig#customConditionFactory` instead. Removed types/methods and their replacements:
+** `ICustomFieldTypeService` / `CustomFieldTypeService` -> provide an `ICustomFieldTypeFactory` via `DocumentProcessingConfig#customFieldTypeFactory`.
+** `ICustomFieldType` -> implement `ICustomFieldValidator`.
+** `ICustomFieldTypeFactory#createCustomFieldType` and `#createCustomFieldTypeV2` -> implement `#createCustomFieldValidator`; `#getSupportedTypeNames` has no replacement.
+** `DocumentRtCustomExtensionService` -> use `DocumentProcessingConfig#customFieldTypeFactory` / `#customConditionFactory`.
+** `ICustomConditionFactory#createCustomCondition` -> use `#createCustomConditionV2`; `#getSupportedConditionNames` has no replacement.
+** `MappingConfig` -> use `DocumentProcessingConfig`.
+** the `IDocumentRtService#validateFull`, `#validatePart`, and `#compute` overloads taking a `locale` -> use the overloads taking a `DocumentProcessingConfig`.
+* [A12K-4079] - The deprecated overloaded methods of `ICustomFieldValidator` that accepted `configData` as a `Map<String, Object>` have been removed (the `Map<String, Object>` configuration parameter was deprecated in 2025.06-ext4 under A12K-3464). Implement the overloads that do not take a `Map<String, Object>` parameter instead.
+* [A12K-4102] - The interface `com.mgmtp.a12.kernel.md.model.api.IIncludeDetails` has been renamed to `com.mgmtp.a12.kernel.md.model.api.IIncludeConfig` (together with its related properties, classes, and methods); update any references accordingly. The JSON serialization of Document Models also changed: for groups, `modelAlias` was removed and the model `reference` is now stored under a new `includeConfig` node, under which `excludeRules`, `excludeComputations`, and `includeLevel` were also moved; for model references in the model header, `modelAlias` is now ignored by Kernel. Existing Document Models are migrated automatically (DM version 28.6.0 -> 29.0.0).
+* [A12K-3981] - The field type `IUnspecifiedType` (the `Unspecified` field type) has been removed. Existing Document Models are migrated automatically (DM version 29.1.0 -> 29.2.0): fields of type `Unspecified` are converted to `String` and annotated with `_take_reference_configuration`. Replace any usage of `IUnspecifiedType` in Java code accordingly.
+* [A12K-4180] - `DocumentSerializationConfig#failIfUnreadableXML` has been removed (deprecated in 2025.06-ext2 under A12K-3425). There is no replacement: the resulting XML document is always valid and readable now, so the option is no longer needed. Remove any usage of it.
+* [A12K-4177] - The deprecated methods `DocumentModelVisitor#enter` and `DocumentModelVisitor#leave` have been removed. Use `enterElement` and `leaveElement` instead.
+* [A12K-3856] - The method `IDocumentModelMigrator.getOldestSupportedSourceVersion` has been renamed to `IDocumentModelMigrator.getFirstSupportedSourceVersion`. Update any references to and overrides of this method to the new name; its behaviour is unchanged.
+* [A12K-3720] - The caching options have been removed from `DynamicMappingServiceConfig`. If you relied on the built-in caching, cache the `IMappingService` returned by `MappingServiceFactory.createMappingServiceFromDynamicCode` yourself instead.
+* [A12K-3684] - All `IDocument` (Document V1) related types and services, deprecated in 2025.06 (see A12K-3188 and A12K-3388), have been removed. Use `DocumentV2` and its API instead:
+** The module `kernel-md-document-api` and the types `IDocument`, `IDocumentIndexed`, `IEntityInstance`, `IEntityInstanceDerivable`, `IFieldInstance`, `IGroupInstance` and the services `IDocumentFactory`, `IDocumentSearchService`, `IDocumentSerializer`, `IDocumentService`, `IEntityInstanceChangeInfo`, `IDocumentV1V2Converter` were removed.
+** The module `kernel-md-document-service` was removed completely.
+** Previously deprecated `IDocument`-related methods were removed from `FieldInstanceV2`, `DocumentDeserializationConfig`, `IDmAwareDocService`, `PartiallyKnownDocumentMultiPointer`, `DocumentServiceFactory`, `IComputedFieldInstance`, `ICustomCondition`, `IDocumentComputationResult`, `IDocumentRtService`, `IMessage`, and `MDSerializerFactory`. See the JavaDoc and the provided rewrite scripts for the `DocumentV2` replacements.
+* [A12K-3967] - Kernel now uses Jackson 3 (previously Jackson 2). Projects that share Kernel's Jackson dependency or use APIs exposing Jackson types must migrate to Jackson 3, including its changed Maven coordinates and package namespace (for example, databind moved to the `tools.jackson.databind` package). Adapt your dependencies and imports accordingly.
+* [A12K-3898] - The `create` method taking an `IFadat` parameter has been removed from `BundessteuernummerVerifier`. Use the parameterless `create()` instead, as `IFadat` is not required.
 
 ===== TS
 
-* [A12K-2913] - The interfaces _DocumentModel.DateTimeType_ and _DocumentModel.TimeType_ have now the new property _format_.
-Anonymous objects or own implementations have to be adapted.
+* [A12K-4177] - The deprecated method `DocumentRtService#applyComputationResult` has been removed. Use `DocumentComputationResult#appliedTo` instead.
+* [A12K-4177] - The deprecated property `DocumentComputationResult#computedFieldInstances` has been removed. Use `computedFieldInstancesWithoutErrors` instead.
+* [A12K-4106] - The class `DocumentRtCustomExtensionService` has been removed (deprecated in 2025.06-ext4 under A12K-3464). Provide your implementations via `GeneratedCodeRtConfig.customFieldTypeFactory` and `GeneratedCodeRtConfig.customConditionFactory` instead.
+* [A12K-3898] - The `create` method taking an `IFadat` parameter has been removed from `BundessteuernummerVerifier`. Use the parameterless `create()` instead, as `IFadat` is not required.
+
+==== Removal of variant support
+
+* [A12K-3986] - Variant support has been removed from Kernel. This includes variant filters on fields, rules, and computations, variant-specific error messages on rules, and the variant parameter in service configurations and code generation.
++
+Existing Document Models are migrated automatically from DM version 29.0.0 to 29.1.0 (variant filters and variant error messages are stripped).
++
+If your code implements `IDocumentServiceConfig` (or its subtypes `IDocumentDynamicServiceConfig` / `IDocumentStaticServiceConfig`), remove the `getVariant()` method override.
++
+If your code implements `IDocumentModelIdProvider`, update `getDocumentModelId` to accept only `IDocumentModel` (the `variant` parameter has been removed).
++
+If your code calls `IDocumentRtService#createModelCodeIdentifier`, remove the `variant` argument.
++
+If your code calls `IDocumentModelService#extractUsedVariants`, remove the call -- variant information is no longer available.
++
+If your code uses `IValidationCodeGeneratorConfig#getVariant`, remove the override -- variant filtering during code generation is no longer supported.
 
 ==== Deprecation
 
 ===== Java
 
-Types and methods for _IDocument_ are deprecated.
-The Document API V2 should be used instead.
-See the JavaDoc comments for details
-
-* [A12K-3388] - The interface _IDocumentV1V2Converter_, the class _BasicTypeV1V2Conversion_, the class _EmptyDocumentFactory_ and methods in _DocumentServiceFactory_.
-* [A12K-3188] - All the services, interfaces, methods that use _IDocument_ (Document V1) are now deprecated, see the migration scripts and deprecation information in JavaDoc for details for the replacements.
-* [A12K-3236] There is a change in the CLI-tool _BatchDocumentModelExpander_, if your to-expand document models only contain model references related to the document model expansion (include and import, which until now it is the standard use), there is nothing to adapt.
-Otherwise, be aware that the tool now only removes model references with purpose 'include', 'transitiveInclude' or 'typeDefinitions'.
-
 ===== TS
-
-* [A12K-3009] - The interfaces _ICustomFieldTypeService_ and _ICustomConditionService_ was removed.
-* [A12K-3009] - The following methods in implementations of _ICustomFieldTypeFactory_ should be replaced as shown (can be made via codemod scripts):
-
-[cols="1,1"]
-|===
-|Deprecated
-|New method
-
-|_getSupportedTypeNames()_
-|Remove method.
-
-|_createCustomFieldType(string)_
-|Change method. Return _null_ if the factory does not support the custom field type (do not throw an exception - multiple factories can be registered).
-
-|_createCustomFieldTypeV2(string)_
-|Remove method. Move the implementation to _createCustomFieldType(string)_
-|===
-
-* [A12K-3009] - The following methods in implementations of _ICustomConditionFactory_ should be replaced as shown (can be made via codemod scripts):
-
-[cols="1,1"]
-|===
-|Deprecated
-|New method
-
-|_getSupportedConditionNames()_
-|Remove method.
-
-|_createCustomCondition(string)_
-|Change method. Return _null_ if the factory does not support the custom condition (do not throw an exception - multiple factories can be registered).
-
-|_createCustomConditionV2(string)_
-|Remove method. Move the implementation to _createCustomCondition(string)_
-|===
 
 [#model_migration_tool]
 === Model Migration Tool
 
 The document models can be migrated as follows:
 
-* Download the artifact `kernel-tool-model-migration-<kernel_version>-jar-with-dependencies.jar`.
+* Download the artifact `kernel-md-facade-<kernel_version>-migrator-cli.jar`.
 * Execute `java -jar <artifact name from above> -h` to see how to use the artifact.

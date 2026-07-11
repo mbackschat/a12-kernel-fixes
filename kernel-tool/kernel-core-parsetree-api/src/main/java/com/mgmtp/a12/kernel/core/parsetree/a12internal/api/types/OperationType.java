@@ -39,17 +39,23 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
  * dates all other result types are treated like strings (i.e. also boolean values).
  */
 public enum OperationType {
-	NUMBER("ZAHL"),
-	STRING("STRING"),
-	DATE("DATUM"),
-	DATE_RANGE("DATERANGE");
+	NUMBER("ZAHL", "VkBigDecimal"),
+	STRING("STRING", "VkString"),
+	DATE("DATUM", "VkDate"),
+	DATE_RANGE("DATERANGE", "VkDateRange");
 	private final String runtimeName;
+	private final String runtimeClassName;
 
-	OperationType(String runtimeName) {
+	OperationType(String runtimeName, String runtimeClassName) {
 		this.runtimeName = runtimeName;
+		this.runtimeClassName = runtimeClassName;
 	}
 
 	public String getRuntimeName() {
 		return runtimeName;
+	}
+
+	public String getRuntimeClassName() {
+		return runtimeClassName;
 	}
 }

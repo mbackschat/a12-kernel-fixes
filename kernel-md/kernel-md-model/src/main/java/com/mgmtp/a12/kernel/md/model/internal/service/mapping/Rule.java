@@ -40,7 +40,6 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.model.header.Annotation;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -83,6 +82,7 @@ public class Rule extends Entity implements IRule {
 		if (errorMessages.containsKey(loc)) {
 			return errorMessages.get(loc);
 		} else {
+			// fallback to language (without country)
 			return errorMessages.get(Locale.of(loc.getLanguage()));
 		}
 	}

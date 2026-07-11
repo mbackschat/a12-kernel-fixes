@@ -29,7 +29,6 @@
  * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
-import { DatePrecision } from "@com.mgmtp.a12.utils/utils-localization";
 
 import type { DocumentModel, DocumentModelSerializer } from "../api.js";
 
@@ -69,7 +68,7 @@ export class DocumentModelSerializerImpl implements DocumentModelSerializer {
 		// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
 		delete json[json.type];
 		if (json.type === "DateType" && json.datePrecision === undefined) {
-			json["datePrecision"] = DatePrecision.FULL;
+			json["datePrecision"] = "FULL";
 		}
 		return json;
 	}

@@ -31,7 +31,7 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ICustomFieldValidator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
+import type { ICustomFieldValidator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
 
 /**

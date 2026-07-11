@@ -9,5 +9,4 @@ dependencies {
     implementation libs.commonsLang3
     compileOnly libs.baseModelUtils // Only annotations
 
-
 }

@@ -32,8 +32,6 @@
 
 package com.mgmtp.a12.kernel.core.codegen.internal.modularcodegen;
 
-import static com.mgmtp.a12.kernel.core.codegen.internal.modularcodegen.CodeGenResultUtils.sourcesToZip;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +52,6 @@ public interface ISeparateFilesCodeGenResult<E extends IEntryPoints> extends ICo
 	) {
 		return of(mkEntryPoints.apply(entryPointFqn),
 				Map.of(String.join("/", entryPointFqn) + fileExtension, fileContent.getBytes(StandardCharsets.UTF_8)));
-	}
-
-	@Override default byte[] toZip() {
-		return sourcesToZip(sources());
 	}
 
 	@Override default byte[] toSingleFileBytesIfApplicableOrThrow() {

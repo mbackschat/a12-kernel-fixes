@@ -31,7 +31,7 @@
  */
 
 
-import type { ICustomCondition, IData, IMetaField } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import type { IData, IMetaField } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 import {
 	ArrayMap,
 	HashMap,
@@ -42,8 +42,6 @@ import {
 } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 import type { ValidationMode } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
-
-import { CustomConditionService } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 import { IterationState } from "../util/IterationState.js";
 
@@ -435,7 +433,7 @@ export class ValidationCache {
 	}
 
 	public reduceRedundanciesInRelevantEntities() {
-		this._pruefungsrelevanteFelderInternProName.forEach(ids => ValidationCache.reduceRedundancies(ids))
+		this._pruefungsrelevanteFelderInternProName.forEach(ids => ValidationCache.reduceRedundancies(ids as any))
 	}
 
 	public static reduceRedundancies(ids: Set<RtInternalIdentifier>) {
@@ -518,7 +516,7 @@ export class ValidationCache {
 	 * Liefert alle fehlerhaften Felder (extern).
 	 */
 	public getAllFehlerhafteFelderExtern(): Set<IIdentifier> {
-		return this._fehlerhafteFelderExtern;
+		return this._fehlerhafteFelderExtern as any;
 	}
 
 	public getDaten(): IData {
@@ -529,13 +527,6 @@ export class ValidationCache {
 
 	public setDaten(data: IData): void {
 		this._data = data;
-	}
-
-	public getCustomCondition(name: string): ICustomCondition | null | undefined {
-		return this._mode.customConditionFactory
-			? this._mode.customConditionFactory?.createCustomCondition(name)
-			// if no custom conditions have been passed directly, we use the static cache of CustomConditionService
-			: CustomConditionService.getInstance().getCustomCondition(name);
 	}
 
 	/**
@@ -754,7 +745,7 @@ export class ValidationCache {
 		const parentIndices: number[] = new Array<number>();
 		for (let i = 0; i < maxIndices.length - 1; i++) {
 			if (maxIndices[i] === 1) { // if maxIndices === 1, then the group can potentially be not on the error field path
-				// (because we are already below the groups IRG) -> here we use index 1 instead of copying the 
+				// (because we are already below the groups IRG) -> here we use index 1 instead of copying the
 				// iterationStaetIndices (which might be > 1, if the error field is additionally repeatable on lower levels)
 				// See also the example in this method's typedoc.
 				parentIndices.push(1);
@@ -802,7 +793,8 @@ export class ValidationCache {
 			indexFieldUniqueName,
 			indices,
 			undefined,
-			id.getSemanticIndex()
+			id.getSemanticIndex(),
+			id.getIterationState()
 		);
 	}
 

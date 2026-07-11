@@ -32,19 +32,16 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
 import java.util.Optional;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.mgmtp.a12.kernel.md.model.a12internal.Field;
 import com.mgmtp.a12.kernel.md.model.a12internal.RequirednessConfig;
-import com.mgmtp.a12.kernel.md.model.a12internal.VariantFilter;
+
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 public class FieldSerializer extends StdSerializer<Field> {
-
-	private static final long serialVersionUID = -996567860450043243L;
 
 	public FieldSerializer() {
 		this(null);
@@ -55,33 +52,28 @@ public class FieldSerializer extends StdSerializer<Field> {
 	}
 
 	@Override
-	public void serialize(Field value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+	public void serialize(Field value, JsonGenerator gen, SerializationContext provider) {
 		gen.writeStartObject();
-		gen.writeObjectField("fieldType", value.getFieldType());
+		gen.writePOJOProperty("fieldType", value.getFieldType());
 		if (!value.getLabel().isEmpty()) {
-			gen.writeFieldName("label");
-			gen.writeObject(value.getLabel());
+			gen.writeName("label");
+			gen.writePOJO(value.getLabel());
 		}
 		SerializationUtils.writeBoolean(gen, "global", value.isGlobal());
 		SerializationUtils.writeBoolean(gen, "transient", value.isTransient());
 		Optional<RequirednessConfig> requirednessConfig = value.getRequirednessConfig();
 		if (requirednessConfig.isPresent()) {
-			gen.writeFieldName("requirednessConfig");
-			gen.writeObject(requirednessConfig.get());
-		}
-		Optional<VariantFilter> variantFilter = value.getVariantFilter();
-		if (variantFilter.isPresent()) {
-			gen.writeFieldName("variantFilter");
-			gen.writeObject(variantFilter.get());
+			gen.writeName("requirednessConfig");
+			gen.writePOJO(requirednessConfig.get());
 		}
 		if (!value.getHelperText().isEmpty()) {
-			gen.writeFieldName("helperText");
-			gen.writeObject(value.getHelperText());
+			gen.writeName("helperText");
+			gen.writePOJO(value.getHelperText());
 		}
 		Optional<String> addInfoOpt = value.getAdditionalInfo();
 		if (addInfoOpt.isPresent()) {
-			gen.writeFieldName("additionalInfo");
-			gen.writeObject(addInfoOpt.get());
+			gen.writeName("additionalInfo");
+			gen.writePOJO(addInfoOpt.get());
 		}
 		gen.writeEndObject();
 	}

@@ -182,7 +182,7 @@ export class ValidationCommand extends CheckCommand {
 					this._metaData.getPfadName(id.getName())
 				)!;
 				ValidationCommand.addToMultiMapMultiSetHashMap(
-					relevantGroups,
+					relevantGroups as any,
 					parentIdentifier.getName(),
 					parentIdentifier,
 					id
@@ -223,10 +223,10 @@ export class ValidationCommand extends CheckCommand {
 			const groupName: string = relevantGroups.keys().next().value!;
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const value = relevantGroups.deleteAndRetrieve(groupName)!;
-			let fullyRelevantGroups = this._extractFullyRelevantGroups(groupName, value);
+			let fullyRelevantGroups = this._extractFullyRelevantGroups(groupName, value as any);
 			fullyRelevantGroups = this._compress(groupName, fullyRelevantGroups);
 			if (!fullyRelevantGroups.isEmpty) {
-				fullyRelevantGroupsByName.set(groupName, fullyRelevantGroups);
+				fullyRelevantGroupsByName.set(groupName, fullyRelevantGroups as any);
 				const totallyRelevantGroups: HashSet<RtInternalIdentifier> =
 					this._filterTotallyRelevantGroups(fullyRelevantGroups);
 				totallyRelevantGroups.forEach((id: RtInternalIdentifier) => {
@@ -236,7 +236,7 @@ export class ValidationCommand extends CheckCommand {
 					);
 					if (parentId != null) {
 						ValidationCommand.addToMultiMapMultiSetHashMap(
-							relevantGroups,
+							relevantGroups as any,
 							parentId.getName(),
 							parentId,
 							id
@@ -384,7 +384,7 @@ export class ValidationCommand extends CheckCommand {
 		// 2. intersect { <G, [1,0,1]>, <G, [1,1,0]> } with {<B, [1,0,1,1]>} giving { <G, [1,0,1]>, <G, [1,1,1]> }
 		// 3. intersect { <G, [1,0,1]>, <G, [1,1,1]> } with {<C, [1,1,0,1]>, <C, [2,0,0,1]>} giving { <G, [1,1,1]> }
 		// Then we know that only <G, [1,1,1]> is fully relevant.
-		let candidates: Set<RtInternalIdentifier> = new HashSet();
+		let candidates: Set<RtInternalIdentifier> = new HashSet() as any;
 		candidateGroups.forEach((_, key) => candidates.add(key));
 		const totallyRelevantsByName: Map<string, Set<RtInternalIdentifier>> = new Map();
 
@@ -428,7 +428,7 @@ export class ValidationCommand extends CheckCommand {
 				}
 			});
 		});
-		return result;
+		return result as any;
 	}
 
 	static addToMultiSetHashMap<T, U extends IHashCode & IEquatable>(
@@ -436,7 +436,7 @@ export class ValidationCommand extends CheckCommand {
 		key: T,
 		value: U
 	): void {
-		this.computeIfAbsent(map, key, () => new HashSet<U>()).add(value)
+		this.computeIfAbsent(map, key, () => (new HashSet<U>()) as any).add(value)
 	}
 
 	static computeIfAbsent<T, U>(map: Map<T, U>, key: T, valueSupplier: () => U) {
@@ -455,7 +455,7 @@ export class ValidationCommand extends CheckCommand {
 		U extends IHashCode & IEquatable
 	>(map: Map<S, Map<T, Set<U>>>, key0: S, key1: T, value: U): void {
 		const innerMap = this.computeIfAbsent(map, key0, () => new HashMap<T, Set<U>>());
-		this.computeIfAbsent(innerMap, key1, () => new HashSet<U>()).add(value);
+		this.computeIfAbsent(innerMap, key1, () => (new HashSet<U>()) as any).add(value);
 	}
 
 	/**
@@ -498,7 +498,7 @@ export class ValidationCommand extends CheckCommand {
 				expandedIds.add(expandedId)
 			);
 		});
-		return expandedIds;
+		return expandedIds as any;
 	}
 
 	/**
@@ -554,7 +554,7 @@ export class ValidationCommand extends CheckCommand {
 		// Abbruch nach Fehlern in formaler Prüfung und Fehler gefunden
 		if (
 			this._modus.getValidationType() === ValidationType.fullExaminationWithAbortOnFormalErrors &&
-			ergebnisse.getCountOf(ErrorType.VALUE_ERROR) > this._anzTestFehler
+			ergebnisse.getCountOf(ErrorType.VALUE_ERROR) > 0
 		) {
 			// Ende der Plausibilitätsprüfung, da Fehlern in der syntaktischen Prüfung
 			return false;

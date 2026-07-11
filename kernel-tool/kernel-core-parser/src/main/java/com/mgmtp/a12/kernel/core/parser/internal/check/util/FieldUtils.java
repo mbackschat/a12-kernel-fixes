@@ -47,7 +47,6 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IFieldType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.INumberType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IPredefinedType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IStringType;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IUnspecifiedType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IYesNoType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IYesType;
 
@@ -273,10 +272,6 @@ public class FieldUtils {
 		return f.getType() instanceof IPredefinedType;
 	}
 
-	public static boolean isUnspecified(IField f) {
-		return f.getType() instanceof IUnspecifiedType;
-	}
-
 	/**
 	 * Checks if <code>f</code> is of type string (also predefined or extensible enumeration),
 	 * enumeration or number.
@@ -302,14 +297,11 @@ public class FieldUtils {
 	 * @return the error message, if the fields does contain one, else <code>null</code>.
 	 */
 	public static String getErrorText(IFieldType fieldType, Locale language) {
-		if (fieldType instanceof IStringType) {
-			IStringType iet = (IStringType) fieldType;
-			return iet.getErrorMessage(language);
-		} else if (fieldType instanceof IEnumerationType) {
-			IEnumerationType iet = (IEnumerationType) fieldType;
-			return iet.getErrorMessage(language);
-		}
-		return null;
+		return switch (fieldType) {
+			case IStringType iet -> iet.getErrorMessage(language);
+			case IEnumerationType iet -> iet.getErrorMessage(language);
+			case null, default -> null;
+		};
 	}
 
 	/**
@@ -340,8 +332,6 @@ public class FieldUtils {
 			return "Datum";
 		} else if (type instanceof IYesNoType) {
 			return "JaNein";
-		} else if (type instanceof IUnspecifiedType) {
-			return "NichtSpezifiziert";
 		} else {
 			throw new IllegalArgumentException("Invalid field type " + type.getClass().getCanonicalName());
 		}

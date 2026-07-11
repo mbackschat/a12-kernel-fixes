@@ -37,11 +37,10 @@ import static com.mgmtp.a12.kernel.core.service.internal.errortext.FehlertextErr
 
 import java.util.Map;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.util.EntityIdFormatterUtil;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.FullChecks_ErrorTextParameterParser;
+import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.EntitySpecContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.RelativeUpContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.ParserUtils;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEC;
@@ -58,12 +57,12 @@ public class CheckRelativeUpImpl {
 	private final String rulePath;
 	private final FullChecks_ErrorTextParameterParser.ErrorComposer errorComposer;
 	private final IEC ec;
-	Map<ParserRuleContext, FullChecks_ErrorTextParameterParser.EntityRef> referencedEntities;
+	private Map<EntitySpecContext, FullChecks_ErrorTextParameterParser.EntityRef> referencedEntities;
 
 	public CheckRelativeUpImpl(IRule rule
 			, FullChecks_ErrorTextParameterParser.ErrorComposer errorComposer
 			, IEC ec
-			, Map<ParserRuleContext, FullChecks_ErrorTextParameterParser.EntityRef> referencedEntities
+			, Map<EntitySpecContext, FullChecks_ErrorTextParameterParser.EntityRef> referencedEntities
 	) {
 		this.rulePath = EntityUtils.getParentPath(rule.getFullName());
 		this.errorComposer = errorComposer;

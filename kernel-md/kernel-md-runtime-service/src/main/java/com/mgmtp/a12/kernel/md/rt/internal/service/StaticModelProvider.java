@@ -32,30 +32,33 @@
 
 package com.mgmtp.a12.kernel.md.rt.internal.service;
 
+import static com.mgmtp.a12.kernel.md.model.internal.service.utils.DocumentModelResolverUtils.getDocumentModelOrThrow;
+
 import java.util.Optional;
 
-import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICalculator;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
+import com.mgmtp.a12.kernel.core.rt.a12internal.IGeneratedCodeAccessFactory;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
+import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelResolver;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.DocumentModelServiceUtils;
-import com.mgmtp.a12.kernel.md.rt.api.IDocumentModelIdProvider;
 import com.mgmtp.a12.kernel.md.rt.api.IDocumentStaticServiceConfig;
 import com.mgmtp.a12.kernel.md.rt.api.IStaticModelCodeCache;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 public class StaticModelProvider implements IModelProvider {
 
 	private final IDocumentStaticServiceConfig config;
-	private final IDocumentModelIdProvider modelIdProvider;
+	private final IDocumentModelResolver documentModelResolver;
 
-	public StaticModelProvider(IDocumentStaticServiceConfig config) {
-		this.config = config;
-		Optional<IDocumentModelIdProvider> localModelIdProvider = config.getModelIdProvider();
-		modelIdProvider = localModelIdProvider.orElseGet(() -> DocumentModelServiceUtils::createGeneratedCodeId);
+	@Override
+	public IGeneratedCodeAccessFactory getGeneratedCodeAccessFactory(String documentModelId) {
+		return getStaticModelCodeAccessor(documentModelId).getAccessFactory();
 	}
 
-	private StaticModelCodeAccessor getGencodeAccessor(IDocumentModel documentModel, String variant) {
-		String docModelId = modelIdProvider.getDocumentModelId(documentModel, variant);
+	private StaticModelCodeAccessor getStaticModelCodeAccessor(String documentModelId) {
+		IDocumentModel documentModel = getDocumentModelOrThrow(documentModelResolver, documentModelId);
+		String docModelId = createModelCodeIdentifier(documentModel);
 		Optional<IStaticModelCodeCache> cacheOpt = config.getCache();
 		if (cacheOpt.isPresent()) {
 			Object obj = cacheOpt.get().getModelCode(docModelId);
@@ -76,22 +79,9 @@ public class StaticModelProvider implements IModelProvider {
 	}
 
 	@Override
-	public IValidator getValidator(IDocumentModel documentModel, String variant) {
-		return getGencodeAccessor(documentModel, variant).validator();
-
-	}
-
-	@Override
-	public ICalculator getCalculator(IDocumentModel documentModel, String variant) {
-		return getGencodeAccessor(documentModel, variant).calculator();
-	}
-
-	@Override
-	public IMetaModel getMetaModel(IDocumentModel documentModel, String variant) {
-		return getGencodeAccessor(documentModel, variant).metaModel();
-	}
-
-	@Override public String createModelCodeIdentifier(IDocumentModel documentModel, String variant) {
-		return modelIdProvider.getDocumentModelId(documentModel, variant);
+	public String createModelCodeIdentifier(IDocumentModel documentModel) {
+		return config.getModelIdProvider()
+				.orElse(DocumentModelServiceUtils::createGeneratedCodeId)
+				.getDocumentModelId(documentModel);
 	}
 }

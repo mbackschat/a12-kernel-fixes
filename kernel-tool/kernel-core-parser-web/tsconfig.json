@@ -16,7 +16,11 @@
     // noUnusedLocals can't be enabled because it fails for the generated parser & lexer
     // it should be ok to disable it, because eslint will tell us about unused imports etc
     // anyway. And this is only a cosmetic nice-to-have anyway, right?
-    "noUnusedLocals": false
+    "noUnusedLocals": false,
+    "types": ["node",  "mocha"],
+    // verbatimModuleSyntax is set to false regarding problems with antlr4ForKernel (missing exports in js)
+    // for more information see https://www.typescriptlang.org/tsconfig/#verbatimModuleSyntax
+    "verbatimModuleSyntax": false
   },
   "typedocOptions": {
     "name": "Parser (Web)",

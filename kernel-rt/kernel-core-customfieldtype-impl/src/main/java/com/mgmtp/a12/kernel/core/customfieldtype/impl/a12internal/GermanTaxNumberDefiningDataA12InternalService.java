@@ -32,34 +32,30 @@
 package com.mgmtp.a12.kernel.core.customfieldtype.impl.a12internal;
 
 import java.io.Reader;
-import java.util.Set;
 
-import com.mgmtp.a12.kernel.core.customfieldtype.impl.IFadat;
-import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.defdata.impl.GermanTaxNumberDefiningDataInternalService;
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator;
+import com.mgmtp.a12.kernel.core.customfieldtype.impl.BundesfinanzamtsnummerVerifier;
+import com.mgmtp.a12.kernel.core.customfieldtype.impl.BundessteuernummerVerifier;
+import com.mgmtp.a12.kernel.core.customfieldtype.impl.EWAzVerifier;
+import com.mgmtp.a12.kernel.core.customfieldtype.impl.LaenderkuerzelVerifier;
+import com.mgmtp.a12.kernel.core.customfieldtype.impl.SteuernummerVerifier;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.defdata.impl.StnrVerifierDeserializer;
 
 /**
- * This class is the equivalent of {@link com.mgmtp.a12.kernel.core.customfieldtype.impl.GermanTaxNumberDefiningDataService} for A12
- * internal use.
+ * This class can be used to provide the necessary defining data for later usage of the German tax
+ * number and similar {@link ICustomFieldValidator}s. The following classes need this data:<br>
+ * <ul>
+ * <li>{@link SteuernummerVerifier}</li>
+ * <li>{@link BundessteuernummerVerifier}</li>
+ * <li>{@link BundesfinanzamtsnummerVerifier}</li>
+ * <li>{@link LaenderkuerzelVerifier}</li>
+ * <li>{@link EWAzVerifier}</li>
+ * </ul>
  */
 public class GermanTaxNumberDefiningDataA12InternalService {
 
 	private GermanTaxNumberDefiningDataA12InternalService() {
 		throw new IllegalArgumentException("This must not be instantiated.");
-	}
-
-	/**
-	 * Initializes the internal service for validation of german tax numbers and related custom field types with the given data.
-	 *
-	 * @param bufaNummern
-	 * 		the BUFA numbers to be set. Must not be {@code null}.
-	 * @param ewazTestBufaNummern
-	 * 		the BUFA numbers for ewaz test. Must not be {@code null}.
-	 * @deprecated Will be removed with A12K-3589. Use {@link IFadat#deserialize(Reader, boolean)} instead.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	public static synchronized void initWith(Set<Integer> bufaNummern, Set<Integer> ewazTestBufaNummern) {
-		GermanTaxNumberDefiningDataInternalService.getInstance().provide(bufaNummern, ewazTestBufaNummern);
 	}
 
 	/**

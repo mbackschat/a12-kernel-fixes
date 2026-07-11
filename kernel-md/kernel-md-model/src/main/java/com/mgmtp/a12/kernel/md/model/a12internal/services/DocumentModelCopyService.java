@@ -33,12 +33,7 @@
 package com.mgmtp.a12.kernel.md.model.a12internal.services;
 
 import java.io.UncheckedIOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblem;
 import com.mgmtp.a12.kernel.md.model.a12internal.Computation;
@@ -47,15 +42,10 @@ import com.mgmtp.a12.kernel.md.model.a12internal.Element;
 import com.mgmtp.a12.kernel.md.model.a12internal.Field;
 import com.mgmtp.a12.kernel.md.model.a12internal.FieldTypeDefinition;
 import com.mgmtp.a12.kernel.md.model.a12internal.Group;
-import com.mgmtp.a12.kernel.md.model.a12internal.Group.IncludeDetails;
 import com.mgmtp.a12.kernel.md.model.a12internal.Rule;
-import com.mgmtp.a12.kernel.md.model.a12internal.visitor.DocumentModelWalker;
-import com.mgmtp.a12.kernel.md.model.internal.service.utils.CollectGroupsWithIncludeVisitor;
 import com.mgmtp.a12.kernel.md.serializer.model.a12internal.services.DocumentModelSerializer;
 import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.SerializationUtils;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
-import com.mgmtp.a12.model.header.HeaderFactory;
-import com.mgmtp.a12.model.header.ModelReference;
 
 /**
  * Offers the copy functionality (deep copy) for:
@@ -87,19 +77,16 @@ public class DocumentModelCopyService {
 	 *
 	 * @param documentModel
 	 * 		the {@link DocumentModel} to be copied. May not be {@code null}.
-	 * @param problemConsumer notifications might be reported here if there are inconsistencies in the DM. If errors occur,
-	 *                       this could possibly indicate that maybe, additional inconsistencies could be present in the
-	 *                       resulting copy, indirectly caused by the original inconsistency. If strict behavior is desired,
-	 *                       the provided problemConsumer should abort with an exception if any reported problem has severity
-	 *                       of level ERROR.
+	 * @param problemConsumer
+	 * 		notifications might be reported here if there are inconsistencies in the DM. If errors occur,
+	 * 		this could possibly indicate that maybe, additional inconsistencies could be present in the
+	 * 		resulting copy, indirectly caused by the original inconsistency. If strict behavior is desired,
+	 * 		the provided problemConsumer should abort with an exception if any reported problem has severity
+	 * 		of level ERROR.
 	 * @return the copied {@link DocumentModel}.
 	 */
 	public static DocumentModel copy(DocumentModel documentModel, Consumer<? super IProblem> problemConsumer) {
-		DocumentModel copy = SerializationUtils.copy(documentModel, problemConsumer);
-		transferIncludeDetailsToCopy(documentModel.getContent().getModelRoot(), copy.getContent().getModelRoot());
-		transferTypeDefModelReferencesToCopy(documentModel.getContent().getTypeDefinitions(),
-				copy.getContent().getTypeDefinitions());
-		return copy;
+		return SerializationUtils.copy(documentModel, problemConsumer);
 	}
 
 	/**
@@ -127,67 +114,6 @@ public class DocumentModelCopyService {
 	public static <T extends Element> T copy(T t) {
 		T copy = SerializationUtils.copy(t);
 		copy.setParent(null);
-		if (t instanceof Group group) {
-			transferIncludeDetailsToCopy(group, (Group) copy);
-		}
 		return copy;
 	}
-
-	private static IncludeDetails copyIncludeDetails(Group originalGroupWithIncludeDetails) {
-		IncludeDetails includeDetails = originalGroupWithIncludeDetails
-				.getIncludeDetails()
-				.orElseThrow(() -> new IllegalArgumentException(
-						"Group " + originalGroupWithIncludeDetails.getId() + " does not contain include details."));
-		ModelReference modelReference = copy(includeDetails.getModelReference());
-		return IncludeDetails.builder()
-				.modelReference(modelReference)
-				.includeLevel(includeDetails.getIncludeLevel())
-				.excludeRules(includeDetails.isExcludeRules())
-				.excludeComputations(includeDetails.isExcludeComputations())
-				.build();
-	}
-
-	private static void transferIncludeDetailsToCopy(Group group, Group copy) {
-		CollectGroupsWithIncludeVisitor visitor = new CollectGroupsWithIncludeVisitor();
-		new DocumentModelWalker().acceptElements(Collections.singletonList(group), visitor);
-		List<Group> originalDescendantsWithIncludeDetails = visitor.getCollectedGroups();
-		if (originalDescendantsWithIncludeDetails.isEmpty()) {
-			return;
-		}
-
-		DocumentModelSearchService searchService4Copy = new DocumentModelSearchService(Collections.singletonList(copy));
-		for (Group originalDescendantWithIncludeDetails : originalDescendantsWithIncludeDetails) {
-			Group descendantInCopy = (Group) searchService4Copy
-					.getById(originalDescendantWithIncludeDetails.getId())
-					.orElseThrow(() -> new IllegalArgumentException(
-							"Copied group with id " + originalDescendantWithIncludeDetails.getId() + " not found."));
-			IncludeDetails includeDetailsCopy = copyIncludeDetails(originalDescendantWithIncludeDetails);
-			descendantInCopy.setIncludeDetails(includeDetailsCopy);
-		}
-	}
-
-	private static ModelReference copy(ModelReference modelReference) {
-		return HeaderFactory.createModelReference(modelReference.getPurpose(),
-				modelReference.getModelType(),
-				modelReference.getAlias(),
-				modelReference.getReference());
-	}
-
-	private static void transferTypeDefModelReferencesToCopy(List<FieldTypeDefinition> original, List<FieldTypeDefinition> copy) {
-		Map<String, Set<List<ModelReference>>> originalModelRefPathsByTypeDefId = original.stream()
-				.filter(ftd -> !ftd.getAllModelReferencePaths().isEmpty())
-				.collect(Collectors.toMap(FieldTypeDefinition::getId, FieldTypeDefinition::getAllModelReferencePaths));
-		for (FieldTypeDefinition copiedFieldTypeDef : copy) {
-			if (!originalModelRefPathsByTypeDefId.containsKey(copiedFieldTypeDef.getId())) {
-				continue;
-			}
-			Set<List<ModelReference>> originalModelRefPaths = originalModelRefPathsByTypeDefId.get(
-					copiedFieldTypeDef.getId());
-			Set<List<ModelReference>> copiedModelRefPaths = originalModelRefPaths.stream()
-					.map(list -> list.stream().map(DocumentModelCopyService::copy).toList())
-					.collect(Collectors.toSet());
-			copiedFieldTypeDef.setAllModelReferencePaths(copiedModelRefPaths);
-		}
-	}
-
 }

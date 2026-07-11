@@ -42,7 +42,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.EntityListOperationName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.FieldIdOperationName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.OperationType;
-import com.mgmtp.a12.kernel.core.parsetree.a12internal.utils.FindAnyAst;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.ast.ASTVisitor;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 /**
@@ -91,17 +91,28 @@ public class FeldOperationUtil {
 	}
 
 	public static boolean enthaeltAnzahlAngegebenOrAnzahlVerschiedeneWerteSprachkonstrukt(IParseTreeEntity op) {
-		return FindAnyAst.findeInParseBaumEntity(op, FeldOperationUtil::isAnzahlAngegebenOrAnzahlVerschiedeneWerteSprachkonstrukt,
-				false).isPresent();
-	}
+		boolean result[] = new boolean[1];
+		ASTVisitor visitor = new ASTVisitor() {
+			@Override public boolean visitGeneral(IParseTreeEntity e) {
+				return !result[0];
+			}
 
-	private static boolean isAnzahlAngegebenOrAnzahlVerschiedeneWerteSprachkonstrukt(IParseTreeEntity p) {
-		if (p instanceof IEntityListOperation) {
-			EntityListOperationName op = ((IEntityListOperation) p).getOperatorName();
-			return op == EntityListOperationName.NumberOfFilledFields || op == EntityListOperationName.NumberOfFilledGroups
-					|| op == EntityListOperationName.NumberOfDifferentValues;
-		}
-		return p instanceof INumberOfRootGroupsOperation;
+			@Override public boolean visit(IEntityListOperation p) {
+				result[0] |= switch (p.getOperatorName()) {
+					case NumberOfFilledFields, NumberOfFilledGroups, NumberOfDifferentValues -> true;
+					default -> false;
+				};
+				return false;
+			}
+
+			@Override
+			public void endVisit(INumberOfRootGroupsOperation p) {
+				result[0] = true;
+			}
+		};
+		// Note: it appears to be intentional that filter conditions are not traversed here (but we do want to traverse setoperations aka SummeVonTermen)
+		op.traverse(visitor);
+		return result[0];
 	}
 
 	/**
@@ -119,10 +130,6 @@ public class FeldOperationUtil {
 		return null;
 	}
 
-	public static boolean isAnzahlAngegebenSprachkonstrukt(IOperation op) {
-		return getAnzahlAngegebnerFelderOrKontexteOp(op) != null;
-	}
-
 	/**
 	 * Gibt den ganzzahligen Wert von op zurück, falls diese eine Zahlkonstante ist und -1
 	 * sonst.
@@ -136,29 +143,6 @@ public class FeldOperationUtil {
 		}
 		return -1;
 
-	}
-
-	/**
-	 * Prüft ob die übergebene FeldOperation eine FeldWert-Operation ist und gibt diese
-	 * zurück. Falls nicht, wird null zurückgegeben.
-	 *
-	 * @param op
-	 * 		zu prüfende Operation
-	 * @return gecastetes Objekt oder null, falls andere Operation
-	 */
-	public static IFieldIdOperation getFeldWertOp(IOperation op) {
-		if (op instanceof IFieldIdOperation) {
-			IFieldIdOperation fop = (IFieldIdOperation) op;
-			if (fop.getOperatorName().equals(FieldIdOperationName.FieldValue)) {
-				return fop;
-			}
-		}
-		return null;
-
-	}
-
-	public static boolean isAnzahlWertInFeldliste(IOperation flfOp) {
-		return getAnzahlWertInFeldliste(flfOp) != null;
 	}
 
 	public static boolean isZahlKonstante(IOperation op) {

@@ -94,8 +94,6 @@ public enum ParserErrorTypesEnum {
 	MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION_CATEGORY, //"Bei '%s': '%s' ist kein gültiger Wert für die Kategorie '%s'.",
 	MVK_INVALID_STRING_CONSTANT_FOR_ENUMERATION_OR_CATEGORY, //"Bei '%s': '%s' ist kein gültiger Wert in den verwendeten Enumerationen bzw. Kategorien.",
 	MVK_INVALID_STRING_CONSTANT_FOR_ENUM_COMPARISON, //"'%s' ist kein gültiger Wert in der verwendeten Enumeration.",
-	MVK_INVALID_COMPARE_ENUM_TO_STRING, // Enumerationen mit Oberflächenwerten dürfen nicht mit Strings oder Enumerationen ohne Oberflächenwerte verglichen werden.
-	MVK_INVALID_COMPARE_ENUM_TO_ENUM, // Bei Vergleichen von Enumerationen müssen die Enumerationswerte zusammenpassen (für '%s' sind die Werte '%s' bzw. '%s' hinterlegt).
 	MVK_INVALID_TYPES_FOR_COMPARISON, //	"Bei '%s' dürfen keine Strings mit Zahlen verglichen werden."
 	MVK_INVALID_PATTERN, //'%s' ist kein gültiges Pattern für die Vergleichsoperation '%s‘
 	MVK_INVALID_TYPE_FOR_PATTERN_COMPARISON, //Vergleichsoperation '%s' ist nur für Strings erlaubt.
@@ -161,7 +159,8 @@ public enum ParserErrorTypesEnum {
 	MVK_INVALID_INTERVAL, // Bei '%s': Die Bereichsangabe ist ungültig. Angabe für Start muss größer 0 und kleiner dem Bereichsende sein.
 
 	MVK_REPEATABLE_LEVEL_REQUIRED, // "Bei '%s' müssen die Felder auf mindestens einer Ebene wiederholbar sein."
-	MVK_WILDCARD_AT_LOWEST_LEVEL_REQUIRED, // "Bei '%s' muss für die unterste Wiederholungsebene ein uneingeschränkter Stern spezifiziert werden."
+	MVK_WILDCARD_AT_LOWEST_REPEATABLE_LEVEL_REQUIRED, // "Bei '%s' muss für die unterste Wiederholungsebene ein uneingeschränkter Stern spezifiziert werden."
+	MVK_WILDCARD_AT_LOWEST_LEVEL_REQUIRED, // "Bei '%s' muss für die unterste Ebene ein Stern spezifiziert werden."
 	MVK_WILDCARD_ONLY_AT_LOWEST_LEVEL_ALLOWED, // "Bei '%s' darf nur für die unterste Wiederholungsebene ein Stern spezifiziert werden."
 	MVK_WILDCARDS_REQUIRED, // Bei '%s' muss für das gefilterte Feld auf mindestens einer Wiederholungsebene ein Stern spezifiziert sein.
 
@@ -196,8 +195,6 @@ public enum ParserErrorTypesEnum {
 	MVK_INVALID_RAW_TYPE, //Bei '%s' darf kein Feldtyp verwendet werden, der den Parameter 'keine Werteprüfung' spezifiziert.
 	MVK_INVALID_LENGTH_OF_RAW_TYPE, //Bedingungen, die die Länge eines Feldes verwenden, das den Parameter 'keine Werteprüfung' spezifiziert, müssen folgende Form haben Laenge(<Feld>) > <Konstante>.
 
-	MVK_INVALID_UNSPECIFIED_TYPE, // Felder vom Typ 'NichtSpezifiziert' dürfen in H-DVs nicht direkt referenziert werden.
-
 	// Semantic index
 	MVK_SEMANTIC_INDEX_REF_OP, // semantischer Index
 	MVK_SEMANTIC_INDEX_BELOW_WILDCARD, // Feld ' %s' verwendet einen semantischen Index, obwohl in einem umfassenden Kontext ein Stern spezifiziert wurde. Dies ist nicht zulässig.
@@ -227,7 +224,7 @@ public enum ParserErrorTypesEnum {
 	MVK_ERROR_FIELD_INVALID_INDEX_TYPE, //Für '%s' wird in der Bedingung Iteration spezifiziert. Im Pfad des Fehlerfeldes wird zwar ein Indexfeld spezifiziert, dieses hat jedoch einen anderen Typ. Daher muss entweder ein Stern spezifiziert werden oder für die Regel muss ein anderes Fehlerfeld ausgewählt werden.
 	MVK_PARALLEL_ITERATION_NOT_ALLOWED, // Bei '%s' wird keine parallele Iteration erlaubt.
 	MVK_PARALLEL_ITERATION_INVALID, // Die Bedingung darf keine parallele Iteration verwenden, da auch ein Fehler auftreten kann, wenn keinerlei in der Iteration referenzierten Felder angegeben wurden.
-	MVK_PARALLEL_ITERATION_FOR_FILTERED_ENTITY_NOT_ALLOWED, // Bei '%s' wird für das gefilterte Feld keine parallele Iteration erlaubt.
+	MVK_PARALLEL_ITERATION_FOR_PATH_WITH_ASTERISKS_NOT_ALLOWED, // Bei '%s' wird für den gesternten Pfad keine parallele Iteration erlaubt.
 
 	MVK_NEG_CONDITION_IN_ITERATION, // Die Bedingung spezifiziert Iteration über '%s', aber die Regel kann für nicht angegebene Wiederholungen dieser Wiederholungsebene feuern.
 
@@ -235,10 +232,11 @@ public enum ParserErrorTypesEnum {
 	MVK_INVALID_COMPARE_DEC_PLACES, // Die maximalen Nachkommastellen der linken Seite (%s) und der rechten Seite (%s) unterscheiden sich.
 	MVK_INVALID_SUPPRESSED_WARNING, // Die zu unterdrückende Warnung '%s' wird nicht unterstützt.
 	MVK_ONLY_CONSTANTS_USED, // Bei '%s': die Datumskonstruktion darf nicht nur aus Konstanten bestehen.
-	MVK_DISALLOWED_CONSTRUCT_IN_FILTER_CONDITION, // Das Sprachkonstrukt '%s' ist in Filterbedingungen nicht erlaubt.
-	MVK_INVALID_ITERATION_IN_FILTER_CONDITION, // Fehler für '%s' in '%s': in Filterbedingungen darf nur über die Wiederholungsebenen iteriert werden, auf denen das gefilterte Feld Iteration oder Stern spezifiziert.
+	MVK_DISALLOWED_CONSTRUCT_IN_SET_EXPRESSION, // Das Sprachkonstrukt '%s' ist bei '%s' nicht erlaubt.
+	MVK_INVALID_ITERATION_IN_SET_EXPRESSION, // Fehler für '%s' in '%s': bei '%s' darf nur über die Wiederholungsebenen iteriert werden, auf denen der gesternte Pfad Iteration oder Stern spezifiziert.
 	MVK_INVALID_OUTER_ITERATION, // Die Verwendung von '$' zur Spezifikation der Regeliteration ist nur in Filterbedingungen erlaubt
 	MVK_NO_ITERATION_FOR_WILDCARD, // In Filterbedingungen muss über mindestens eine Ebene mit Stern des gefilterten Feldes iteriert werden.
+	MVK_NO_ITERATION_FOR_LOWEST_WILDCARD, // Bei '%s' muss auf der untersten gesternten Ebene des gesternten Pfades iteriert werden.
 	MVK_TOO_MANY_PARENT_GROUPS, // Die relative Pfadangabe enthält zu viele Aufwärts-Schritte.
 	MVK_INVALID_WILDCARD_REL, // In einem relativen Pfad mit ..-Notation dürfen die '..'-Teile keinen Stern verwenden.
 

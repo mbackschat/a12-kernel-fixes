@@ -31,7 +31,6 @@
  */
 package com.mgmtp.a12.kernel.core.parser.internal.util;
 
-import java.util.Arrays;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
@@ -56,12 +55,14 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IGroupOpera
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.INumberOfRootGroupsOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateDiffOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateExtractionOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.ComparisonOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.FieldIdOperationName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.GroupOperationName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.LogOp;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.RootGroupConditionName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.ValidityConditionName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.ast.ASTVisitor;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.services.FeldOperationUtil;
@@ -87,7 +88,7 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
  * außer sie werden in einer Kombination verwendet, dass ihre Verwendung nicht dazu führt, dass
  * für jede Wiederholung ein Wert angegeben sein muss.
  * <p>
- * Diese Klasse bietet den Analyse Algorithmus dazu. Bei der Bewertung einer Positivbedingung
+ * Diese Klasse bietet den Analysealgorithmus dazu. Bei der Bewertung einer Positivbedingung
  * ist wichtig, ob sie eine entsprechende Iteration referenziert. So ist beispielsweise:
  * <code>FeldAngegeben(A) Und FeldNichtAngegeben(B@#Usb)</code> nicht erlaubt.
  * <code>FeldAngegeben(A)</code> ist zwar eine Positivbedingung aber sie referenziert keine USB
@@ -122,7 +123,7 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
  * <li><b>MindestensEinFeldWertInWerteListe</b>, wenn in der Feldliste und in der Werteliste
  * Felder ohne Iteration und in mindestens einer der Listen Felder mit Iteration vorkommen.
  * <li><b>FeldWerteNichtEindeutig</b>, <b>FeldWert(Nicht)InWerteListe</b>,
- * <b>NichtAlleFeldWerteInWerteListe</b> wenn Parameter mit und ohne Iteration verwendet
+ * <b>NichtAlleFeldWerteInWerteListe</b>, wenn Parameter mit und ohne Iteration verwendet
  * werden.</li>
  * <li><i>AnzahlAngegebenerFelder</i> bzw. <i>AnzahlAngegebenerKontexte</i>,
  * <i>AnzahlVerschiedenerWerte</i> und <i>MaximalAngegebenerZeilenindex</i> mit Vergleich auf
@@ -130,7 +131,7 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
  * wenn alle Felder in der Feldliste eine Iteration spezifizieren.</li>
  * <li><i>AnzahlAngegebenerVordrucke</i> mit Vergleich auf kleiner, auf kleiner gleich oder auf
  * ungleich mit einer Zahlkonstante, wenn der Vordruck eine Iteration spezifiziert.</li>
- * <li><i>Summme</i>, <i>SummeVonProdukten</i>, <i>MaxWert</i>, <i>MinWert</i>,
+ * <li><i>Summme</i>, <i>SummeVonProdukten</i>, <i>SummeVonTermen</i>, <i>MaxWert</i>, <i>MinWert</i>,
  * Datumsdifferenzen/-extraktionen, <i>AnzahlWertInFeldliste</i>, <i>Auf/Ab/Runden(Wert)</i>,
  * <i>FeldWertAlsZahl</i>, <i>Laenge</i>, <i>Min/Max</i> wenn Vergleich mit 0 (mit ==, >= oder
  * <=), da dies zu einem Fehler führt, wenn nichts angegeben wurde.</li>
@@ -151,6 +152,8 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
  * gesamte Bedingung verboten.</li>
  * </ul>
  * </ul>
+ * <p>
+ * There is much inconsistent behavior in this class, but if we want to correct the behavior, we should consider EXT-20451.
  */
 public class IterationNotValidVisitor extends ASTVisitor {
 
@@ -279,7 +282,7 @@ public class IterationNotValidVisitor extends ASTVisitor {
 	 * 		level for that the entity reference specifies iteration
 	 * @param ec
 	 * @param isHModel
-	 * @return true if a non guarded iteration for the level is forbidden, false otherwise
+	 * @return true if a non-guarded iteration for the level is forbidden, false otherwise
 	 */
 	private static boolean isIterationRelevant(IEntityId id, int i, IEC ec, boolean isHModel) {
 		long[] maxIndexes = id.getMaxValues();
@@ -302,22 +305,29 @@ public class IterationNotValidVisitor extends ASTVisitor {
 	public boolean visit(ICompositeCondition zBed) {
 		if (zBed.getLogOp() == LogOp.Or) {
 			for (ICondition teilBed : zBed.getConditionList()) {
+				if (!isIteration(teilBed)) {
+					erlaubt = false;
+					return false;
+				}
 				IterationNotValidVisitor visitor = new IterationNotValidVisitor(iterationType, iterationLevel);
 				teilBed.traverse(visitor);
 				//wenn die ODER-Bedingung eine nicht erlaubte Teilbedingung hat, ist sie nicht erlaubt
 				boolean isErlaubt = visitor.isErlaubt();
-				if (!isErlaubt || !isIteration(teilBed)) {
+				if (!isErlaubt) {
 					erlaubt = false;
 					return false;
 				}
 			}
 		} else { // Und
 			for (ICondition teilBed : zBed.getConditionList()) {
+				if (!isIteration(teilBed)) {
+					continue;
+				}
 				IterationNotValidVisitor visitor = new IterationNotValidVisitor(iterationType, iterationLevel);
 				teilBed.traverse(visitor);
 				//wenn die UND-Bedingung eine erlaubte Teilbedingung mit Iteration hat, ist sie auch erlaubt
 				boolean isErlaubt = visitor.isErlaubt();
-				if (isErlaubt && isIteration(teilBed)) {
+				if (isErlaubt) {
 					return false;
 				}
 			}
@@ -328,19 +338,8 @@ public class IterationNotValidVisitor extends ASTVisitor {
 
 	@Override
 	public boolean visit(IRootGroupCondition ib) {
-		switch (ib.getConditionName()) {
-			case KeinVordruckAngegeben:
-				if (isIteration(ib)) {
-					erlaubt = false;
-				}
-				break;
-			case MindestensEinVordruckAngegeben:
-				if (!isIteration(ib)) {
-					erlaubt = false;
-				}
-				break;
-			default:
-				return false;
+		if (ib.getConditionName() == RootGroupConditionName.KeinVordruckAngegeben) {
+			erlaubt = false;
 		}
 		return false;
 	}
@@ -354,11 +353,7 @@ public class IterationNotValidVisitor extends ASTVisitor {
 			case NoFieldFilled:
 			case NotExactlyOneFieldFilled:
 			case NoGroupFilled:
-				//wenn diese Bedingungen mindestens ein Feld mit Iteration referenzieren, können sie wahr werden
-				//auch für eine nicht angegebene Wiederholung
-				if (isIteration(b)) {
-					erlaubt = false;
-				}
+				erlaubt = false;
 				break;
 			case AtLeastOneFieldFilled:
 			case FieldsNotCollectivelyFilled:
@@ -427,32 +422,23 @@ public class IterationNotValidVisitor extends ASTVisitor {
 	}
 
 	private void checkIfComparisonWithNumberConstant(IOperation op1, IOperation op2) {
-		if (requiresExistenceIfComparisonWithNumberConstant(op1) && FeldOperationUtil.isZahlKonstante(
+		if (requiresExistenceForMixedIteration(op1) && FeldOperationUtil.isZahlKonstante(
 				op2) && referenziertMitUndOhneIteration(op1)) {
 			erlaubt = false;
 		}
 	}
 
-	private boolean requiresExistenceIfComparisonWithNumberConstant(IOperation op) {
+	/**
+	 * This method should return <code>true</code>, if the construct might eventually fire in the presence of iterating and
+	 * non-iterating fields, where only non-iterating fields are given.
+	 */
+	private boolean requiresExistenceForMixedIteration(IOperation op) {
 
 		if (op instanceof IEntityListOperation) {
-			IEntityListOperation fop = (IEntityListOperation) op;
-			switch (fop.getOperatorName()) {
-				case NumberOfFilledGroups:
-				case NumberOfFilledFields:
-				case NumberOfDifferentValues:
-				case NumberOfValueInFields:
-				case Sum:
-				case MinValue:
-				case MaxValue:
-				case FirstFilledValue:
-					return true;
-				case SumOfProducts:
-				case MaximalAngegebenerZeilenindex:
-					return false;
-				default:
-					throw new IllegalArgumentException("Unknown IEntityListOperation " + fop.getOperatorName());
-			}
+			return true;
+		}
+		if (op instanceof ISetOpOperation) {
+			return true;
 		}
 		return op instanceof IOpListOperation;
 	}
@@ -491,7 +477,7 @@ public class IterationNotValidVisitor extends ASTVisitor {
 	@Override
 	public boolean visit(IValueListCondition cond) {
 
-		if (isIteration(cond) && !isIteration(cond.getField())) {
+		if (!isIteration(cond.getField())) {
 			switch (cond.getConditionName()) {
 				case FieldValueIncludedInValueList:
 					// is not allowed if the field does not iterate and in the value list are fields with and without iteration
@@ -520,7 +506,7 @@ public class IterationNotValidVisitor extends ASTVisitor {
 
 	@Override
 	public boolean visit(IGroupOperation op) {
-		if (op.getOperatorName() == GroupOperationName.CurrentRepetition && isIteration(op)) {
+		if (op.getOperatorName() == GroupOperationName.CurrentRepetition) {
 			erlaubt = false;
 		}
 		return false;
@@ -613,18 +599,27 @@ public class IterationNotValidVisitor extends ASTVisitor {
 	}
 
 	private void checkIteration(IOperation op1) {
-		if (op1 instanceof IEntityListOperation) {
-			IEntityListOperation fop = (IEntityListOperation) op1;
-			if (alleFelderMitIteration(fop.getEntityList())) {
+		if (op1 instanceof IEntityListOperation entityListOp) {
+			if (alleFelderMitIteration(entityListOp.getEntityList())) {
 				erlaubt = false;
 			}
 		}
-		if (op1 instanceof INumberOfRootGroupsOperation &&
-				isIteration((INumberOfRootGroupsOperation) op1)) {
+		if (op1 instanceof INumberOfRootGroupsOperation && isIteration(op1)) {
 			erlaubt = false;
 		}
 	}
 
+	/**
+	 * Should return true, if the comparison <code>LanguageConstruct(...) &lt; constant</code> where <code>constant > 0</code> can
+	 * fire empty under conditions specified in {@link #checkIteration(IOperation)}.
+	 * <p>
+	 * This should always be true, if the LanguageConstruct has 0 as the default value if no fields are given.
+	 * <p>
+	 * But currently, we only use it in the context of NumberOfFilledGroups, NumberOfFilledFields, NumberOfDifferentValues,
+	 * MaximalAngegebenerZeilenindex, NumberOfValueInFields, or NumberOfRootGroups.
+	 * <p>
+	 * If we want to correct the behavior, we should consider doing EXT-20451 instead.
+	 */
 	private boolean fordertExistenzWennVergleichMitKleiner(IOperation op) {
 		if (op instanceof IEntityListOperation) {
 			IEntityListOperation fop = (IEntityListOperation) op;
@@ -645,9 +640,19 @@ public class IterationNotValidVisitor extends ASTVisitor {
 					throw new IllegalArgumentException("Unknown Operation name " + fop.getOperatorName());
 			}
 		}
+		if (op instanceof ISetOpOperation) {
+			return false;
+		}
 		return op instanceof INumberOfRootGroupsOperation;
 	}
 
+	/**
+	 * This method should return <code>true</code>, if <code>LanguageConstruct(...) = 0</code> can fire, given all fields iterate in
+	 * the argument list and no field values are given.
+	 * <p>
+	 * I don't see, why we return <code>false</code> for NumberOfFilledGroups or NUmberOfFilledFields, etc.
+	 * But if we want to change anything, we should consider doing EXT-20451 instead.
+	 */
 	private boolean fordertExistenzWennVergleichMitNull(IOperation op) {
 		if (op instanceof IEntityListOperation) {
 			IEntityListOperation fop = (IEntityListOperation) op;
@@ -675,6 +680,9 @@ public class IterationNotValidVisitor extends ASTVisitor {
 			return true;
 		}
 		if (op instanceof IDateDiffOperation) {
+			return true;
+		}
+		if (op instanceof ISetOpOperation) {
 			return true;
 		}
 		return op instanceof IDateExtractionOperation;
@@ -722,55 +730,6 @@ public class IterationNotValidVisitor extends ASTVisitor {
 		return num.get() >= minNum;
 	}
 
-	private boolean isIteration(INumberOfRootGroupsOperation op) {
-		switch (iterationType) {
-			case USB:
-				return op.getUsb() == IParseTreeEntity.ITERATION;
-			case PARALLEL:
-			case SIMPLE:
-			default:
-				return false;
-		}
-	}
-
-	private boolean isIteration(IRootGroupCondition cond) {
-		if (cond.getEntityId() != null) {
-			return isIteration(cond.getEntityId());
-		}
-		switch (iterationType) {
-			case USB:
-				return cond.getUsb() == IParseTreeEntity.ITERATION;
-			case PARALLEL:
-				return cond.getRootGroupIndex() == IParseTreeEntity.PARALLEL_ITERATION;
-			case SIMPLE:
-				return iterationLevel == 0 && cond.getRootGroupIndex() == IParseTreeEntity.ITERATION;
-			default:
-				return false;
-		}
-	}
-
-	private boolean isIteration(IEntityId id) {
-		if (!id.getSemanticIndex().isEmpty()) {
-			Object semIdx = id.getSemanticIndex().get(0);
-			if (semIdx instanceof IEntityId && isIteration((IEntityId) semIdx)) {
-				return true;
-			}
-		}
-		switch (iterationType) {
-			case USB:
-				return id.getUsb() == IParseTreeEntity.ITERATION;
-			case PARALLEL:
-				return Arrays.asList(ArrayUtils.toObject(id.getIndices())).contains(IParseTreeEntity.PARALLEL_ITERATION);
-			case SIMPLE:
-				if (iterationLevel >= id.getIndices().length) {
-					return false;
-				}
-				return id.getIndices()[iterationLevel] == IParseTreeEntity.ITERATION;
-			default:
-				return false;
-		}
-	}
-
 	private long wildcardLevelRepetitions(IEntityId id) {
 		long result = 1;
 		long[] indexes = id.getIndices();
@@ -783,11 +742,6 @@ public class IterationNotValidVisitor extends ASTVisitor {
 			result *= id.getMaxUsb();
 		}
 		return result;
-	}
-
-	private boolean isIteration(IEntityListCondition cond) {
-		return cond.getEntityList().getEntityIdList().stream()
-				.anyMatch(this::isIteration);
 	}
 
 	private boolean isIteration(IParseTreeEntity p) {

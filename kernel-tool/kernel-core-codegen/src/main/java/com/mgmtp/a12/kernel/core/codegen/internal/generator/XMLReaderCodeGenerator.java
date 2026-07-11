@@ -98,7 +98,7 @@ public class XMLReaderCodeGenerator extends ModelBasedCodeGenerator {
 					fieldsSubset).build());
 		}
 
-		return !problemReporter.hasProblemOccurred();
+		return !problemReporter.hasErrorOccurred();
 	}
 
 	@Override

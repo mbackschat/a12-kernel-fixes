@@ -34,8 +34,13 @@ package com.mgmtp.a12.utils.conversion.a12internal.util;
 
 import java.util.TimeZone;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.mgmtp.a12.model.utils.Experimental;
 import com.mgmtp.a12.utils.conversion.a12internal.util.DateUtil.DateInterval;
+
+import lombok.Getter;
+import lombok.NonNull;
 
 /**
  * The class bundles the common use of the value and format of a date.
@@ -43,15 +48,15 @@ import com.mgmtp.a12.utils.conversion.a12internal.util.DateUtil.DateInterval;
 @Experimental
 public class DateAndFormat {
 
-	private String dateString;
-	private String dateFormat;
-	private TimeZone timeZone;
+	@NonNull private String dateString;
+	@NonNull private String dateFormat;
+	@Getter private final TimeZone timeZone;
 
 	/**
 	 * It is assumed that the value and format match.
 	 * This means in particular that all parameters are not empty and not undefined.
 	 */
-	public DateAndFormat(String value, String format, TimeZone timeZone) {
+	public DateAndFormat(@NonNull String value, @NonNull String format, TimeZone timeZone) {
 		this.dateString = value;
 		this.dateFormat = format;
 		this.timeZone = timeZone;
@@ -69,6 +74,10 @@ public class DateAndFormat {
 		}
 
 		String dateSeparator = DateUtil.getDateSeparator(dateFormat);
+		// We should always add a date separator if we can to make parsing easier
+		if (StringUtils.isEmpty(dateSeparator)) {
+			dateSeparator = ".";
+		}
 		if (!dateFormat.endsWith(dateSeparator)) {
 			dateFormat += dateSeparator;
 			dateString += dateSeparator;
@@ -121,10 +130,6 @@ public class DateAndFormat {
 
 	public String getFormat() {
 		return dateFormat;
-	}
-
-	public TimeZone getTimeZone() {
-		return timeZone;
 	}
 
 	@Override

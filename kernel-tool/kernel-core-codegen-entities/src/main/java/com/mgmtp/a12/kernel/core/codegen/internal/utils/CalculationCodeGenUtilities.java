@@ -81,30 +81,24 @@ public class CalculationCodeGenUtilities {
 		if (calc == null) {
 			return false;
 		}
-		if (calc.size() != 1 || calc.get(0).getPartialCalculations().size() != 1) {
+		if (calc.size() != 1 || calc.getFirst().getPartialCalculations().size() != 1) {
 			return false;
 		}
-		if (calc.get(0).getRoundingMode() != RoundingMode.EXACT) {
+		if (calc.getFirst().getRoundingMode() != RoundingMode.EXACT) {
 			return false;
 		}
-		Pair<ICondition, IOperation> partialCalc = calc.get(0).getPartialCalculations().get(0);
-		if (partialCalc.getRight() instanceof IFieldIdOperation fop) {
-			if (fop.getOperatorName() == FieldIdOperationName.FieldValue) {
-				return hasNoSemanticIndex(fop);
-			}
+		Pair<ICondition, IOperation> partialCalc = calc.getFirst().getPartialCalculations().getFirst();
+		if (partialCalc.getRight() instanceof IFieldIdOperation fop && fop.getOperatorName() == FieldIdOperationName.FieldValue) {
+			return hasNoSemanticIndex(fop);
 		}
-		if (partialCalc.getRight() instanceof CalcOperationWithCompOp cop && cop.getOperation() instanceof IFieldIdOperation fop) {
-			if (fop.getOperatorName() == FieldIdOperationName.FieldValue) {
-				return hasNoSemanticIndex(fop);
-			}
-		}
-		return false;
-	}
 
-	public static Set<IEntityId> getOperandenMenge(List<ICalculationInfo> calc, IEC ec) {
-		List<IParseTreeEntity> parts = CalculationUtils.getAllPartsOfCalculationInfos(calc);
-		return ReferencedIdsUtil.getDirektReferenzierteIFeldIds(parts,
-				ReferencedIdsMode.USE_FILTERCONDITION_REPLACE_PSEUDO_ITERATION, ec, true);
+		if (partialCalc.getRight() instanceof CalcOperationWithCompOp cop &&
+				cop.getOperation() instanceof IFieldIdOperation fop &&
+				fop.getOperatorName() == FieldIdOperationName.FieldValue) {
+			return hasNoSemanticIndex(fop);
+		}
+
+		return false;
 	}
 
 	public static String createCycleString(List<String> cycle, BinaryOperator<String> edge2Label) {
@@ -125,11 +119,11 @@ public class CalculationCodeGenUtilities {
 		}
 		sb
 				.append(" - ('")
-				.append(edge2Label.apply(prevField, cycle.get(0)))
+				.append(edge2Label.apply(prevField, cycle.getFirst()))
 				.append("') - ");
 		sb
 				.append("'")
-				.append(cycle.get(0))
+				.append(cycle.getFirst())
 				.append("'");
 		return sb.toString();
 	}
@@ -147,16 +141,13 @@ public class CalculationCodeGenUtilities {
 		if (rundungsArt == null) {
 			return innereOperation;
 		}
-		switch (rundungsArt) {
-			case ROUND_DOWN:
-				return new OpListOperationWithParameterImpl(OpListOperationName.RoundDown,
-						Collections.singletonList(innereOperation), 0);
-			case ROUND_UP:
-				return new OpListOperationWithParameterImpl(OpListOperationName.RoundUp,
-						Collections.singletonList(innereOperation), 0);
-			default:
-				return innereOperation;
-		}
+		return switch (rundungsArt) {
+			case ROUND_DOWN -> new OpListOperationWithParameterImpl(OpListOperationName.RoundDown,
+					Collections.singletonList(innereOperation), 0);
+			case ROUND_UP -> new OpListOperationWithParameterImpl(OpListOperationName.RoundUp,
+					Collections.singletonList(innereOperation), 0);
+			default -> innereOperation;
+		};
 	}
 
 	private static boolean hasNoSemanticIndex(IFieldIdOperation fop) {

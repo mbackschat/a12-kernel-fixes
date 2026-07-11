@@ -46,7 +46,19 @@ public record XmlElement(
 		@NonNull List<XmlElement> children,
 		@NonNull String textContent
 ) {
+	public static class InvalidXmlCharacterException extends RuntimeException {
+		public InvalidXmlCharacterException(String message) {
+			super(message);
+		}
+	}
+
 	public XmlElement {
+		rejectInvalidXmlCharacters(name);
+		attributes = Collections.unmodifiableMap(new HashMap<>(attributes));
+		for (var attr : attributes.entrySet()) {
+			rejectInvalidXmlCharacters(attr.getKey());
+			rejectInvalidXmlCharacters(attr.getValue());
+		}
 		children = Collections.unmodifiableList(new ArrayList<>(children));
 		if (!children.isEmpty()) {
 			if (!textContent.isBlank()) {
@@ -62,7 +74,7 @@ public record XmlElement(
 		textContent = textContent.replaceAll("(\r\n|\r)", "\n");
 		// Note: attribute values would technically also need normalization, but for now we don't care because we don't expect this
 		// to happen here
-		attributes = Collections.unmodifiableMap(new HashMap<>(attributes));
+		rejectInvalidXmlCharacters(textContent);
 	}
 
 	/**
@@ -110,6 +122,36 @@ public record XmlElement(
 			@NonNull String textContent
 	) {
 		return new XmlElement(name, Map.of(), List.of(), textContent);
+	}
+
+	/**
+	 * Rejects characters that are not allowed in XML 1.0 content.
+	 * Valid: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+	 * @see <a href="https://www.w3.org/TR/2008/REC-xml-20081126/#charsets">XML 1.0 - Characters</a>
+	 */
+	private static void rejectInvalidXmlCharacters(String text) {
+		for (int i = 0; i < text.length(); i++) {
+			char c = text.charAt(i);
+			if (c < 0x20) {
+				if (c != 0x09 && c != 0x0A && c != 0x0D) {
+					throw new InvalidXmlCharacterException(
+							"Text contains characters that cannot be represented in XML: 0x" + Integer.toHexString(c));
+				}
+			} else if (Character.isHighSurrogate(c)) {
+				// the high/low surrogates should correspond to the gap between #xD7FF and #xE000 (?)
+				if (i + 1 >= text.length() || !Character.isLowSurrogate(text.charAt(i + 1))) {
+					throw new InvalidXmlCharacterException(
+							"Text contains unpaired surrogate: 0x" + Integer.toHexString(c));
+				}
+				i++; // skip the low surrogate — the pair represents a valid supplementary character
+			} else if (Character.isLowSurrogate(c)) {
+				throw new InvalidXmlCharacterException(
+						"Text contains unpaired surrogate: 0x" + Integer.toHexString(c));
+			} else if (c == 0xFFFE || c == 0xFFFF) {
+				throw new InvalidXmlCharacterException(
+						"Text contains characters that cannot be represented in XML: 0x" + Integer.toHexString(c));
+			}
+		}
 	}
 
 	public XmlElement withAttributesUpdated(@NonNull Map<String, String> attributesUpdate) {

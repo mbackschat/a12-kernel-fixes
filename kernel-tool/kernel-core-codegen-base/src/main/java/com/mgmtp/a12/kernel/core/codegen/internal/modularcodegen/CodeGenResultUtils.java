@@ -40,14 +40,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGeneratorParameters;
 
 public class CodeGenResultUtils {
 	public static final String GROOVY_CONTENT_KEY = "$content$";
 	public static final String GROOVY_IMPORT_KEY = "import";
 	public static final String GROOVY_GLOBALS_KEY = "globals";
 	public static final String GROOVY_FILE_INFO_KEY = "generatedFileInfo";
+
+	private static final Set<String> GRADLE_JAVA_LAYOUT_ROOT_FILES = Set.of(
+			"build.gradle",
+			"settings.gradle");
 
 	private CodeGenResultUtils() {
 		throw new RuntimeException("static utility class");
@@ -71,25 +78,60 @@ public class CodeGenResultUtils {
 	 * 		excempts this path from the check.
 	 */
 	public static void assertIsSeparateFileCodeGenResultAndAllEntryPathsStartWithPrefix(
-			ICodeGenResult<?> result, // actually expected to be an ISeparateFilesCodeGenResult, but we don't cast outside the assertion
+			ICodeGenResult<?> result,
+			// actually expected to be an ISeparateFilesCodeGenResult, but we don't cast outside the assertion
 			List<String> packagePrefix,
 			Predicate<String> exceptions
 	) {
 		List<String> badPrefixPaths;
 		assert result instanceof ISeparateFilesCodeGenResult<?> : "expected an ISeparateFilesCodeGenResult but got " + result;
-		assert (badPrefixPaths = pathsThatDontHavePrefix((ISeparateFilesCodeGenResult<?>) result, packagePrefix, exceptions)).isEmpty()
+		assert (badPrefixPaths = pathsThatDontHavePrefix((ISeparateFilesCodeGenResult<?>) result, packagePrefix,
+				exceptions)).isEmpty()
 				: "expected the paths of the generated sources to start with " + String.join("/", packagePrefix)
 				+ " but found the following offending paths:\n" + String.join("\n", badPrefixPaths);
 	}
 
-	public static Set<String> ALLOWED_FILES_IN_CODEGEN_ROOT = Set.of(
+	/**
+	 * Converts an {@link ICodeGenResult} to zip bytes or plain source file bytes, in a way that maintains compatibility
+	 * with the old ZipSourceCodeCollector/PlainSourceCodeCollector logic.
+	 * <p>
+	 * For {@link ICodeGeneratorParameters.ProgrammingLanguage#JAVA} (and non-plain mode), the resulting zip is laid out as a
+	 * standalone Gradle
+	 * Java project (see {@link CodeGenResultUtils#applyGradleJavaLayout}). For other languages the zip uses a flat,
+	 * package-relative layout.
+	 * <p>
+	 * Zip entry paths are sufficiently unique so that no collisions are expected if the results of gencode from different models
+	 * are extracted to the same directory.
+	 */
+	public static byte[] toBytes(ICodeGenResult<?> genResult, boolean isPlain,
+			ICodeGeneratorParameters.ProgrammingLanguage programmingLanguage) {
+		if (genResult == null) { // handle cascading nulls here, to provide better convenience for callers
+			return null;
+		}
+		if (isPlain) {
+			return genResult.toSingleFileBytesIfApplicableOrThrow();
+		}
+		if (genResult instanceof ISeparateFilesCodeGenResult<?> sfgr) {
+			return programmingLanguage == ICodeGeneratorParameters.ProgrammingLanguage.JAVA
+					? toZipWithGradleJavaLayout(sfgr.sources())
+					: sourcesToZip(sfgr.sources());
+		}
+		if (genResult instanceof IMergedSingleScriptCodeGenResult<?> msgr) {
+			return sourcesToZip(Map.of(
+					String.join("/", msgr.filePathForScript()),
+					msgr.toSingleFileBytesIfApplicableOrThrow()));
+		}
+		throw new IllegalStateException("unexpected ICodeGenResult subtype: " + genResult.getClass());
+	}
+
+	public static final Set<String> ALLOWED_FILES_IN_CODEGEN_ROOT = Set.of(
 			// ModelBasedCodeGenerator
 			"runtime-version.properties",
 			// GradleConfigGenerator
 			"build.gradle",
 			"settings.gradle");
 
-	public static List<String> pathsThatDontHavePrefix(ISeparateFilesCodeGenResult<?> codeGenResult, List<String> packagePrefix,
+	private static List<String> pathsThatDontHavePrefix(ISeparateFilesCodeGenResult<?> codeGenResult, List<String> packagePrefix,
 			Predicate<String> exceptions) {
 		// NOTE: paths could also have a leading slash -> maybe we should check against a regex instead
 		Pattern pattern = Pattern.compile("^/?" + String.join("/", packagePrefix) + "/.*");
@@ -101,9 +143,42 @@ public class CodeGenResultUtils {
 	}
 
 	/**
+	 * Relocates entries into the standard Gradle Java project layout:
+	 * {@code *.java} &rarr; {@code src/main/java/}, other files (CSV, properties, &hellip;)
+	 * &rarr; {@code src/main/resources/}, except {@code build.gradle}/{@code settings.gradle}
+	 * which stay at the map root.
+	 * <p>
+	 * Expects input map keys to be flat, package-relative paths (e.g.
+	 * {@code com/foo/Bar.java}, {@code runtime-version.properties}). Passing
+	 * already-relocated keys will produce nested paths (e.g.
+	 * {@code src/main/java/src/main/java/...}).
+	 */
+	public static Map<String, byte[]> applyGradleJavaLayout(Map<String, byte[]> sources) {
+		return sources.entrySet().stream()
+				.collect(Collectors.toUnmodifiableMap(
+						e -> toGradleJavaLayoutKey(e.getKey()),
+						Map.Entry::getValue));
+	}
+
+	/** See {@link #applyGradleJavaLayout}. */
+	static byte[] toZipWithGradleJavaLayout(Map<String, byte[]> sources) {
+		return sourcesToZip(applyGradleJavaLayout(sources));
+	}
+
+	private static String toGradleJavaLayoutKey(String key) {
+		if (GRADLE_JAVA_LAYOUT_ROOT_FILES.contains(key)) {
+			return key;
+		}
+		if (key.endsWith(".java")) {
+			return "src/main/java/" + key;
+		}
+		return "src/main/resources/" + key;
+	}
+
+	/**
 	 * Creates the bytes of a zip file that contains all sources, in normalized order
 	 */
-	static byte[] sourcesToZip(Map<String, byte[]> sources) {
+	private static byte[] sourcesToZip(Map<String, byte[]> sources) {
 		try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream(131072);
 				ZipOutputStream zipStream = new ZipOutputStream(byteStream)
 		) {
@@ -120,7 +195,7 @@ public class CodeGenResultUtils {
 		}
 	}
 
-	static Comparator<Map.Entry<String, byte[]>> keyComparator(List<String> preference) {
+	private static Comparator<Map.Entry<String, byte[]>> keyComparator(List<String> preference) {
 		return (a, b) -> {
 			int idxA = preference.indexOf(a.getKey());
 			int idxB = preference.indexOf(b.getKey());

@@ -34,6 +34,16 @@ package com.mgmtp.a12.utils.conversion.a12internal.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -43,20 +53,15 @@ import java.util.regex.Pattern;
 
 import com.mgmtp.a12.model.utils.Experimental;
 
-/**
- * ACHTUNG:
- * Bei Performance-Optimierungen in dieser Klasse muss folgendes beachtet werden:
- * Die Java-API der Klasse java.text.SimpleDateFormat sagt zum Thema Synchronization folgendes:
- * Date formats are not synchronized. It is recommended to create separate format instances for each
- * thread.
- * If multiple threads access a format concurrently, it must be synchronized externally.
- * <p>
- * Der Versuch das SimpleDateFormat jeweils nur einmal zu erzeugen, in einer Map zu halten,
- * den Aufruf "formatter.parse(value)" in eine eigene Methode zu extrahieren und diese zu
- * synchronisieren hat im Lasttest zu einer laengeren Ausfuerungsdauer gefuehrt.
- */
 @Experimental
 public class ValidationDateParser {
+	public static final String TIME_ZONE_BERLIN_STR = "Europe/Berlin";
+	public static final ZoneId TIME_ZONE_ID_BERLIN = ZoneId.of(TIME_ZONE_BERLIN_STR);
+
+	private static Date GERMAN_START_CET = Date.from(
+			LocalDate.of(1893, 4, 1)
+					.atStartOfDay(TIME_ZONE_ID_BERLIN)
+					.toInstant());
 
 	private static final Map<String, Pattern> SIMPLE_DATE_PATTERN = new ConcurrentHashMap<>();
 	private static final String TWO_DIGIT_PATTERN = "[0-9]{2}";
@@ -89,7 +94,7 @@ public class ValidationDateParser {
 	 * 		is not unique as a date.</li>
 	 * </ul>
 	 */
-	public static Date parseDate(DateAndFormat param) throws ParseException {
+	public static Date parseDate(DateAndFormat param) throws DateTimeParseException {
 		return parseDate(param.getDate(), param.getFormat(), param.getTimeZone(), true);
 	}
 
@@ -98,21 +103,57 @@ public class ValidationDateParser {
 	 * Correct parsing of the date string is only guaranteed if the date string matches the regular expression
 	 * generated from the format string, since there is no check against this regular expression.<br>
 	 * In particular, the method should only be used if this check has already been carried out beforehand.
-	 * <p>If the date string cannot be parsed with the SimpleDateFormat heuristic, an error is thrown
+	 * <p>If the date string cannot be parsed with {@link DateTimeFormatter} or {@link SimpleDateFormat}, an error is thrown
 	 * because this is unexpected behavior.</p>
 	 */
-	public static Date parseDateWithoutSyntaxCheck(DateAndFormat param) {
+	public static Date parseDateWithoutSyntaxCheck(DateAndFormat param) throws DateTimeParseException {
+		return parseDate(param.getDate(), param.getFormat(), param.getTimeZone(), false);
+	}
+
+	public static Date parseDate(String value, String checkFormat, TimeZone timeZone, boolean checkSyntax)
+			throws DateTimeParseException {
+		if (checkSyntax && !isSyntacticallyCorrect(value, checkFormat)) {
+			throw new DateTimeParseException("Not syntactically valid.", value, 0);
+		}
+		DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+				.parseStrict()
+				.appendPattern(checkFormat)
+				.parseDefaulting(ChronoField.ERA, 1)
+				.parseDefaulting(ChronoField.YEAR_OF_ERA, 1970)
+				.parseDefaulting(ChronoField.MONTH_OF_YEAR, 1)
+				.parseDefaulting(ChronoField.DAY_OF_MONTH, 1)
+				// We cannot use defaulting for hours since we allow for H and h patterns, which would have to be detected first
+				.toFormatter()
+				.withResolverStyle(ResolverStyle.STRICT)
+				.withZone(timeZone.toZoneId());
 		try {
-			return parseDate(param.getDate(), param.getFormat(), param.getTimeZone(), false);
-		} catch (ParseException e) {
-			throw new IllegalArgumentException(e);
+			TemporalAccessor temporalAccessor = formatter.
+					parseBest(value,
+							ZonedDateTime::from,
+							// Since we cannot default hours, we have to be able to parse dates without time
+							LocalDate::from);
+			Instant instant = switch (temporalAccessor) {
+				case ZonedDateTime zd -> zd.toInstant();
+				case LocalDate localDate -> localDate.atStartOfDay().atZone(timeZone.toZoneId()).toInstant();
+				default -> throw new IllegalArgumentException("Unsupported temporal type: " + temporalAccessor.getClass());
+			};
+			return Date.from(instant);
+		} catch (DateTimeParseException e) {
+			// We try the old parser only to keep the old behavior in edge cases
+			Date result = tryParseWithSimpleDateFormat(value, checkFormat, timeZone);
+			if (result != null) {
+				return result;
+			} else {
+				throw e;
+			}
 		}
 	}
 
-	private static Date parseDate(String value, String checkFormat, TimeZone timeZone, boolean checkSyntax) throws ParseException {
-		if (checkSyntax && !isSyntacticallyCorrect(value, checkFormat)) {
-			throw new ParseException(value, 0);
-		}
+	/*
+	 * We use the old parser only to keep the old behavior in edge cases.
+	 * One set of cases is, where we have no date separator and variable length date fields (multiple dates might have the same representation in this case).
+	 */
+	private static Date tryParseWithSimpleDateFormat(String value, String checkFormat, TimeZone timeZone) {
 		// SimpleDateFormat is not thread-safe, therefore create an instance each time
 		// otherwise a synchronized access is needed
 		String parseFormat = checkFormat;
@@ -122,7 +163,16 @@ public class ValidationDateParser {
 		SimpleDateFormat formatter = new SimpleDateFormat(parseFormat, Locale.US);
 		formatter.setTimeZone(timeZone);
 		formatter.setLenient(false);
-		return formatter.parse(value);
+		try {
+			Date result = formatter.parse(value);
+			if (!TIME_ZONE_ID_BERLIN.equals(timeZone.toZoneId())
+					|| result.after(GERMAN_START_CET)) {
+				return result;
+			}
+		} catch (ParseException pe) {
+			// Fall through for not parseable dates
+		}
+		return null;
 	}
 
 	/**
@@ -135,9 +185,9 @@ public class ValidationDateParser {
 	 * @return the string representation of the date.
 	 */
 	public static String formatDate(Date value, String checkFormat, TimeZone timeZone) {
-		SimpleDateFormat formatter = new SimpleDateFormat(checkFormat, Locale.US);
-		formatter.setTimeZone(timeZone);
-		return formatter.format(value);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(checkFormat, Locale.US)
+				.withZone(timeZone.toZoneId());
+		return formatter.format(value.toInstant());
 	}
 
 	/**

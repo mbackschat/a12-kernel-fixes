@@ -41,6 +41,7 @@ import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrat
 import com.mgmtp.a12.kernel.md.model.internal.service.DocumentModelSearchServiceImpl;
 import com.mgmtp.a12.kernel.md.model.internal.service.ExternalDocumentModelService;
 import com.mgmtp.a12.kernel.md.model.migration.internal.DocumentModelMigratorImpl;
+import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.serializer.MDSerializerFactory;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
@@ -94,6 +95,18 @@ public class DocumentModelServiceFactory {
 	 * @return the corresponding instance. Never {@code null}.
 	 */
 	public @NonNull IDocumentModelMigrator createDocumentModelMigrator(ICustomMigrationConfig customConfig) {
-		return new DocumentModelMigratorImpl(customConfig);
+		return DocumentModelMigratorImpl.createForwardMigrator(new MigrationCache(), customConfig);
+	}
+
+	/**
+	 * Creates an {@link IDocumentModelMigrator} for backward migration.
+	 *
+	 * @param customConfig
+	 * 		This parameter can be used to make project-specific configurations to the
+	 * 		migration. If this is not necessary, {@code null} is passed.
+	 * @return the corresponding instance.
+	 */
+	public @NonNull IDocumentModelMigrator createBackwardDocumentModelMigrator(ICustomMigrationConfig customConfig) {
+		return DocumentModelMigratorImpl.createBackwardMigrator(customConfig);
 	}
 }

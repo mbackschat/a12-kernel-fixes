@@ -46,7 +46,7 @@ import com.mgmtp.a12.kernel.core.base.utils.internal.CharsetUtil;
  * with the ability to find all problematic indizes in the given string.
  *
  * <p>
- * <strong>PLEASE NOTE:</strong> This class exists duplicated in kernel-core-runtime and kernel-core-base-utils.
+ * <strong>PLEASE NOTE:</strong> This class exists duplicated in kernel-core-runtime and kernel-internal-base-utils.
  * Please keep the behavior of both LegalCharTester implementations consistent!
  * </p>
  */

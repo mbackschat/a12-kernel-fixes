@@ -57,6 +57,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IFieldIdOpe
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.INumberOfRootGroupsOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.INumberOfUsbOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.ComparisonOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.EntityListAndValueListConditionName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.EntityListConditionName;
@@ -377,6 +378,10 @@ public class AnalyseService {
 		final Boolean[] result = new Boolean[1];
 		result[0] = false;
 		class Visitor extends ASTVisitor {
+			// NOTE: we probably don't need extra treatment for setExpressions other than filter
+			// conditions (i.e. SumOfTerms), becaues they already use a custom index different
+			// from IParseTreeEntity.ITERATION, so they won't be confused with real non-outer
+			// iteration in FeldIdUtilities.isIteration
 			private boolean isInFilterCondition;
 
 			@Override
@@ -577,11 +582,11 @@ public class AnalyseService {
 	}
 
 	/**
-	 * @return <code>true</code> if the given condition uses a semantic index. Else
+	 * @return <code>true</code> if the given parser subtree uses a semantic index. Else
 	 * 		<code>false</code>.
 	 */
-	public static boolean usesSemanticIndex(ICondition condition) {
-		if (condition == null) {
+	public static boolean usesSemanticIndex(IParseTreeEntity parserSubtree) {
+		if (parserSubtree == null) {
 			return false;
 		}
 
@@ -607,7 +612,7 @@ public class AnalyseService {
 		}
 
 		Visitor visitor = new Visitor();
-		condition.traverse(visitor);
+		parserSubtree.traverse(visitor);
 		return semIdxUsed[0];
 	}
 
@@ -711,11 +716,25 @@ public class AnalyseService {
 	}
 
 	private static boolean isParallelIteratedFilterConditionId(IParseTreeEntity p) {
-		if (!(p instanceof IEntityId)) {
+		if (!(p instanceof IEntityId id)) {
 			return false;
 		}
-		IEntityId id = (IEntityId) p;
 		return id.getFilterCondition() != null && isParallelIterationId(id);
+	}
+
+	/**
+	 * Checks whether the iteration entity of a set operation contains parallel iteration.
+	 */
+	public static boolean hasParallelIteratedSetOperationIterationEntity(IParseTreeEntity tree) {
+		return FindAnyAst.findeInParseBaumEntity(tree, AnalyseService::isParallelIteratedSetOperationIterationEntity, false)
+				.isPresent();
+	}
+
+	private static boolean isParallelIteratedSetOperationIterationEntity(IParseTreeEntity p) {
+		if (!(p instanceof ISetOpOperation setOpOperation)) {
+			return false;
+		}
+		return isParallelIterationId(setOpOperation.getIterationEntity());
 	}
 
 	public static int getParallelIterationLevel(IParseTreeEntity p, IEntity errorField, IEC ec) {
@@ -740,6 +759,12 @@ public class AnalyseService {
 			parseTree.traverse(visitor);
 		}
 		return result;
+	}
+
+	public static List<IOperation> getSetOperations(IParseTreeEntity parseTrees) {
+		return FindAllAst.findAll(parseTrees, it -> it instanceof ISetOpOperation, true).stream()
+				.map(it -> ((ISetOpOperation) it).getOperation())
+				.toList();
 	}
 
 	public static boolean containsInvalidLenghOfNoValueValidation(ICondition condition, IEC ec) {

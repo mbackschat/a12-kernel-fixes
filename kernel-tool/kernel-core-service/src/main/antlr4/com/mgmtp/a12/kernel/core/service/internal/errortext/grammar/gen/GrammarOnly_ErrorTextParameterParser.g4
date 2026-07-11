@@ -46,7 +46,6 @@ parameter : (
 	| line 
 	| usb 
 	| vordruckzeile 
-	| vordruckname
 	| {isA12Model()}? groupIndex
 	| field
 	| indexField
@@ -63,8 +62,6 @@ calc: operator=('+'|'-') DigitSequence;
 usb: '#' 'Usb' { this.checkUSB(); };
 
 vordruckzeile: id=entitySpec '.' 'Vordruckzeile' { this.checkVordruckzeile(_localctx); };
-
-vordruckname: id=entitySpec '.' 'Vordruckname' { this.checkVordruckname(_localctx); };
 
 groupIndex: '#' id=entitySpec ('Fuer' semanticIndex)? { this.checkLevelParam(_localctx); };
 
@@ -94,7 +91,7 @@ entitySpec:
 	| {this.isHModel()}? entityHModel 
 	| {this.isA12Model()}? entity;
 
-regelKontextEntity:     'RegelKontext';
+regelKontextEntity:     'RegelKontext' { this.addRegelKontextEntityToReferencedEntities(_localctx); };
 
 entityHModel:		pathHModel spezifierHModel;
 pathHModel: slash='/' ? idNameRefHModel ({this.isGroupFromHModel()}? '/' idNameRefHModel)*;
@@ -152,6 +149,6 @@ nameSuffixContainingReservedKeyWordCurrentlyAllowedWithinEntityName
 // Note: 'Wert' occurs not only here, but also in valueOrCategory
 // Note: if the following list is changed, ErrortextParameterMultiLanguageHandler#hasToBeQuoted has to be changed accordingly
 reservedKeyWordCurrentlyAllowedWithinEntityName
-	: 'Wert' | 'Vordruckzeile' | 'Vordruckname' | reservedKeyWordCurrentlyAllowedWithinAndAtTheEndOfEntityName;
+	: 'Wert' | 'Vordruckzeile' | reservedKeyWordCurrentlyAllowedWithinAndAtTheEndOfEntityName;
 reservedKeyWordCurrentlyAllowedWithinAndAtTheEndOfEntityName
 	: 'LfdNr' | 'Zeile' | 'Usb' | 'index';

@@ -32,28 +32,28 @@
 
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
+import static com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils.MAPPER;
+
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
-public class AddRequirednessConfigStep extends BaseJsonNodeMigrationStep {
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
-	public AddRequirednessConfigStep(MigrationCache cache,
-			MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+public final class AddRequirednessConfigStep {
+
+	private AddRequirednessConfigStep() {
 	}
 
-	@Override public void execute(JsonNode model, MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		// remove Group.required
 		List<JsonNode> groupNodes = ModelJsonUtil.extractAllGroups(model);
 		groupNodes.stream()
@@ -68,10 +68,11 @@ public class AddRequirednessConfigStep extends BaseJsonNodeMigrationStep {
 		fields.stream()
 				.map(f -> new ModelJsonUtil.JsonNodeWithPath(f.node().get(ModelJsonUtil.TYPE_FIELD), f.path()))
 				.filter(f -> f.node().has(ModelJsonUtil.REQUIRED))
-				.forEach(f -> removeRequiredAndAddRequirednessConfig(f, modelId));
+				.forEach(f -> removeRequiredAndAddRequirednessConfig(f, modelId, customMigConfig));
 	}
 
-	private void removeRequiredAndAddRequirednessConfig(ModelJsonUtil.JsonNodeWithPath field, String modelId) {
+	private static void removeRequiredAndAddRequirednessConfig(ModelJsonUtil.JsonNodeWithPath field, String modelId,
+			ICustomMigrationConfig customMigConfig) {
 		String fieldPath = field.path().toString();
 		String requirednessMode = customMigConfig.getRequirednessMode(modelId, fieldPath);
 		if (requirednessMode == null ||

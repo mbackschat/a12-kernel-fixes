@@ -29,7 +29,7 @@
  * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
-import { StringUtil } from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+import { StringUtil } from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import type { IData, IIdentifier } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 import { Iterator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";

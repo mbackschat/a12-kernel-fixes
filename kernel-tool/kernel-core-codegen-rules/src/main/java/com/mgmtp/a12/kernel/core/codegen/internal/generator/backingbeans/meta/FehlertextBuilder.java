@@ -88,7 +88,6 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGen
  * ExtMP specific replacements of the form
  * <ul>
  * <li><code>$&lt;field name&gt;.Vordruckzeile$</code>,</li>
- * <li><code>$&lt;field name&gt;.Vordruckname$</code> or</li>
  * <li><code>$BaseYear[+-]$</code>
  * </ul>
  * will <b>not</b> be performed here and must have been done beforehand.
@@ -119,7 +118,7 @@ public class FehlertextBuilder {
 		this.isProgLangWithUsb = data.getParams().getProgrammingLanguage().isWithUsb();
 
 		this.refFeldIds = ReferencedIdsUtil.getDirektReferenzierteIFeldIds(ruleInfo.getCondition(),
-				ReferencedIdsMode.USE_FILTERCONDITION_REPLACE_PSEUDO_ITERATION, data.getEc(), true);
+				ReferencedIdsMode.USE_SET_EXPRESSION_REPLACE_INNER_BY_WILDCARD, data.getEc(), true);
 		this.origErrorMsg = origErrorMsg;
 		this.parameterMapping = getParameterMapping(origErrorMsg);
 		this.replacedErrorMsg = replaceParameters(origErrorMsg, parameterMapping);

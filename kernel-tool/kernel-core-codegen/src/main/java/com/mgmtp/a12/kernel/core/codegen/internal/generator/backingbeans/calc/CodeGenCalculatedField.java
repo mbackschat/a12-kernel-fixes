@@ -33,7 +33,6 @@
 package com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.calc;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -45,14 +44,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.mgmtp.a12.kernel.core.calc.internal.util.CalculationInfo;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.CodeGenConstants;
-import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.CodeGenFilterCondition;
+import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.AbstractCodeGenCalcBean;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.EntityId;
-import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.EntityIdsCollector;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.StringParameter;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.meta.util.MetaSprachUnterschiedeHelper;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.IterationLimitCreatorBase;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.RepetitionNotUniqueCreator;
-import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.STParameterClassBase;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.StringTemplateGroup;
 import com.mgmtp.a12.kernel.core.codegen.internal.utils.IRepetitionNotUniqueHandler;
 import com.mgmtp.a12.kernel.core.codegen.internal.utils.SplitFunctionsHelper;
@@ -70,10 +67,11 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGen
  * auszugeben.
  */
 @StringTemplateGroup("calc")
-public class CodeGenCalculatedField extends STParameterClassBase implements IRepetitionNotUniqueHandler {
+public class CodeGenCalculatedField extends AbstractCodeGenCalcBean implements IRepetitionNotUniqueHandler {
 	private final EntityId berechnetesFeld;
 
 	/**
+	 * 4
 	 * Die gespeicherten Ausgangsdaten.
 	 */
 	protected final List<ICalculationInfo> calcInfos;
@@ -92,15 +90,9 @@ public class CodeGenCalculatedField extends STParameterClassBase implements IRep
 
 	private final IterationLimitCreatorBase iterationLimitCreator;
 
-	private final String modelName;
-
 	private int ebeneAbDerDuplikatGesucht = -1;
-	private EntityIdsCollector rtCtrlParamCodeCollector;
 
 	private final int parallelIterationLevel;
-
-	private final EntityIdsCollector filterEntityIdsCollector;
-	private final Collection<CodeGenFilterCondition> filterConditions;
 
 	private int calcObjectNum;
 
@@ -108,22 +100,14 @@ public class CodeGenCalculatedField extends STParameterClassBase implements IRep
 	 * Dieser Konstruktor wird bei der Codegenerierung aufgerufen.
 	 */
 	CodeGenCalculatedField(CodeGenCalculatedFieldBuilder builder) {
+		super(builder);
 		this.calcInfos = builder.getCalcInfos();
 		this.isHModel = builder.isHModel();
 		this.isProgLangWithUsb = builder.isProgLangWithUsb();
 		this.berechnetesFeld = builder.getCalculatedField();
 		this.calculationAlternatives = builder.getCalculationAlternatives();
 		this.iterationLimitCreator = builder.getIterationLimitCreator();
-		this.modelName = builder.getData().getParams().getName();
-		this.rtCtrlParamCodeCollector = builder.getRtControllerParamsCreationCodeCollector();
 		this.parallelIterationLevel = builder.getParallelIterationLevel();
-		this.filterEntityIdsCollector = builder.getFilterEntityIdsCollector();
-		this.filterConditions = builder.getFilterConditions();
-	}
-
-	// used for JS_VK
-	public String getName() {
-		return this.modelName;
 	}
 
 	public boolean isHModel() {
@@ -255,24 +239,6 @@ public class CodeGenCalculatedField extends STParameterClassBase implements IRep
 	@Override
 	public void setEbeneAbDerDuplikatGesucht(int level) {
 		ebeneAbDerDuplikatGesucht = level;
-	}
-
-	public List<String> getRtControllerParamsCreationCode() {
-		return rtCtrlParamCodeCollector.getAll().stream()
-				.map(co -> co.toCode("varAssignment"))
-				.toList();
-	}
-
-	public List<String> getFilterParamsCreationCode() {
-		return filterEntityIdsCollector.getAll().stream()
-				.map(co -> co.toCode("varAssignment"))
-				.toList();
-	}
-
-	public List<String> getFilterCode() {
-		return filterConditions.stream()
-				.map(CodeGenFilterCondition::toCode)
-				.toList();
 	}
 
 	public boolean isParallelIteration() {

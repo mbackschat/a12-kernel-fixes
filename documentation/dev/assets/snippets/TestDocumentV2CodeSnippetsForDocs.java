@@ -41,7 +41,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,18 +66,14 @@ import com.mgmtp.a12.kernel.md.document.apiV2.immutable.RepetitionsV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.utils.IDocumentMergeConfig;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.utils.IDocumentV2Visitor;
 import com.mgmtp.a12.kernel.md.document.apiV2.services.IDmAwareDocService;
-import com.mgmtp.a12.kernel.md.document.apiV2.services.IDocumentV1V2Converter;
 import com.mgmtp.a12.kernel.md.document.apiV2.services.IDocumentV2Serializer;
 import com.mgmtp.a12.kernel.md.document.apiV2.utils.DocumentV2Utils;
 import com.mgmtp.a12.kernel.md.document.apiV2.utils.DocumentV2Utils.CompareConfig;
 // end::tagUntypedDocV2APIImports[]
 
 // tag::tagOtherImports[]
-import com.mgmtp.a12.kernel.md.document.api.IDocument;
-import com.mgmtp.a12.kernel.md.document.api.IFieldInstance;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentDeserializationConfig;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentSerializationConfig;
-import com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory;
 import com.mgmtp.a12.kernel.md.facade.DocumentModelServiceFactory;
 import com.mgmtp.a12.kernel.md.facade.DocumentServiceFactory;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
@@ -106,7 +101,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// tag::tagCreateDocumentEmpty[]
 		DocumentV2 docV2 = DocumentV2.empty("myDmId");
 		// end::tagCreateDocumentEmpty[]
-		Assertions.assertNotNull(docV2);
+
+		useVariable(docV2);
 	}
 
 	@Test void testCreateDocumentWithSubgroups() {
@@ -117,23 +113,6 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		DocumentV2 docV2 = DocumentV2.of("myDmId", subGroups);
 		// end::tagCreateDocumentWithSubgroups[]
 		Assertions.assertEquals(Set.of(Map.entry("g1", mySubgroupRepetitions)), docV2.directSubgroups());
-	}
-
-	@Test void testCreateIDocumentV1V2Converter() {
-		// tag::tagCreateIDocumentV1V2Converter[]
-		IDocumentV1V2Converter converter = new DocumentServiceFactory(
-			dmID -> null // dm resolver is not used here
-		).createDocumentV1V2Converter();
-		// end::tagCreateIDocumentV1V2Converter[]
-
-		IDocument docV1 = makeSmallDocV1();
-
-		// tag::tagCreateDocumentConvert[]
-		DocumentV2 docV2 = converter.ofDocumentV1(docV1);
-		IDocument docV1Again = converter.toDocumentV1(docV2);
-		// end::tagCreateDocumentConvert[]
-
-		Assertions.assertEquals(docV1.getEntityInstances(), docV1Again.getEntityInstances());
 	}
 
 	@Test void testCreateDocumentSetupForSerialization() {
@@ -211,6 +190,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// the group() method is overloaded to also accept the string notation for the pointer
 		GroupInstanceV2 subGroup = docV2.group("MyRootGroup[2]/subGroup");
 		// end::tagDocumentPointerOverload[]
+
+		useVariable(subGroup);
 	}
 
 	@Test void testDocumentMultiPointer() {
@@ -221,9 +202,13 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		documentMultiPointer = DocumentMultiPointer.of(documentPointer);
 		// end::tagDocumentMultiPointerCreation[]
 
+		useVariable(documentMultiPointer);
+
 		// tag::tagDocumentMultiPointerCreationWithPath[]
 		documentMultiPointer = DocumentMultiPointer.of("a[0]/b[3]/c[0]");
 		// end::tagDocumentMultiPointerCreationWithPath[]
+
+		useVariable(documentMultiPointer);
 
 		// tag::tagDocumentMultiPointerCreationWithAllWildcards[]
 		documentMultiPointer = DocumentMultiPointer.ofPathWithAllWildcards("a/b/c");
@@ -282,6 +267,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		DocumentMultiPointer documentMultiPointer = DocumentMultiPointer.of("a[0]/b[3]/c[0]");
 		fieldInstances = DocumentV2Utils.getFieldInstances(group, documentMultiPointer);
 		// end::tagDocumentV2UtilsGetFieldInstances[]
+
+		useVariable(fieldInstances);
 	}
 
 	@Test void testDocumentV2UtilsCompare() {
@@ -298,6 +285,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// tag::tagDocumentV2UtilsCompareFieldChanges[]
 		changes = comparisonResult.expandedFieldChanges();
 		// end::tagDocumentV2UtilsCompareFieldChanges[]
+
+		useVariable(changes);
 	}
 
 	@Test void testIDmAwareDocServiceRemoveUnknowns() {
@@ -322,6 +311,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 			documentServiceFactory.createDmAwareDocService(document.getDocumentModelId());
 		DocumentV2 documentWithoutUnknowns = dmAwareDocService.removeUnknowns(document);
 		// end::tagIDmAwareDocServiceRemoveUnknowns[]
+
+		useVariable(documentWithoutUnknowns);
 	}
 
 	@Test void testIDmAwareDocServiceConvertToJavaTypeV2() {
@@ -361,6 +352,9 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		DocumentPointer ptr = DocumentPointer.of("MyGroup[2]/myField");
 		Object myFieldValueAgain = docV2.fieldValue(ptr);
 		// end::tagFieldValue[]
+
+		useVariable(myFieldValue);
+		useVariable(myFieldValueAgain);
 	}
 	@Test void testGroup() {
 		// tag::tagGroup[]
@@ -369,6 +363,9 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		DocumentPointer ptr = DocumentPointer.of("MyRootGroup/SubGroup[2]");
 		GroupInstanceV2 subGroupAgain = docV2.group(ptr);
 		// end::tagGroup[]
+
+		useVariable(subGroup);
+		useVariable(subGroupAgain);
 	}
 	@Test void testGroupAllRepetitions() {
 		// tag::tagGroupAllRepetitions[]
@@ -381,6 +378,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		RepetitionsV2 groupRepetitions = docV2.groupAllRepetitions("MyGroup[0]");
 		GroupInstanceV2 subGroup1 = groupRepetitions.get(1); // 1-based index
 		// end::tagGroupAllRepetitionsAssign[]
+
+		useVariable(subGroup1);
 	}
 	@Test void testReadFromSubgroup() {
 		DocumentV2 docV2 = DocumentV2.empty("myDmId")
@@ -396,6 +395,10 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// get /MyRootGroup/SubGroup[2]/repeatableSubSubGroup[0]:
 		RepetitionsV2 subSubGroupRepetitions = subGroup.groupAllRepetitions("repeatableSubSubGroup[0]");
 		// end::tagReadFromSubgroup[]
+
+		useVariable(myFieldValue);
+		useVariable(subSubGroup);
+		useVariable(subSubGroupRepetitions);
 	}
 
 	// Updating Documents and Groups
@@ -405,6 +408,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// tag::tagWithFieldValue[]
 		docV2 = docV2.withFieldValue("Address[2]/Street", "Taunusstr");
 		// end::tagWithFieldValue[]
+
+		useVariable(docV2);
 	}
 
 	@Test void tagWithFieldValueNewVariable() {
@@ -447,6 +452,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// tag::tagWithGroup2[]
 		docV2 = docV2.withGroup("MyGroup[2]", newGroup);
 		// end::tagWithGroup2[]
+
+		useVariable(docV2);
 	}
 	@Test void testWithGroupRepetitionInserted() {
 		DocumentV2 docV2 = DocumentV2.empty("myDmId");
@@ -464,6 +471,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// tag::tagWithGroupAllRepetitions[]
 		docV2 = docV2.withGroupAllRepetitions("foo[0]", myRepetitions); // myRepetitions is a RepetitionsV2
 		// end::tagWithGroupAllRepetitions[]
+
+		useVariable(docV2);
 	}
 	@Test void testExampleUseGroupUpdatingMethod() {
 		DocumentPointer mySubgroupPointer = DocumentPointer.of("Rg[2]/MySubGroup");
@@ -474,6 +483,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		GroupInstanceV2 updatedSubGroup = processAndUpdateSubgroup(docV2.group(mySubgroupPointer));
 		DocumentV2 updatedDocument = docV2.withGroup(mySubgroupPointer, updatedSubGroup);
 		// end::tagExampleUseGroupUpdatingMethod[]
+
+		useVariable(updatedDocument);
 	}
 
 	@Test void testComplexWithFieldValue() {
@@ -491,7 +502,7 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// end::tagComplexWithFieldValue[]
 
 		// tag::tagComplexWithFieldValue_Original[]
-		Assertions.assertEquals(null, docV2.field("g3[2]/field1"));
+		Assertions.assertNull(docV2.field("g3[2]/field1"));
 		// tag::tagComplexWithFieldValue_Original[]
 	}
 
@@ -505,6 +516,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// ==>
 		// {"myRootGroup": {"mySubGroup": [{}, {}, {"fieldA": "foo bar"}]}}
 		// end::tagAddMissingAncestors[]
+
+		useVariable(docV2);
 	}
 
 	@Test void testWith() {
@@ -530,7 +543,7 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		docV2 = docV2.withGroupAllRepetitionsRemoved("myGroupB[1]/mySubGroup[0]");
 		// end::tagWithGroupAllRepetitionsRemoved[]
 
-		docV2 = docV2 // this is here just in order to test that the operation works/checks the pointer indices when the removed group is indeed present
+		docV2 // this is here just in order to test that the operation works/checks the pointer indices when the removed group is indeed present
 				.withFieldValue("myGroupB[1]/mySubGroup[3]/f1", "foo")
 				.withGroupAllRepetitionsRemoved("myGroupB[1]/mySubGroup[0]");
 
@@ -659,6 +672,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// tag::tagMergeSimple[]
 		DocumentV2 mergedDocument = docV2.withMerged(otherDocV2);
 		// end::tagMergeSimple[]
+
+		useVariable(mergedDocument);
 	}
 
 	@Test void testMergePickReps() {
@@ -671,6 +686,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 			pointer -> shouldRepetitionsBeConcatenated(pointer)
 		);
 		// end::tagMergePickReps[]
+
+		useVariable(mergedDocument);
 	}
 
 	@Test void testMergeFullConfig() {
@@ -693,6 +710,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 			}
 		);
 		// end::tagMergeFullConfig[]
+
+		useVariable(mergedDocument);
 	}
 
 	@Test void testWithBatchUpdates() {
@@ -711,6 +730,8 @@ public class TestDocumentV2CodeSnippetsForDocs {
 			// ... e.g. thousands of inserts
 		));
 		// end::tagWithBatchUpdates[]
+
+		useVariable(docV2);
 	}
 
 	@Test void testCreate() {
@@ -719,10 +740,6 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		List<GroupInstanceV2> repetitionsList = List.of();
 		Instant i1 = Instant.parse("2023-01-01T12:45:00Z");
 		Instant i2 = Instant.parse("2024-01-01T12:45:00Z");
-		InstantRange irange = InstantRange.of(i1, i2);
-		Date[] dateRange = new Date[] { Date.from(irange.start()), Date.from(irange.end()) };
-		IFieldInstance fieldV1 = getMinimalDocFactory().createFieldInstance("/a/b", new int[] { 2, 1 });
-		fieldV1.setValue(dateRange);
 
 		// tag::tagCreateGroup[]
 		GroupInstanceV2 g = GroupInstanceV2.empty();
@@ -731,28 +748,29 @@ public class TestDocumentV2CodeSnippetsForDocs {
 		// fields is a Map<String, FieldInstanceV2>
 		// end::tagCreateGroup[]
 
+		useVariable(g);
+		useVariable(g2);
+
 		// tag::tagCreateRepetitions[]
 		RepetitionsV2 r = RepetitionsV2.empty();
 		RepetitionsV2 r2 = RepetitionsV2.of(repetitionsList); // repetitionsList is a List<GroupInstanceV2>
 		// end::tagCreateRepetitions[]
+
+		useVariable(r);
+		useVariable(r2);
 
 		// tag::tagOfValue[]
 		FieldInstanceV2 f = FieldInstanceV2.ofValue(BigDecimal.valueOf(42));
 		// allowed values: String, BigDecimal, Boolean, Instant, InstantRange, null
 		// end::tagOfValue[]
 
-		// tag::tagOfV1Value[]
-		FieldInstanceV2 f2 = FieldInstanceV2.ofV1Value(fieldV1.getValue().orElse(null));
-		// V1 values are wrapped in an Optional<Object> and need to be unwrapped first.
-		// Instead of Instant and InstantRange, V1 fields use Date and Date[];
-		// ofV1Value takes care of the conversion.
-		// end::tagOfV1Value[]
-
-		Assertions.assertEquals(irange, f2.value());
+		useVariable(f);
 
 		// tag::tagCreateInstantRange[]
 		InstantRange instantRange = InstantRange.of(i1, i2);
 		// end::tagCreateInstantRange[]
+
+		useVariable(instantRange);
 	}
 
 	private static Collection<UpdateAction> myCustomMergeFunction(DocumentPointer ptr, RepetitionsV2 repCurrent,
@@ -773,24 +791,7 @@ public class TestDocumentV2CodeSnippetsForDocs {
 	}
 	// end::tagGroupProcessingMethodExample[]
 
-	private static IDocument makeSmallDocV1() {
-		IDocumentFactory f = getMinimalDocFactory();
-		IDocument docV1 = f.createDocument("myDmId");
-		docV1.addEntityInstance(f.createFieldInstance("/a/b/c", new int[] { 2, 3, 1 }));
-		docV1.addEntityInstance(f.createGroupInstance("/a/b", new int[] { 2, 3 }));
-		docV1.addEntityInstance(f.createGroupInstance("/a/b", new int[] { 2, 2 }));
-		docV1.addEntityInstance(f.createGroupInstance("/a/b", new int[] { 2, 1 }));
-		docV1.addEntityInstance(f.createGroupInstance("/a/b", new int[] { 1, 3 }));
-		docV1.addEntityInstance(f.createGroupInstance("/a/b", new int[] { 1, 2 }));
-		docV1.addEntityInstance(f.createGroupInstance("/a/b", new int[] { 1, 1 }));
-		docV1.addEntityInstance(f.createGroupInstance("/a", new int[] { 2 }));
-		docV1.addEntityInstance(f.createGroupInstance("/a", new int[] { 1 }));
-		return docV1;
-	}
-
-	private static IDocumentFactory getMinimalDocFactory() {
-		return new DocumentServiceFactory(dmId -> {
-			throw new RuntimeException("not implemented");
-		}).createDocumentFactory();
+	private static void useVariable(@SuppressWarnings("unused") Object any) {
+		// do nothing, just have anything to reduce the amount of warnings
 	}
 }

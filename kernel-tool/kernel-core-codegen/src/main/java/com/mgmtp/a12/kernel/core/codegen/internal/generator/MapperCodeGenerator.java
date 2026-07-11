@@ -32,12 +32,14 @@
 
 package com.mgmtp.a12.kernel.core.codegen.internal.generator;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.mapper.MapInformation;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.mapper.MapInformationBuilder;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.mapper.UXMLMapper;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.mapper.UXMLMapperBuilder;
+import com.mgmtp.a12.kernel.core.codegen.internal.modularcodegen.IEntryPoints;
 import com.mgmtp.a12.kernel.core.codegen.internal.modularcodegen.SourceCodeCollectorV2;
 import com.mgmtp.a12.kernel.core.extmpspecifics.a12internal.api.e2u_mapper.IMapInfo;
 import com.mgmtp.a12.kernel.core.extmpspecifics.internal.api.IExtmpCodeGenParams;
@@ -80,7 +82,7 @@ public class MapperCodeGenerator extends ModelBasedCodeGenerator {
 
 		uXMLMapper = new UXMLMapperBuilder(data, problemReporter, getPackageInfo()).build();
 
-		return !problemReporter.hasProblemOccurred();
+		return !problemReporter.hasErrorOccurred();
 	}
 
 	@Override
@@ -94,6 +96,7 @@ public class MapperCodeGenerator extends ModelBasedCodeGenerator {
 						getPackageInfo().getInternalUXmlMapperPackageName());
 				createJavaEntry(UXML_TO_EXML_CLASSNAME_PREFIX, uXMLMapper.toCode("UXMLToEXML"),
 						getPackageInfo().getInternalUXmlMapperPackageName());
+				addEntryPointMarkers();
 				if (areLegacyPublicExtmpAccessorsNeeded(true)) {
 					createJavaEntry(uXMLMapper.getPublicClassNamePrefix(), uXMLMapper.toCode("Public"),
 							getPackageInfo().getPublicUXmlMapperPackageName());
@@ -105,6 +108,20 @@ public class MapperCodeGenerator extends ModelBasedCodeGenerator {
 			default:
 				throw new IllegalArgumentException("Code for mapper may only be generated for java.");
 		}
+	}
+
+	private void addEntryPointMarkers() {
+		List<String> fqnEXMLToUXMLMapper = Arrays.asList(getFullNameWithoutExtension(EXML_TO_UXML_CLASSNAME_PREFIX,
+				getPackageInfo().getInternalUXmlMapperPackageName()).split("/"));
+		List<String> fqnUXMLToEXMLMapper = Arrays.asList(getFullNameWithoutExtension(UXML_TO_EXML_CLASSNAME_PREFIX,
+				getPackageInfo().getInternalUXmlMapperPackageName()).split("/"));
+		this.collector.addEntryPoints(new UXMLMapperEntryPoint(fqnEXMLToUXMLMapper, fqnUXMLToEXMLMapper));
+	}
+
+	public record UXMLMapperEntryPoint(
+			List<String> fqnEXMLToUXMLMapper,
+			List<String> fqnUXMLToEXMLMapper
+	) implements IEntryPoints {
 	}
 
 }

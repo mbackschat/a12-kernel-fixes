@@ -39,6 +39,8 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import lombok.NonNull;
+
 /**
  * This interface is intended to be implemented by clients.
  */
@@ -146,7 +148,7 @@ public interface IEnumerationType extends IFieldType {
 	/**
 	 * @return the s value, if defined, otherwise the empty string.
 	 */
-	public default String getsValue() {
+	public default @NonNull String getsValue() {
 		return "";
 	}
 

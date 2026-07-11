@@ -35,7 +35,6 @@ package com.mgmtp.a12.kernel.core.service.internal.errortext.creation;
 import java.util.Map;
 import java.util.Optional;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils;
@@ -46,7 +45,6 @@ import com.mgmtp.a12.kernel.core.service.internal.errortext.creation.impl.BaseYe
 import com.mgmtp.a12.kernel.core.service.internal.errortext.creation.impl.GroupIndexParameter;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.creation.impl.IndexFieldParameter;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.creation.impl.RootgroupIndexParameter;
-import com.mgmtp.a12.kernel.core.service.internal.errortext.creation.impl.RootgroupNameParameter;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.creation.impl.RootgroupRowParameter;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.creation.impl.RowIndexParameter;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.creation.impl.SemanticIndex;
@@ -69,7 +67,6 @@ import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarO
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.UsbContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.ValueContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.ValueOrCategoryContext;
-import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.VordrucknameContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.VordruckzeileContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParserBaseListener;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
@@ -79,13 +76,13 @@ import lombok.NonNull;
 
 public class ErrortextParameterCreator extends GrammarOnly_ErrorTextParameterParserBaseListener {
 
-	private final Map<ParserRuleContext, FullChecks_ErrorTextParameterParser.EntityRef> ctx2ParsedEntities;
+	private final Map<EntitySpecContext, FullChecks_ErrorTextParameterParser.EntityRef> ctx2ParsedEntities;
 	private IErrortextParameter errortextParameter;
 	private final String ruleGroupFullName;
 	private final boolean isHModel;
 
 	private ErrortextParameterCreator(String ruleGroupFullName,
-			@NonNull Map<ParserRuleContext, FullChecks_ErrorTextParameterParser.EntityRef> ctx2ParsedEntities
+			@NonNull Map<EntitySpecContext, FullChecks_ErrorTextParameterParser.EntityRef> ctx2ParsedEntities
 			, boolean isHModel) {
 		this.ruleGroupFullName = ruleGroupFullName;
 		this.ctx2ParsedEntities = ctx2ParsedEntities;
@@ -94,7 +91,7 @@ public class ErrortextParameterCreator extends GrammarOnly_ErrorTextParameterPar
 
 	public static IErrortextParameter createErrortextParameter(
 			@NonNull ParameterContext parameterContext,
-			@NonNull Map<ParserRuleContext, FullChecks_ErrorTextParameterParser.EntityRef> ctx2ParsedEntities,
+			@NonNull Map<EntitySpecContext, FullChecks_ErrorTextParameterParser.EntityRef> ctx2ParsedEntities,
 			String ruleGroupFullName,
 			boolean isHModel) {
 		// parsing is correct -> construct the object.
@@ -132,11 +129,6 @@ public class ErrortextParameterCreator extends GrammarOnly_ErrorTextParameterPar
 	@Override
 	public void exitUsb(UsbContext ctx) {
 		errortextParameter = new USBParameter();
-	}
-
-	@Override
-	public void exitVordruckname(VordrucknameContext ctx) {
-		errortextParameter = new RootgroupNameParameter(ctx.id.getText(), getPathSpecification(ctx.id));
 	}
 
 	@Override

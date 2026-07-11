@@ -39,6 +39,7 @@ import java.util.function.Consumer;
 import com.mgmtp.a12.kernel.core.service.internal.MoveSupportInternal;
 import com.mgmtp.a12.kernel.md.model.a12internal.Computation;
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
+import com.mgmtp.a12.kernel.md.model.a12internal.DocumentUniquenessCriterion;
 import com.mgmtp.a12.kernel.md.model.a12internal.Group;
 import com.mgmtp.a12.kernel.md.model.a12internal.Rule;
 import com.mgmtp.a12.kernel.md.model.a12internal.visitor.DocumentModelVisitor;
@@ -57,7 +58,8 @@ public class MoveSupportDM {
 
 	/**
 	 * Updates references to fields and groups in rule conditions, rule error messages, computations
-	 * (preconditions, operations, common precondition) and computation error messages according to entityMoves.
+	 * (preconditions, operations, common precondition), computation error messages and Document Uniqueness Criteria
+	 * (field full names and error text parameters) according to entityMoves.
 	 * Also updates the error field reference in all rules, the computed field reference in computations and for groups the index
 	 * field and sort field (if present).<p/>
 	 * entityMoves should contain a mapping of previous vs new absolute paths of groups, fields, rules or computations in the
@@ -126,6 +128,13 @@ public class MoveSupportDM {
 							sortField.getField(), groupFullName, entityMoves));
 				}
 		);
+
+		for (DocumentUniquenessCriterion criterion : documentModel.getContent().getDocumentUniquenessCriteria()) {
+			criterion.setFieldFullNames(MoveSupportInternal.findNewFullNames(criterion.getFieldFullNames(), entityMoves));
+			criterion.setErrorMessage(new LocalizedTextMapImpl(
+					moveSupportInternal.changeDocumentUniquenessCriterionErrorTextsForMove(criterion.getErrorMessage(),
+							entityMoves)));
+		}
 	}
 
 	private static void forEachRuleAndComputationAndGroup(

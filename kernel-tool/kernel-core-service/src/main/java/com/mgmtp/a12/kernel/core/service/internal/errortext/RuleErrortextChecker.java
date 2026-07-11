@@ -32,8 +32,8 @@
 
 package com.mgmtp.a12.kernel.core.service.internal.errortext;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -49,30 +49,18 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelSp
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.core.utils.internal.MVKCoreError;
 
+import lombok.NonNull;
+
 /**
- * Klasse dient dazu, den eingegebenen Fehlertext und seine Fehlertext-Parameter auf syntaktische
- * Richtigkeit zu checken.
- * <p>
- * Wird vom Import und von der Codegenerierung gemeinsam verwendet.
- * <p>
- * Bei Fehlern wird die Fehlermeldung als String zurückgeliefert. <code>null</code> bedeutet kein
- * Fehler.
- * </p>
- * Felder können im Fehlertext referenziert werden, auch wenn sie in der Bedingung nur indirekt
- * (d.h. über einen Kontext)
- * referenziert werden. Ob für diese im Fehlertext verwendeten Felder die Anwendungseinschränkungen
- * passen, wird nur bei der Codegenerierung überprüft (dort werden nur die für die jeweilige
- * Anwendung gültigen Felder übergeben).
+ * Klasse dient dazu, den eingegebenen Fehlertext und seine Fehlertext-Parameter auf syntaktische Richtigkeit zu checken.
  */
 public class RuleErrortextChecker {
-	private final IModelSpecificSettings modelSpecificSettings;
-
-	private final FehlertextErrorLookup errorHandler;
-	private final IEC ec;
+	private final @NonNull IModelSpecificSettings modelSpecificSettings;
+	private final @NonNull FehlertextErrorLookup errorHandler;
+	private final @NonNull IEC ec;
 	private final ICondition condition;
-
-	private final IRule rule;
-
+	private final @NonNull IRule rule;
+	private final @NonNull Locale localeOfProblemMessages;
 	private final boolean extendProblemMessages;
 
 	/**
@@ -100,13 +88,19 @@ public class RuleErrortextChecker {
 	 * 		property of the EC. Contains various info about the model (e.g. base year, isHDV, etc.)
 	 * @param extendProblemMessages
 	 */
-	public RuleErrortextChecker(IRule rule, ICondition condition, IEC ec,
-			IModelSpecificSettings modelSpecificSettings, boolean extendProblemMessages) {
+	public RuleErrortextChecker(
+			@NonNull IRule rule,
+			ICondition condition,
+			@NonNull IEC ec,
+			@NonNull IModelSpecificSettings modelSpecificSettings,
+			boolean extendProblemMessages
+	) {
 		this.ec = ec;
 		this.modelSpecificSettings = modelSpecificSettings;
 		this.condition = condition;
 		this.rule = rule;
-		this.errorHandler = new FehlertextErrorLookup(modelSpecificSettings.getLanguageUsedInConditionText());
+		this.localeOfProblemMessages = modelSpecificSettings.getLanguageUsedInConditionText();
+		this.errorHandler = new FehlertextErrorLookup(localeOfProblemMessages);
 		this.extendProblemMessages = extendProblemMessages;
 	}
 
@@ -115,16 +109,14 @@ public class RuleErrortextChecker {
 	 * An error text is correct, if
 	 * <ul>
 	 * <li>it is not null and not empty
-	 * <li>additional checks: see {@link #ueberpruefeFehlertext(String, IProblemReporter) }
+	 * <li>additional checks: see {@link #checkErrorText}
 	 * </ul>
 	 *
 	 * @param errortext
 	 * 		error text to be checked
-	 * @param ruleName
+	 * @param locale
 	 * 		used to format the returned error message if the error text is incorrect
-	 * @param loc
-	 * 		used to format the returned error message if the error text is incorrect
-	 * @param pr
+	 * @param problemReporter
 	 * 		problem reporter, may not be null
 	 * @return map that contains the parsed error text parameters for parameters, that could be
 	 * 		successfully parsed. The key is the non parsed error text parameter (text between two
@@ -133,14 +125,17 @@ public class RuleErrortextChecker {
 	 * 		one is valid and another is invalid). If the error text is not valid or if there are
 	 * 		no (valid) error text parameters, an empty map is returned.
 	 */
-	public Map<String, IErrortextParameter> checkErrorMessageNotEmptyAndCorrect(String errortext, String ruleName, Locale loc,
-			IProblemReporter pr) {
+	public Map<String, IErrortextParameter> checkErrorMessageNotEmptyAndCorrect(
+			String errortext,
+			@NonNull Locale locale,
+			@NonNull IProblemReporter problemReporter
+	) {
 		if (StringUtils.isEmpty(errortext)) {
-			pr.reportProblem(new MVKCoreError(
-					errorHandler.getErrorMessage(FehlertextErrorType.RULE_HAS_NO_ERRORTEXT, ruleName, loc.getDisplayLanguage(loc)),
-					rule));
+			problemReporter.reportProblem(new MVKCoreError(
+					errorHandler.getErrorMessage(FehlertextErrorType.RULE_HAS_NO_ERRORTEXT, rule.getFullName(),
+							locale.getDisplayLanguage(localeOfProblemMessages)), rule));
 		}
-		return checkErrorText(errortext, ruleName, loc, pr);
+		return checkErrorText(errortext, locale, problemReporter);
 	}
 
 	/**
@@ -155,7 +150,7 @@ public class RuleErrortextChecker {
 	 * {@link FullChecks_ErrorTextParameterParser }</li>
 	 * </nl>
 	 *
-	 * @param errortext
+	 * @param errorText
 	 * 		zu prüfender Fehlertext
 	 * @return map that contains the parsed error text parameters for parameters, that could be
 	 * 		successfully parsed. The key is the non parsed error text parameter (text between two
@@ -164,89 +159,37 @@ public class RuleErrortextChecker {
 	 * 		one is valid and another is invalid). If the error text is not valid or if there are
 	 * 		no (valid) error text parameters, an empty map is returned.
 	 */
-	public Map<String, IErrortextParameter> checkErrorText(String errortext, String ruleName, Locale loc, IProblemReporter pr) {
-		String errMsgPrefix = extendProblemMessages ?
-				(errorHandler.getBareErrorMessage(FehlertextErrorType.RULE_ERRORTEXT_WRONG, ruleName,
-						loc.getDisplayLanguage(loc))+ " ")//trailing whitespace because concatenated with problem.getMessage()
-				: "";
-		return ueberpruefeFehlertext(errortext,
-				problem -> pr.reportProblem(new MVKCoreError(errMsgPrefix + problem.getMessage(), rule)));
-	}
+	public Map<String, IErrortextParameter> checkErrorText(
+			String errorText,
+			@NonNull Locale locale,
+			@NonNull IProblemReporter problemReporter
+	) {
+		IProblemReporter pr = prependProblemMessageIfNecessary(problemReporter, locale);
 
-	/**
-	 * Überprüft den Fehlertext, ob er gültig ist. Folgende Überprüfungen werden gemacht:
-	 * <p>
-	 * <nl>
-	 * <li>kein Zeilenumbruch enthalten</li>
-	 * <li>keine Control-Characters enthalten</li>
-	 * <li>korrektes encoding {@link FehlertextUtil#isFehlertextCharsetOK(String)}</li>
-	 * <li>gerade Anzahl von $ Zeichen</li>
-	 * <li>Überprüfung der einzelnen Parameter
-	 * {@link FullChecks_ErrorTextParameterParser }</li>
-	 * </nl>
-	 *
-	 * @param fehlertext
-	 * 		zu prüfender Fehlertext
-	 * @return map that contains the parsed error text parameters for parameters, that could be
-	 * 		successfully parsed. The key is the non parsed error text parameter (text between two
-	 * 		dollars in the error text). Note that the map may contain entries even if there are
-	 * 		problems reported (if there are several error text parameters in one error text and
-	 * 		one is valid and another is invalid). If the error text is not valid or if there are
-	 * 		no (valid) error text parameters, an empty map is returned.
-	 */
-	private Map<String, IErrortextParameter> ueberpruefeFehlertext(String fehlertext, IProblemReporter pr) {
-		if (StringUtils.isEmpty(fehlertext)) {
-			return Collections.emptyMap();
+		List<String> parameters = FehlertextUtil.checkErrorTextAndExtractParameters(
+				errorText, errorHandler, pr, rule, ExtmpUtils.isExtmp(modelSpecificSettings));
+		if (parameters.isEmpty()) {
+			return Map.of();
 		}
-		// (1) kein Zeilenumbruch enthalten
-		if (!FehlertextUtil.checkLineSeparators(fehlertext)) {
-			pr.reportProblem(new MVKCoreError(errorHandler.getErrorMessage(FehlertextErrorType.INVALID_LINEBREAK), rule));
-			return Collections.emptyMap();
-		}
-
-		// (2) Keine Steuerzeichen
-		if (!FehlertextUtil.checkControlCharacters(fehlertext)) {
-			pr.reportProblem(new MVKCoreError(errorHandler.getErrorMessage(FehlertextErrorType.INVALID_CHARACTERS), rule));
-			return Collections.emptyMap();
-		}
-
-		// (3) korrektes encoding: ISO-8859-15 für ExtMP, Unicode für A12
-		if (ExtmpUtils.isExtmp(modelSpecificSettings)) {
-			if (!FehlertextUtil.isFehlertextCharsetOK(fehlertext)) {
-				pr.reportProblem(
-						new MVKCoreError(errorHandler.getErrorMessage(FehlertextErrorType.WRONG_ENCODING, "ISO-8859-15"), rule));
-				return Collections.emptyMap();
-			}
-		} else {
-			if (!FehlertextUtil.isFehlertextCharsetUnicodeOK(fehlertext)) {
-				pr.reportProblem(
-						new MVKCoreError(errorHandler.getErrorMessage(FehlertextErrorType.WRONG_ENCODING, "Unicode"), rule));
-				return Collections.emptyMap();
-			}
-		}
-
-		// (4) gerade Anzahl von $ Zeichen
-		if (!FehlertextUtil.checkWrongNumberOfDollars(fehlertext)) {
-			pr.reportProblem(new MVKCoreError(errorHandler.getErrorMessage(FehlertextErrorType.WRONG_NUMBER_OF_DOLLARS), rule));
-			return Collections.emptyMap();
-		}
-
-		String[] teile = fehlertext.split("\\$");
-
+		// parse parameters
 		Map<String, IErrortextParameter> parsedParameters = new HashMap<>();
-		//Überprüfe nur Teile innerhalb der $ Zeichen
-		for (int i = 1; i < teile.length; i = i + 2) {
-			String value = teile[i];
-
-			if (!StringUtils.isEmpty(value)) {
-				RuleErrorTextParameterService service = new RuleErrorTextParameterService(ec, modelSpecificSettings);
-				IErrortextParameter parameter = service.parseParameter(rule, condition, value, pr);
-				if (parameter != null) {
-					parsedParameters.put(value, parameter);
-				}
+		for (String parameterText : parameters) {
+			RuleErrorTextParameterService service = new RuleErrorTextParameterService(ec, modelSpecificSettings);
+			IErrortextParameter parsedParameter = service.parseParameter(rule, condition, parameterText, pr);
+			if (parsedParameter != null) {
+				parsedParameters.put(parameterText, parsedParameter);
 			}
 		}
 		return parsedParameters;
 	}
 
+	private IProblemReporter prependProblemMessageIfNecessary(IProblemReporter problemReporter, Locale locale) {
+		if (!extendProblemMessages) {
+			return problemReporter;
+		}
+		String errMsgPrefix = errorHandler.getBareErrorMessage(
+				FehlertextErrorType.RULE_ERRORTEXT_WRONG, rule.getFullName(), locale.getDisplayLanguage(localeOfProblemMessages));
+		return problem -> problemReporter.reportProblem(
+				new MVKCoreError(errMsgPrefix + " " + problem.getMessage(), problem.getSource()));
+	}
 }

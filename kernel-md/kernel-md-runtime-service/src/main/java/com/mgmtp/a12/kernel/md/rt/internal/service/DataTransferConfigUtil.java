@@ -42,12 +42,10 @@ public class DataTransferConfigUtil {
 		throw new UnsupportedOperationException("Utility class");
 	}
 
-	@SuppressWarnings("removal") // TODO[A12K-3589]: remove suppression
 	public static IDataTransferService.DataTransferConfig fromDocumentProcessingConfig(DocumentProcessingConfig config) {
 		return IDataTransferService.DataTransferConfig.builder(config.languageOfErrorMessages())
 				.customFieldTypeFactory(config.customFieldTypeFactory())
 				.customConditionFactory(cascadeNulls(config.customConditionFactory(), CustomConditionFactoryWrapper::new))
-				.additionalInformation(config.additionalInformation())
 				.currentDateForTest(config.currentDateForTest())
 				.build();
 	}

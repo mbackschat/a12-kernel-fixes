@@ -31,16 +31,11 @@
  */
 package com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.verifier;
 
-import java.util.Optional;
-import java.util.regex.Matcher;
+import java.util.function.IntPredicate;
 import java.util.regex.Pattern;
 
-import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeCheckError;
-import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeValidationParam;
-import com.mgmtp.a12.kernel.core.customfieldtype.impl.IFadat;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorEnum;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorKeys;
-import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorUtil;
 
 import lombok.NonNull;
 
@@ -68,43 +63,28 @@ import lombok.NonNull;
  * geprüft.
  * </p>
  */
-public class BundessteuernummerVerifierImpl extends SteuernummerVerifierImpl {
+public class BundessteuernummerVerifierImpl extends AbstractSteuernummerVerifier {
 
 	// Formale Prüfung: 13-stellige Zahl, die mit den Ziffern 91160 beginnt.
 	private static final Pattern VALID_BUSTNR = Pattern.compile("(91)(16)0[0-9]{8}");
 
-	public BundessteuernummerVerifierImpl(IFadat fadat) {
-		super(fadat);
-	}
-
-	/**
-	 * Überprüft die übergebene Bundessteuernummer.<br>
-	 * Als zusätzlicher Parameter werden die definierenden Daten der Steuernummerprüfung benötigt.
-	 * Wird keiner übergeben, wird eine {@link IllegalArgumentException} geworfen.
-	 */
-	@Override
-	protected Optional<ICustomFieldTypeCheckError> validate(
-			@NonNull String value,
-			@NonNull ICustomFieldTypeValidationParam valParam,
-			boolean isDisplayValue,
-			@NonNull ParamsProvider pp
-	) {
-		Optional<ICustomFieldTypeCheckError> result = super.validate(value, valParam, isDisplayValue, pp);
-		if (result.isPresent()) {
-			return CustomFieldTypeErrorUtil.getResult(CustomFieldTypeErrorEnum.BUNDESSTNR_UNGUELTIG, valParam.getErrorMsgLocale(),
-					CustomFieldTypeErrorKeys.UNGUELTIGE_BUSTNR);
-		}
-		return result;
+	public BundessteuernummerVerifierImpl() {
+		super(new SteuernummerValidationHelper(VALID_BUSTNR),
+				CustomFieldTypeErrorKeys.UNGUELTIGE_BUSTNR);
 	}
 
 	@Override
-	protected Matcher getMatcher(final String xmlSteuernummer) {
-		return VALID_BUSTNR.matcher(xmlSteuernummer);
+	protected IntPredicate getBufaValidator() {
+		return bufaNr -> true;
 	}
 
 	@Override
-	boolean istBundesfinanzamtsnummerGueltig(final int bundesfinanzamtsnummer, ParamsProvider pp) {
-		return true;
+	protected @NonNull CustomFieldTypeErrorEnum mapValidationError(CustomFieldTypeErrorEnum error) {
+		return (error == CustomFieldTypeErrorEnum.KEIN_FEHLER) ? error : CustomFieldTypeErrorEnum.BUNDESSTNR_UNGUELTIG;
 	}
 
+	@Override
+	protected @NonNull CustomFieldTypeErrorEnum createValidationError() {
+		return CustomFieldTypeErrorEnum.BUNDESSTNR_UNGUELTIG;
+	}
 }

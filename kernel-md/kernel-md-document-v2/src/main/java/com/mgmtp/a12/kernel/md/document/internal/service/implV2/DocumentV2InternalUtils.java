@@ -103,9 +103,7 @@ public class DocumentV2InternalUtils {
 	}
 
 	public static String groupToStringInternal(@NonNull GroupInstanceV2 group) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("{\n").append(indentWithoutAppendingTrailingNewline(groupContentsToString(group), 2)).append("\n}");
-		return builder.toString();
+		return "{\n" + indentWithoutAppendingTrailingNewline(groupContentsToString(group), 2) + "\n}";
 	}
 
 	private static String groupContentsToString(GroupInstanceV2 group) {

@@ -35,17 +35,13 @@ import java.util.List;
 
 import com.mgmtp.a12.kernel.core.calc.internal.CalculationService;
 import com.mgmtp.a12.kernel.core.calc.internal.dynEnum.DynamicEnumerationService;
-import com.mgmtp.a12.kernel.core.codegen.internal.CodeGeneratorService;
 import com.mgmtp.a12.kernel.core.facade.internal.RuleCollectionMetaInformation;
 import com.mgmtp.a12.kernel.core.parser.internal.ConditionFormatter;
 import com.mgmtp.a12.kernel.core.parser.internal.RuleMetaInformation;
-import com.mgmtp.a12.kernel.core.service.internal.ChangeRuleSupport;
 import com.mgmtp.a12.kernel.core.service.internal.FieldErrorTextParser;
 import com.mgmtp.a12.kernel.core.service.internal.RuleParser;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IBaseCalculationService;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.ICalculationService;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IChangeRuleSupport;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.ICodeGeneratorService;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IConditionFormatter;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IDynamicEnumerationService;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IFieldErrorTextParser;
@@ -108,20 +104,6 @@ public class ServiceFactory {
 	}
 
 	/**
-	 * Get a service for code generation.
-	 *
-	 * @param serviceConfiguration
-	 * 		the service configuration
-	 * @return an {@link ICodeGeneratorService} for generating code.
-	 *
-	 * @deprecated Use com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelService#generateValidationCode instead
-	 */
-	@Deprecated(since = "30.5.0")
-	public ICodeGeneratorService getCodeGeneratorService(IServiceConfiguration serviceConfiguration) {
-		return new CodeGeneratorService(serviceConfiguration);
-	}
-
-	/**
 	 * Get a service for parsing rules.
 	 *
 	 * @param serviceConfiguration
@@ -152,17 +134,6 @@ public class ServiceFactory {
 	 */
 	public IRuleMetaInformation getRuleMetaInformation(IServiceConfiguration serviceConfiguration) {
 		return new RuleMetaInformation(serviceConfiguration);
-	}
-
-	/**
-	 * Get a service providing
-	 *
-	 * @param serviceConfiguration
-	 * 		the service configuration
-	 * @return an {@link IChangeRuleSupport} instance.
-	 */
-	public IChangeRuleSupport getChangeRuleSupport(IServiceConfiguration serviceConfiguration) {
-		return new ChangeRuleSupport(serviceConfiguration, getRuleParser(serviceConfiguration));
 	}
 
 	/**

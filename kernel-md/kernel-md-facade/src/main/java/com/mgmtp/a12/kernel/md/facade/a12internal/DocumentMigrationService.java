@@ -58,7 +58,7 @@ public class DocumentMigrationService {
 	 */
 	public String migrate(String document) {
 		Validate.notNull(document, "document must not be null");
-		Validate.isTrue(document.length() > 0);
+		Validate.isTrue(!document.isEmpty());
 		// already migrated? We don't support the mixture of parts already migrated and parts to migrate
 		if (document.contains(EMPTY_VALUE_IDENTIFIER)) {
 			return document;

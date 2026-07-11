@@ -39,10 +39,10 @@ import type {
 	Localizable,
 	LocalizableArgs,
 	SupportedType,
-	ValueConversionConfig
+	ValueConversionConfig,
+	DatePrecision
 } from "@com.mgmtp.a12.utils/utils-localization";
 import {
-	DatePrecision,
 	defaultValueConversion
 } from "@com.mgmtp.a12.utils/utils-localization";
 
@@ -55,7 +55,7 @@ import {
 	StringUtil,
 	TimeZonedDate,
 	ValidationDateParser
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 import { IMetaKeys } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
@@ -490,13 +490,13 @@ export class FormatDefinitionDatum implements IFormatDefinition {
 	private _mapToDatePrecision(teilBekanntArt: DatumTeilbekanntArt): DatePrecision {
 		switch (teilBekanntArt) {
 			case DatumTeilbekanntArt.BEKANNT:
-				return DatePrecision.FULL;
+				return "FULL";
 			case DatumTeilbekanntArt.TAG_OPTIONAL:
-				return DatePrecision.DAY_OPTIONAL;
+				return "DAY_OPTIONAL";
 			case DatumTeilbekanntArt.MONAT_OPTIONAL:
-				return DatePrecision.MONTH_OPTIONAL;
+				return "MONTH_OPTIONAL";
 			case DatumTeilbekanntArt.JAHR_OPTIONAL:
-				return DatePrecision.YEAR_OPTIONAL;
+				return "YEAR_OPTIONAL";
 		}
 		throw new Error(StringUtil.stringFormat("Date precision '{0}' could not be mapped.", teilBekanntArt.toString()));
 	}

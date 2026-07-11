@@ -62,6 +62,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOper
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOperationWithParameter;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IPointInTimeOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateAddOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateConstructionOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateDiffOperation;
@@ -529,6 +530,11 @@ public class VBARegelCheckerVisitor extends ASTVisitor {
 	@Override
 	public boolean visit(IDateValidityCondition c) {
 		setFehlerSpracheelementNichtUnterstuetzt(c.getConditionName().getRuntimeName() + " für Datumsangaben");
+		return false;
+	}
+
+	@Override public boolean visit(ISetOpOperation p) {
+		setFehlerSpracheelementNichtUnterstuetzt(p.getOperatorName().getRuntimeName());
 		return false;
 	}
 

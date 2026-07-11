@@ -46,6 +46,7 @@ import com.mgmtp.a12.kernel.md.document.apiV2.typed.TypedRepetitionsPointer;
  * @param <S>
  * 		the self-type of the typed view class that extends AbstractTypedView
  */
+@SuppressWarnings("unused") // this is the base class for all generated typed view classes
 public abstract class AbstractTypedView<R extends GroupInstanceV2, S extends AbstractTypedView<R, S>>
 		implements TypedGroupView<S> // Note: complies to TypedDocumentView too if R extends DocumentV2
 {

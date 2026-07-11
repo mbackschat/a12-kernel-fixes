@@ -36,7 +36,7 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICodeGen
 import com.mgmtp.a12.kernel.md.model.api.services.IValidationCodeGeneratorConfig;
 
 /**
- * misc utils that need access to e.g. both the kernel-core-tool-api and kernel-md-model-api
+ * misc utils that need access to e.g. both the kernel-core-tool-api and kernel-md-documentmodel
  */
 public class MdCoreConversionUtil {
 	private MdCoreConversionUtil() {

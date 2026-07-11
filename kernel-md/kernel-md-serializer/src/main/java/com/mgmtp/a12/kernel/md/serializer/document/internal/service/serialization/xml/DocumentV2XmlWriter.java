@@ -33,17 +33,12 @@
 package com.mgmtp.a12.kernel.md.serializer.document.internal.service.serialization.xml;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentSerializationException;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
@@ -65,10 +60,15 @@ public class DocumentV2XmlWriter {
 	}
 
 	public static void writeDocument(@NonNull DocumentV2 document, @NonNull IDocumentModelResolver modelResolver,
-			@NonNull Writer writer, boolean failIfUnreadable)
+			@NonNull Writer writer)
 			throws DocumentSerializationException {
-		XmlElement documentXmlNode = writeDocument(document, modelResolver);
-		formatAndCheckXml(documentXmlNode, writer, failIfUnreadable);
+		XmlElement documentXmlNode;
+		try {
+			documentXmlNode = writeDocument(document, modelResolver);
+		} catch (XmlElement.InvalidXmlCharacterException e) {
+			throw new DocumentSerializationException("Document contains invalid characters.", e);
+		}
+		formatXml(documentXmlNode, writer);
 	}
 
 	private static XmlElement writeDocument(@NonNull DocumentV2 document, @NonNull IDocumentModelResolver modelResolver) {
@@ -76,37 +76,13 @@ public class DocumentV2XmlWriter {
 		return documentToXml(document, info);
 	}
 
-	private static void formatAndCheckXml(XmlElement docXml, Writer writer, boolean failIfUnreadable)
+	private static void formatXml(XmlElement docXml, Writer writer)
 			throws DocumentSerializationException {
 		String xmlString = XmlWriter.serializeToString(docXml);
-		if (failIfUnreadable) {
-			ensureReadability(xmlString);
-		}
-
 		try {
 			writer.write(xmlString);
 		} catch (final IOException e) {
 			throw new DocumentSerializationException("Error while writing to Writer.", e);
-		}
-	}
-
-	private static void ensureReadability(String ser) throws DocumentSerializationException {
-		XMLStreamReader xmlReader = null;
-		try (StringReader reader = new StringReader(ser)) {
-			xmlReader = XMLInputFactory.newDefaultFactory().createXMLStreamReader(reader);
-			while (xmlReader.hasNext()) {
-				xmlReader.next();
-			}
-		} catch (XMLStreamException e) {
-			throw new DocumentSerializationException("Document contains invalid characters.", e);
-		} finally {
-			if (xmlReader != null) {
-				try {
-					xmlReader.close();
-				} catch (XMLStreamException e) {
-					// ignore exception on close, the initial exception should be thrown
-				}
-			}
 		}
 	}
 

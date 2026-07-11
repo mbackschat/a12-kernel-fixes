@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.mgmtp.a12.kernel'
-version = "28.2.0"
+version = "29.0.2"
 description = 'kernel-core-customfieldtype-api'
 
 // for reproducible builds:

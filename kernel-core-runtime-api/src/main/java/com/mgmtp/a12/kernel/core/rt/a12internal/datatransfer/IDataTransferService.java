@@ -35,11 +35,9 @@ package com.mgmtp.a12.kernel.core.rt.a12internal.datatransfer;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
-import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator;
 import com.mgmtp.a12.kernel.core.rt.a12internal.ValidationMode;
 import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
@@ -66,17 +64,6 @@ public interface IDataTransferService {
 		Locale validationLanguage();
 
 		/**
-		 * @return the additional information that will be passed to the project specific implementations
-		 * 		of {@link ICustomFieldValidator}s. Never {@code null}.
-		 *
-		 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #customFieldTypeFactory()}  instead. In your
-		 * 		implementation of {@link ICustomFieldTypeFactory} you can already create the objects in the suitable configuration.
-		 * 		Therefore, it is not necessary to pass this data all the way through any longer.
-		 */
-		@Deprecated(since = "30.6.0", forRemoval = true)
-		@NonNull Map<String, Object> additionalInformation();
-
-		/**
 		 * @return the {@link ICustomFieldTypeFactory} or {@code null}.
 		 */
 		ICustomFieldTypeFactory customFieldTypeFactory();
@@ -90,93 +77,6 @@ public interface IDataTransferService {
 		 * see {@link ValidationMode#currentDateForTest()}
 		 */
 		Date currentDateForTest();
-
-		/**
-		 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #builder(Locale)} instead.
-		 */
-		@Deprecated(since = "30.6.0", forRemoval = true)
-		static DataTransferConfig of(@NonNull Locale validationLanguage) {
-			return builder(validationLanguage).build();
-		}
-
-		/**
-		 * @param validationLanguage
-		 * 		see {@link #validationLanguage()}
-		 * @param additionalInformation
-		 * 		see {@link #additionalInformation()}. Will be copied into an unmodifiable map.
-		 * @param currentDateForTest
-		 * 		see {@link #currentDateForTest()}. {@code null} if current date should not be overridden
-		 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #builder(Locale)} instead.
-		 * 		In your implementation of {@link ICustomFieldTypeFactory} you can already create the objects in the suitable
-		 * 		configuration.
-		 * 		Therefore, it is not necessary to pass 'additionalInformation' all the way through any longer.
-		 */
-		@Deprecated(since = "30.6.0", forRemoval = true)
-		@SuppressWarnings("removal")
-		static DataTransferConfig of(
-				@NonNull Locale validationLanguage,
-				@NonNull Map<String, Object> additionalInformation,
-				Date currentDateForTest) {
-			return builder(validationLanguage)
-					.additionalInformation(Map.copyOf(additionalInformation))
-					.currentDateForTest(currentDateForTest)
-					.build();
-		}
-
-		/**
-		 * @param validationLanguage
-		 * 		see {@link #validationLanguage()}
-		 * @param customFieldTypeFactory
-		 * 		see {@link #customFieldTypeFactory()}
-		 * @param customConditionFactory
-		 * 		see {@link #customConditionFactory()}
-		 * @param additionalInformation
-		 * 		see {@link #additionalInformation()}. Will be copied into an unmodifiable map.
-		 * @param currentDateForTest
-		 * 		see {@link #currentDateForTest()}. {@code null} if current date should not be overridden
-		 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #builder(Locale)} instead.
-		 * 		In your implementation of {@link ICustomFieldTypeFactory} you can already create the objects in the suitable
-		 * 		configuration.
-		 * 		Therefore, it is not necessary to pass 'additionalInformation' all the way through any longer.
-		 */
-		@Deprecated(since = "30.6.0", forRemoval = true)
-		@SuppressWarnings("removal")
-		static DataTransferConfig of(
-				@NonNull Locale validationLanguage,
-				ICustomFieldTypeFactory customFieldTypeFactory,
-				ICustomConditionFactory customConditionFactory,
-				@NonNull Map<String, Object> additionalInformation,
-				Date currentDateForTest) {
-			return builder(validationLanguage)
-					.additionalInformation(Map.copyOf(additionalInformation))
-					.customFieldTypeFactory(customFieldTypeFactory)
-					.customConditionFactory(customConditionFactory)
-					.currentDateForTest(currentDateForTest)
-					.build();
-		}
-
-		/**
-		 * @param validationLanguage
-		 * 		see {@link #validationLanguage()}
-		 * @param customFieldTypeFactory
-		 * 		see {@link #customFieldTypeFactory()}
-		 * @param customConditionFactory
-		 * 		see {@link #customConditionFactory()}
-		 * @param currentDateForTest
-		 * 		see {@link #currentDateForTest()}. {@code null} if current date should not be overridden
-		 * @return The {@link DataTransferConfig}. Never {@code null}.
-		 *
-		 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #builder(Locale)} instead.
-		 */
-		@Deprecated(since = "30.6.0", forRemoval = true)
-		static DataTransferConfig of(@NonNull Locale validationLanguage, ICustomFieldTypeFactory customFieldTypeFactory,
-				ICustomConditionFactory customConditionFactory, Date currentDateForTest) {
-			return builder(validationLanguage)
-					.customFieldTypeFactory(customFieldTypeFactory)
-					.customConditionFactory(customConditionFactory)
-					.currentDateForTest(currentDateForTest)
-					.build();
-		}
 
 		/**
 		 * @param validationLanguage

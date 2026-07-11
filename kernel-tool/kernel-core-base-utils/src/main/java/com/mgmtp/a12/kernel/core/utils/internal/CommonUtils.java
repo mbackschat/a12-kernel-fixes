@@ -38,18 +38,15 @@ import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
 
 import lombok.NonNull;
 
@@ -57,17 +54,6 @@ import lombok.NonNull;
  * Allgemeine Hilfsmethoden und Konstanten.
  */
 public class CommonUtils {
-
-	// Valid parameter(s) in a field's error text between two $-signs
-	public static final Map<Locale, Set<String>> CONST_FIELD;
-
-	static {
-		Map<Locale, Set<String>> constField = new HashMap<>();
-
-		constField.put(Locale.GERMANY, Java8Utils.toSet("Feld", "Feld.Wert"));
-		constField.put(Locale.US, Java8Utils.toSet("field", "field.value"));
-		CONST_FIELD = Collections.unmodifiableMap(constField);
-	}
 
 	/**
 	 * With EXT-20103 these characters are allowed for print data additionally to ISO-8859-15
@@ -267,25 +253,22 @@ public class CommonUtils {
 	}
 
 	/**
-	 * Converts a string to a {@link Locale} object.
-	 * <p>
-	 * E. g.: <code>"de_DE"</code> is converted to <code>new Locale("de", "DE")</code>
-	 * <p>
+	 * Converts a string to a {@link Locale} object, see
+	 * <a
+	 * href="https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/LocaleUtils.html#toLocale(java.lang.String)">
+	 * LocaleUtils##toLocale</a>
 	 *
 	 * @param localeString
+	 * 		a valid locale identifier, or the predefined strings "deutsch" or "english" (which are used by EXTMP project
+	 * 		and cannot be migrated without significant coordination overhead)
 	 * @return the corresponding Locale object to the given string
 	 */
 	public static Locale toLocale(@NonNull String localeString) {
-		String[] parts = localeString.split("_");
-		switch (parts.length) {
-			case 1:
-				return Locale.of(parts[0]);
-			case 2:
-				return Locale.of(parts[0], parts[1]);
-			case 3:
-				return Locale.of(parts[0], parts[1], parts[2]);
-			default:
-				throw new IllegalArgumentException(String.format("The locale '%s' is not supported.", localeString));
+		if (localeString.equalsIgnoreCase("deutsch")) {
+			return Locale.GERMANY;
+		} else if (localeString.equalsIgnoreCase("english")) {
+			return Locale.US;
 		}
+		return LocaleUtils.toLocale(localeString);
 	}
 }

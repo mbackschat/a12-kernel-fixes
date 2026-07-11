@@ -45,7 +45,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import com.mgmtp.a12.kernel.core.extmpspecifics.a12internal.api.IExtmpModelSpecificSettings;
 import com.mgmtp.a12.kernel.core.extmpspecifics.internal.utils.ExtmpUtils;
-import com.mgmtp.a12.kernel.core.parser.internal.check.CheckImplLenientBaseClass;
 import com.mgmtp.a12.kernel.core.parser.internal.check.bedingung.CheckPreambleLenientImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.check.entity.CheckEntitySpecLenientImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.check.entity.CheckIdNameRefImpl;
@@ -54,8 +53,6 @@ import com.mgmtp.a12.kernel.core.parser.internal.check.entity.CheckRelativeUpImp
 import com.mgmtp.a12.kernel.core.parser.internal.check.entity.semanticIndex.CheckSemanticLenientIndexImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorHandler;
-import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorTypesEnum;
-import com.mgmtp.a12.kernel.core.parser.internal.grammar.languages.ConditionMultiLanguageHandler;
 import com.mgmtp.a12.kernel.core.parser.internal.util.EntityRef;
 import com.mgmtp.a12.kernel.core.parser.internal.util.EntityRefMap;
 import com.mgmtp.a12.kernel.core.parser.internal.util.OperationResultTypeMap;
@@ -63,7 +60,6 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IParseTreeEntity;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.PathNotationConfig;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEC;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IField;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelSpecificSettings;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.config.IProjectSpecificSettings;
@@ -102,7 +98,7 @@ public class Lenient_ConditionParser extends GrammarOnly_ConditionParser {
 
 	private IEntity errorEntity;
 
-	private boolean inFilterCondition;
+	private boolean inSetExpression;
 
 	public EntityRefMap getEntityMap() {
 		return entityMap;
@@ -166,7 +162,7 @@ public class Lenient_ConditionParser extends GrammarOnly_ConditionParser {
 		return errorEntity;
 	}
 
-	public IEntity setErrorField(IEntity errorEntity) {
+	public IEntity setErrorEntity(IEntity errorEntity) {
 		IEntity result = this.errorEntity;
 		this.errorEntity = errorEntity;
 		return result;
@@ -213,7 +209,7 @@ public class Lenient_ConditionParser extends GrammarOnly_ConditionParser {
 	public EntityRef putEntityToMap(ParserRuleContext ctx, IEntity e, String nameUsedInConditionText,
 			PathNotationConfig pathNotationConfig) {
 		EntityRef result = entityMap.putEntity(ctx, e, nameUsedInConditionText, isHModel());
-		result.setInFilterCondition(inFilterCondition);
+		result.setInSetExpression(inSetExpression);
 		result.setPathNotationConfig(pathNotationConfig);
 		return result;
 	}
@@ -285,33 +281,28 @@ public class Lenient_ConditionParser extends GrammarOnly_ConditionParser {
 	}
 
 	@Override
-	protected void resetFilterCondition(EntitySpecContext entitySpecCtx) {
+	protected void resetSetExpression(EntitySpecContext entitySpecCtx) {
 		this.resetErrorEntity();
-		this.inFilterCondition = false;
+		// We don't allow filter conditions and set operations intermixed
+		this.inSetExpression = false;
 	}
 
 	@Override
-	protected void initFilterCondition(EntitySpecContext ctx) {
+	protected void initSetExpression(EntitySpecContext ctx) {
 		EntityRef entityRef = this.entityMap.getEntityRef(ctx);
-		if (!(entityRef.getEntity() instanceof IField field)) {
-			CheckImplLenientBaseClass checker = new CheckImplLenientBaseClass(this);
-			ConditionMultiLanguageHandler mlh = new ConditionMultiLanguageHandler(
-					this.languageUsedInConditionText,
-					this.pss);
-			String opName = mlh.getTerminalName(Base_ConditionLexer.MIT);
-			String errMessage = checker.getErrorMessage(ParserErrorTypesEnum.MVK_NO_GROUPS_ALLOWED, opName);
-			throw checker.createMVKParserError(ctx, errMessage);
-		}
-		this.setErrorField(field);
-		this.inFilterCondition = true;
+		this.setErrorEntity(entityRef.getEntity());
+		this.inSetExpression = true;
 	}
 
 	public boolean isLenient() {
 		return true;
 	}
 
-	public boolean isInFilterCondition() {
-		return inFilterCondition;
+	/**
+	 * @return <code>true</code>, iff the parser is in a state where he parses a filter condition or a set operation (SumOfTerms).
+	 */
+	public boolean isInSetExpression() {
+		return inSetExpression;
 	}
 
 	public Locale getLanguageUsedInConditionText() {

@@ -36,20 +36,21 @@ import type {
 	LocalizableArgs,
 	SupportedType,
 	ValueConversionConfig
+	,
+	InterpretationOfYear
 } from "@com.mgmtp.a12.utils/utils-localization";
 import {
-	InterpretationOfYear,
 	defaultValueConversion
 } from "@com.mgmtp.a12.utils/utils-localization";
 import type {
 	DateAndFormat
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 import {
 	DateRangeConversion,
 	DateRangeConversionConfigBuilder,
 	DateUtil,
 	ValidationDateParser
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
@@ -366,9 +367,9 @@ export class FormatDefinitionDatumBereich
 			case Jahresinterpretation.Standard:
 				return undefined;
 			case Jahresinterpretation.Folgejahr:
-				return InterpretationOfYear.FROM;
+				return "FROM";
 			case Jahresinterpretation.Vorjahr:
-				return InterpretationOfYear.TO;
+				return "TO";
 		}
 	}
 

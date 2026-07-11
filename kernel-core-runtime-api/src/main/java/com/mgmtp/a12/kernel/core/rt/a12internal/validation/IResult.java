@@ -256,8 +256,7 @@ public interface IResult {
 	 * IResults can suppress validation errors by simply not including them in the error count. Note however that error suppression
 	 * is not supported for <em>formal validation</em> errors: If such errors are suppressed, validation or computation rules that
 	 * depend on the formally-invalid fields will nonetheless not work correctly, even if the formal validation error is
-	 * suppressed. An exception is the IDNR_NUR_FUER_TEST formal error, which has special treatment that allows validation and
-	 * computation rules to proceed successfully.
+	 * suppressed.
 	 *
 	 * @param type
 	 * 		specification of the error type (

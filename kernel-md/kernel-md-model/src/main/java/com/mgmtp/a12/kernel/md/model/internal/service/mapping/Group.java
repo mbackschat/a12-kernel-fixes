@@ -31,11 +31,13 @@
  */
 package com.mgmtp.a12.kernel.md.model.internal.service.mapping;
 
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.SequencedCollection;
+import java.util.SequencedMap;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -44,6 +46,7 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ISortFie
 import com.mgmtp.a12.model.header.Annotation;
 
 import lombok.Getter;
+import lombok.NonNull;
 
 /**
  * Default implementation of
@@ -52,7 +55,7 @@ import lombok.Getter;
  */
 public class Group extends Entity implements IGroup {
 
-	@Getter private final List<Entity> children;
+	private final SequencedMap<String, Entity> childrenByName;
 	@Getter private final Set<String> indexFieldNames;
 	private final String usageType;
 	@Getter private final Map<String, List<ISortField>> sortInfo;
@@ -67,7 +70,7 @@ public class Group extends Entity implements IGroup {
 			final String usageType,
 			final Map<String, List<ISortField>> sortInfo) {
 		super(name, path, maxIndices, annotations, groupId);
-		this.children = new ArrayList<>();
+		this.childrenByName = new LinkedHashMap<>();
 		this.indexFieldNames = new HashSet<>();
 		if (indexFieldName != null) {
 			this.indexFieldNames.add(indexFieldName);
@@ -76,25 +79,21 @@ public class Group extends Entity implements IGroup {
 		this.sortInfo = sortInfo;
 	}
 
-	public void addChildEntity(final Entity entity) {
-		if (getChildByName(entity.getName()) == null) {
-			children.add(entity);
-		} else {
-			throw new IllegalArgumentException(
-					"Cannot have two child elements with the same name ["
-							+ entity.getName()
-							+ "] in group '"
-							+ getFullName()
-							+ "'.");
-		}
+	public SequencedCollection<Entity> getChildren() {
+		return childrenByName.sequencedValues();
 	}
 
-	Entity getChildByName(final String name) {
-		return children.stream().filter(e -> e.getName().equals(name)).findAny().orElse(null);
+	/**
+	 * Add the given entity as a child if there is not already another child with the same name.
+	 *
+	 * @return the child associated with the entity's name before this call (i.e. {@code null} if successful).
+	 */
+	public Entity addChildEntityIfAbsent(@NonNull Entity entity) {
+		return childrenByName.putIfAbsent(entity.getName(), entity);
 	}
 
 	protected Entity getDescendantByPath(final PathElement pathElement) {
-		final Entity child = getChildByName(pathElement.getName());
+		final Entity child = childrenByName.get(pathElement.getName());
 		if (child == null) {
 			return null;
 		}

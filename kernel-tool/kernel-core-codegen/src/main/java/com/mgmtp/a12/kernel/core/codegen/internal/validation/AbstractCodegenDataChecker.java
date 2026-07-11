@@ -37,8 +37,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.mgmtp.a12.kernel.core.rt.a12internal.ValidationMode;
 import com.mgmtp.a12.kernel.core.rt.a12internal.IGeneratedCodeAccessFactory;
+import com.mgmtp.a12.kernel.core.rt.a12internal.ValidationMode;
+import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICustomCondition;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
@@ -107,17 +108,14 @@ public abstract class AbstractCodegenDataChecker implements IData {
 
 	/**
 	 * @return true if the validation of the code generation data is successful.
-	 * The deprecated {@link IValidator#validateAll(IData, Map, IResult, ValidationMode)} is used here, because the
-	 * meta-model validation uses generated code of the previous Kernel version and this version does not provide the
-	 * new methods, yet.
 	 */
-	@SuppressWarnings("removal")
 	public boolean check() {
 		IResult result = getProblemReporterValidationResult();
 		if(!A12_KERNEL_BOOTSTRAP_VALIDATORS_DISABLE_MM_VALIDATION) { // see javadoc of A12_KERNEL_BOOTSTRAP_VALIDATORS_DISABLE_MM_VALIDATION
 			IValidator validator = getValidator();
-			validator.validateAll(this, getCustomConditions(), result,
-					checkConfiguration.getValidationMode(modelSpecificSettings));
+			ValidationMode mode = checkConfiguration.getValidationMode(modelSpecificSettings);
+			mode.setCustomConditionFactory(ICustomConditionFactory.fromMap(getCustomConditions()));
+			validator.validateAll(this, result, mode);
 		}
 		return result.getCount(SeverityType.ERROR) == 0;
 	}

@@ -46,7 +46,6 @@ public class LexerTerminals_en extends ListResourceBundle {
 			{ "RootGroup", BaseErrorTextParameterLexer.ROOT_GROUP_INDEX },
 			{ "RuleGroup", BaseErrorTextParameterLexer.RULE_GROUP },
 			{ "Usb", BaseErrorTextParameterLexer.USB }, // no english translation (not allowed in A12 models)
-			{ "Vordruckname", BaseErrorTextParameterLexer.VORDRUCKNAME }, // no english translation
 			{ "Vordruckzeile", BaseErrorTextParameterLexer.VORDRUCKZEILE }, // no english translation
 			{ "BaseYear", BaseErrorTextParameterLexer.REFERENZJAHR },
 			{ "value", BaseErrorTextParameterLexer.VALUE },

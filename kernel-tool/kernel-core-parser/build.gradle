@@ -26,10 +26,10 @@ dependencies {
     antlr(libs.antlr4) {// this dependency doesn't work yet with centrally-controlled version
         exclude group: 'com.ibm.icu', module: 'icu4j' // icu4j seems unneded at runtime of the antlr tool https://github.com/antlr/antlr4/issues/4900
     }
-    api project(':kernel-core-base-utils')
-    api project(':kernel-core-extmpspecifics')
-    api project(':kernel-core-parsetree-api')
-    api project(':kernel-core-tool-api')
+    api project(':kernel-internal-base-utils')
+    api project(':kernel-internal-core-extmpspecifics')
+    api project(':kernel-internal-core-parsetree-api')
+    api project(':kernel-internal-core-tool-api')
     api libs.antlr4Runtime // required with the below workaround
     api libs.baseModelConsistency
     api libs.commonsLang3

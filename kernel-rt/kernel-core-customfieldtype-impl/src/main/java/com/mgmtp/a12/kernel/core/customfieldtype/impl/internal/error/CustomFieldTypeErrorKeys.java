@@ -39,12 +39,6 @@ public final class CustomFieldTypeErrorKeys {
 
 	public static final String UNGUELTIGE_ID_NUMMER = "ungueltigeIDNummer";
 
-	/**
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Not needed anymore, when IdNrVerifier is created properly.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	public static final String TEST_ID_NUMMER = "testIDNummer";
-
 	public static final String UNGUELTIGE_STNR = "ungueltigeSteuernummer";
 
 	public static final String UNGUELTIGES_EWAZ = "ungueltigesEinheitswertAktenzeichen";

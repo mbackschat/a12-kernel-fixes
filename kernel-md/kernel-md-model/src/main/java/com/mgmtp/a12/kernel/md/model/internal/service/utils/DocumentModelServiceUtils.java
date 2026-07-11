@@ -39,14 +39,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEC;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelSpecificSettings;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ServiceConfiguration;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.config.IProjectSpecificSettings;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IServiceConfiguration;
-import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
 import com.mgmtp.a12.kernel.md.model.a12internal.services.ElementContainer;
 import com.mgmtp.a12.kernel.md.model.a12internal.services.codegen.A12SpecificSettings;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
@@ -70,21 +69,18 @@ public class DocumentModelServiceUtils {
 	 * This method is called while generating the code and while loading the generated code once it is generated and available in
 	 * the classpath.
 	 */
-	public static String createGeneratedCodeId(IDocumentModel docModel, String variant) {
+	public static String createGeneratedCodeId(IDocumentModel docModel) {
 		IDocumentModelInfo docInfo = docModel.getContent().getDocumentModelInfo();
-		// TODO why does this method not get the variant from the dm (docInfo.getVariant()), but separately?
 		String version = docInfo.getBranch()
 				.map(String::toLowerCase)
 				.filter(v -> docInfo.getName().toLowerCase().endsWith(DEFAULT_MODEL_VERSION_SEPARATOR + v))
 				.orElse(null);
 
-		String docModelName = (version != null) ?
-				docInfo.getName()
-						.substring(0, docInfo.getName().toLowerCase().lastIndexOf(DEFAULT_MODEL_VERSION_SEPARATOR + version))
+		String docModelName = version != null
 				// extract doc model name
-				:
-				docInfo.getName();
-		return createGeneratedCodeId(docModelName, version, variant);
+				? Strings.CI.removeEnd(docInfo.getName(), DEFAULT_MODEL_VERSION_SEPARATOR + version)
+				: docInfo.getName();
+		return createGeneratedCodeId(docModelName, version, null);
 	}
 
 	public static String createGeneratedCodeId(String modelName, String version, String variant) {
@@ -98,20 +94,8 @@ public class DocumentModelServiceUtils {
 		return VkStringEncoder.encode(value.toLowerCase());
 	}
 
-	public static ElementContainer convert(IDocumentModel documentModel, String variant) {
-		return convert(documentModel, variant, false);
-	}
-
-	public static ElementContainer convert(IDocumentModel documentModel, String variant, boolean considerNotInD) {
-		return new ValidationModelConverter(variant, considerNotInD).convert(documentModel);
-	}
-
-	public static ElementContainer convert(IDocumentModel documentModel, String variant, IProblemReporter problemReporter) {
-		return convert(documentModel, variant, false, problemReporter);
-	}
-
-	public static ElementContainer convert(IDocumentModel documentModel, String variant, boolean considerNotInD, IProblemReporter problemReporter) {
-		return new ValidationModelConverter(variant, considerNotInD).convert(documentModel, problemReporter);
+	public static ElementContainer convert(IDocumentModel documentModel, boolean considerNotInD, IProblemReporter problemReporter) {
+		return new ValidationModelConverter(considerNotInD).convert(documentModel, problemReporter);
 	}
 
 	public static class A12ModelSpecificSettings implements IModelSpecificSettings {

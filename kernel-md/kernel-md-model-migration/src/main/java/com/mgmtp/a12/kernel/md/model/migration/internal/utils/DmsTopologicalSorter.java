@@ -40,8 +40,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.core.utils.internal.TopologicalSortHelper;
+
+import tools.jackson.databind.JsonNode;
 
 /**
  * Sort document models topologically according to the imported/included document models.

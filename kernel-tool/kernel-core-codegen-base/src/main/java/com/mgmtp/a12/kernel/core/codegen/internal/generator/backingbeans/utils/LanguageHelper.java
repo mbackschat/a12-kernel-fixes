@@ -65,8 +65,8 @@ public class LanguageHelper extends STParameterClassBase {
 			return "Locale.US";
 		} else {
 			return StringUtils.isEmpty(locale.getCountry())
-					? String.format("new Locale(\"%s\")", locale.getLanguage())
-					: String.format("new Locale(\"%s\", \"%s\")", locale.getLanguage(), locale.getCountry());
+					? String.format("Locale.of(\"%s\")", locale.getLanguage())
+					: String.format("Locale.of(\"%s\", \"%s\")", locale.getLanguage(), locale.getCountry());
 		}
 	}
 }

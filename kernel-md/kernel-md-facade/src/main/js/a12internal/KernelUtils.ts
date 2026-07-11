@@ -34,7 +34,7 @@ import type { DataFormatPlaceholder, Localizable, LocalizableArgs } from "@com.m
 import {
 	DateUtil,
 	PartiallyKnownDatesUtil
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 import { LocalizableUtil } from "@com.mgmtp.a12.kernel/kernel-core-runtime-ts/internal";

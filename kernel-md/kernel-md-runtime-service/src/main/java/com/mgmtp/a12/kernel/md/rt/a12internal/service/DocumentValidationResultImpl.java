@@ -41,7 +41,7 @@ import com.mgmtp.a12.kernel.md.rt.api.IDocumentValidationResult;
 import com.mgmtp.a12.kernel.md.rt.api.IMessage;
 import com.mgmtp.a12.kernel.md.rt.api.IMessage.MessageType;
 import com.mgmtp.a12.kernel.md.rt.api.IMessage.Severity;
-import com.mgmtp.a12.kernel.md.rt.internal.service.EntityInstanceConverter;
+import com.mgmtp.a12.kernel.md.rt.internal.service.DocumentPointerConverter;
 import com.mgmtp.a12.kernel.md.rt.internal.service.MessageImpl;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
@@ -56,9 +56,9 @@ public class DocumentValidationResultImpl extends ResultBaseImpl implements IRes
 	public List<IMessage> getMessages() {
 		return v1Messages().stream().map(m -> (IMessage) new MessageImpl(
 				m.messageStr(),
-				EntityInstanceConverter.convertToEntityInstance(m.field()),
-				EntityInstanceConverter.convertToEntityInstanceSet(m.referencedFields()),
-				EntityInstanceConverter.convertToEntityInstanceSet(m.refOmissionErrorResponsible()),
+				DocumentPointerConverter.convertToPartiallyKnownDocumentMultiPointer(m.field()),
+				DocumentPointerConverter.convertToPartiallyKnownDocumentMultiPointerSet(m.referencedFields()),
+				DocumentPointerConverter.convertToPartiallyKnownDocumentMultiPointerSet(m.refOmissionErrorResponsible()),
 				MessageType.valueOf(m.type().name()),
 				mapSeverity(m.severity()),
 				Optional.ofNullable(m.ruleName()),

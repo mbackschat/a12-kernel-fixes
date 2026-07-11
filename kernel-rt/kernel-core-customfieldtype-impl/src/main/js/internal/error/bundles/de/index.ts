@@ -167,9 +167,7 @@ set(
 );
 set(
 	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_NUR_FUER_TEST],
-	"Feld ist eine Test-Identifikationsnummer und nur f" +
-	unescape("%FC") +
-	"r den Testbetrieb zugelassen."
+	"Ung" + unescape("%FC") + "ltige Identifikationsnummer."
 );
 set(
 	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.IDNR_NICHT_NUMERISCH],

@@ -43,6 +43,8 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.IModelCh
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
+import lombok.NonNull;
+
 @OnlyForUsage
 public interface IRuleCollectionMetaInformation {
 
@@ -60,7 +62,7 @@ public interface IRuleCollectionMetaInformation {
 	 * @return names of all application conditions used in the rules. The list is empty, if no
 	 * 		application conditions are used.
 	 */
-	public List<String> getApplicationConditionNames(Collection<? extends IRule> rules, IProblemReporter pr);
+	@NonNull List<String> getApplicationConditionNames(@NonNull Collection<? extends IRule> rules, @NonNull IProblemReporter pr);
 
 	/**
 	 * Can be called no matter which expand mode was used for parsing the conditions.
@@ -70,7 +72,7 @@ public interface IRuleCollectionMetaInformation {
 	 * @return Names of all application conditions used in the <code>conditions</code>. If one of the conditions is null it is
 	 * 		ignored.
 	 */
-	public List<String> getApplicationConditionNames(Collection<ICondition> conditions);
+	@NonNull List<String> getApplicationConditionNames(@NonNull Collection<ICondition> conditions);
 
 	/**
 	 * Analyzes all rules to get the information, if a field is mandatory or mandatory regarding its

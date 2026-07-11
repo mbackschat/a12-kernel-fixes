@@ -65,6 +65,7 @@ import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.Number
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.OpListOperationImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.OpListOperationWithParameterImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.PointInTimeOperationImpl;
+import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.SetOpOperationImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.datum.DateAddOperationImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.datum.DateConstructionOperationImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.datum.DateDiffOperationImpl;
@@ -99,6 +100,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOper
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOperationWithParameter;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IPointInTimeOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateAddOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateConstructionOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateDiffOperation;
@@ -114,10 +116,10 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.ast.ASTVisitor;
  */
 public class ParseTreeCopier extends ASTVisitor {
 
-	Deque<ICondition> bedingungsStack = new ArrayDeque<>();
-	Deque<IOperation> opStack = new ArrayDeque<>();
-	Deque<IEntityIdList> entityListStack = new ArrayDeque<>();
-	Deque<IEntityId> entityStack = new ArrayDeque<>();
+	protected Deque<ICondition> bedingungsStack = new ArrayDeque<>();
+	protected Deque<IOperation> opStack = new ArrayDeque<>();
+	protected Deque<IEntityIdList> entityListStack = new ArrayDeque<>();
+	protected Deque<IEntityId> entityStack = new ArrayDeque<>();
 
 	/**
 	 * Creates a deep copy of <code>condition</code>.
@@ -170,7 +172,7 @@ public class ParseTreeCopier extends ASTVisitor {
 		return bedingungsStack.pop();
 	}
 
-	IOperation getOperationResult() {
+	protected IOperation getOperationResult() {
 		assert bedingungsStack.isEmpty();
 		assert opStack.size() == 1;
 		assert entityListStack.isEmpty();
@@ -490,4 +492,9 @@ public class ParseTreeCopier extends ASTVisitor {
 		entityListStack.push(new EntityIdListImpl(ids));
 	}
 
+	public void endVisit(ISetOpOperation op) {
+		IEntityId entity = entityStack.pop();
+		IOperation setOp = opStack.pop();
+		opStack.push(new SetOpOperationImpl(op.getOperatorName(), entity, setOp));
+	}
 }

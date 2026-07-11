@@ -9,10 +9,10 @@ dependencies {
     api testLibs.rewriteJava
     api testLibs.rewriteCore
     api libs.jacksonAnnotations
-    api testLibs.jspecify
+    api libs.jspecify
 
     runtimeOnly(testLibs.rewriteJavaDependencies)
-    runtimeOnly(testLibs.rewriteJava17)
+    runtimeOnly(testLibs.rewriteJava21)
 
     testImplementation libs.commonsIo
     testImplementation(testLibs.junitJupiterApi)
@@ -35,6 +35,13 @@ configurations.configureEach {
 }
 
 HashMap<String, List<String>> configs = [
+        "31_0_0": [
+                "com.mgmtp.a12.kernel:kernel-md-model-api:30.7.1",
+                "com.mgmtp.a12.kernel:kernel-md-model:30.7.1",
+                "com.mgmtp.a12.kernel:kernel-md-a12internal:30.7.1",
+                "com.mgmtp.a12.kernel:kernel-md-runtime-api:30.7.1",
+                "com.mgmtp.a12.kernel:kernel-core-tool-api:30.7.1"
+        ],
         "30_5_0": [
                 "com.mgmtp.a12.kernel:kernel-md-a12internal:30.3.0",
                 "com.mgmtp.a12.kernel:kernel-md-join:30.3.0",

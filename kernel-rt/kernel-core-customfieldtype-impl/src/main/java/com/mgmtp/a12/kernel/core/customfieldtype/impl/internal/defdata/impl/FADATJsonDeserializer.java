@@ -37,9 +37,10 @@ import java.io.Reader;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.IFadat;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class FADATJsonDeserializer {
 

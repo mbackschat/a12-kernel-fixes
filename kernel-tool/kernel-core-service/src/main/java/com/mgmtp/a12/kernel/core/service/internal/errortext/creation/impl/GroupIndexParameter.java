@@ -66,11 +66,6 @@ public class GroupIndexParameter extends ErrortextParameter implements IGroupInd
 	}
 
 	@Override
-	public void setGroup(String group) {
-		this.group = group;
-	}
-
-	@Override
 	public String format(Locale lang) {
 		ErrortextParameterMultiLanguageHandler mlh = getMultiLanguageHandler(lang);
 		String groupName = group != null ?

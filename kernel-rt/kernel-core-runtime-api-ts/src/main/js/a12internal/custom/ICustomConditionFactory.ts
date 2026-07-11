@@ -39,8 +39,7 @@ import type { ICustomCondition } from "../validation/ICustomCondition.js";
  */
 export interface ICustomConditionFactory {
 	/**
-	 * {@link CustomConditionService} uses this method to create new instances of custom conditions
-	 * without knowing the condition names supported by the factory.
+	 * Creates new instances of custom conditions.
 	 *
 	 * @return A new instance of the custom condition specified by <code>customConditionName</code> or
 	 *         <code>null</code> if the factory does not support this custom condition.

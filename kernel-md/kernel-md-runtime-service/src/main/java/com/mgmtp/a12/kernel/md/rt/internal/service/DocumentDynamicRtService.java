@@ -40,14 +40,16 @@ import lombok.NonNull;
 
 public class DocumentDynamicRtService extends DocumentAbstractRtService {
 
-	public DocumentDynamicRtService(final IDocumentDynamicServiceConfig config,
-			final IDocumentModelResolver documentModelResolver) {
-		super(config, documentModelResolver, new DynamicModelProvider(config));
+	public DocumentDynamicRtService(
+			final IDocumentDynamicServiceConfig config,
+			final IDocumentModelResolver documentModelResolver
+	) {
+		super(config, documentModelResolver, new DynamicModelProvider(config, documentModelResolver));
 	}
 
 	@Override
 	public void precompileDocumentModel(@NonNull IDocumentModel documentModel) {
-		// Ensure, the code is compiled
-		modelProvider.getCalculator(documentModel, variant);
+		// Ensure, the code is compiled. Note that the call to #getCalculator is necessary in order to fully load all necessary state
+		modelProvider.getGeneratedCodeAccessFactory(documentModel.getHeader().getId()).getCalculator();
 	}
 }

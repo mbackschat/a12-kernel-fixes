@@ -97,6 +97,10 @@ export class PruefzifferVerfahren {
 		return number % 10;
 	}
 
+	public static valuesAreEqual(a: number, b: number): boolean {
+		return a === b;
+	}
+
 	private static _notNegative(number: number): void {
 		if (number < 0) {
 			throw new Error("Parameter is negative.");

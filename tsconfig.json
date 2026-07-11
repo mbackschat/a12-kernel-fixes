@@ -35,7 +35,8 @@
   "compilerOptions": {
     "strictFunctionTypes": true,
     "stripInternal": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true
   },
   "typedocOptions": {
     "name": "A12 Kernel",

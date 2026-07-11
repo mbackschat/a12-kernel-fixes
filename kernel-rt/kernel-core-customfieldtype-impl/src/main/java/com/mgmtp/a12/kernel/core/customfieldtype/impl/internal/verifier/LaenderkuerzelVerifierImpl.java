@@ -34,10 +34,8 @@ package com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.verifier;
 import java.util.Optional;
 
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeCheckError;
-import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeConversionResult;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeValidationParam;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator;
-import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.CustomFieldTypeConversionResultImpl;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.defdata.api.IGermanTaxNumberDefiningData;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.defdata.impl.GermanTaxNumberDefiningData;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.error.CustomFieldTypeErrorEnum;
@@ -78,15 +76,5 @@ public class LaenderkuerzelVerifierImpl implements ICustomFieldValidator {
 			return CustomFieldTypeErrorEnum.KEIN_FEHLER;
 		}
 		return CustomFieldTypeErrorEnum.LAENDERKUERZEL_UNGUELTIG;
-	}
-
-	@Override
-	public @NonNull ICustomFieldTypeConversionResult convertDisplay2Internal(@NonNull String displayValue) {
-		return new CustomFieldTypeConversionResultImpl(displayValue, null);
-	}
-
-	@Override
-	public @NonNull ICustomFieldTypeConversionResult convertInternal2Display(@NonNull String xmlValue) {
-		return new CustomFieldTypeConversionResultImpl(xmlValue, null);
 	}
 }

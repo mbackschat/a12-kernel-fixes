@@ -32,8 +32,8 @@
 
 package com.mgmtp.a12.kernel.md.facade.a12internal;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -54,17 +54,17 @@ import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IDateFragmentType;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IDateType;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IFieldType;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.ElementUtils;
-import com.mgmtp.a12.kernel.md.utils.OnlyForA12InternalUsage;
 import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1;
 import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion;
 import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV2;
 import com.mgmtp.a12.utils.conversion.a12internal.util.DateUtil;
 import com.mgmtp.a12.utils.conversion.a12internal.util.PartiallyKnownDatesUtil;
 
+import lombok.NonNull;
+
 /**
  * Utility class containing low level functionality provided by kernel.
  */
-@OnlyForA12InternalUsage
 public class KernelUtils {
 
 	private KernelUtils() {
@@ -98,7 +98,7 @@ public class KernelUtils {
 	 * @throws IllegalArgumentException
 	 * 		see method description.
 	 */
-	public static Date getApproximatedDate(String partiallyKnownDate, TimeZone timeZone) {
+	public static Date getApproximatedDate(@NonNull String partiallyKnownDate, TimeZone timeZone) {
 		String format = FieldTypeConstants.DEFAULT_DATE_FORMAT;
 		return PartiallyKnownDatesUtil.parseApproximatedDate(partiallyKnownDate, format, timeZone);
 	}
@@ -109,7 +109,7 @@ public class KernelUtils {
 	 * {@link BasicTypeV1}; i.e. returns an {@link Instant} where
 	 * {@code getApproximatedDate} would return a {@link Date}
 	 */
-	public static Instant getApproximatedDateV2(String partiallyKnownDate, TimeZone timeZone) {
+	public static Instant getApproximatedDateV2(@NonNull String partiallyKnownDate, TimeZone timeZone) {
 		return BasicTypeV1V2Conversion.dateToInstant(getApproximatedDate(partiallyKnownDate, timeZone));
 	}
 
@@ -153,7 +153,7 @@ public class KernelUtils {
 	 * @throws IllegalArgumentException
 	 * 		if the value cannot be parsed to a {@link Date}-object (see also method description).
 	 */
-	public static Object parseDate(String value, String dateFormat, int baseYear,
+	public static Object parseDate(@NonNull String value, @NonNull String dateFormat, int baseYear,
 			boolean arePartiallyKnownDatesAllowed, TimeZone timeZone) {
 		// the logic of this method must be as similar as possible to FormatDefinitionDatum.convertToBasicType
 		return DateUtil.createDateIfPossible(value, dateFormat, baseYear, arePartiallyKnownDatesAllowed, timeZone);
@@ -249,7 +249,7 @@ public class KernelUtils {
 	 * @param value
 	 *        {@link String} or {@link Date} which should be processed. May not be {@code null}.
 	 * @param dateFormat
-	 * 		format of the date as defined in {@link SimpleDateFormat} to which the given date should be formatted. May not be
+	 * 		format of the date as defined in {@link DateTimeFormatter} to which the given date should be formatted. May not be
 	 *        {@code null} or empty.
 	 * @param timeZone
 	 *        {@link TimeZone} which was considered while creating the given {@link Date}-object. This could be taken from the

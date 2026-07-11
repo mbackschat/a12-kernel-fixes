@@ -189,9 +189,7 @@ public class DocumentV2Utils {
 	}
 
 	/**
-	 * similar to
-	 * {@link com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService#get(String, int[])},
-	 * but returns only <em>group</em> instances.
+	 * Returns <em>group</em> instances.
 	 * <p>
 	 * Note: if no wildcard repetitions are involved, simply use {@link GroupInstanceV2#group} on the documentOrGroup.
 	 *
@@ -244,7 +242,9 @@ public class DocumentV2Utils {
 	}
 
 	/**
-	 * see {@link #getGroupInstances(GroupInstanceV2, DocumentMultiPointer)}
+	 * see {@link #getGroupInstances(GroupInstanceV2, DocumentMultiPointer)}. Note that implicit repetition indices in the string
+	 * representation of DocumentPointer/DocumentMultiPointer correspond to repetition index 1, not wildcard. If you mean to
+	 * specify a DocumentMultiPointer with wildcards, consider {@link DocumentMultiPointer#ofPathWithAllWildcards(String)}.
 	 */
 	public static Collection<Map.Entry<DocumentPointer, GroupInstanceV2>> getGroupInstances(@NonNull GroupInstanceV2 group,
 			@NonNull String path) {
@@ -252,9 +252,7 @@ public class DocumentV2Utils {
 	}
 
 	/**
-	 * similar to
-	 * {@link com.mgmtp.a12.kernel.md.document.api.services.IDocumentSearchService#get(String, int[])},
-	 * but returns only field instances that are in the given path.
+	 * Returns only field instances that are in the given path.
 	 * <p>
 	 * Note: if no wildcard repetitions are involved, simply use {@link GroupInstanceV2#field} (or
 	 * {@link GroupInstanceV2#fieldValue}) on the documentOrGroup.
@@ -452,7 +450,7 @@ public class DocumentV2Utils {
 		 * removed from the
 		 * documents before being compared. See {@link #removeEmptyFieldsAndGroups(DocumentV2)}.
 		 * <p>
-		 * {@code true} (default) corresponds to the behavior for IDocument (V1) compare.
+		 * {@code true} is the default (for compatibiltiy with historic behavior).
 		 */
 		@Builder.Default
 		private boolean emptyAndNullAsAbsent = true;

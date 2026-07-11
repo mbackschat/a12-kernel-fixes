@@ -32,9 +32,7 @@
 
 package com.mgmtp.a12.kernel.md.model.migration.internal;
 
-import java.io.IOException;
 import java.io.StringWriter;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,65 +41,61 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.exception.UncheckedException;
+
 import com.mgmtp.a12.kernel.core.utils.internal.TopologicalSortHelper;
 import com.mgmtp.a12.kernel.md.model.a12internal.services.DocumentModelMigrator;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.IDocumentModelMigrator;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.IDocumentModelMigratorResult;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.exceptions.DocumentModelMigratorException;
-import com.mgmtp.a12.kernel.md.model.migration.internal.builder.JsonMigratorBuilder;
+import com.mgmtp.a12.kernel.md.model.migration.internal.config.InternalStep;
 import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigratorConfigLoader;
+import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigratorConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.json.DocumentModelMigratorResultImpl;
+import com.mgmtp.a12.kernel.md.model.migration.internal.step.MigrationStep;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.DmsTopologicalSorter;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
-import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.ObjectMapperProvider;
+import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.KernelJsonMapperProvider;
 
 import lombok.NonNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 
 public class DocumentModelMigratorImpl implements IDocumentModelMigrator {
-
-	private final MigrationCache migrationCache;
 	private final List<String> supportedTargetVersions;
-	private final String oldestSupportedSourceVersion;
+	private final String firstSupportedSourceVersion;
 	private final MigrationConfig mergedConfig;
 
-	/**
-	 * @param customConfig
-	 *        {@code null} if no customization is needed.
-	 */
-	public DocumentModelMigratorImpl(ICustomMigrationConfig customConfig) {
-		this(new MigrationCache(), customConfig);
+	public static DocumentModelMigratorImpl createForwardMigrator(MigrationCache cache, ICustomMigrationConfig customConfig) {
+		return new DocumentModelMigratorImpl(cache, MigratorConfig.internalSteps(), customConfig, true);
 	}
 
-	/**
-	 * @param migrationCache
-	 * 		must not be {@code null}.
-	 * @param customConfig
-	 *        {@code null} if no customization is needed.
-	 */
-	public DocumentModelMigratorImpl(MigrationCache migrationCache, ICustomMigrationConfig customConfig) {
-		this(migrationCache, "/internal/json/config/MigratorConfig.json", customConfig);
+	public static DocumentModelMigratorImpl createBackwardMigrator(ICustomMigrationConfig customConfig) {
+		return new DocumentModelMigratorImpl(new MigrationCache(), MigratorConfig.internalSteps(), customConfig, false);
 	}
 
 	/**
 	 * Note: This constructor is only needed for testing purposes.
-	 *
-	 * @param customConfig
-	 *        {@code null} if no customization is needed.
-	 * @param internalConfigFile
 	 */
-	DocumentModelMigratorImpl(MigrationCache migrationCache, String internalConfigFile, ICustomMigrationConfig customConfig) {
-		this.migrationCache = migrationCache;
-		this.mergedConfig = new MigratorConfigLoader().load(internalConfigFile, customConfig);
-		List<String> targetVersions = mergedConfig.getMigrationSteps().stream()
-				.filter(m -> !m.isInternalVersion())
-				.map(MigrationStepConfigType::getTargetModelVersion)
-				.collect(Collectors.toList());
-		this.oldestSupportedSourceVersion = mergedConfig.getMigrationSteps().get(0).getSourceModelVersion();
-		targetVersions.add(0, oldestSupportedSourceVersion);
+	DocumentModelMigratorImpl(
+			@NonNull MigrationCache migrationCache,
+			@NonNull List<InternalStep> steps,
+			ICustomMigrationConfig customConfig,
+			boolean isForward
+	) {
+		this.mergedConfig = MigrationConfig.create(steps, migrationCache, customConfig, isForward);
+		var migrationSteps = mergedConfig.getMigrationSteps();
+		List<String> targetVersions = migrationSteps.stream()
+				.filter(m -> !m.getConfig().targetVersionIsInternal())
+				.map(MigrationStep::getTargetModelVersion)
+				.collect(Collectors.toList());//wa want modifiable list here
+
+
+		var firstInList = mergedConfig.getMigrationSteps().getFirst();
+		this.firstSupportedSourceVersion = firstInList.getSourceModelVersion();
+
+		targetVersions.addFirst(firstSupportedSourceVersion);
 		this.supportedTargetVersions = Collections.unmodifiableList(targetVersions);
 	}
 
@@ -131,12 +125,9 @@ public class DocumentModelMigratorImpl implements IDocumentModelMigrator {
 		for (String docModelId : sortResult.getSort()) {
 			JsonNode docModel = docModelsById.get(docModelId);
 			MigrationResult migrationResult;
-			try {
-				migrationResult = migrate(docModel, targetVersion);
-			} catch (DocumentModelMigratorException e) {
-				result.add(new DocumentModelMigratorResultImpl(docModelId, e));
-				continue;
-			}
+
+			migrationResult = migrate(docModel, targetVersion);
+
 			MigrationResultType resultType = migrationResult.getType();
 			switch (resultType) {
 				case SUCCESSFUL, NOT_REQUIRED ->
@@ -160,7 +151,7 @@ public class DocumentModelMigratorImpl implements IDocumentModelMigrator {
 			i++;
 			try {
 				docModel = ModelJsonUtil.parseModel(docModelStr);
-			} catch (IOException e) {
+			} catch (JacksonException e) {
 				migrationErrors.add(new DocumentModelMigratorResultImpl("inputModel" + i,
 						new DocumentModelMigratorException("Could not read JSON representation of DocumentModel.", e)));
 				continue;
@@ -178,10 +169,10 @@ public class DocumentModelMigratorImpl implements IDocumentModelMigrator {
 	private String write(JsonNode docModel) {
 		try {
 			StringWriter writer = new StringWriter();
-			ObjectMapperProvider.createPreconfiguredObjectMapper().writeValue(writer, docModel);
+			KernelJsonMapperProvider.createPreconfiguredObjectMapper().build().writeValue(writer, docModel);
 			return writer.toString();
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+		} catch (JacksonException e) {
+			throw new UncheckedException(e);
 		}
 	}
 
@@ -202,23 +193,18 @@ public class DocumentModelMigratorImpl implements IDocumentModelMigrator {
 		return sb.toString();
 	}
 
-	public MigrationResult migrateToLatestVersion(final JsonNode jsonModel) throws DocumentModelMigratorException {
-		String latestVersion = supportedTargetVersions.get(supportedTargetVersions.size() - 1);
-		return migrate(jsonModel, latestVersion);
+	public MigrationResult migrateToFurthestSupportedTargetVersion(final JsonNode jsonModel) {
+		return migrate(jsonModel, supportedTargetVersions.getLast());
 	}
 
-	public MigrationResult migrate(final JsonNode jsonModel, final String targetVersion) throws DocumentModelMigratorException {
+	public MigrationResult migrate(final JsonNode jsonModel, final String targetVersion) {
 		if (targetVersion != null && !supportedTargetVersions.contains(targetVersion)) {
 			throw new IllegalArgumentException(
 					String.format("Target version '%s' is not supported. Please use one of the following values: '%s'",
 							targetVersion, supportedTargetVersions.stream().collect(Collectors.joining(", "))));
 		}
 		// no schema validation for json
-		return new JsonMigratorBuilder()
-				.withMigrationCache(migrationCache)
-				.withMigrationConfig(mergedConfig)
-				.build()
-				.migrate(jsonModel, targetVersion);
+		return new Migrator(mergedConfig).migrate(jsonModel, targetVersion);
 	}
 
 	@Override
@@ -227,7 +213,7 @@ public class DocumentModelMigratorImpl implements IDocumentModelMigrator {
 	}
 
 	@Override
-	public String getOldestSupportedSourceVersion() {
-		return oldestSupportedSourceVersion;
+	public String getFirstSupportedSourceVersion() {
+		return firstSupportedSourceVersion;
 	}
 }

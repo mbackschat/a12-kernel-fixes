@@ -7,7 +7,7 @@ description = "External interface for working with the A12/A12 mapping solution.
 
 dependencies {
     api project(':kernel-md-document-v2')
-    api project(':kernel-md-runtime-api')
+    api project(':kernel-internal-md-runtime-api')
 
     compileOnly libs.baseModelUtils // Only annotations
     runtimeOnly libs.jacksonCore

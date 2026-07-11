@@ -224,7 +224,7 @@ public class RuleInfoBuilder {
 				data.getModelSpecificSettings(), true);
 		for (Locale l : data.getParams().getLanguages()) {
 			errorTextParameters.putAll(
-					checker.checkErrorMessageNotEmptyAndCorrect(rule.getErrorMessage(l), rule.getFullName(), l, pr));
+					checker.checkErrorMessageNotEmptyAndCorrect(rule.getErrorMessage(l), l, pr));
 		}
 	}
 

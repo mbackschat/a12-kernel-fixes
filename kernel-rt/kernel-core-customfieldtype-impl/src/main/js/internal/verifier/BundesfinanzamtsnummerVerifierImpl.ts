@@ -30,20 +30,20 @@
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
 import type {
-	ICustomFieldTypeCheckError,
-	ICustomFieldTypeConversionResult,
-	ICustomFieldTypeValidationParam,
-	ICustomFieldValidator
+    ICustomFieldTypeCheckError,
+    ICustomFieldTypeConversionResult,
+    ICustomFieldTypeValidationParam,
+    ICustomFieldValidator
 } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
-import { customFieldTypeConversionResult } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
+import {customFieldTypeConversionResult} from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
-import type { IFadat } from "../../IFadat.js";
+import type {IFadat} from "../../IFadat.js";
 
-import { CustomFieldTypeErrorEnum } from "../error/CustomFieldTypeErrorEnum.js";
-import { CustomFieldTypeErrorKeys } from "../error/CustomFieldTypeErrorKeys.js";
-import { CustomFieldTypeErrorUtil } from "../error/CustomFieldTypeErrorUtil.js";
+import {CustomFieldTypeErrorEnum} from "../error/CustomFieldTypeErrorEnum.js";
+import {CustomFieldTypeErrorKeys} from "../error/CustomFieldTypeErrorKeys.js";
+import {CustomFieldTypeErrorUtil} from "../error/CustomFieldTypeErrorUtil.js";
 
-import { AbstractFadatRelatedCustomFieldType } from "./AbstractFadatRelatedCustomFieldType.js";
+import {FadatLookupUtil} from "./FadatLookupUtil.js";
 
 /**
  * Checks the Bundesfinanzamtsnummer.
@@ -56,11 +56,13 @@ import { AbstractFadatRelatedCustomFieldType } from "./AbstractFadatRelatedCusto
  * If the Bundesfinanzamtsnummer does not match the regular expression
  * <code>[0-9]{4}</code> it is a formal error.
  */
-export class BundesfinanzamtsnummerVerifierImpl extends AbstractFadatRelatedCustomFieldType implements ICustomFieldValidator {
+export class BundesfinanzamtsnummerVerifierImpl implements ICustomFieldValidator {
 	private static readonly _VALID_BUFANR = /^[0-9]{4}$/;
 
+	private readonly _fadat: IFadat | undefined;
+
 	public constructor(fadat: IFadat | undefined) {
-		super(fadat);
+		this._fadat = fadat;
 	}
 
 	/**
@@ -88,7 +90,7 @@ export class BundesfinanzamtsnummerVerifierImpl extends AbstractFadatRelatedCust
 		if (!this._istFormalGueltig(bundesfinanzamtsnummer)) {
 			return CustomFieldTypeErrorEnum.BUFANR_FORMALER_FEHLER;
 		}
-		if (!this.existsFederalTaxOfficeNumber(Number(bundesfinanzamtsnummer))) {
+		if (!FadatLookupUtil.existsFederalTaxOfficeNumber(this._fadat, Number(bundesfinanzamtsnummer))) {
 			return CustomFieldTypeErrorEnum.BUFANR_UNGUELTIGE_FINANZAMTSNR;
 		}
 		return CustomFieldTypeErrorEnum.KEIN_FEHLER;

@@ -32,7 +32,7 @@
 
 import {
 	NumberUtil
-} from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+} from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import { IIdentifier } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
@@ -89,7 +89,7 @@ export class IndexFieldCache {
 	/**
 	 * If there are invalid values for an index field, the grand parent indices of the invalid field
 	 * are stored in the map. Key is the unique name of the index field.
-	 * 
+	 *
 	 * @Note At the moment we only need to know if there is one invalid index field for each
 	 * iteration above the indexed level, so we only store the parent indices of the indexed level
 	 * (= grand parent indices of the index field).
@@ -297,7 +297,7 @@ export class IndexFieldCache {
 		if (uniqueIndexFieldName != null) {
 			const indexGroupParentIndices = this._indexFieldUniqueNameToInvalidGrandParentIndices.get(uniqueIndexFieldName);
 			if (indexGroupParentIndices != undefined) {
-				return indexGroupParentIndices;
+				return indexGroupParentIndices as any;
 			}
 		}
 		return new Set();

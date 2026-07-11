@@ -32,8 +32,6 @@
 
 package com.mgmtp.a12.kernel.md.rt.api;
 
-import java.util.Optional;
-
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 
 import lombok.NonNull;
@@ -49,11 +47,8 @@ public interface IDocumentModelIdProvider {
 	/**
 	 * @param documentModel
 	 *        {@link IDocumentModel} from and for which the ID should be determined.
-	 * @param variant
-	 * 		variant to be considered by the calculated ID, if it was passed at {@link IDocumentServiceConfig#getVariant()}. Is
-	 *        {@code null} if {@link IDocumentServiceConfig#getVariant()} returns {@link Optional#empty()}.
 	 * @return document model ID, which is calculated from the parameters. This ID is e.g. used to
 	 * 		load the generated code. Must not be {@code null} or empty.
 	 */
-	@NonNull String getDocumentModelId(@NonNull IDocumentModel documentModel, String variant);
+	@NonNull String getDocumentModelId(@NonNull IDocumentModel documentModel);
 }

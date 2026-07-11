@@ -32,11 +32,8 @@
 
 package com.mgmtp.a12.kernel.md.rt.api;
 
-import java.util.Locale;
 import java.util.Set;
 
-import com.mgmtp.a12.kernel.md.document.api.IDocument;
-import com.mgmtp.a12.kernel.md.document.api.IEntityInstance;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
@@ -91,24 +88,6 @@ public interface IDocumentRtService {
 	IDocumentValidationResult validateFull(@NonNull DocumentV2 document, @NonNull DocumentProcessingConfig config);
 
 	/**
-	 * See {@link #validateFull(DocumentV2, DocumentProcessingConfig)}.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use
-	 *        {@link #validateFull(DocumentV2, DocumentProcessingConfig)} instead.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	IDocumentValidationResult validateFull(IDocument document, Locale locale);
-
-	/**
-	 * See {@link #validateFull(DocumentV2, DocumentProcessingConfig)}.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use
-	 *        {@link #validateFull(DocumentV2, DocumentProcessingConfig)} instead.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	IDocumentValidationResult validateFull(@NonNull DocumentV2 document, @NonNull Locale locale);
-
-	/**
 	 * Validates a part of the given {@link DocumentV2}.
 	 * <p>
 	 * <b>Notes:</b>
@@ -124,7 +103,9 @@ public interface IDocumentRtService {
 	 * @param relevantEntities
 	 * 		The set of entity instances which are relevant for validation.
 	 * 		<p>
-	 * 		Allows the specification of repetitions as the wildcard {@link IEntityInstance#ALL_SEMANTIC} (repetition index = 0),
+	 * 		Allows the specification of repetitions as the wildcard
+	 *        {@link com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer#WILDCARD} (repetition index =
+	 *        {@value com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer#WILDCARD}),
 	 * 		which refers to all repetitions of the respective repeatable group.
 	 * 		<p>
 	 * 		Validation rules are only executed if their error field instance is contained in this set. Of those
@@ -135,17 +116,17 @@ public interface IDocumentRtService {
 	 * 		(e.g. {@code /RG`*`/f1}), validation errors for that rule will usually be suppressed unless /RG[0]/f1 is marked as
 	 * 		relevant.
 	 * 		Example: if only two repetitions of RG are filled, but RG's max repeatability is 10, then it is insufficient to
-	 * 		mark only /RG[1]/f1 and /RG[2]/f2 as revant, because /RG`*`/f1 also references to the not-filled repetitions of f1.
+	 * 		mark only /RG[1]/f1 and /RG[2]/f2 as relevant, because /RG`*`/f1 also references to the not-filled repetitions of f1.
 	 * 		<p>
 	 * 		For groups declared as relevant, all descendants (fields and groups) are also assumed relevant (as if these descendants
 	 * 		had also been declared, with the repetitions of path elements below the group set to
-	 *        {@link IEntityInstance#ALL_SEMANTIC}).
+	 *        {@link com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer#WILDCARD}).
 	 * 		<p>
 	 * 		Repetitions of entity instances beyond the max repeatability will be ignored.
 	 * 		<p>
 	 * 		<b>Note:</b>
 	 * 		It is encouraged to set the repetitions of all path elements (including non-repeatable ones) to
-	 *        {@link IEntityInstance#ALL_SEMANTIC}:
+	 *        {@link com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer#WILDCARD}:
 	 * 		If only a subset of repetitions is specified as relevant, validation errors will be suppressed in cases that can
 	 * 		be unexpected to the user (see description above).
 	 * 		Compared to listing the all instances of a repetition layer separately, this additionally offers performance benefits and
@@ -163,29 +144,9 @@ public interface IDocumentRtService {
 			@NonNull DocumentProcessingConfig config);
 
 	/**
-	 * See {@link #validatePart(DocumentV2, Set, DocumentProcessingConfig)}.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use
-	 *        {@link #validatePart(DocumentV2, Set, DocumentProcessingConfig)} instead.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	IDocumentValidationResult validatePart(IDocument document, Set<IEntityInstance> relevantEntityInstances, Locale locale);
-
-	/**
-	 * See {@link #validatePart(DocumentV2, Set, DocumentProcessingConfig)}.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use
-	 *        {@link #validatePart(DocumentV2, Set, DocumentProcessingConfig)} instead.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	IDocumentValidationResult validatePart(@NonNull DocumentV2 document,
-			@NonNull Set<? extends DocumentMultiPointer> relevantEntities,
-			@NonNull Locale locale);
-
-	/**
-	 * Computes all fields which can be computed based on the given {@link IDocument}.
+	 * Computes all fields which can be computed based on the given {@link DocumentV2}.
 	 * <p>
-	 * Before performing any computations, all non-computed fields in the given {@link IDocument} that are operands of any
+	 * Before performing any computations, all non-computed fields in the given {@link DocumentV2} that are operands of any
 	 * computation will be formally validated: <ol>
 	 * <li>If a field contains an invalid value, a corresponding error will be reported.</li>
 	 * <li>If a required field is empty, no error will be reported.</li>
@@ -220,22 +181,6 @@ public interface IDocumentRtService {
 	IDocumentComputationResult compute(@NonNull DocumentV2 document, @NonNull DocumentProcessingConfig config);
 
 	/**
-	 * See {@link #compute(DocumentV2, DocumentProcessingConfig)}.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #compute(DocumentV2, DocumentProcessingConfig)} instead.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	IDocumentComputationResult compute(IDocument document, Locale locale);
-
-	/**
-	 * See {@link #compute(DocumentV2, DocumentProcessingConfig)}.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #compute(DocumentV2, DocumentProcessingConfig)} instead.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	IDocumentComputationResult compute(@NonNull DocumentV2 document, @NonNull Locale locale);
-
-	/**
 	 * The generated code for the given document model will be created and precompiled.
 	 *
 	 * @param documentModel
@@ -251,5 +196,5 @@ public interface IDocumentRtService {
 	 *        {@link IStaticModelCodeCache#addModelCode(String, IStaticModelCode)} and
 	 *        {@link IModelCodeCache#addModelCode(String, IModelCode)}.
 	 */
-	String createModelCodeIdentifier(@NonNull IDocumentModel documentModel, String variant);
+	String createModelCodeIdentifier(@NonNull IDocumentModel documentModel);
 }

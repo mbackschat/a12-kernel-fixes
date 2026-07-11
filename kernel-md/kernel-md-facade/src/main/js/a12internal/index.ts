@@ -36,5 +36,4 @@ export * from "./DataDocumentConversionUtils.js";
 export * from "./DocumentComputationResultImpl.js";
 export * from "./DocumentValidationResultImpl.js";
 export * from "./KernelUtils.js";
-export * from "./RtCustomExtensionService.js";
 

@@ -40,18 +40,18 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.*;
-
 import com.mgmtp.a12.kernel.core.rt.a12internal.ValidationMode;
+import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaField;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
 import com.mgmtp.a12.kernel.core.rt.a12internal.utils.IMetaKeys;
-import com.mgmtp.a12.kernel.md.document.api.IDocument;
-import com.mgmtp.a12.kernel.md.document.api.IEntityInstance;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICalculator;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IResult;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
-import com.mgmtp.a12.kernel.md.document.internal.service.implV2.DocumentV1V2ConverterImpl;
 import com.mgmtp.a12.kernel.md.rt.a12internal.service.DocumentComputationResultImpl;
 import com.mgmtp.a12.kernel.md.rt.a12internal.service.DocumentValidationResultImpl;
 import com.mgmtp.a12.kernel.md.rt.api.DocumentProcessingConfig;
@@ -59,16 +59,13 @@ import com.mgmtp.a12.kernel.md.rt.api.IDocumentComputationResult;
 import com.mgmtp.a12.kernel.md.rt.api.IDocumentValidationResult;
 import com.mgmtp.a12.kernel.md.rt.api.IMessage;
 import com.mgmtp.a12.model.repository.FaultException;
-import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1;
 import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion;
-import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV2;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-@SuppressWarnings("removal")
 public class LowKernelApiUtils {
 	private LowKernelApiUtils() {
 		throw new IllegalStateException("Utility class");
@@ -78,7 +75,6 @@ public class LowKernelApiUtils {
 		final ValidationMode result = new ValidationMode();
 		result.setLanguage(config.languageOfErrorMessages());
 		result.setCurrentDateForTest(config.currentDateForTest());
-		config.additionalInformation().forEach(result::setAdditionalInformation);
 		result.setCustomFieldTypeFactory(config.customFieldTypeFactory());
 		result.setCustomConditionFactory(toA12Internal(config.customConditionFactory()));
 		result.setValidationType(ValidationMode.ValidationType.fullExamination);
@@ -92,15 +88,6 @@ public class LowKernelApiUtils {
 		return externalFactory == null ? null : new CustomConditionFactoryWrapper(externalFactory);
 	}
 
-	/**
-	 * @deprecated use {@link #createData(DocumentV2, IMetaModel, Locale, IResult, IIdentifierToString)} instead
-	 */
-	@Deprecated(since = "30.0.0")
-	public static IData createData(IDocument document, IMetaModel metaModel, Locale locale, IResult result,
-			IIdentifierToString identifierToStringFunc) {
-		return new ValidationData(document, metaModel, locale, result, identifierToStringFunc);
-	}
-
 	public static IData createData(DocumentV2 document, IMetaModel metaModel, Locale locale, IResult result,
 			IIdentifierToString identifierToStringFunc) {
 		return new ValidationData(document, metaModel, locale, result, identifierToStringFunc);
@@ -109,30 +96,17 @@ public class LowKernelApiUtils {
 	/**
 	 * Convert the given internal string value to a basic type based on the field type format of the field at the given path of the
 	 * given metamodel. Conversion errors are ignored.
-	 *
-	 * @deprecated use {@link #createValueV2(IMetaModel, String, String)} instead.
 	 */
-	@Deprecated(since = "30.2.0")
-	public static Object createValue(IMetaModel metaModel, String path, String stringValue) {
+	public static Object createValueV2(IMetaModel metaModel, String path, String stringValue) {
 		if (StringUtils.isNotEmpty(stringValue)) {
 			IMetaField metaField = (IMetaField) metaModel.getValue(IMetaKeys.MODEL_META_FIELD, path);
 			Objects.requireNonNull(metaField);
 			// problems with stringValue are presumed to have already been reported somewhere else (e.g. computation)
 			DocumentValidationResultImpl validationResult = new DocumentValidationResultImpl();
-			return metaField.convertWithOnlyBasicTypeCheck(stringValue, null, validationResult);
+			return BasicTypeV1V2Conversion.basicTypeV1ToV2(metaField.convertWithOnlyBasicTypeCheck(stringValue, null, validationResult));
 		} else {
 			return null;
 		}
-	}
-
-	/**
-	 * like {@link #createValue(IMetaModel, String, String)}, but for
-	 * {@link com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2}
-	 * / {@link BasicTypeV2} instead of {@link IDocument} /
-	 * {@link BasicTypeV1}.
-	 */
-	public static Object createValueV2(IMetaModel metaModel, String path, String stringValue) {
-		return BasicTypeV1V2Conversion.basicTypeV1ToV2(createValue(metaModel, path, stringValue));
 	}
 
 	@Getter @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -143,20 +117,10 @@ public class LowKernelApiUtils {
 		private final String displayName;
 	}
 
-	/**
-	 * @deprecated use {@link #callCalculator(ICalculator, IMetaModel, DocumentV2, DocumentProcessingConfig, IIdentifierToString)} instead
-	 */
-	@Deprecated(since = "30.0.0")
-	public static IDocumentComputationResult callCalculator(@NonNull ICalculator calculator, @NonNull IMetaModel metaModel,
-			@NonNull IDocument document, @NonNull Locale locale, @NonNull IIdentifierToString identifierToStringFunc) {
-		return callCalculator(calculator, metaModel, DocumentV1V2ConverterImpl.getInstance().ofDocumentV1(document),
-				DocumentProcessingConfig.builder(locale).build(),
-				identifierToStringFunc);
-	}
-
 	public static IDocumentComputationResult callCalculator(@NonNull ICalculator calculator, @NonNull IMetaModel metaModel,
 			@NonNull DocumentV2 document, @NonNull DocumentProcessingConfig config,
 			@NonNull IIdentifierToString identifierToStringFunc) {
+		checkLocaleIsSupported(metaModel, config.languageOfErrorMessages());
 		try {
 			DocumentValidationResultImpl formalErrors = new DocumentValidationResultImpl();
 			IData data = createData(document, metaModel, config.languageOfErrorMessages(), formalErrors, identifierToStringFunc);
@@ -169,28 +133,6 @@ public class LowKernelApiUtils {
 		}
 	}
 
-	/**
-	 * @deprecated use
-	 *        {@link #callValidator(ValidationMethod, IValidator, IMetaModel, DocumentV2, Set, DocumentProcessingConfig,
-	 *        IIdentifierToString)} instead
-	 */
-	@Deprecated(since = "30.0.0")
-	public static IDocumentValidationResult callValidator(
-			@NonNull ValidationMethod validationMethod,
-			@NonNull IValidator validator,
-			@NonNull IMetaModel metaModel,
-			@NonNull IDocument document,
-			Set<IEntityInstance> relevantEntityInstances,
-			@NonNull Locale locale,
-			@NonNull IIdentifierToString identifierToStringFunc
-	) {
-		Set<DocumentMultiPointer> relevantEntityInstancesPointers = relevantEntityInstances == null ? null
-				: DocumentPointerConverter.convertToDocumentMultiPointerSet(
-				EntityInstanceConverter.convertToIIdentifierSet(relevantEntityInstances));
-		return callValidator(validationMethod, validator, metaModel, DocumentV1V2ConverterImpl.getInstance().ofDocumentV1(document),
-				relevantEntityInstancesPointers, DocumentProcessingConfig.builder(locale).build(), identifierToStringFunc);
-	}
-
 	public static IDocumentValidationResult callValidator(
 			@NonNull ValidationMethod validationMethod,
 			@NonNull IValidator validator,
@@ -200,6 +142,7 @@ public class LowKernelApiUtils {
 			@NonNull DocumentProcessingConfig config,
 			@NonNull IIdentifierToString identifierToStringFunc
 	) {
+		checkLocaleIsSupported(metaModel, config.languageOfErrorMessages());
 		DocumentValidationResultImpl result = new DocumentValidationResultImpl();
 		IData data = createData(document, metaModel, config.languageOfErrorMessages(), result, identifierToStringFunc);
 		ValidationMode mode = configureValidationMode(config);

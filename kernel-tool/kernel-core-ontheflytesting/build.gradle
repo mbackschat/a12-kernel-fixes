@@ -5,18 +5,15 @@ plugins {
 description = "services for on-the-fly testing of rule or field validation"
 
 dependencies {
-    api project(':kernel-core-base-utils')
+    api project(':kernel-internal-base-utils')
     api libs.kernelCoreRuntimeApi
-    api project(':kernel-core-tool-api')
+    api project(':kernel-internal-core-tool-api')
     api libs.kernelCoreCustomfieldtypeApi
 
     compileOnly libs.baseModelUtils // Only annotations
 
     implementation libs.baseModelConsistency
-    implementation project(':kernel-core-parser')
-    implementation project(':kernel-core-parsetree-api')
-    implementation project(':kernel-core-service')
-    implementation project(':kernel-core-codegen')
+    implementation project(':kernel-internal-core-codegen')
     implementation libs.commonsLang3
     implementation libs.groovy
     implementation libs.slf4jApi

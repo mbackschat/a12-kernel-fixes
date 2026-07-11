@@ -32,7 +32,6 @@
 
 package com.mgmtp.a12.kernel.md.serializer.document.internal.service;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -43,18 +42,13 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.Validate;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mgmtp.a12.kernel.md.document.api.IDocument;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentDeserializationConfig;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentSerializationConfig;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentSerializationConfig.Format;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentSerializationException;
-import com.mgmtp.a12.kernel.md.document.api.services.IDocumentSerializer;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.services.IDocumentV2Serializer;
 import com.mgmtp.a12.kernel.md.document.apiV2.utils.DocumentV2Utils;
-import com.mgmtp.a12.kernel.md.document.internal.service.implV2.DocumentV1V2ConverterImpl;
 import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelResolver;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.RankedNotificationUtils;
 import com.mgmtp.a12.kernel.md.serializer.document.internal.service.serialization.json.DocumentV2JsonReader;
@@ -63,12 +57,15 @@ import com.mgmtp.a12.kernel.md.serializer.document.internal.service.serializatio
 import com.mgmtp.a12.kernel.md.serializer.document.internal.service.serialization.xml.DocumentV2XmlWriter;
 import com.mgmtp.a12.kernel.md.serializer.document.internal.service.serialization.xml.simplexmlnode.XmlElement;
 import com.mgmtp.a12.kernel.md.serializer.document.internal.service.serialization.xml.simplexmlnode.XmlReader;
-import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.ObjectMapperProvider;
+import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.KernelJsonMapperProvider;
 import com.mgmtp.a12.model.notification.RankedNotification;
 
 import lombok.NonNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
-public class DocumentSerializerImpl implements IDocumentSerializer, IDocumentV2Serializer {
+public class DocumentSerializerImpl implements IDocumentV2Serializer {
 	public static final String ID = "id";
 
 	private final IDocumentModelResolver documentModelResolver;
@@ -85,17 +82,12 @@ public class DocumentSerializerImpl implements IDocumentSerializer, IDocumentV2S
 		document = checkAndNormalizeDocumentForSerialization(document, config);
 
 		if (config.getFormat() == Format.XML) {
-			DocumentV2XmlWriter.writeDocument(document, documentModelResolver, writer, config.isFailIfUnreadableXML());
+			DocumentV2XmlWriter.writeDocument(document, documentModelResolver, writer);
 		} else if (config.getFormat() == Format.JSON) {
 			DocumentV2JsonWriter.writeDocument(document, documentModelResolver, writer, config.getPrettyJsonPrinter());
 		} else {
 			throw new DocumentSerializationException(String.format("Format '%s' is not supported.", config.getFormat().toString()));
 		}
-	}
-
-	@Override
-	public void serialize(IDocument document, Writer writer, DocumentSerializationConfig config) {
-		serializeV2(DocumentV1V2ConverterImpl.getInstance().ofDocumentV1(document), writer, config);
 	}
 
 	@Override public DocumentV2 deserializeV2(@NonNull Reader reader, @NonNull String documentModelId,
@@ -125,7 +117,7 @@ public class DocumentSerializerImpl implements IDocumentSerializer, IDocumentV2S
 		DocumentV2 doc =
 				DocumentV2XmlReader.readDocument(documentModelId, documentModelResolver, xml, notificationReceiver, config);
 		// does the postprocessing in this method as it public and can be used standalone
-		doc = postProcessDeserializedDocument(documentModelId, config, doc);
+		doc = postProcessDeserializedDocument(config, doc);
 		return doc;
 	}
 
@@ -140,30 +132,16 @@ public class DocumentSerializerImpl implements IDocumentSerializer, IDocumentV2S
 		DocumentV2 doc =
 				DocumentV2JsonReader.readDocument(documentModelId, documentModelResolver, json, notificationReceiver, config);
 		// does the postprocessing in this method as it public and can be used standalone
-		doc = postProcessDeserializedDocument(documentModelId, config, doc);
+		doc = postProcessDeserializedDocument(config, doc);
 		return doc;
-	}
-
-	@Override
-	public IDocument deserialize(Reader reader, String documentModelId, DocumentDeserializationConfig config,
-			Consumer<RankedNotification> notificationReceiver) {
-		return DocumentV1V2ConverterImpl.getInstance()
-				.toDocumentV1(deserializeV2(reader, documentModelId, config, notificationReceiver),
-						config.getDocumentFactory());
-	}
-
-	@Override public IDocument deserialize(JsonNode json, String documentModelId, DocumentDeserializationConfig config,
-			Consumer<RankedNotification> notificationReceiver) {
-		return DocumentV1V2ConverterImpl.getInstance()
-				.toDocumentV1(deserializeV2(json, documentModelId, config, notificationReceiver));
 	}
 
 	private static JsonNode parseJson(Reader reader) {
 		JsonNode jsonNode;
 		try {
-			ObjectMapper objectMapper = ObjectMapperProvider.createObjectMapperForDocSerializer();
+			ObjectMapper objectMapper = KernelJsonMapperProvider.createObjectMapperForDocSerializer().build();
 			jsonNode = objectMapper.readTree(reader);
-		} catch (final IOException ioe) {
+		} catch (final JacksonException ioe) {
 			throw new DocumentSerializationException("Error while creating a parser from the reader.", ioe);
 		}
 		return jsonNode;
@@ -177,13 +155,10 @@ public class DocumentSerializerImpl implements IDocumentSerializer, IDocumentV2S
 		}
 	}
 
-	private DocumentV2 postProcessDeserializedDocument(String documentModelId, DocumentDeserializationConfig config,
+	private DocumentV2 postProcessDeserializedDocument(DocumentDeserializationConfig config,
 			DocumentV2 document) {
 		if (config.isRemoveEmptyFieldsAndGroups()) {
 			document = DocumentV2Utils.removeEmptyFieldsAndGroups(document);
-		}
-		if (config.isAddTransientFields()) {
-			document = DmAwareDocServiceImpl.ofResolver(documentModelId, documentModelResolver).addTransientFields(document);
 		}
 		return document;
 	}

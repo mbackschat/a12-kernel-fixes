@@ -49,11 +49,6 @@ import com.mgmtp.a12.kernel.md.model.api.IDocumentModelInfo;
 public interface IDocumentServiceConfig {
 
 	/**
-	 * @return name of the variant, may be empty. Formerly known as <i>application</i>.
-	 **/
-	Optional<String> getVariant();
-
-	/**
 	 * @return a {@link ILabelProvider}-instance to customize the string representation of fields in error
 	 * 		texts, may be empty, in which case a default representation will be used.
 	 **/

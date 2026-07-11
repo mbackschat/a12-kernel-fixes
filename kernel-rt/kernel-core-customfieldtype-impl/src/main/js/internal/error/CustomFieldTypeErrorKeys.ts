@@ -39,13 +39,6 @@ export class CustomFieldTypeErrorKeys {
 		return "ungueltigeIDNummer";
 	}
 
-	/**
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Not needed anymore, when IdNrVerifier is created properly.
-	 */
-	static get TEST_ID_NUMMER(): string {
-		return "testIDNummer";
-	}
-
 	static get UNGUELTIGE_STNR(): string {
 		return "ungueltigeSteuernummer";
 	}

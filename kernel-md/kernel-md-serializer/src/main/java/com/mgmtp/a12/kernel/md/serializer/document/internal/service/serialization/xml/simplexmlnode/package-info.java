@@ -33,8 +33,8 @@
 /**
  * Representations, reader and writer for a simple subset of xml that is sufficient for our A12-document xml serialization,
  * but that does not contain anything that is specific to A12-documents, kernel or A12.
- * (Similar to how jackson's {@link com.fasterxml.jackson.databind.JsonNode} and
- * {@link com.fasterxml.jackson.databind.ObjectMapper} work for <em>json</em>, but with better support for the <em>xml-specific</em>
+ * (Similar to how jackson's {@link tools.jackson.databind.JsonNode} and
+ * {@link tools.jackson.databind.ObjectMapper} work for <em>json</em>, but with better support for the <em>xml-specific</em>
  * features that are relevant for our use case)
  * </p>
  * Hopefully, this helps to separate the complexities of xml reading and writing from the A12-document specific complexity.

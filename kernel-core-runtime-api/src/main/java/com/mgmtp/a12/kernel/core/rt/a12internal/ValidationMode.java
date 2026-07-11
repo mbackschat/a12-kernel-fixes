@@ -33,14 +33,11 @@ package com.mgmtp.a12.kernel.core.rt.a12internal;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import com.mgmtp.a12.kernel.core.customfieldtype.CustomFieldTypeService;
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
-import com.mgmtp.a12.kernel.core.rt.a12internal.custom.impl.CustomConditionService;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 /**
@@ -132,15 +129,6 @@ public class ValidationMode {
 	 */
 	private PresentationInformation presentationInformation = new PresentationInformation();
 
-	/**
-	 * Holds the additional information that will be passed to the project specific implementations
-	 * of {@link com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator}s.
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use customConditions() or customFieldTypes() instead. In your
-	 * 		implementation of ICustomFieldTypeFactory or ICustomConditionFactory you can already create the objects in the
-	 * 		suitable configuration. Therefore, it is not necessary to pass this data all the way through any longer.
-	 */
-	@Deprecated(since = "30.6.0")
-	private Map<String, Object> additionalInformation = new HashMap<>();
 	private ICustomConditionFactory customConditionFactory;
 	private ICustomFieldTypeFactory customFieldTypeFactory;
 
@@ -197,42 +185,15 @@ public class ValidationMode {
 	}
 
 	/**
-	 * Set the additional information for a specified key.
+	 * @return {@link Collections#emptyMap()}. Any previously entered additional information is ignored.
 	 *
-	 * @param key
-	 * 		the key, for which the value will be specified.
-	 * @param value
-	 * 		the value for the specified key.
-	 * @see #getAllAdditionalInformation()
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use customConditions() or customFieldTypes() instead. In your
-	 * 		implementation of {@link ICustomFieldTypeFactory} or {@link ICustomConditionFactory} you can already create the
-	 * 		objects in the suitable configuration. Therefore, it is not necessary to pass this data all the way through any
-	 * 		longer.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	public void setAdditionalInformation(String key, Object value) {
-		additionalInformation.put(key, value);
-	}
-
-	/**
-	 * @return the additional information that will be passed to the project specific implementations
-	 * 		of {@link com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator}s.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #customFieldTypeFactory()}  instead. In your
+	 * @deprecated since version 30.6.0. Will be removed with A12K-4094. Use {@link #customFieldTypeFactory()}  instead. In your
 	 * 		implementation of {@link ICustomFieldTypeFactory} you can already create the objects in the suitable configuration.
 	 * 		Therefore, it is not necessary to pass this data all the way through any longer.
 	 */
 	@Deprecated(since = "30.6.0", forRemoval = true)
 	public Map<String, Object> getAllAdditionalInformation() {
-		return Collections.unmodifiableMap(additionalInformation);
-	}
-
-	/**
-	 * @deprecated use {@link #currentDateForTest} instead. It will be removed with A12K-3589.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	public Date getCurrentDateForTest() {
-		return currentDateForTest();
+		return Collections.emptyMap();
 	}
 
 	public Date currentDateForTest() {
@@ -257,7 +218,7 @@ public class ValidationMode {
 	}
 
 	/**
-	 * @return The {@link ICustomConditionFactory}. If you still use the deprecated static registration of your implementations via {@link CustomConditionService} return {@code null}.
+	 * @return The {@link ICustomConditionFactory}.
 	 */
 	public ICustomConditionFactory customConditionFactory() {
 		return customConditionFactory;
@@ -268,7 +229,7 @@ public class ValidationMode {
 	}
 
 	/**
-	 * @return The {@link ICustomFieldTypeFactory}. If you still use the deprecated static registration of your implementations via {@link CustomFieldTypeService} return {@code null}.
+	 * @return The {@link ICustomFieldTypeFactory}.
 	 */
 	public ICustomFieldTypeFactory customFieldTypeFactory() {
 		return customFieldTypeFactory;

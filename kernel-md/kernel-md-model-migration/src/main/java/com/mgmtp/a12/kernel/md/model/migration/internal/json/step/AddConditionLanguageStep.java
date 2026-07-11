@@ -33,40 +33,38 @@
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
 import static com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig.SUPPORTED_CONDITION_LANGUAGES;
+import static com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils.MAPPER;
 
 import java.util.Locale;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * A field conditionLanguage was added to the model config.
  */
-public class AddConditionLanguageStep extends BaseJsonNodeMigrationStep {
+public final class AddConditionLanguageStep {
 
 	private static final String CONDITION_LANGUAGE = "conditionLanguage";
 
-	public AddConditionLanguageStep(MigrationCache cache, MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+	private AddConditionLanguageStep() {
 	}
 
-	@Override
-	public void execute(JsonNode model, MigrationLogger migrationLogger) {
-		Locale conditionLanguage = getConditionLanguage(model);
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
+		Locale conditionLanguage = getConditionLanguage(model, customMigConfig);
 		JsonNode modelConfig = ModelJsonUtil.extractDmConfig(model);
-		ObjectNode node = new ObjectMapper().createObjectNode();
+		ObjectNode node = MAPPER.createObjectNode();
 		node.put("code", conditionLanguage.toString());
 		((ObjectNode) modelConfig).set(CONDITION_LANGUAGE, node);
 	}
 
-	private Locale getConditionLanguage(JsonNode model) {
+	private static Locale getConditionLanguage(JsonNode model, ICustomMigrationConfig customMigConfig) {
 		String modelId = ModelJsonUtil.extractModelId(model);
 		Locale conditionLanguage = customMigConfig.getConditionLanguage(modelId);
 		return SUPPORTED_CONDITION_LANGUAGES.contains(conditionLanguage) ? conditionLanguage : Locale.US;

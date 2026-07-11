@@ -38,6 +38,8 @@ import com.mgmtp.a12.model.utils.Experimental;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 import com.mgmtp.a12.utils.conversion.DatePrecision;
 
+import lombok.NonNull;
+
 /**
  * Data type for partially known dates.
  */
@@ -45,7 +47,7 @@ import com.mgmtp.a12.utils.conversion.DatePrecision;
 public interface PartiallyKnownDateConversionConfig extends DateBasicConversionConfig {
 
 	@Override
-	default String format() {
+	default @NonNull String format() {
 		return "yyyy-MM-dd";
 	}
 

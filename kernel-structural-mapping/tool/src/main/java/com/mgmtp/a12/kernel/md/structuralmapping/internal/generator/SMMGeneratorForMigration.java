@@ -64,7 +64,7 @@ import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views.MM_Struc
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content.MappingBlocks;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.FieldMappings;
 import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks.ResolutionStrategies;
-import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.type;
+import com.mgmtp.a12.kernel.mmtypings.mm_structuralmappingmodel_1.views._mm_structuralmappingmodel_1._content._mappingblocks._resolutionstrategies.Type;
 import com.mgmtp.a12.model.header.Annotation;
 
 import lombok.AccessLevel;
@@ -319,7 +319,7 @@ public class SMMGeneratorForMigration {
 
 	private static Set<String> sliceTargetFields(Collection<ResolutionStrategies> resolutionStrategies) {
 		return resolutionStrategies.stream()
-				.filter(rs -> type.Slice == rs.type())
+				.filter(rs -> Type.Slice == rs.type())
 				.map(slice -> slice.slice().targetFieldFullName())
 				.collect(Collectors.toSet());
 	}

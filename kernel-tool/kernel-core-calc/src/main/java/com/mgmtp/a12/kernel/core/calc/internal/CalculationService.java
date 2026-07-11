@@ -51,7 +51,6 @@ import com.mgmtp.a12.kernel.core.calc.internal.util.CalculationErrorLookup;
 import com.mgmtp.a12.kernel.core.calc.internal.util.CalculationErrorType;
 import com.mgmtp.a12.kernel.core.calc.internal.util.CalculationUtils;
 import com.mgmtp.a12.kernel.core.calc.internal.util.NormalisierteBerechnungsFormHelper;
-import com.mgmtp.a12.kernel.core.calc.internal.util.PotentialCalculationRuleVisitor;
 import com.mgmtp.a12.kernel.core.extmpspecifics.a12internal.api.ado.IExtmpRule;
 import com.mgmtp.a12.kernel.core.extmpspecifics.a12internal.api.ado.IExtmpRule.IterationInterval;
 import com.mgmtp.a12.kernel.core.extmpspecifics.internal.utils.ExtmpUtils;
@@ -362,21 +361,6 @@ public class CalculationService implements ICalculationService {
 					(IField) regel.getErrorEntity()));
 		}
 		return false;
-	}
-
-	/**
-	 * Checks, if the rule is a potential calculation rule, i.e. if it contains an unequal or
-	 * tolerance comparison with a number field value. It is not checked if the iteration is
-	 * restricted or if the condition already has the normalized structure required for server-side
-	 * calculation rules.
-	 */
-	public boolean isPotentialCalculationRule(IRule rule) {
-		Objects.requireNonNull(rule, ERROR_RULE_NULL);
-
-		IProblemReporter pr = p -> {
-		};
-		ICondition condition = parserService.parseAndCheckCondition(rule, rule.getErrorConditionText(), pr, ExpandMode.NO_EXPAND);
-		return PotentialCalculationRuleVisitor.isPotentialCalculationRule(condition);
 	}
 
 	@Override

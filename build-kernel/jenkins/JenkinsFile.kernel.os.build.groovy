@@ -42,7 +42,7 @@ pipeline {
     tools {
         jdk 'OpenJDK21'
         nodejs 'Node22'
-        gradle 'Gradle8'
+        gradle 'Gradle9'
     }
 
     stages {
@@ -70,7 +70,7 @@ pipeline {
     post {
         always {
             script {
-                junit '**/TEST*.xml'
+                junit '**/*TEST*.xml'
             }
         }
     }

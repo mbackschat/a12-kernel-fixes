@@ -32,11 +32,15 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.betterbuilders;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
 import com.mgmtp.a12.model.header.Header;
 import com.mgmtp.a12.model.header.HeaderFactory;
+import com.mgmtp.a12.model.header.ModelReference;
 
 /**
  * see also {@link com.mgmtp.a12.kernel.md.model.internal.service.utils.ModelHeaderUtils}
@@ -44,6 +48,32 @@ import com.mgmtp.a12.model.header.HeaderFactory;
 public class HeaderBuilderUtil {
 	private HeaderBuilderUtil() {
 		throw new IllegalStateException("Utility class");
+	}
+
+	/**
+	 * ModelReferences are conceptually a set, but represented as a list.
+	 * This normalizes their order to avoid meaningless differences between semantically equal DMs.
+	 */
+	public static void normalizeModelRefsList(DocumentModel dm) {
+		List<ModelReference> refs = dm.getHeader().getModelReferences();
+		if(refs == null) {
+			List<ModelReference> normalizedRefs = List.of();
+			dm.setHeader(toBuilder(dm.getHeader()).withModelReferences(normalizedRefs).build());
+			return;
+		}
+		List<ModelReference> sorted = new ArrayList<>(refs);
+		sorted.sort(Comparator.comparing(ModelReference::getReference).thenComparing(ModelReference::getPurpose));
+		try {
+			// prefer in-place update to avoid rebuilding the header
+			refs.clear();
+			refs.addAll(sorted);
+		} catch (UnsupportedOperationException e) {
+			// The modelReferences list may be immutable (e.g. from .toList()), so we fall back to
+			// rebuilding the header. Note: toBuilder is slightly lossy (e.g. null labels → empty list),
+			// so we avoid it when possible. Clean fixes would be: make toBuilder faithfully preserve
+			// null vs empty, or make the model/serialization treat absent and empty lists as equivalent.
+			dm.setHeader(toBuilder(dm.getHeader()).withModelReferences(sorted).build());
+		}
 	}
 
 	// This could be "upstreamed" to the HeaderFactory class in base-model-api

@@ -80,7 +80,7 @@ public class StringUtil {
 	 * @param input
 	 * @return
 	 *
-	 * @attention Die Implementierung muss mit der C++ Implementierung übereinstimmen.
+	 * @implNote Die Implementierung muss mit der C++ Implementierung übereinstimmen.
 	 */
 	public static String normalizeSpecialChars(String input) {
 		if (input == null) {

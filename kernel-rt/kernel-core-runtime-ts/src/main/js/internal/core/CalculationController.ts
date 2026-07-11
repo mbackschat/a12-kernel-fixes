@@ -33,7 +33,7 @@ import { Big } from "big.js";
 
 import type { Localizable } from "@com.mgmtp.a12.utils/utils-localization";
 
-import { ValidationDateParser } from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+import { ValidationDateParser } from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 import type { IResult, ValidationMode } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
@@ -239,9 +239,10 @@ export class CalculationController extends RuntimeController {
 			idExtern,
 			[this._createLocalizableForErroneousCalculation(idIntern)],
 			ErrorType.VALUE_ERROR,
-			new HashSet<RtExternalIdentifier>([idExtern]),
-			new HashSet<RtExternalIdentifier>(),
-			new HashSet<RtExternalIdentifier>()
+			// as any is needed since Set is implemented by utils and has to be fixed there ... new methods need to be implemented as well
+			new HashSet<RtExternalIdentifier>([idExtern]) as any,
+			new HashSet<RtExternalIdentifier>() as any,
+			new HashSet<RtExternalIdentifier>() as any
 		);
 	}
 

@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.formatdef.CsvTableParser;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.formatdef.ITableCache;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.formatdef.CsvTableParser;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.formatdef.ITableCache;
 
 public class  T_<t.name> implements ITableCache {
 	private static final T_<t.name> INSTANCE = new T_<t.name>();

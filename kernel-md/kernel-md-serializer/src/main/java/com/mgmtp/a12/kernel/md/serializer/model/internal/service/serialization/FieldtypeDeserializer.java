@@ -32,15 +32,8 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.BooleanType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.ConfirmType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.CustomFieldType;
@@ -54,110 +47,60 @@ import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.NumberType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.StringType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.TimeType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.TypeDefType;
-import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.UnspecifiedType;
-import com.mgmtp.a12.model.header.Annotation;
 
-public class FieldtypeDeserializer extends JsonDeserializer<FieldType> {
+import lombok.NonNull;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ValueDeserializer;
+
+public class FieldtypeDeserializer extends ValueDeserializer<FieldType> {
 
 	@Override
-	public FieldType deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+	public FieldType deserialize(JsonParser p, DeserializationContext ctxt) {
 		JsonNode node = p.readValueAsTree();
 		if (node.get("type") == null) {
 			return null;
 		}
-		String fieldTypeName = node.get("type").asText();
+		String fieldTypeName = node.get("type").asString();
 
-		FieldType fieldType = deriveFieldtype(node, fieldTypeName);
-
-		fieldType.setAnnotations(getAnnotations(node));
-
-		return fieldType;
+		return deriveFieldtype(node, fieldTypeName);
 	}
 
-	private List<Annotation> getAnnotations(JsonNode node) {
-		JsonNode annotationsNode = node.get("annotations");
-		if ((annotationsNode) != null) {
-			return JsonMapper.getMapper().convertValue(annotationsNode, new TypeReference<List<Annotation>>() {
-			});
-		}
-		return new ArrayList<>();
-	}
-
-	private FieldType deriveFieldtype(JsonNode fieldtypeNode, String fieldTypeName) throws IOException {
-		FieldType fieldType = null;
+	private @NonNull FieldType deriveFieldtype(JsonNode fieldtypeNode, String fieldTypeName) {
 		JsonNode typeNode = fieldtypeNode.get(fieldTypeName);
-		switch (fieldTypeName) {
-			case "StringType":
-				if (typeNode == null) {
-					fieldType = StringType.builder().build();
-				} else {
-					fieldType = JsonMapper.getMapper().treeToValue(typeNode, StringType.class);
-				}
-				break;
-			case "NumberType":
-				if (typeNode == null) {
-					fieldType = NumberType.builder().build();
-				} else {
-					fieldType = JsonMapper.getMapper().treeToValue(typeNode, NumberType.class);
-				}
-				break;
-			case "DateType":
-				// typeNode is never null
-				fieldType = JsonMapper.getMapper().treeToValue(typeNode, DateType.class);
-				break;
-			case "DateTimeType":
-				// typeNode is never null
-				fieldType = JsonMapper.getMapper().treeToValue(typeNode, DateTimeType.class);
-				break;
-			case "DateRangeType":
-				// typeNode is never null
-				fieldType = JsonMapper.getMapper().treeToValue(typeNode, DateRangeType.class);
-				break;
-			case "DateFragmentType":
-				// typeNode is never null
-				fieldType = JsonMapper.getMapper().treeToValue(typeNode, DateFragmentType.class);
-				break;
-			case "EnumerationType":
-				// typeNode is never null
-				fieldType = JsonMapper.getMapper().treeToValue(typeNode, EnumerationType.class);
-				break;
-			case "TimeType":
-				// typeNode is never null
-				fieldType = JsonMapper.getMapper().treeToValue(typeNode, TimeType.class);
-				break;
-			case "TypeDefType":
-				// typeNode is never null
-				fieldType = JsonMapper.getMapper().treeToValue(typeNode, TypeDefType.class);
-				break;
-			case "CustomFieldType":
-				// typeNode is never null
-				fieldType = JsonMapper.getMapper().treeToValue(typeNode, CustomFieldType.class);
-				break;
-			case "ConfirmType":
-				if (typeNode == null) {
-					fieldType = ConfirmType.builder().build();
-				} else {
-					fieldType = JsonMapper.getMapper().treeToValue(typeNode, ConfirmType.class);
-				}
-				break;
-			case "BooleanType":
-				if (typeNode == null) {
-					fieldType = BooleanType.builder().build();
-				} else {
-					fieldType = JsonMapper.getMapper().treeToValue(typeNode, BooleanType.class);
-				}
-				break;
-			case "UnspecifiedType":
-				if (typeNode == null) {
-					fieldType = UnspecifiedType.builder().build();
-				} else {
-					fieldType = JsonMapper.getMapper().treeToValue(typeNode, UnspecifiedType.class);
-				}
-				break;
-			default:
-				throw new IllegalArgumentException("FieldType not valid - check the .json template");
+		if (typeNode == null) {
+			return switch (fieldTypeName) {
+				case "StringType" -> StringType.builder().build();
+				case "NumberType" -> NumberType.builder().build();
+				case "DateType" -> DateType.builder().build();
+				case "DateTimeType" -> DateTimeType.builder().build();
+				case "DateRangeType" -> DateRangeType.builder().format("").build();
+				case "DateFragmentType" -> DateFragmentType.builder().formatOfFragment("").build();
+				case "EnumerationType" -> EnumerationType.builder().values(List.of()).build();
+				case "TimeType" -> TimeType.builder().build();
+				case "TypeDefType" -> TypeDefType.builder().id("").build();
+				case "CustomFieldType" -> CustomFieldType.builder().name("").build();
+				case "ConfirmType" -> ConfirmType.builder().build();
+				case "BooleanType" -> BooleanType.builder().build();
+				default -> throw new IllegalArgumentException("FieldType not valid - check the .json template");
+			};
 		}
-
-		return fieldType;
+		Class<? extends FieldType> fieldTypeClass = switch (fieldTypeName) {
+			case "StringType" -> StringType.class;
+			case "NumberType" -> NumberType.class;
+			case "DateType" -> DateType.class;
+			case "DateTimeType" -> DateTimeType.class;
+			case "DateRangeType" -> DateRangeType.class;
+			case "DateFragmentType" -> DateFragmentType.class;
+			case "EnumerationType" -> EnumerationType.class;
+			case "TimeType" -> TimeType.class;
+			case "TypeDefType" -> TypeDefType.class;
+			case "CustomFieldType" -> CustomFieldType.class;
+			case "ConfirmType" -> ConfirmType.class;
+			case "BooleanType" -> BooleanType.class;
+			default -> throw new IllegalArgumentException("FieldType not valid - check the .json template");
+		};
+		return KernelJsonMapper.getMapper().treeToValue(typeNode, fieldTypeClass);
 	}
 }

@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils;
+import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
 
 public class NodePath {
 	private final List<String> path;
@@ -63,6 +64,10 @@ public class NodePath {
 		List<String> newPath = new ArrayList<>(path);
 		newPath.addAll(subPath.path);
 		return new NodePath(newPath);
+	}
+
+	public NodePath getParentPath(){
+		return new NodePath(Java8Utils.getAllButLast(this.path));
 	}
 
 	public String toString() {

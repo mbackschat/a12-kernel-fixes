@@ -76,8 +76,7 @@ export interface IValidator {
 	 * @param logger 	the caller has to pass a logger which is used for logging. May not be <code>null</code>.
 	 * @throws Error,
 	 *             <ul>
-	 *             <li>if a validated rule uses a custom condition which is not registered via
-	 *             {@link CustomConditionService}.</li>
+	 *             <li>if a validated rule uses a custom condition which is not provided.</li>
 	 *             <li>if <i>data, relevantEntities, validationResult, mode</i> or <i>logger</i> are
 	 *             <code>null</code>.</li>
 	 *             <li>if the mode of validation specifies a language not supported by the generated
@@ -106,8 +105,7 @@ export interface IValidator {
 	 * @param logger 	the caller has to pass a logger, which is used for logging. May not be <code>null</code>.
 	 * @throws Error,
 	 *           <ul>
-	 *           <li>if a validated rule uses a custom condition which is not registered via
-	 *           {@link CustomConditionService}.</li>
+	 *           <li>if a validated rule uses a custom condition which is not provided.</li>
 	 *           <li>if <i>data, relevantEntities, validationResult, mode</i> or <i>logger</i> are
 	 *           <code>null</code>.</li>
 	 *           <li>if the mode of validation specifies a language not supported by the generated

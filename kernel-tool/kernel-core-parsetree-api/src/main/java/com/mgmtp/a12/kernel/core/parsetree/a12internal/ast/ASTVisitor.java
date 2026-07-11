@@ -57,6 +57,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.INumberOfUs
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOpListOperationWithParameter;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IPointInTimeOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateAddOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateConstructionOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.date.IDateDiffOperation;
@@ -374,6 +375,18 @@ public abstract class ASTVisitor {
 	}
 
 	public void endVisit(IGroupOperation p) {
+		endVisitGeneral(p);
+	}
+
+	public boolean visit(ISetOpOperation p) {
+		return visitGeneral(p);
+	}
+
+	public boolean visitNext(int i, ISetOpOperation p) {
+		return visitNextGeneral(i, p);
+	}
+
+	public void endVisit(ISetOpOperation p) {
 		endVisitGeneral(p);
 	}
 }

@@ -1,18 +1,19 @@
 plugins {
     alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
 }
 
 description = "kernel-core-codegen-condition: Everything regarding code generation for conditions or operations"
 
 dependencies {
-    api project(':kernel-core-codegen-base')
-    api project(':kernel-core-codegen-entities')
-    api project(':kernel-core-parsetree-api')
-    api project(':kernel-core-tool-api')
+    api project(':kernel-internal-core-codegen-base')
+    api project(':kernel-internal-core-codegen-entities')
+    api project(':kernel-internal-core-parsetree-api')
+    api project(':kernel-internal-core-tool-api')
 
-    implementation project(':kernel-core-calc')
-    implementation project(':kernel-core-extmpspecifics')
-    implementation project(':kernel-core-parser')
+    implementation project(':kernel-internal-core-calc')
+    implementation project(':kernel-internal-core-extmpspecifics')
+    implementation project(':kernel-internal-core-parser')
     implementation libs.commonsLang3
     implementation libs.commonsText
     implementation libs.kernelCoreRuntimeApi

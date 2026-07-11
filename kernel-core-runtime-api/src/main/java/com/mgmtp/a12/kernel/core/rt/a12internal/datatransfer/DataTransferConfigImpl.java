@@ -32,46 +32,20 @@
 
 package com.mgmtp.a12.kernel.core.rt.a12internal.datatransfer;
 
-import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
-import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
-
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
+import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
+
+import lombok.NonNull;
+
 // keep the impl package private, public access via static factory method in interface
 record DataTransferConfigImpl(
 		Locale validationLanguage,
-		@Deprecated(since = "30.6.0", forRemoval = true)
-		Map<String, Object> additionalInformation,
 		ICustomFieldTypeFactory customFieldTypeFactory,
 		ICustomConditionFactory customConditionFactory,
 		Date currentDateForTest
 ) implements IDataTransferService.DataTransferConfig {
-
-	@SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated(since = "30.6.0", forRemoval = true)
-	public DataTransferConfigImpl(
-		Locale validationLanguage,
-		Map<String, Object> additionalInformation,
-		ICustomFieldTypeFactory customFieldTypeFactory,
-		ICustomConditionFactory customConditionFactory,
-		Date currentDateForTest
-	) {
-		this.validationLanguage = validationLanguage;
-        //noinspection removal
-        this.additionalInformation = additionalInformation;
-		this.customFieldTypeFactory = customFieldTypeFactory;
-		this.customConditionFactory = customConditionFactory;
-		this.currentDateForTest = currentDateForTest;
-	}
-
-	public DataTransferConfigImpl(
-			Locale validationLanguage,
-			ICustomFieldTypeFactory customFieldTypeFactory,
-			ICustomConditionFactory customConditionFactory,
-			Date currentDateForTest
-	) {
-		this(validationLanguage, null, customFieldTypeFactory, customConditionFactory, currentDateForTest);
-	}
 }

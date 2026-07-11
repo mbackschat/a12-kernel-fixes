@@ -1,6 +1,6 @@
 {
   "name": "@com.mgmtp.a12.kernel/kernel-eslint-config",
-  "version": "30.8.1",
+  "version": "31.1.0",
   "description": "general eslint config (does not get deployed)",
   "scripts": {
     "compile": "npm-run-all --parallel --max-parallel 2 compile:**",
@@ -12,15 +12,15 @@
   "author": "mgm technology partners",
   "license": "(EUPL-1.2 OR LicenseRef-commercial)",
   "dependencies": {
-    "@com.mgmtp.a12.devtools/tsconfig": "^1.1.0",
+    "@com.mgmtp.a12.devtools/tsconfig": "^2.0.0",
     "@com.mgmtp.a12.devtools/eslint-config": "^3.1.0",
-    "eslint": "^9.39.2",
-    "eslint-formatter-junit": "^8.40.0",
+    "eslint": "^9.39.4",
+    "eslint-formatter-junit": "^9.0.1",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-no-null": "^1.0.2",
-    "eslint-plugin-notice": "^1.0.0",
+    "eslint-plugin-notice": "1.1.0-rc1",
     "eslint-plugin-prefer-arrow": "^1.2.3",
-    "typescript-eslint": "^8.51.0"
+    "typescript-eslint": "^8.59.0"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5"

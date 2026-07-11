@@ -53,14 +53,19 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import org.apache.commons.lang3.StringUtils;
+
+import com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils;
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
-import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.ObjectMapperProvider;
+import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.KernelJsonMapperProvider;
 import com.mgmtp.a12.model.header.ModelReference;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 /**
  * Json utilities for A12 models.
@@ -89,7 +94,12 @@ public class ModelJsonUtil {
 	public static final String INDEX_FIELD_NAME = "indexFieldName";
 	public static final String INDEX_FIELD_ID = "indexFieldId";
 	public static final String JSON_EXTENSION = ".json";
+	public static final String MODEL_INCLUDE_CONFIG = "includeConfig";
 	public static final String MODEL_ALIAS = "modelAlias";
+	public static final String EXCLUDE_RULES = "excludeRules";
+	public static final String EXCLUDE_COMPUTATION = "excludeComputations";
+	public static final String INCLUDE_LEVEL = "includeLevel";
+	public static final String MODEL_REFERENCE = "reference";
 	public static final String MODEL_CONFIG = "modelConfig";
 	public static final String MODEL_ID = "id";
 	public static final String MODEL_PURPOSE = "purpose";
@@ -102,7 +112,7 @@ public class ModelJsonUtil {
 	public static final String NAME = "name";
 	public static final String PURPOSE_IMPORT = "typeDefinitions";
 	public static final String PURPOSE_INCLUDE = "include";
-	public static final String PURPOSE_TRANSITIVE_INCLUDE = "transitiveInclude";
+	public static final String PURPOSE_TRANSITIVE_INCLUDE = "transitiveInclude"; // NOTE: this purpos is no longer set by expansion since A12K-4103
 	public static final String REQUIRED = "required";
 	public static final String REQUIREDNESS_CONFIG = "requirednessConfig";
 	public static final String REQUIREDNESS_MODE = "mode";
@@ -130,7 +140,7 @@ public class ModelJsonUtil {
 
 		public JsonNodeWithPathIterator(JsonNode documentModel) {
 			ModelJsonUtil.createRootGroupsIterable(documentModel)
-					.forEach(node -> jsonNodeStack.add(new JsonNodeWithPath(node, new NodePath(node.get(NAME).asText()))));
+					.forEach(node -> jsonNodeStack.add(new JsonNodeWithPath(node, new NodePath(node.get(NAME).asString()))));
 		}
 
 		public Iterable<JsonNodeWithPath> asIterable() {
@@ -147,7 +157,7 @@ public class ModelJsonUtil {
 				IntStream.range(0, elements.size())
 						.mapToObj(elements::get)
 						.forEach(e -> this.jsonNodeStack.add(
-								new JsonNodeWithPath(e, node.path.addSub(e.get(NAME).asText()))));
+								new JsonNodeWithPath(e, node.path.addSub(e.get(NAME).asString()))));
 			}
 
 			return node;
@@ -156,6 +166,29 @@ public class ModelJsonUtil {
 		@Override public boolean hasNext() {
 			return !jsonNodeStack.isEmpty();
 		}
+	}
+
+	/**
+	 * @param dmModel
+	 * 		the json root node of a document model
+	 * @param absolutePath
+	 * 		an absolute path pointing to the Element to remove
+	 * @return null, if no element was removed, or the removed element
+	 */
+	public static JsonNode tryRemoveElementFromObject(JsonNode dmModel, String absolutePath) {
+
+		var child = ElementPathUtils.getName(absolutePath);
+		if( ! ElementPathUtils.isAbsolutePath(absolutePath)){
+			throw new IllegalArgumentException("Path needs to be absolute, given:" +absolutePath);
+		}
+		var parentPath = ElementPathUtils.getParentPath(absolutePath);
+
+		var parentNode = StringUtils.isEmpty(parentPath) ?
+				dmModel : dmModel.at(parentPath);
+
+		if (!(parentNode instanceof ObjectNode parentObjectNode))
+			return null;
+		return parentObjectNode.remove(child);
 	}
 
 	/**
@@ -178,7 +211,7 @@ public class ModelJsonUtil {
 		JsonNode model = null;
 		try {
 			model = parseModel(input);
-		} catch (IOException e) {
+		} catch (IOException | JacksonException e) {
 			return Optional.empty();
 		}
 		if (!isValidA12Model(model)) {
@@ -187,12 +220,12 @@ public class ModelJsonUtil {
 		return Optional.of(model);
 	}
 
-	public static JsonNode parseModel(final InputStream inputStream) throws IOException {
-		return ObjectMapperProvider.createPreconfiguredObjectMapper().readTree(inputStream);
+	public static JsonNode parseModel(final InputStream inputStream) {
+		return KernelJsonMapperProvider.createPreconfiguredObjectMapper().build().readTree(inputStream);
 	}
 
-	public static JsonNode parseModel(final String docModel) throws IOException {
-		return ObjectMapperProvider.createPreconfiguredObjectMapper().readTree(docModel);
+	public static JsonNode parseModel(final String docModel) {
+		return KernelJsonMapperProvider.createPreconfiguredObjectMapper().build().readTree(docModel);
 	}
 
 	public static Set<JsonNode> extractReferencesToDms(JsonNode documentModel) {
@@ -203,7 +236,7 @@ public class ModelJsonUtil {
 		Set<JsonNode> referencedDms = new HashSet<>();
 		for (JsonNode referencedModel : modelReferences) {
 			JsonNode modelType = referencedModel.get(MODEL_TYPE);
-			if (modelType != null && modelType.asText().equals(DOCUMENT_MODEL_TYPE)) {
+			if (modelType != null && modelType.asString().equals(DOCUMENT_MODEL_TYPE)) {
 				referencedDms.add(referencedModel);
 			}
 		}
@@ -220,7 +253,10 @@ public class ModelJsonUtil {
 
 		return extractReferencesToDms(documentModel).stream()
 				.filter(jsonNode -> purposeStream.get()
-						.anyMatch(purpose -> purpose.equals(jsonNode.get(MODEL_PURPOSE).asText())))
+						.anyMatch(purpose -> purpose.equals(
+								Optional.ofNullable(jsonNode.get(ModelJsonUtil.MODEL_PURPOSE)).map(JsonNode::asString)
+										.orElse(null)
+						)))
 				.collect(Collectors.toSet());
 	}
 
@@ -230,10 +266,10 @@ public class ModelJsonUtil {
 	 */
 	public static boolean isSupportedModelReference(JsonNode modelReference) {
 		JsonNode purposeNode = modelReference.get(MODEL_PURPOSE);
-		if (purposeNode == null || !purposeNode.isTextual()) {
+		if (purposeNode == null || !purposeNode.isString()) {
 			return false;
 		}
-		String purpose = purposeNode.asText();
+		String purpose = purposeNode.asString();
 		return PURPOSE_INCLUDE.equals(purpose) || PURPOSE_IMPORT.equals(purpose);
 	}
 
@@ -243,10 +279,10 @@ public class ModelJsonUtil {
 	 */
 	public static String extractReferenceFromModelReference(JsonNode modelReference) {
 		JsonNode referenceNode = modelReference.get(MR_REFERENCE);
-		if (referenceNode == null || !referenceNode.isTextual()) {
+		if (referenceNode == null || !referenceNode.isString()) {
 			return null;
 		}
-		return referenceNode.asText();
+		return referenceNode.asString();
 	}
 
 	/**
@@ -255,10 +291,10 @@ public class ModelJsonUtil {
 	 */
 	public static String extractAliasFromModelReference(JsonNode modelReference) {
 		JsonNode referenceNode = modelReference.get(MR_ALIAS);
-		if (referenceNode == null || !referenceNode.isTextual()) {
+		if (referenceNode == null || !referenceNode.isString()) {
 			return null;
 		}
-		return referenceNode.asText();
+		return referenceNode.asString();
 	}
 
 	public static Map<String, String> createIncludedDmReferenceByAlias(JsonNode model, boolean useTransitiveIncludes) {
@@ -280,11 +316,11 @@ public class ModelJsonUtil {
 	}
 
 	public static String getTypeDefId(JsonNode typeDef) {
-		return typeDef.get(TYPE_DEF_ID).asText();
+		return typeDef.get(TYPE_DEF_ID).asString();
 	}
 
 	public static void setTypeDefId(JsonNode typeDef, String value) {
-		((ObjectNode) typeDef).set(TYPE_DEF_ID, new TextNode(value));
+		((ObjectNode) typeDef).set(TYPE_DEF_ID, new StringNode(value));
 	}
 
 	/**
@@ -307,9 +343,9 @@ public class ModelJsonUtil {
 		}
 		JsonNode header = model.get(HEADER);
 		// we check that the required fields are there and are not "null"
-		return header.get(MODEL_ID) != null && header.get(MODEL_ID).isTextual()
-				&& header.get(MODEL_TYPE) != null && header.get(MODEL_TYPE).isTextual()
-				&& header.get(MODEL_VERSION) != null && header.get(MODEL_VERSION).isTextual();
+		return header.get(MODEL_ID) != null && header.get(MODEL_ID).isString()
+				&& header.get(MODEL_TYPE) != null && header.get(MODEL_TYPE).isString()
+				&& header.get(MODEL_VERSION) != null && header.get(MODEL_VERSION).isString();
 	}
 
 	public static boolean isValidDocumentModel(JsonNode model) {
@@ -318,7 +354,7 @@ public class ModelJsonUtil {
 		}
 		JsonNode header = model.get(HEADER);
 		JsonNode modelType = header.get(MODEL_TYPE);
-		return modelType != null && modelType.isTextual() && DOCUMENT_MODEL_TYPE.equals(modelType.asText());
+		return modelType != null && modelType.isString() && DOCUMENT_MODEL_TYPE.equals(modelType.asString());
 	}
 
 	/**
@@ -326,7 +362,7 @@ public class ModelJsonUtil {
 	 * {@link #isValidDocumentModel(JsonNode)}.
 	 */
 	public static String extractModelId(JsonNode model) {
-		return model.get(HEADER).get(MODEL_ID).asText();
+		return model.get(HEADER).get(MODEL_ID).asString();
 	}
 
 	/**
@@ -334,7 +370,7 @@ public class ModelJsonUtil {
 	 * {@link #isValidDocumentModel(JsonNode)}.
 	 */
 	public static String extractModelVersion(JsonNode model) {
-		return model.get(HEADER).get(MODEL_VERSION).asText();
+		return model.get(HEADER).get(MODEL_VERSION).asString();
 	}
 
 	/**
@@ -345,7 +381,7 @@ public class ModelJsonUtil {
 	}
 
 	public static Optional<Integer> extractBaseYearIfPresent(ObjectNode model) {
-		var by = model.path("content").path("modelInfo").path("baseYear");
+		var by = model.path(CONTENT).path("modelInfo").path("baseYear");
 		if (by.isNumber()) {
 			return Optional.of(by.asInt());
 		} else {
@@ -378,16 +414,16 @@ public class ModelJsonUtil {
 	}
 
 	private static boolean isGroup(JsonNode jsonNode) {
-		return jsonNode.get(ELEMENT_TYPE).asText().equals(TYPE_GROUP);
+		return jsonNode.get(ELEMENT_TYPE).asString().equals(TYPE_GROUP);
 	}
 
 	private static boolean isTypeDefType(JsonNode field) {
-		return field.get(TYPE_FIELD).get(FIELD_FIELD_TYPE).get(FIELD_FIELD_TYPE_TYPE).asText()
+		return field.get(TYPE_FIELD).get(FIELD_FIELD_TYPE).get(FIELD_FIELD_TYPE_TYPE).asString()
 				.equals(FIELD_FIELD_TYPE_TYPEDEF_TYPE);
 	}
 
 	private static boolean isField(JsonNode jsonNode) {
-		return jsonNode.get(ELEMENT_TYPE).asText().equals(TYPE_FIELD);
+		return jsonNode.get(ELEMENT_TYPE).asString().equals(TYPE_FIELD);
 	}
 
 	/**
@@ -435,20 +471,20 @@ public class ModelJsonUtil {
 
 		return StreamSupport.stream(iterable.spliterator(), false).filter(node -> {
 			JsonNode elementTypeNode = node.node().get(ELEMENT_TYPE);
-			if (elementTypeNode == null || elementTypeNode instanceof NullNode || !elementTypeNode.isTextual()) {
+			if (elementTypeNode == null || elementTypeNode instanceof NullNode || !elementTypeNode.isString()) {
 				return false;
 			}
-			return elementTypeNode.asText().equals(elementType);
+			return elementTypeNode.asString().equals(elementType);
 		}).toList();
 	}
 
 	private static void extractElementsAndAddThemToResult(JsonNode elementNode, String searchedElementType, List<JsonNode> result) {
 		JsonNode elementTypeNode = elementNode.get(ELEMENT_TYPE);
-		if (elementTypeNode == null || elementTypeNode instanceof NullNode || !elementTypeNode.isTextual()) {
+		if (elementTypeNode == null || elementTypeNode instanceof NullNode || !elementTypeNode.isString()) {
 			// we cannot process this node
 			return;
 		}
-		if (elementTypeNode.asText().equals(searchedElementType)) {
+		if (elementTypeNode.asString().equals(searchedElementType)) {
 			result.add(elementNode);
 		}
 		if (isGroup(elementNode) && elementNode.get(TYPE_GROUP).has(GROUP_ELEMENTS)) {
@@ -459,10 +495,20 @@ public class ModelJsonUtil {
 		}
 	}
 
+	@FunctionalInterface
+	public interface IsUnexpanded {
+		boolean apply(JsonNode group);
+	}
+
 	public static List<JsonNode> extractUnexpandedIncludingGroups(JsonNode documentModel) {
+		IsUnexpanded groupIsUnexpandedIncludingGroup =
+				group -> group.get(TYPE_GROUP).has(MODEL_INCLUDE_CONFIG) || group.get(TYPE_GROUP).has(MODEL_ALIAS);
+		// TODO[A12K-4202]: this is dependent on the verion of documentModel || is maybe just a temporary workaround; introduced for separating includeConfig and backward migration topics
+
 		Iterable<JsonNode> iterable = createRootGroupsIterable(documentModel);
 		return StreamSupport.stream(iterable.spliterator(), false)
-				.flatMap(rootGroup -> extractUnexpandedIncludingGroupsInGroup(rootGroup).stream())
+				.flatMap(rootGroup -> extractUnexpandedIncludingGroupsInGroup(rootGroup,
+						groupIsUnexpandedIncludingGroup).stream())
 				.toList();
 	}
 
@@ -474,6 +520,8 @@ public class ModelJsonUtil {
 					return isGroup(node) && node.get(TYPE_GROUP).has(MODEL_ALIAS) && !node.get(TYPE_GROUP).has(GROUP_ELEMENTS);
 				})
 				.toList();
+		// TODO[A12K-4202]: move this to referenceViaPathStep, because it depends on DM version < 29.0.0
+		// and search for other logic depending on model alias
 	}
 
 	private static Iterable<JsonNode> createRootGroupsIterable(JsonNode documentModel) {
@@ -484,15 +532,16 @@ public class ModelJsonUtil {
 		return () -> iterator;
 	}
 
-	private static List<JsonNode> extractUnexpandedIncludingGroupsInGroup(JsonNode group) {
+	private static List<JsonNode> extractUnexpandedIncludingGroupsInGroup(JsonNode group, IsUnexpanded isUnexpanded) {
+
 		if (isGroup(group)) {
-			if (group.get(TYPE_GROUP).has(MODEL_ALIAS)) {
+			if (isUnexpanded.apply(group)) {
 				return List.of(group);
 			} else if (group.get(TYPE_GROUP).has(GROUP_ELEMENTS)) {
 				JsonNode elements = group.get(TYPE_GROUP).get(GROUP_ELEMENTS);
 				return IntStream.range(0, elements.size())
 						.mapToObj(elements::get)
-						.flatMap(e -> extractUnexpandedIncludingGroupsInGroup(e).stream())
+						.flatMap(e -> extractUnexpandedIncludingGroupsInGroup(e, isUnexpanded).stream())
 						.toList();
 			}
 		}
@@ -500,19 +549,23 @@ public class ModelJsonUtil {
 	}
 
 	public static String getModelAlias(JsonNode group) {
-		return group.get(TYPE_GROUP).get(MODEL_ALIAS).asText();
+		return group.get(TYPE_GROUP).get(MODEL_ALIAS).asString();
+	}
+
+	public static String getModelReference(JsonNode unexpandedIncludingGroup) {
+		return unexpandedIncludingGroup.get(TYPE_GROUP).get(MODEL_INCLUDE_CONFIG).get(MR_REFERENCE).asString();
 	}
 
 	public static String getTypeDefRefId(JsonNode typeDefType) {
-		return typeDefType.get(TYPE_DEF_REF_ID).asText();
+		return typeDefType.get(TYPE_DEF_REF_ID).asString();
 	}
 
 	public static void setTypeDefRefId(JsonNode model, String value) {
-		((ObjectNode) model).set(TYPE_DEF_REF_ID, new TextNode(value));
+		((ObjectNode) model).set(TYPE_DEF_REF_ID, new StringNode(value));
 	}
 
 	public static String extractGroupId(JsonNode group) {
-		return group.get(GROUP_ID).asText();
+		return group.get(GROUP_ID).asString();
 	}
 
 	/**
@@ -540,5 +593,13 @@ public class ModelJsonUtil {
 		}
 		node.removeAll();
 		node.setAll(newChildren);
+	}
+
+	/**
+	 * sets the model version (useful for migration tests)
+	 *
+	 */
+	public static void setVersion(JsonNode modelNode, String version) {
+		modelNode.get(ModelJsonUtil.HEADER).asObject().put(ModelJsonUtil.MODEL_VERSION, version);
 	}
 }

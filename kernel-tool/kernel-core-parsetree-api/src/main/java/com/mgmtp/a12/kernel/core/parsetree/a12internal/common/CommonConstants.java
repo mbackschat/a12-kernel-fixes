@@ -38,7 +38,6 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
 public class CommonConstants {
 
 	public static final String PARAM_VORDRUCKZEILE = ".Vordruckzeile";
-	public static final String PARAM_VORDRUCKNAME = ".Vordruckname";
 
 	public static final long NOT_INITIALISED = -3;
 

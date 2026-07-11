@@ -32,30 +32,26 @@
 
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
-import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
+import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 /**
  * Model aliases could erroneously contain a .json suffix.
  */
-public class RemoveModelAliasSuffix extends BaseJsonNodeMigrationStep {
+public final class RemoveModelAliasSuffix {
 
-	public RemoveModelAliasSuffix(MigrationCache cache, MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+	private RemoveModelAliasSuffix() {
 	}
 
-	@Override
-	public void execute(JsonNode model, MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		ModelJsonUtil.extractUnexpandedIncludingGroups(model)
 				.forEach(it -> updateModelAlias(it.get(ModelJsonUtil.TYPE_GROUP), ModelJsonUtil.MODEL_ALIAS));
 		// we don't use ModelJsonUtil#extractReferencesToDms since the suffix comes from the data modeler
@@ -63,16 +59,15 @@ public class RemoveModelAliasSuffix extends BaseJsonNodeMigrationStep {
 		ModelJsonUtil.extractReferencesToIncludedDms(model, false).forEach(it -> updateModelAlias(it, ModelJsonUtil.MR_ALIAS));
 	}
 
-	private void updateModelAlias(JsonNode aliasContainer, String aliasRef) {
+	private static void updateModelAlias(JsonNode aliasContainer, String aliasRef) {
 		JsonNode referenceNode = aliasContainer.get(aliasRef);
-		if (referenceNode == null || !referenceNode.isTextual()) {
-			throw new MigrationException(new MigrationError(MigrationErrorType.MODEL_CONTENT_NOT_SUPPORTED)
-					.withMessage("The document model contains erroneous '" + aliasRef + "'."));
+		if (referenceNode == null || !referenceNode.isString()) {
+			throw MigrationUtils.contentNotSupportedException("The document model contains erroneous '" + aliasRef + "'.");
 		}
-		String alias = referenceNode.asText();
+		String alias = referenceNode.asString();
 		if (alias.endsWith(ModelJsonUtil.JSON_EXTENSION)) {
 			String newAlias = alias.substring(0, alias.length() - ModelJsonUtil.JSON_EXTENSION.length());
-			((ObjectNode) aliasContainer).replace(aliasRef, new TextNode(newAlias));
+			((ObjectNode) aliasContainer).replace(aliasRef, new StringNode(newAlias));
 		}
 	}
 }

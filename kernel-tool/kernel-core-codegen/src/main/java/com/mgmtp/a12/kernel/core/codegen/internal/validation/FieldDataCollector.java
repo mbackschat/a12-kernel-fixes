@@ -41,7 +41,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-import com.mgmtp.a12.kernel.core.extmpspecifics.a12internal.api.ado.fieldTypes.IExtmpStringType;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.FieldUtils;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
@@ -55,7 +54,6 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IFieldType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.INumberType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IPredefinedType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IStringType;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IUnspecifiedType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IYesNoType;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IYesType;
 
@@ -64,7 +62,6 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IYesType;
  * it to the given data.
  */
 public class FieldDataCollector {
-
 	private static final String PATTERN_FIELDS_GROUP = "/MVK[1]/Fields[%d]/";
 	private static final String NAME = "name[1]";
 	private static final String PATTERN_FIELD_NAME = PATTERN_FIELDS_GROUP + NAME;
@@ -188,8 +185,6 @@ public class FieldDataCollector {
 			addPredefinedType(idPrefix, predefinedType);
 		} else if (type instanceof IDateType dateType) {
 			addDateType(idPrefix, dateType);
-		} else if (type instanceof IUnspecifiedType) {
-			//no field to add; the only field in the meta model for unspecified type is 'description', which is not valid for codegen
 		} else {
 			throw new IllegalArgumentException("Invalid field type " + type.getClass().getCanonicalName());
 		}
@@ -259,10 +254,7 @@ public class FieldDataCollector {
 		String pattern = type.getPattern();
 		boolean lineBreakPermitted = type.hasLineBreaksPermitted();
 		boolean noValueValidation = type.isNoValueValidation();
-		String templateReference = null;
-		if (type instanceof IExtmpStringType extmpStringType) {
-			templateReference = extmpStringType.getTemplateName();
-		}
+
 		addValue(idPrefix + "PatternProperty[1]/pattern[1]", pattern);
 		if (lineBreakPermitted) {
 			addValue(idPrefix + "linebreaksPermitted[1]", Boolean.TRUE.toString());
@@ -270,7 +262,6 @@ public class FieldDataCollector {
 		if (noValueValidation) {
 			addValue(idPrefix + "noValueValidation[1]", Boolean.TRUE.toString());
 		}
-		addValue(idPrefix + "templateReference[1]", templateReference);
 
 		int minLength = type.getMinLength();
 		int maxLength = type.getMaxLength();

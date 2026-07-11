@@ -31,8 +31,6 @@
  */
 package com.mgmtp.a12.kernel.core.customfieldtype.impl;
 
-import java.io.Reader;
-
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldValidator;
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.verifier.BundessteuernummerVerifierImpl;
 
@@ -116,20 +114,8 @@ public class BundessteuernummerVerifier {
 
 	/**
 	 * @return the instance of {@link ICustomFieldValidator}.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link #create(IFadat)} instead.
 	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	public static ICustomFieldValidator getInstance() {
-		return new BundessteuernummerVerifierImpl(null);
-	}
-
-	/**
-	 * @param fadat
-	 * 		the federal tax office data. Can be created via {@link IFadat#deserialize(Reader, boolean)}.
-	 * @return the instance of {@link ICustomFieldValidator}.
-	 */
-	public static @NonNull ICustomFieldValidator create(@NonNull IFadat fadat) {
-		return new BundessteuernummerVerifierImpl(fadat);
+	public static @NonNull ICustomFieldValidator create() {
+		return new BundessteuernummerVerifierImpl();
 	}
 }

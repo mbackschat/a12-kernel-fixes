@@ -248,6 +248,15 @@ public class CheckEntityUtils extends CheckImplAbstractClass {
 		}
 	}
 
+	public void checkHasWildcardOnLowestLevel(EntityRef groupRef, ParserRuleContext ctx) {
+		List<Long> indices = groupRef.getIndices();
+		if (indices.getLast() != IParseTreeEntity.WILDCARD) {
+			String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_WILDCARD_AT_LOWEST_LEVEL_REQUIRED,
+					groupRef.getNameBuiltFromConditionText());
+			throw createMVKParserError(ctx, errMessage);
+		}
+	}
+
 	/**
 	 * Checks if a string, enumeration or number field is referenced. Predefined types or extensible
 	 * enumerations are treated like strings.
@@ -400,8 +409,8 @@ public class CheckEntityUtils extends CheckImplAbstractClass {
 	 * </ul>
 	 */
 	public void checkIndicesForA12Model(EntityRef ref, ParserRuleContext errorCtx) {
-		if (fullParser.isInFilterCondition() && !ref.isOuter()) {
-			//the indices in the filter condition are checked directly in CheckEntitySpecImpl
+		if (fullParser.isInSetExpression() && !ref.isOuter()) {
+			//the indices in the set expressions are checked directly in CheckEntitySpecImpl and CheckSetOperOpImpl
 			return;
 		}
 		List<Long> indices = ref.getIndices();

@@ -32,17 +32,15 @@
 
 import type { Logger } from "@com.mgmtp.a12.utils/utils-logging";
 
-import type { DataFormats, Localizable, SupportedType } from "@com.mgmtp.a12.utils/utils-localization";
+import type { DataFormats, SupportedType } from "@com.mgmtp.a12.utils/utils-localization";
 
 import type { ICustomFieldTypeFactory } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
-import type { ErrorType, IData, IResult, Pair, ValidationMode } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
-import { HashSet, IIdentifier, IMetaKeys, LocalizableError, numbersconv } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import type { IData, IResult, Pair, ValidationMode } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import { HashSet, IIdentifier, IMetaKeys, LocalizableError, stringconv } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 import type {
     IMetaFieldInternalTmpA12K2645
 } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/internal";
-
-import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
 import { DynamicEnumerationCommand } from "../core/DynamicEnumerationCommand.js";
 import type { Feld_t } from "../formatdef/Feld_t.js";
@@ -53,7 +51,6 @@ import { ValidierungParam } from "../formatdef/ValidierungParam.js";
 import { Constants } from "../util/Constants.js";
 import { DarstellungsInformationIntern } from "../util/DarstellungsInformationIntern.js";
 import { ErgebnisImpl } from "../util/ErgebnisImpl.js";
-import { IFormaleFehlerConstants } from "../util/IFormaleFehlerConstants.js";
 import { IMetaKeysInternal } from "../util/IMetaKeysInternal.js";
 import { LocaleUtil } from "../util/LocaleUtil.js";
 import { LocalizableUtil } from "../util/LocalizableUtil.js";
@@ -64,98 +61,10 @@ import { ValidType } from "../util/ValidType.js";
 import { FormatDefinitionDatum } from "../formatdef/FormatDefinitionDatum.js";
 import { FormatDefinitionVordefiniert } from "../formatdef/FormatDefinitionVordefiniert.js";
 import { ZahlArt } from "../formatdef/FormatDefinitionZahl.js";
-import { FehlerHandler } from "../formatdef/error/FehlerHandler.js";
 
 import type { MetaContainer } from "./MetaContainer.js";
 import { MetaEntity } from "./MetaEntity.js";
 import type { MetaModelImpl } from "./MetaModelImpl.js";
-
-export class ResultNoTestId implements IResult {
-    private _delegate: IResult;
-
-    /**
-     * @param delegate
-     */
-    public constructor(delegate: IResult) {
-        this._delegate = delegate;
-    }
-
-    public addInfo(
-        regelName: string,
-        infoCode: string,
-        infoFeld: IIdentifier,
-        infoText: Localizable[],
-        typ: ErrorType,
-        referencedFields: Set<IIdentifier>,
-        refOmissionErrorResponsible: Set<IIdentifier>,
-        unknowns: Set<IIdentifier>
-    ): void {
-        if (IFormaleFehlerConstants.TEST_ID_NUMMER !== infoCode) {
-            this._delegate.addInfo(
-                regelName,
-                infoCode,
-                infoFeld,
-                infoText,
-                typ,
-                referencedFields,
-                refOmissionErrorResponsible,
-                unknowns
-            );
-        }
-    }
-
-    public addHint(
-        regelName: string,
-        hinweisCode: string,
-        hinweisFeld: IIdentifier,
-        hinweisText: Localizable[],
-        typ: ErrorType,
-        referencedFields: Set<IIdentifier>,
-        refOmissionErrorResponsible: Set<IIdentifier>,
-        unknowns: Set<IIdentifier>
-    ): void {
-        if (IFormaleFehlerConstants.TEST_ID_NUMMER !== hinweisCode) {
-            this._delegate.addHint(
-                regelName,
-                hinweisCode,
-                hinweisFeld,
-                hinweisText,
-                typ,
-                referencedFields,
-                refOmissionErrorResponsible,
-                unknowns
-            );
-        }
-    }
-
-    public addError(
-        regelName: string,
-        fehlerCode: string,
-        fehlerFeld: IIdentifier,
-        fehlerText: Localizable[],
-        typ: ErrorType,
-        referencedFields: Set<IIdentifier>,
-        refOmissionErrorResponsible: Set<IIdentifier>,
-        unknowns: Set<IIdentifier>
-    ): void {
-        if (IFormaleFehlerConstants.TEST_ID_NUMMER !== fehlerCode) {
-            this._delegate.addError(
-                regelName,
-                fehlerCode,
-                fehlerFeld,
-                fehlerText,
-                typ,
-                referencedFields,
-                refOmissionErrorResponsible,
-                unknowns
-            );
-        }
-    }
-
-    public getCountOf(typ: ErrorType): number {
-        return this._delegate.getCountOf(typ);
-    }
-}
 
 export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K2645, IMetaKeysInternal {
     // Use dummy like in c++, if no logger is provided.
@@ -234,7 +143,7 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
         } else {
             this._formatDef = f.formatDefintion;
         }
-        this._errorTexts4Req = f.errorTexts4Req;
+        this._errorTexts4Req = f.errorTexts4Req as any;
         this._metaModel = metaModel;
         const path: string = f.pfadName;
         this.addWert(IMetaKeysInternal.FELD_INTERNENR, f.interneNr);
@@ -337,7 +246,7 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
     }
 
     public hashCode(): number {
-        return numbersconv(this.getValue(IMetaKeys.FIELD_FULLNAME));
+        return stringconv(<string>this.getValue(IMetaKeys.FIELD_FULLNAME));
     }
 
     // is been used instead of javas equals method
@@ -361,7 +270,7 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
             vonXml,
             true, // fullCheck
             true, // nonLenient
-            new ResultNoTestId(erg),
+            erg,
             customFieldTypeFactory,
         );
         if (erg.fehlerText != undefined) {
@@ -375,7 +284,6 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
         dataFormats: DataFormats | null,
         result: IResult,
         customFieldTypeFactory?: ICustomFieldTypeFactory,
-        nonLenient?: boolean,
     ): SupportedType {
         // in both cases ('null' and 'undefined') we return 'null'
         if (value == null) {
@@ -386,7 +294,7 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
             dataFormats,
             false, // fromXml
             false, // fullCheck
-            !!nonLenient,
+            false, // nonLenient
             result,
             customFieldTypeFactory,
         );
@@ -642,8 +550,9 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
             }
             if (this._errorTexts4Req.size > 0) {
                 return LocalizableUtil.defaultsFromMap(this._errorTexts4Req);
+            } else {
+                return null;
             }
-            return FehlerHandler.getAllErrorTexts(RuntimeFormalErrorEnum.PFLICHT_FELD_FEHLER);
         }
         if (this.informationIsInFeldTyp(key)) {
             if (

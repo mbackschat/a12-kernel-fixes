@@ -41,17 +41,7 @@ public interface IRootgroupRowParameter extends IErrortextParameter {
 	 * @return the name of the field as referenced in the error text parameter
 	 */
 	public String getField();
-
-	/**
-	 * Set the name of the field. Used for changing error texts after moving or renaming groups or
-	 * fields.
-	 *
-	 * @param field
-	 * 		name of the field as referenced in the error text parameter
-	 */
-	public void setField(String field);
-	//TODO[A12K-3890]: check whether this setter is still needed, after the FehlertextUtil is cleaned from orphaned methods.
-
+	
 	/**
 	 *
 	 * @return the fullname of the field reference in error text

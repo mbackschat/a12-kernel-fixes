@@ -41,6 +41,8 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblem;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
+import lombok.NonNull;
+
 /**
  * Services to determine if the properties of a rule are consistent, e.g. condition text or error text.
  */
@@ -75,7 +77,7 @@ public interface IRuleConsistencyCheck {
 	 * 		problem reporter, may not be null
 	 * @return true, if the condition text of the rule is valid; false otherwise.
 	 */
-	public boolean hasValidConditionText(IRule rule, IProblemReporter pr);
+	boolean hasValidConditionText(@NonNull IRule rule, @NonNull IProblemReporter pr);
 
 	/**
 	 * Checks, if the error messages specified by the given {@link Locale}s are correct. An error
@@ -110,7 +112,8 @@ public interface IRuleConsistencyCheck {
 	 * 		problem reporter, may not be null
 	 * @return true, if the error messages are correct and false otherwise.
 	 */
-	public boolean hasValidErrorText(IRule rule, Collection<Locale> locales, boolean extendProblemMessages, IProblemReporter pr);
+	boolean hasValidErrorText(@NonNull IRule rule, @NonNull Collection<Locale> locales, boolean extendProblemMessages,
+			@NonNull IProblemReporter pr);
 
 	/**
 	 * Checks if the given IRule's {@link IRule#getCustomRefErrorEntitiesIfFilled()} and
@@ -124,7 +127,7 @@ public interface IRuleConsistencyCheck {
 	 * 		parsing <em>may</em> be reported instead.
 	 * @return true if valid, false otherwise
 	 */
-	boolean hasValidCustomErrorEntities(IRule rule, IProblemReporter pm);
+	boolean hasValidCustomErrorEntities(@NonNull IRule rule, @NonNull IProblemReporter pm);
 
 	interface IProblemInvalidCustomRefErrorEntity extends IProblem {
 		/**

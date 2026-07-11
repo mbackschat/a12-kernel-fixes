@@ -138,7 +138,7 @@ public class CodeGenNumberTypeImpl extends CodeGenFeldTypBasis {
 
 	private String convertToPrintable(double d) {
 		if (nachkomma == nachkommaBis && nachkomma > -1) {
-			return String.format(Locale.of("en", "US"), "%." + nachkomma + "f", d);
+			return String.format(Locale.US, "%." + nachkomma + "f", d);
 		} else {
 			return new BigDecimal(Double.toString(d)).stripTrailingZeros().toPlainString();
 		}

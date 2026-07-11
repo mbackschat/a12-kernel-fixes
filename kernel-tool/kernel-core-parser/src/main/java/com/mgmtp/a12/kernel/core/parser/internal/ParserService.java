@@ -345,7 +345,13 @@ public class ParserService {
 			String opName = new ConditionMultiLanguageHandler(modelSpecificSettings.getLanguageUsedInConditionText(),
 					parser.getPss()).getTerminalName(
 					Base_ConditionLexer.MIT);
-			throwError(parser, ParserErrorTypesEnum.MVK_PARALLEL_ITERATION_FOR_FILTERED_ENTITY_NOT_ALLOWED, opName);
+			throwError(parser, ParserErrorTypesEnum.MVK_PARALLEL_ITERATION_FOR_PATH_WITH_ASTERISKS_NOT_ALLOWED, opName);
+		}
+		if (AnalyseService.hasParallelIteratedSetOperationIterationEntity(result)) {
+			String opName = new ConditionMultiLanguageHandler(modelSpecificSettings.getLanguageUsedInConditionText(),
+					parser.getPss()).getTerminalName(
+					Base_ConditionLexer.SUMME_VON_TERMEN);
+			throwError(parser, ParserErrorTypesEnum.MVK_PARALLEL_ITERATION_FOR_PATH_WITH_ASTERISKS_NOT_ALLOWED, opName);
 		}
 		List<ICondition> filterConditions = AnalyseService.getFilterConditions(List.of(result));
 		if (filterConditions.stream().anyMatch(fc -> AnalyseService.isParallelIteration(fc, false))) {
@@ -360,6 +366,20 @@ public class ParserService {
 					Base_ConditionLexer.MIT);
 			throwError(parser, ParserErrorTypesEnum.MVK_SEMANTIC_INDEX_NOT_ALLOWED, opName);
 		}
+		List<IOperation> setOperations = AnalyseService.getSetOperations(result);
+		if (setOperations.stream().anyMatch(fc -> AnalyseService.isParallelIteration(fc, true))) {
+			String opName = new ConditionMultiLanguageHandler(modelSpecificSettings.getLanguageUsedInConditionText(),
+					parser.getPss()).getTerminalName(
+					Base_ConditionLexer.SUMME_VON_TERMEN);
+			throwError(parser, ParserErrorTypesEnum.MVK_PARALLEL_ITERATION_NOT_ALLOWED, opName);
+		}
+		if (setOperations.stream().anyMatch(AnalyseService::usesSemanticIndex)) {
+			String opName = new ConditionMultiLanguageHandler(modelSpecificSettings.getLanguageUsedInConditionText(),
+					parser.getPss()).getTerminalName(
+					Base_ConditionLexer.SUMME_VON_TERMEN);
+			throwError(parser, ParserErrorTypesEnum.MVK_SEMANTIC_INDEX_NOT_ALLOWED, opName);
+		}
+
 		if (AnalyseService.containsMultipleRepetitionNotUnique(result)) {
 			String opName = new ConditionMultiLanguageHandler(modelSpecificSettings.getLanguageUsedInConditionText(),
 					parser.getPss()).getTerminalName(
@@ -438,7 +458,7 @@ public class ParserService {
 
 	private static void setIndexesForParallelIteration(Lenient_ConditionParser parser) {
 		for (EntityRef ref : parser.getEntityMap().getEntityMap().values()) {
-			if (ref.isInFilterCondition() && !ref.isOuter()) {
+			if (ref.isInSetExpression() && !ref.isOuter()) {
 				// In filter conditions, we could have parallel iteration only in the 'outer' references
 				continue;
 			}
@@ -461,7 +481,7 @@ public class ParserService {
 		boolean containsParallelIteration = false;
 		// set indices for entities not on error field path
 		for (EntityRef ref : parser.getEntityMap().getEntityMap().values()) {
-			if (ref.isInFilterCondition() && !ref.isOuter()) {
+			if (ref.isInSetExpression() && !ref.isOuter()) {
 				// In filter conditions, we could have parallel iteration only in the 'outer' references
 				continue;
 			}

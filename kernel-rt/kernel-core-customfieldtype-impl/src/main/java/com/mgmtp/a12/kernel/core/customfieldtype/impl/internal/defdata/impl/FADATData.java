@@ -33,7 +33,6 @@
 package com.mgmtp.a12.kernel.core.customfieldtype.impl.internal.defdata.impl;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import com.mgmtp.a12.kernel.core.customfieldtype.impl.IFadat;
@@ -45,40 +44,6 @@ public class FADATData implements IFadat {
 	public FADATData(Set<Integer> bufaNummern, Set<Integer> ewazTestBufaNummern) {
 		this.bufaNummern = bufaNummern != null ? bufaNummern : Collections.emptySet();
 		this.ewazTestBufaNummern = ewazTestBufaNummern != null ? ewazTestBufaNummern : Collections.emptySet();
-	}
-
-	public static IFadat createFADATData(Map<String, Object> configData) {
-		if (configData.containsKey(FADATConstants.BUNDESFINANZAMTNUMMERN) || configData.containsKey(
-				FADATConstants.EWAZ_TEST_BUNDESFINANZAMTNUMMERN)) {
-			// The MeinELSTER way: FADAT is passed with every call (needed, because it changes with the Session - Test-FADAT could
-			//                     be either allowed or not).
-			Set<Integer> bufaNummern = getValue(configData, FADATConstants.BUNDESFINANZAMTNUMMERN);
-			Set<Integer> ewazTestBufaNummern = getValue(configData, FADATConstants.EWAZ_TEST_BUNDESFINANZAMTNUMMERN);
-			return new FADATData(bufaNummern, ewazTestBufaNummern);
-		} else {
-			// The A12 way: FADAT is cached there, when being deserialized from json
-			IFadat fadatData = GermanTaxNumberDefiningDataInternalService.getInstance().getFadatData();
-			if (fadatData != null) {
-				return fadatData;
-			}
-			throw new IllegalArgumentException("The necessary FADAT information is not available (integration error).");
-		}
-
-	}
-
-	private static Set<Integer> getValue(Map<String, Object> configData, String key) {
-		if (configData.containsKey(key)) {
-			Object o = configData.get(key);
-			if (!(o instanceof Set<?>)) {
-				throw new IllegalArgumentException(
-						"The FADAT information was not passed in the expected structure 'Set<String>' (integration error).");
-			}
-			@SuppressWarnings("unchecked")
-			Set<Integer> oCasted = (Set<Integer>) o;
-			return oCasted;
-		} else {
-			return Collections.emptySet();
-		}
 	}
 
 	@Override public Set<Integer> getFederalTaxOfficeNumbers() {

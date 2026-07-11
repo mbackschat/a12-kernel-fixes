@@ -41,11 +41,11 @@ import {
     customFieldTypeConversionResult,
     DocumentRtServiceFactory,
     GeneratedCodeAccessorFactory,
-    ICustomFieldTypeCheckError,
-    ICustomFieldTypeConversionResult,
-    ICustomFieldTypeFactory,
-    ICustomFieldTypeValidationParam,
-    ICustomFieldValidator
+    type ICustomFieldTypeCheckError,
+    type ICustomFieldTypeConversionResult,
+    type ICustomFieldTypeFactory,
+    type ICustomFieldTypeValidationParam,
+    type ICustomFieldValidator
 } from "@com.mgmtp.a12.kernel/kernel-md-facade";
 
 const __filename = fileURLToPath(import.meta.url);

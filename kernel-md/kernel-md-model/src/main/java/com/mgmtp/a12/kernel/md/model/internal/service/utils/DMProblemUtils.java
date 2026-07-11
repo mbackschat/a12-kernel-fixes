@@ -32,13 +32,16 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.service.utils;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblem;
+import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IField;
+import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IGroup;
+import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
+import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IBaseCalculationService;
 import com.mgmtp.a12.kernel.core.utils.internal.ProblemUtils;
-import com.mgmtp.a12.kernel.md.model.a12internal.Element;
-import com.mgmtp.a12.kernel.md.model.internal.wrapper.ElementWrapper;
+import com.mgmtp.a12.model.notification.RankedNotification;
+import com.mgmtp.a12.model.notification.Severity;
 
 /**
  * Corresponding class to {@link ProblemUtils}, but for document models.
@@ -49,35 +52,31 @@ public class DMProblemUtils {
 		throw new IllegalStateException("Utility class");
 	}
 
-	/**
-	 * @return a string in which the origin of the given {@link IProblem} can be immediately
-	 * 		identified in the document model (format: &lt;element type name&gt; with path '&lt;path&gt;', for example:
-	 * 		Field with path '/root/group/fieldname'). If the origin is {@code null}, an empty
-	 * 		string is returned.
-	 */
-	public static String convertOriginToErrorMessagePrefix(IProblem problem) {
-		Object origin = problem.getSource();
-		if (origin == null) {
-			return "";
-		} else if (origin instanceof Element element) {
-			return String.format("%s with path '%s': ",
-					origin.getClass().getSimpleName(), ElementUtils.getPath(new ElementWrapper(element)));
-		} else {
-			// this should not happen. If additional cases occur, we don't want a silent fallback, but want to notice the need for
-			// an explicit specific implementation case, because the error messages are user-facing
-			throw new IllegalArgumentException("The java type '" + origin.getClass().getName() + "' is not supported.");
-		}
-	}
-
-	/**
-	 * @return a string with the given error message in the form describe in
-	 *        {@link #convertOriginToErrorMessagePrefix(IProblem)} separated through
-	 *        {@link System#lineSeparator()}
-	 */
-	public static String join(List<IProblem> problems) {
-		return problems.stream()
-				.map(p -> DMProblemUtils.convertOriginToErrorMessagePrefix(p) + p.getMessage())
+	public static String join(Collection<? extends RankedNotification> notifications, Severity minSeverity) {
+		return notifications.stream()
+				.filter(m -> m.getSeverity().isAtLeastAsSevereAs(minSeverity))
+				.map(n -> convertSourceToString(n) + n.getMessage())
 				.collect(Collectors.joining(System.lineSeparator()));
 	}
 
+	public static String convertSourceToString(RankedNotification notification) {
+		return switch (notification.getSource()) {
+			case null -> "";
+			case IField field -> String.format("Field with path '%s': ", field.getFullName());
+			case IGroup group -> String.format("Group with path '%s': ", group.getFullName());
+			case IRule rule -> String.format("Rule with path '%s': ", rule.getFullName());
+			case IBaseCalculationService.ICalculationRule calculationRule ->
+					String.format("Computation with path '%s': ", calculationRule.getRule().getFullName());
+			// The following can occur as notification sources during conversion in ValidationModelConverter
+			case com.mgmtp.a12.kernel.md.model.api.IField field ->
+					String.format("Field with path '%s': ", ElementUtils.getPath(field));
+			case com.mgmtp.a12.kernel.md.model.api.IGroup group ->
+					String.format("Group with path '%s': ", ElementUtils.getPath(group));
+			case com.mgmtp.a12.kernel.md.model.api.IRule rule -> String.format("Rule with path '%s': ", ElementUtils.getPath(rule));
+			case com.mgmtp.a12.kernel.md.model.api.IComputation computation ->
+					String.format("Computation with path '%s': ", ElementUtils.getPath(computation));
+			default -> throw new IllegalArgumentException(
+					"The java type '" + notification.getSource().getClass().getName() + "' is not supported.");
+		};
+	}
 }

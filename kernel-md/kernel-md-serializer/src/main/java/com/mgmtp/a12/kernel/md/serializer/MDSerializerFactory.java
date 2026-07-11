@@ -32,8 +32,6 @@
 
 package com.mgmtp.a12.kernel.md.serializer;
 
-import com.mgmtp.a12.kernel.md.document.api.IDocument;
-import com.mgmtp.a12.kernel.md.document.api.services.IDocumentSerializer;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.services.IDocumentV2Serializer;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
@@ -46,29 +44,10 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
 import lombok.NonNull;
 
 /**
- * Provides access to (de)serialization of {{@link IDocument}} and {@link IDocumentModel}.
+ * Provides access to (de)serialization of {{@link DocumentV2}} and {@link IDocumentModel}.
  */
 @OnlyForUsage
 public class MDSerializerFactory {
-
-	/**
-	 * Creates a serializer for a {@link IDocument}.
-	 *
-	 * @param documentModelResolver
-	 * 		the {@link IDocumentModelResolver} instance which will be used
-	 * 		to retrieve the
-	 * 		information of the corresponding {@link IDocumentModel} when
-	 * 		working on a specific
-	 *        {@link IDocument}. May not be {@code null}.
-	 * @return the instance of the service. Is never {@code null}.
-	 *
-	 * @deprecated use {@link #createDocumentSerializerV2(IDocumentModelResolver)} instead.
-	 */
-	@Deprecated(since = "30.2.0")
-	public @NonNull IDocumentSerializer createDocumentSerializer(@NonNull IDocumentModelResolver documentModelResolver) {
-		return new DocumentSerializerImpl(documentModelResolver);
-	}
-
 	/**
 	 * Creates a serializer for a {@link DocumentV2}.
 	 *

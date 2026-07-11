@@ -41,6 +41,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import lombok.Getter;
+
 /**
  * <p>
  * This class evaluates a given pattern to calculate the minimum and maximum length of a match.
@@ -204,45 +206,158 @@ public class RegExpLengthTester {
 
 	private static final String NUMERIC_TEST_PATTERN = "(\\+|-)?\\d+(\\.\\d+)?";
 
-	private static String[] escapedEntities = { "\\(", "\\)",
+	private static final String[] escapedEntities = { "\\(", "\\)",
 			"\\\\", "\\t", "\\n", "\\r", "\\f", "\\a", "\\e", "\\[", "\\]",
 			"\\D", "\\s", "\\S", "\\w", "\\W", "\\^", "\\$", "\\{",
 			"\\}", "\\|", "\\u0022" };
 
 	// "\\." is treated special
-	private static String[] escapedSpecialEntities = { "\\*", "\\+" };
+	private static final String[] escapedSpecialEntities = { "\\*", "\\+" };
 
-	private static String[] escapedNumericEntities = { "\\d" };
+	private static final String[] escapedNumericEntities = { "\\d" };
 
-	private static String[] escapedNonEntities = { "^", "$", "\\b", "\\B",
+	private static final String[] escapedNonEntities = { "^", "$", "\\b", "\\B",
 			"\\A", "\\G", "\\Z", "\\z" };
 
-	private static String[] quantifiers = { "*", "+", "?", "}" };
+	private static final String[] quantifiers = { "*", "+", "?", "}" };
 
-	private static String placeholderToken = "X";
+	private static final String placeholderToken = "X";
 
-	private static String placeholderNumber = "1";
+	private static final String placeholderNumber = "1";
 
-	private static Pattern backreference = Pattern.compile("\\\\(\\d)");
+	private static final Pattern backreference = Pattern.compile("\\\\(\\d)");
 
-	private static Pattern repetitionQuantifierPattern = Pattern
+	private static final Pattern repetitionQuantifierPattern = Pattern
 			.compile("(.)\\{(\\d+)(?:,(\\d*))?\\}");
 
-	private HashMap<Integer, Integer> groupLengthMap;
+	/**
+	 * @return the minimum length of any match or -1 for infinite if the minimum length could not be derived
+	 */
+	@Getter
+	private final int minLength;
+	/**
+	 * @return a heuristic upper bound on the maximum possible length of any match, or -1 for infinite if no bound can be derived
+	 */
+	@Getter
+	private final int maxLength;
 
-	private HashMap<Integer, String> groupCharMap;
+	public RegExpLengthTester(String givenPattern) {
+		Pattern.compile(givenPattern);
+		String tidied = simplifyPatternForLengthCalculation(givenPattern);
 
-	private String pattern;
+		int calculatedMin;
+		try {
+			HashMap<Integer, Integer> groupLengthMap = new HashMap<>();
+			HashMap<Integer, String> groupCharMap = new HashMap<>();
+			String result = calculateRegExpString(tidied, 0, false, groupLengthMap, groupCharMap);
+			calculatedMin = result.length();
+		} catch (InfiniteLengthException e) {
+			calculatedMin = -1;
+		}
+		this.minLength = calculatedMin;
 
-	public RegExpLengthTester(String pattern) {
-		this.pattern = pattern;
-		Pattern.compile(pattern);
-		groupLengthMap = new HashMap<>();
-		groupCharMap = new HashMap<>();
-		tidyPattern();
+		int calculatedMax;
+		if (tidied.contains("*") || tidied.contains("+")) {
+			calculatedMax = -1;
+		} else {
+			try {
+				HashMap<Integer, Integer> groupLengthMap = new HashMap<>();
+				HashMap<Integer, String> groupCharMap = new HashMap<>();
+				String result = calculateRegExpString(tidied, 0, true, groupLengthMap, groupCharMap);
+				calculatedMax = result.length();
+			} catch (InfiniteLengthException e) {
+				calculatedMax = -1;
+			}
+		}
+		this.maxLength = calculatedMax;
 	}
 
-	private void tidyPattern() {
+	/**
+	 * Replaces all character class expressions ({@code [...]}) with the placeholder token.
+	 * Every character class matches exactly one character, so this is safe for length calculation.
+	 * <p>
+	 * Handles escaped characters inside brackets ({@code [\]]}) and {@code ]} as first character
+	 * in a class ({@code []abc]}, {@code [^]abc]}).
+	 * Escape sequences outside brackets are passed through unchanged.
+	 */
+	private static String replaceCharacterClasses(String pattern) {
+		StringBuilder result = new StringBuilder(pattern.length());
+		int i = 0;
+		while (i < pattern.length()) {
+			char c = pattern.charAt(i);
+			if (c == '\\' && i + 1 < pattern.length()) {
+				// Escape sequence outside brackets -- copy both chars through unchanged
+				result.append(c);
+				result.append(pattern.charAt(i + 1));
+				i += 2;
+			} else if (c == '[') {
+				// Start of character class -- scan forward to find matching ']'
+				int j = i + 1;
+				// Handle negation caret
+				if (j < pattern.length() && pattern.charAt(j) == '^') {
+					j++;
+				}
+				// Handle ']' as first char in class (or first after '^')
+				if (j < pattern.length() && pattern.charAt(j) == ']') {
+					j++;
+				}
+				// Scan for closing ']'
+				boolean found = false;
+				while (j < pattern.length()) {
+					if (pattern.charAt(j) == '\\' && j + 1 < pattern.length()) {
+						j += 2; // skip escaped character inside brackets
+					} else if (pattern.charAt(j) == ']') {
+						found = true;
+						break;
+					} else {
+						j++;
+					}
+				}
+				if (found) {
+					result.append(placeholderToken);
+					i = j + 1; // skip past the closing ']'
+				} else {
+					// Unmatched '[' -- copy it through (Pattern.compile would have rejected this)
+					result.append(c);
+					i++;
+				}
+			} else {
+				result.append(c);
+				i++;
+			}
+		}
+		return result.toString();
+	}
+
+	/**
+	 * Simplifies a regular expression pattern for length calculation by replacing constructs
+	 * with fixed-length placeholders. The result is not a valid regex but preserves the length
+	 * semantics of the original pattern.
+	 *
+	 * <p>Processing steps:</p>
+	 * <ol>
+	 *   <li>Replace all character classes ({@code [...]}) with a single placeholder character
+	 *       via {@link #replaceCharacterClasses(String)}. This happens first so that
+	 *       metacharacters inside brackets (e.g. {@code +}, {@code *}, {@code (}, {@code )})
+	 *       are safely removed before they could be misinterpreted as regex operators.</li>
+	 *   <li>Replace escape sequences ({@code \(}, {@code \d}, {@code \+}, {@code \.}, etc.)
+	 *       with appropriate placeholders.</li>
+	 *   <li>Remove zero-width assertions ({@code ^}, {@code $}, {@code \b}, etc.).</li>
+	 *   <li>Remove reluctant ({@code *?}, {@code +?}) and possessive ({@code *+}, {@code ++})
+	 *       quantifier modifiers, keeping only the base quantifier.</li>
+	 * </ol>
+	 *
+	 * @param p
+	 * 		the original regex pattern (must be a valid Java regex)
+	 * @return the simplified pattern with length-preserving placeholders
+	 */
+	static String simplifyPatternForLengthCalculation(final String p) {
+		// Step 1: Replace ALL character classes with placeholder token.
+		// This must happen before escape replacements so that metacharacters
+		// inside brackets (like +, *, (, )) are safely removed.
+		String pattern = replaceCharacterClasses(p);
+
+		// Step 2: Replace escaped entities with placeholders
 		for (String entity : escapedEntities) {
 			pattern = pattern.replace(entity, placeholderToken);
 		}
@@ -253,41 +368,35 @@ public class RegExpLengthTester {
 			pattern = pattern.replace(entity, "-");
 		}
 		pattern = pattern.replace("\\.", ".");
-		//Wir ersetzen alle Negations-Gruppen, welche nicht das placeholderToken enthalten durch das placeholderToken
-		pattern = pattern.replaceAll("\\[\\^[^" + placeholderToken + "]*?\\]", placeholderToken);
-		pattern = pattern.replaceAll("\\[\\^[^a]*?\\]", "a");
 
+		// Step 3: Remove non-entities (anchors, word boundaries)
 		for (String entity : escapedNonEntities) {
 			pattern = pattern.replace(entity, "");
 		}
 
-		// Remove all Reluctant
+		// Step 4: Remove reluctant quantifier modifiers
 		for (String quantifier : quantifiers) {
 			pattern = pattern.replace(quantifier + "?", quantifier);
 		}
-		// Remove all Possessive
+		// Step 5: Remove possessive quantifier modifiers
 		for (String quantifier : quantifiers) {
 			pattern = pattern.replace(quantifier + "+", quantifier);
 		}
 
-		// Replace all characterGroups by placeholder
-		//Verschiebe Escapte Minuszeichen nach vorne
-		pattern = pattern.replaceAll("\\[[0-9\\-]*?\\]", placeholderNumber);
-
-		//Nehme aus dem ersten Bereich nur Anfang und Ende:  a-z => az oder 0-9 => 09
-		pattern = pattern.replaceAll("\\[(.*?)([^\\\\])\\-(.*?)\\]", "\\[$1$2$3\\]");
-		pattern = pattern.replaceAll("\\[.*?([^0-9\\\\]).*?\\]", "$1");
+		return pattern;
 	}
 
-	private String calculateRegExpString(String s, int groupId,
-			boolean returnMaxLength, boolean testNumeric) throws InfiniteLengthException {
+	private static String calculateRegExpString(String s, int groupId,
+			boolean returnMaxLength,
+			HashMap<Integer, Integer> groupLengthMap,
+			HashMap<Integer, String> groupCharMap) throws InfiniteLengthException {
 		GroupFinder groupFinder = new GroupFinder(s, groupId);
 		while (groupFinder.next()) {
 			// First: Descend into inner groups
 			String innerGroup = groupFinder.innerGroup();
 			int gId = groupFinder.getGroupId();
 			String groupString = calculateRegExpString(innerGroup, gId,
-					returnMaxLength, testNumeric);
+					returnMaxLength, groupLengthMap, groupCharMap);
 			int repetition = groupFinder
 					.getRepetitionQuantifier(returnMaxLength);
 			// Both calculateRegExpLength and
@@ -315,7 +424,8 @@ public class RegExpLengthTester {
 				partLength = Integer.MAX_VALUE;
 			}
 			for (String part : parts) {
-				String partString = calculateRegExpString(part, groupId, returnMaxLength, testNumeric);
+				String partString = calculateRegExpString(part, groupId,
+						returnMaxLength, groupLengthMap, groupCharMap);
 				isNumeric &= partString.matches(NUMERIC_TEST_PATTERN);
 				isPlusMinus &= partString.matches("\\+|-");
 				isDot &= partString.matches("\\.");
@@ -335,18 +445,17 @@ public class RegExpLengthTester {
 			return StringUtils.repeat(replacementChar, partLength);
 		} else {
 			// Third: calculate AND-Parts
-			return calculateToken(s, returnMaxLength, testNumeric);
+			return calculateToken(s, returnMaxLength, groupLengthMap, groupCharMap);
 		}
 	}
 
-	private String calculateToken(String s, boolean returnMaxLength, boolean testNumeric)
+	private static String calculateToken(String s, boolean returnMaxLength,
+			HashMap<Integer, Integer> groupLengthMap,
+			HashMap<Integer, String> groupCharMap)
 			throws InfiniteLengthException {
 		String replacementC;
 		String replacementD;
-		if (testNumeric) {
-			replacementC = "$1";
-			replacementD = placeholderNumber;
-		} else if (returnMaxLength) {
+		if (returnMaxLength) {
 			replacementC = placeholderToken;
 			replacementD = placeholderNumber;
 		} else {
@@ -360,11 +469,7 @@ public class RegExpLengthTester {
 		s = s.replaceAll("\\d\\*", replacementD);
 		s = s.replaceAll("(.)\\*", replacementC);
 		s = s.replaceAll("\\d\\+", placeholderNumber);
-		if (testNumeric) {
-			s = s.replaceAll("(.)\\+", "$1");
-		} else {
-			s = s.replaceAll(".\\+", placeholderToken);
-		}
+		s = s.replaceAll(".\\+", placeholderToken);
 
 		Matcher brMatcher = backreference.matcher(s);
 		StringBuffer sb = new StringBuffer();
@@ -400,7 +505,7 @@ public class RegExpLengthTester {
 		return sb.toString();
 	}
 
-	private int getRepetition(MatchResult matchResult, boolean returnMaxLength)
+	private static int getRepetition(MatchResult matchResult, boolean returnMaxLength)
 			throws InfiniteLengthException {
 		int groupId;
 		if (returnMaxLength) {
@@ -435,34 +540,5 @@ public class RegExpLengthTester {
 		}
 	}
 
-	/**
-	 * Calculates the minimum length of a match for the given regular expression pattern
-	 *
-	 * @return the minimum length of a match or -1 if the pattern has no minimum length
-	 */
-	public int calculateMinLength() {
-		try {
-			String result = calculateRegExpString(pattern, 0, false, false);
-			return result.length();
-		} catch (InfiniteLengthException e) {
-			return -1;
-		}
-	}
-
-	/**
-	 * Calculates the maximum length of a match for the given regular expression pattern
-	 *
-	 * @return the maximum length of a match or -1 if the pattern's maximum match length is infinite
-	 */
-	public int calculateMaxLength() {
-		if (pattern.contains("*") || pattern.contains("+")) {
-			return -1;
-		}
-		try {
-			String result = calculateRegExpString(pattern, 0, true, false);
-			return result.length();
-		} catch (InfiniteLengthException e) {
-			return -1;
-		}
-	}
+	// minLength and maxLength are accessed via Lombok @Getter
 }

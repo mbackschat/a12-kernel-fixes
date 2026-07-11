@@ -70,11 +70,12 @@ public class ModelGroovyCode implements IModelCode {
 		this.generatedPlainCode = generatedPlainCode;
 	}
 
-	protected synchronized GroovyObject modelCode() {
+	protected synchronized GroovyObject getOrCompileModelCode() {
+		// since modelCode is transient and may get lost after deserialization, we can never assume it to be non-null
 		if (this.modelCode == null) {
 			// we create a new ClassLoader per model to enable the deletion of corresponding class definitions form metaspace
 			// after references to the model and its generated groovy scrips / classes are removed form caches
-			try (GroovyClassLoader classLoader = new GroovyClassLoader()) {
+			try (GroovyClassLoader classLoader = new GroovyClassLoader(ModelGroovyCode.class.getClassLoader())) {
 				Class<?> groovy = classLoader.parseClass(generatedPlainCode);
 				this.modelCode = (GroovyObject) groovy.getDeclaredConstructor().newInstance();
 			} catch (IOException | NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException

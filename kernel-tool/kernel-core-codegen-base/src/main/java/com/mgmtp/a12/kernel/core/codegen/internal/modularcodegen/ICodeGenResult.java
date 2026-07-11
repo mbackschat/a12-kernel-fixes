@@ -61,12 +61,6 @@ public interface ICodeGenResult<E extends IEntryPoints> {
 	ICodeGenResult<E> mergeWith(List<ICodeGenResult<?>> otherInstances);
 
 	/**
-	 * @return a zip archive containing one or more files, with paths that are sufficiently unique so that no collisions are to be
-	 * expected if the toZip results of gencode from different models are extracted to the same directory.
-	 */
-	byte[] toZip();
-
-	/**
 	 * Only if the codeGenResult is either a {@link IMergedSingleScriptCodeGenResult} or if it contains exactly 1 (or zero) entries.
 	 *
 	 * @return a byte[] that corresponds to a "plain" code generation (see e.g. {@link ICodeGeneratorParameters#isPlain()}).

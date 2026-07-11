@@ -99,6 +99,7 @@ class TestCustomConditionSnippetsForDocs {
 		private List<String> fieldValuesFromDocument(DocumentV2 document) {
 			return this.fieldPaths.stream()
 					.map(fieldPath ->
+							// fieldValue() may return null or "" when a field is not filled in the document.
 							Optional.ofNullable(document.fieldValue(fieldPath)).map(Object::toString).orElse(""))
 					.toList();
 		}
@@ -152,7 +153,6 @@ class TestCustomConditionSnippetsForDocs {
 		};
 		IDocumentDynamicServiceConfig serviceConfig = new IDocumentDynamicServiceConfig() {
 			@Override public IModelCodeCache getCache() {return modelCodeCache;}
-			@Override public Optional<String> getVariant() {return Optional.empty();}
 			@Override public Optional<ILabelProvider> getLabelProvider() {return Optional.empty();}
 		};
 		// @formatter:on

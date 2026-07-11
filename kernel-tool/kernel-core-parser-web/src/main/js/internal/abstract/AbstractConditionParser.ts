@@ -33,57 +33,58 @@ import type { TokenStream } from "antlr4ForA12Kernel";
 import { Parser } from "antlr4ForA12Kernel";
 
 import type {
-	AnzahlAngegebenOpHModelContext,
-	AnzahlWertOpContext,
-	BedingungContext,
-	DateTimeKonstruktContext,
-	DateValidityConditionContext,
-	DatumAddOpContext,
-	DatumAngabeContext,
-	DatumBereichKonstruktContext,
-	DatumBereichOpContext,
-	DatumDiffOpContext,
-	DatumExtractOpContext,
-	DatumKonstruktContext,
-	EinfacheOperationContext,
-	EntitySpecContext,
-	ExtmpKonstanteUSBContext,
-	FeldListenAnzahlOpContext,
-	FeldListenBedingungContext,
-	FeldListenOpContext,
-	FeldListenOperOpContext,
-	FeldListenOpHModelContext,
-	FeldListeUndWerteListenBedingungContext,
-	FeldOpContext,
-	FeldOperOpContext,
-	FeldOpHModelContext,
-	FeldOpMitDatumSpecialContext,
-	FeldOpMitParamsContext,
-	FeldUndWerteListenBedingungContext,
-	FeldWertOpContext,
-	FieldAndValueListConditionContext,
-	FormularBedingungContext,
-	FormularBedingungNameContext,
-	GroupOpContext,
-	IdNameRefContext,
-	IdNameRefHModelContext,
-	KonstanteContext,
-	KonstanteReferenzjahrContext,
-	KontextListenBedingungContext,
-	OperationContext,
-	PreambleContext,
-	PredefinedTypeValidityConditionContext,
-	RegelKontextEntityContext,
-	RelativeUpContext,
-	RelUpContext,
-	RundenOpContext,
-	RundenOperOpContext,
-	SemanticIndexContext,
-	SpezifierHModelContext,
-	TimeKonstruktContext,
-	VergleichsBedingungContext,
-	WiederholungBedingungContext,
-	ZeilenBedingungContext
+    AnzahlAngegebenOpHModelContext,
+    AnzahlWertOpContext,
+    BedingungContext,
+    DateTimeKonstruktContext,
+    DateValidityConditionContext,
+    DatumAddOpContext,
+    DatumAngabeContext,
+    DatumBereichKonstruktContext,
+    DatumBereichOpContext,
+    DatumDiffOpContext,
+    DatumExtractOpContext,
+    DatumKonstruktContext,
+    EinfacheOperationContext,
+    EntitySpecContext,
+    ExtmpKonstanteUSBContext,
+    FeldListenAnzahlOpContext,
+    FeldListenBedingungContext,
+    FeldListenOpContext,
+    FeldListenOperOpContext,
+    FeldListenOpHModelContext,
+    FeldListeUndWerteListenBedingungContext,
+    FeldOpContext,
+    FeldOperOpContext,
+    FeldOpHModelContext,
+    FeldOpMitDatumSpecialContext,
+    FeldOpMitParamsContext,
+    FeldUndWerteListenBedingungContext,
+    FeldWertOpContext,
+    FieldAndValueListConditionContext,
+    FormularBedingungContext,
+    FormularBedingungNameContext,
+    GroupOpContext,
+    IdNameRefContext,
+    IdNameRefHModelContext,
+    KonstanteContext,
+    KonstanteReferenzjahrContext,
+    KontextListenBedingungContext,
+    OperationContext,
+    PreambleContext,
+    PredefinedTypeValidityConditionContext,
+    RegelKontextEntityContext,
+    RelativeUpContext,
+    RelUpContext,
+    RundenOpContext,
+    RundenOperOpContext,
+    SemanticIndexContext,
+    SetOperOpContext,
+    SpezifierHModelContext,
+    TimeKonstruktContext,
+    VergleichsBedingungContext,
+    WiederholungBedingungContext,
+    ZeilenBedingungContext
 } from "../gen/GrammarOnly_ConditionParser.js";
 
 export default class AbstractConditionParser extends Parser {
@@ -160,8 +161,8 @@ export default class AbstractConditionParser extends Parser {
 	protected checkDatumAngabe(_ctx: DatumAngabeContext): void { } //NOSONAR
 	protected checkFeldOpMitDatumSpecial(_ctx: FeldOpMitDatumSpecialContext): void { } //NOSONAR
 	protected checkEntitySpec(_ctx: EntitySpecContext): void { } //NOSONAR
-	protected initFilterCondition(_ctx: EntitySpecContext): void { } //NOSONAR
-	protected resetFilterCondition(_ctx: EntitySpecContext): void { } //NOSONAR
+	protected initSetExpression(_ctx: EntitySpecContext): void { } //NOSONAR
+	protected resetSetExpression(_ctx: EntitySpecContext): void { } //NOSONAR
 	protected checkRegelKontextEntity(_ctx: RegelKontextEntityContext): void { } //NOSONAR
 	protected checkRelativeUp(_ctx: RelativeUpContext): void { } //NOSONAR
 	protected checkRelUp(_ctx: RelUpContext): void { } //NOSONAR
@@ -176,5 +177,6 @@ export default class AbstractConditionParser extends Parser {
 	protected checkIdNameRefHModel(_ctx: IdNameRefHModelContext): void { } //NOSONAR
 	protected checkSpezifierHModel(_ctx: SpezifierHModelContext): void { } //NOSONAR
 	protected checkGroupOp(_ctx: GroupOpContext): void { } //NOSONAR
-	protected checkDatumBereichKonstrukt(_ctx: DatumBereichKonstruktContext): void { }
+	protected checkDatumBereichKonstrukt(_ctx: DatumBereichKonstruktContext): void { } //NOSONAR
+    protected checkSetOperOp(_ctx: SetOperOpContext): void { } //NOSONAR
 }

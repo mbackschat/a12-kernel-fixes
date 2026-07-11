@@ -295,6 +295,10 @@
 	"text": "Für zwei wiederholbare Felder wird in jeder Wiederholung das Produkt berechnet und diese Produkte aus allen Wiederholungen aufsummiert.",
 	"title": "SummeVonProdukten(_Feld1_, _Feld2_)"
     },
+  "SummeVonTermen": {
+    "text": "Für einen iterierenden Term wird für jede Wiederholung der Wert berechnet und diese Werte werden aufsummiert.",
+    "title": "SummeVonProdukten(_Pfad_, _Term_)"
+  },
     "DifferenzInJahren": {
 	"text": "Liefert die Differenz zwischen zwei Datumsangaben in Jahren.",
 	"title": "DifferenzInJahren(_Datum1_, _Datum2_)"

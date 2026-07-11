@@ -116,7 +116,9 @@ public class CodeGenRuleDefinition extends STParameterClassBase implements IRepe
 	private final int semanticIndexLevel;
 
 	private Collection<CodeGenFilterCondition> filterConditions;
+	private Collection<CodeGenSetOperation> setOperations;
 	private EntityIdsCollector filterEntityIdsCollector;
+	private EntityIdsCollector setOperationEntityIdsCollector;
 
 	private List<InitEntityListAndValueListConditionParam> entityListAndValueListInitCodes;
 
@@ -127,6 +129,8 @@ public class CodeGenRuleDefinition extends STParameterClassBase implements IRepe
 
 		this.filterEntityIdsCollector = builder.getFilterEnditityIdsCollector();
 		this.filterConditions = builder.getFilterConditions();
+		this.setOperationEntityIdsCollector = builder.getSetOpEntityIdsCollector();
+		this.setOperations = builder.getSetOperations();
 
 		this.entityIdsCollector = builder.getEntityIdsCollector();
 		this.codeGenCondition = builder.getCodeGenCondition();
@@ -576,6 +580,18 @@ public class CodeGenRuleDefinition extends STParameterClassBase implements IRepe
 	public List<String> getFilterCode() {
 		return filterConditions.stream()
 				.map(CodeGenFilterCondition::toCode)
+				.collect(Collectors.toList());
+	}
+
+	public List<String> getSetOpParamsCreationCode() {
+		return setOperationEntityIdsCollector.getAll().stream()
+				.map(co -> co.toCode("varAssignment"))
+				.collect(Collectors.toList());
+	}
+
+	public List<String> getSetOperationCode() {
+		return setOperations.stream()
+				.map(CodeGenSetOperation::toCode)
 				.collect(Collectors.toList());
 	}
 

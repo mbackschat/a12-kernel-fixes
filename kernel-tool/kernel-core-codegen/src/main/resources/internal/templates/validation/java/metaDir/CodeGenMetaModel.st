@@ -4,8 +4,6 @@ CodeGenMetaModel(t) ::= <<
 package <t.packageName>;
 
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -20,22 +18,22 @@ import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
 import com.mgmtp.a12.kernel.core.rt.a12internal.utils.IMetaKeys;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
 import com.mgmtp.a12.kernel.core.rt.internal.utils.IExtmpMetaKeysBase;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.core.IDynEnumsIntern;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.core.IMetaDataValidierung;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.formatdef.*;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.meta.*;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.sorter.SortOrder;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.meta.util.MapBuilder;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.util.IMetaKeysInternal;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.util.Constants;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.util.PresentationInformationValues;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.util.VersionCompatibilityCheck;
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.util.TrieNode;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.core.IDynEnumsIntern;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.core.IMetaDataValidierung;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.formatdef.*;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.meta.*;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.sorter.SortOrder;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.meta.util.MapBuilder;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.util.IMetaKeysInternal;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.util.Constants;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.util.PresentationInformationValues;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.util.VersionCompatibilityCheck;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.util.TrieNode;
 <if(t.withMappingInfos)>
 import <t.internalUXmlMapperPackageName>.MapInformation_<t.name>;
 <endif>
 <if (t.extmp)>
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.meta.MetaModelValueAccessorExt;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.meta.MetaModelValueAccessorExt;
 <endif>
 
 public class Meta_<t.name> implements IMetaModel, IMetaEntityInternal {

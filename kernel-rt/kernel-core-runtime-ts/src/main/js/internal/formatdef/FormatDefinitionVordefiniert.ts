@@ -32,7 +32,6 @@
 import type { CustomStringConversionConfig, DataFormats, SupportedType } from "@com.mgmtp.a12.utils/utils-localization";
 
 import type { ICustomFieldValidator } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
-import { CustomFieldTypeService } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 import { IMetaKeys } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 import type { ICustomFieldTypeFactory } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
@@ -42,8 +41,9 @@ import type { ValidationMode } from "@com.mgmtp.a12.kernel/kernel-core-runtime-a
 import type { IMetaDataValidierung } from "../core/IMetaDataValidierung.js";
 import { CustomFieldTypeValidationParamImpl } from "../custom/CustomFieldTypeValidationParamImpl.js";
 import type { DarstellungsInformationIntern } from "../util/DarstellungsInformationIntern.js";
-import { IFormaleFehlerConstants } from "../util/IFormaleFehlerConstants.js";
 import { ValidType } from "../util/ValidType.js";
+
+import type { IFormaleFehlerConstants } from "../util/IFormaleFehlerConstants.js";
 
 import type { IFormatDefinition } from "./IFormatDefinition.js";
 import type { IValidierungParam } from "./IValidierungParam.js";
@@ -78,11 +78,11 @@ export class FormatDefinitionVordefiniert implements IFormatDefinition, IFormale
 		}
 		// convert goes to the implementation
 		if (darstellungsInfo.doConvertCustomFieldType(this._name)) {
-			const _customFieldType = this._getCustomFieldValidator(customFieldTypeFactory);
+			const customFieldValidator = this._getCustomFieldValidator(customFieldTypeFactory);
 			if (vonXml) {
-				return _customFieldType.convertInternal2Display(wert).getConvertedValue();
+				return customFieldValidator.convertInternal2Display(wert).getConvertedValue();
 			} else {
-				return _customFieldType.convertDisplay2Internal(wert).getConvertedValue();
+				return customFieldValidator.convertDisplay2Internal(wert).getConvertedValue();
 			}
 		}
 		return wert;
@@ -133,8 +133,8 @@ export class FormatDefinitionVordefiniert implements IFormatDefinition, IFormale
 
 		const _wert = param.getWert();
 
-		const _customFieldType = this._getCustomFieldValidator(param.getCustomFieldTypeFactory());
-		const _res = _customFieldType.validate(_wert, _valParam, _isDisplayValue);
+		const customFieldValidator = this._getCustomFieldValidator(param.getCustomFieldTypeFactory());
+		const _res = customFieldValidator.validate(_wert, _valParam, _isDisplayValue);
 		if (_res) {
 			return FehlerHandler.addFehler(_res.getErrorKey(), _res.getErrorMessage(), param);
 		}
@@ -145,27 +145,21 @@ export class FormatDefinitionVordefiniert implements IFormatDefinition, IFormale
 	 * Checks the value without producing an error.
 	 */
 	public validateWithoutErrorReporting(value: string, mode: ValidationMode, isDisplayValue: boolean): ValidType {
-		const _customFieldType = this._getCustomFieldValidator(mode.customFieldTypeFactory);
+		const customFieldValidator = this._getCustomFieldValidator(mode.customFieldTypeFactory);
 		// the locale doesn't matter as no errors are reported
 		const _valParam = new CustomFieldTypeValidationParamImpl(
 			this._minLaenge,
 			this._maxLaenge
 		);
-		const _res = _customFieldType.validate(value, _valParam, isDisplayValue);
+		const _res = customFieldValidator.validate(value, _valParam, isDisplayValue);
 		if (!_res) {
 			return ValidType.Valid;
-		}
-		if (IFormaleFehlerConstants.TEST_ID_NUMMER === _res.getErrorKey()) {
-			return ValidType.Test;
 		}
 		return ValidType.Invalid;
 	}
 
 	private _getCustomFieldValidator(factory: ICustomFieldTypeFactory | undefined): ICustomFieldValidator {
-		const customFieldValidator = factory
-			? factory.createCustomFieldType(this._name)
-			: CustomFieldTypeService.getInstance().getCustomFieldType(this._name);
-
+		const customFieldValidator = factory?.createCustomFieldType(this._name);
 		if (!customFieldValidator) {
 			throw new Error(`Custom field validator '${this._name}' missing.`);
 		}

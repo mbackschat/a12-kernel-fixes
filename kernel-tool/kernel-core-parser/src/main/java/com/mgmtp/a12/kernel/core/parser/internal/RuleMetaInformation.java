@@ -53,7 +53,7 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IRuleMetaInformation;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IServiceConfiguration;
-import com.mgmtp.a12.kernel.core.utils.internal.ECUtils;
+import com.mgmtp.a12.kernel.core.tool.internal.utils.ECUtils;
 
 /**
  * Implementation of {@link IRuleMetaInformation} providing methods to extract meta information of a rule.

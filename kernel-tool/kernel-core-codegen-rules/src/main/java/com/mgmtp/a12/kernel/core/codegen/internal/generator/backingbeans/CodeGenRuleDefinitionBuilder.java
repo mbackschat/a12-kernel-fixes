@@ -32,6 +32,7 @@
 
 package com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -189,6 +190,15 @@ public class CodeGenRuleDefinitionBuilder {
 
 	public List<CodeGenFilterCondition> getFilterConditions() {
 		return codeGenParseTreeHelper.getFilterConditions();
+	}
+
+
+	public EntityIdsCollector getSetOpEntityIdsCollector() {
+		return codeGenParseTreeHelper.getSetOperationEntityIdsCollector();
+	}
+
+	public Collection<CodeGenSetOperation> getSetOperations() {
+		return codeGenParseTreeHelper.getSetOperations();
 	}
 
 	public EntityIdsCollector getEntityIdsCollector() {

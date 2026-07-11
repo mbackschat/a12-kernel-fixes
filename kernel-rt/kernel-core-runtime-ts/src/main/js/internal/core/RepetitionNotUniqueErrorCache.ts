@@ -51,7 +51,7 @@ export class RepetitionNotUniqueErrorCache {
         return CollectionsUtils.getOrDefault(
             this._erroneousRepetitionsWithSameValueValueError,
             rep,
-            new ArraySet<number[]>()
+            new ArraySet<number[]>() as any
         );
     }
 
@@ -67,7 +67,7 @@ export class RepetitionNotUniqueErrorCache {
         return CollectionsUtils.getOrDefault(
             this._erroneousRepetitionsWithSameValueOmissionError,
             rep,
-            new ArraySet<number[]>()
+            new ArraySet<number[]>() as any
         );
     }
 
@@ -75,14 +75,14 @@ export class RepetitionNotUniqueErrorCache {
         let repetitions = CollectionsUtils.getOrSetDefault(
             this._erroneousRepetitionsWithSameValueValueError,
             rep1,
-            new ArraySet<number[]>()
+            new ArraySet<number[]>() as any
         );
         repetitions.add(rep1);
         repetitions.add(rep2);
         repetitions = CollectionsUtils.getOrSetDefault(
             this._erroneousRepetitionsWithSameValueValueError,
             rep2,
-            new ArraySet<number[]>()
+            new ArraySet<number[]>() as any
         );
         repetitions.add(rep1);
         repetitions.add(rep2);
@@ -92,14 +92,14 @@ export class RepetitionNotUniqueErrorCache {
         let repetitions = CollectionsUtils.getOrSetDefault(
             this._erroneousRepetitionsWithSameValueOmissionError,
             rep1,
-            new ArraySet<number[]>()
+            new ArraySet<number[]>() as any
         );
         repetitions.add(rep1);
         repetitions.add(rep2);
         repetitions = CollectionsUtils.getOrSetDefault(
             this._erroneousRepetitionsWithSameValueOmissionError,
             rep2,
-            new ArraySet<number[]>()
+            new ArraySet<number[]>() as any
         );
         repetitions.add(rep1);
         repetitions.add(rep2);

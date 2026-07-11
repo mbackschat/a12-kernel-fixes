@@ -37,8 +37,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.NodePath;
+
+import tools.jackson.databind.JsonNode;
 
 /**
  * Since Kernel version 28.0.0, it is strongly recommended that the whole workspace should be migrated at once, since migration

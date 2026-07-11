@@ -146,13 +146,6 @@ export class EWAzVerifier {
 	}
 
 	/**
-	 * @deprecated since version 30.6.0. Will be removed with A12K-3589. Use {@link create} instead.
-	 */
-	public static getInstance(): ICustomFieldValidator {
-		return new EWAzVerifierImpl(undefined);
-	}
-
-	/**
 	 * @param fadat
 	 * 		the federal tax office data. Can be created via {@link deserializeFadat}.
 	 * @return the instance of {@link ICustomFieldValidator}.

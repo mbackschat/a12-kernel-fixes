@@ -138,6 +138,7 @@ public class LexerTerminals_de extends ListResourceBundle {
 			{ "StundenAusZeit", Base_ConditionLexer.STUNDEN_AUS_ZEIT },
 			{ "Summe", Base_ConditionLexer.SUMME },
 			{ "SummeVonProdukten", Base_ConditionLexer.SUMME_VON_PRODUKTEN },
+			{ "SummeVonTermen", Base_ConditionLexer.SUMME_VON_TERMEN },
 			{ "TagAusDatum", Base_ConditionLexer.TAG_AUS_DATUM },
 			{ "Und", Base_ConditionLexer.UND1 },
 			{ "und", Base_ConditionLexer.UND2 },

@@ -31,9 +31,7 @@
  */
 package com.mgmtp.a12.kernel.md.model.internal.service;
 
-import static com.mgmtp.a12.kernel.md.model.internal.service.mapping.VariantFiltering.computationIsAcceptedByFilter;
-import static com.mgmtp.a12.kernel.md.model.internal.service.mapping.VariantFiltering.fieldIsAcceptedByFilter;
-import static com.mgmtp.a12.kernel.md.model.internal.service.mapping.VariantFiltering.ruleIsAcceptedByFilter;
+import static com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils.cascadeNulls;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,6 +80,8 @@ import com.mgmtp.a12.kernel.md.model.internal.service.utils.ComputationAlternati
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.ElementUtils;
 import com.mgmtp.a12.model.header.Annotation;
 
+import lombok.NonNull;
+
 /**
  * <p>
  * Converts {@link DocumentModel}s to the {@link IEC} representation that is used in the validation
@@ -94,7 +94,6 @@ import com.mgmtp.a12.model.header.Annotation;
  */
 public class ValidationModelConverter {
 
-	private final String variant;
 	private final boolean considerNotInD;
 
 	private List<Locale> modelLanguages;
@@ -103,31 +102,15 @@ public class ValidationModelConverter {
 	private IProblemReporter problemReporter;
 
 	/**
-	 * @param variant
-	 * 		- the variant may be {@code null}:
 	 * @param considerNotInD
 	 * 		- if {@code true} ExtMP-specific information is considered otherwise it is ignored.
 	 */
-	public ValidationModelConverter(String variant, boolean considerNotInD) {
-		this.variant = variant;
+	public ValidationModelConverter(boolean considerNotInD) {
 		this.considerNotInD = considerNotInD;
 	}
 
 	/**
-	 * Converts the given document for the given variant to the {@link IEC} representation.
-	 *
-	 * @param documentModel
-	 * 		the document model to convert.
-	 * @return an {@link ElementContainer} corresponding to the given {@link DocumentModel}.
-	 */
-	public ElementContainer convert(IDocumentModel documentModel) {
-		return convert(documentModel, p -> {
-			throw new IllegalArgumentException(p.getMessage());
-		});
-	}
-
-	/**
-	 * Converts the given document for the given variant to the {@link IEC} representation.
+	 * Converts the given document to the {@link IEC} representation.
 	 *
 	 * @param documentModel
 	 * 		the document model to convert.
@@ -135,7 +118,7 @@ public class ValidationModelConverter {
 	 * 		the problem reporter, error messages are added to. May not be <code>null</code>.
 	 * @return an {@link ElementContainer} corresponding to the given {@link DocumentModel}.
 	 */
-	public ElementContainer convert(IDocumentModel documentModel, IProblemReporter problemReporter) {
+	public @NonNull ElementContainer convert(@NonNull IDocumentModel documentModel, @NonNull IProblemReporter problemReporter) {
 		final ElementContainerImpl result = new ElementContainerImpl();
 		final Locale conditionLanguage = documentModel.getContent().getDocumentModelConfig().getConditionLanguage();
 
@@ -163,116 +146,105 @@ public class ValidationModelConverter {
 
 		for (final IElement element : documentModel.getContent().getDocumentModelRoot().getElements()) {
 			if (!(element instanceof IGroup rootGroupType)) {
-				String msg = "Cannot process model with top-level element of type "
-						+ element.getClass().getSimpleName() + ".";
-				problemReporter.reportProblem(new MVKCoreError(msg, null));
+				problemReporter.reportProblem(new MVKCoreError("Top-level element must be of type %s, but was %s."
+						.formatted(IGroup.class.getName(), element.getClass().getName()), element));
+				continue;
+			}
+
+			if (StringUtils.isBlank(rootGroupType.getName())) {
+				problemReporter.reportProblem(new MVKCoreError("Root group must have a name.", rootGroupType));
 				continue;
 			}
 
 			final Group rootGroup = createGroupFromGroupType(rootGroupType, "", new long[0], result);
-			result.addChildEntity(rootGroup);
+			addChildToGroup(result, rootGroup);
 		}
 	}
 
-	private Group createGroupFromGroupType(final IGroup groupType,
-			final String parentPath,
-			final long[] parentMaxIndices,
-			ElementContainerImpl resultElementContainer) {
+	private @NonNull Group createGroupFromGroupType(
+			@NonNull IGroup groupType,
+			@NonNull String parentPath,
+			long[] parentMaxIndices,
+			@NonNull ElementContainerImpl resultElementContainer
+	) {
+		String groupPath = joinPath(groupType, parentPath);
+		long[] groupIndices = computeMaxIndices(groupType, parentMaxIndices);
 
-		final String groupPath = joinPath(groupType, parentPath);
-		final long[] groupIndices = computeMaxIndices(groupType, parentMaxIndices);
+		if (groupType.getIncludeConfig().isPresent() && groupType.getElements().isEmpty()) {
+			problemReporter.reportProblem(
+					new MVKCoreError("Unexpanded include at '%s'".formatted(groupPath), groupType));
+		}
 
-		final String indexField = groupType.getIndexField()
-				.map(IDocumentModelObjectReference::getDocumentModelObject)
-				.map(f -> f.orElseGet(() -> {
-					problemReporter.reportProblem(new MVKCoreError(
-							"Cannot process document models with unexpanded includes. Found unresolved reference.", groupType));
-					return null;
-				}))
-				.map(IField::getName)
+		String indexFieldName = groupType.getIndexField()
+				.map(IDocumentModelObjectReference::getRelativePath)
+				.map(indexFieldRelPath -> ElementPathUtils.getName(ElementPathUtils.absPath(groupPath, indexFieldRelPath)))
 				.orElse(null);
-		final String usageType = groupType.getUsageType().orElse(null);
-		final Map<String, List<ISortField>> sortInfo = createSortInfo(groupType.getSortFields(), groupType);
-		final Group result = new Group(groupType.getName(), groupPath, groupIndices, emptyMapIfNull(groupType.getAnnotations()),
+		String usageType = groupType.getUsageType().orElse(null);
+		Map<String, List<ISortField>> sortInfo = createSortInfo(groupType, groupPath);
+		Group result = new Group(groupType.getName(), groupPath, groupIndices, emptyMapIfNull(groupType.getAnnotations()),
 				groupType.getId(),
-				indexField,
+				indexFieldName,
 				usageType, sortInfo);
 		resultElementContainer.addToGroupCache(result);
 
-		for (final IElement element : groupType.getElements()) {
-			checkForInclude(groupPath, element);
+		for (IElement element : groupType.getElements()) {
+			if (StringUtils.isBlank(element.getName())) {
+				problemReporter.reportProblem(new MVKCoreError("Element must have a name.", groupType));
+				continue;
+			}
 
-			if (element instanceof IField field) {
-				if (fieldIsAcceptedByVariantFilter(field)) {
-					result.addChildEntity(
-							createFieldFromFieldType(field, groupPath, groupIndices,
-									ElementUtils.A12_ATTACHMENT.equals(usageType)));
+			Entity entity = switch (element) {
+				case IField field ->
+						createFieldFromFieldType(field, groupPath, groupIndices, ElementUtils.A12_ATTACHMENT.equals(usageType));
+				case IComputation computation -> cascadeNulls(
+						createRuleFromComputation(computation, groupPath, groupIndices, mlh, problemReporter),
+						rule -> createCalculationFromComputationType(rule, computation, groupPath, groupIndices));
+				case IRule rule -> createRuleFromRuleType(rule, groupPath, groupIndices);
+				case IGroup group -> createGroupFromGroupType(group, groupPath, groupIndices, resultElementContainer);
+				default -> {
+					problemReporter.reportProblem(new MVKCoreError("Unknown subclass of %s : %s"
+							.formatted(IElement.class.getName(), element.getClass().getName()), element));
+					// the element will not be added to the model --> might lead to cascading errors
+					yield null;
 				}
-			} else if (element instanceof IComputation computation) {
-				if (computationIsAcceptedByVariantFilter(computation)) {
-					final Rule rule = createRuleFromComputation(computation, groupPath, groupIndices);
-					if (rule == null) {
-						continue;
-					}
-					result.addChildEntity(
-							createCalculationFromComputationType(rule, computation, groupPath, groupIndices));
-				}
-			} else if (element instanceof IRule rule) {
-				if (ruleIsAcceptedByVariantFilter(rule)) {
-					result.addChildEntity(
-							createRuleFromRuleType(rule,
-									groupPath,
-									groupIndices));
-				}
-			} else if (element instanceof IGroup group) {
-				result.addChildEntity(createGroupFromGroupType(group,
-						groupPath,
-						groupIndices,
-						resultElementContainer));
+			};
+			if (entity != null) {
+				addChildToGroup(result, entity);
 			}
 		}
 		return result;
 	}
 
-	private List<Annotation> emptyMapIfNull(List<Annotation> annotations) {
+	private void addChildToGroup(Group group, Entity childToAdd) {
+		Entity conflictingEntity = group.addChildEntityIfAbsent(childToAdd);
+		if (conflictingEntity != null) {
+			problemReporter.reportProblem(new MVKCoreError("Cannot have two child elements with the same name [%s] in group '%s'."
+					.formatted(childToAdd.getName(), group.getFullName()), childToAdd));
+			// all duplicates after the first occurence will not be added to the model --> might lead to cascading errors
+		}
+	}
+
+	private static List<Annotation> emptyMapIfNull(List<Annotation> annotations) {
 		return annotations == null ? List.of() : Collections.unmodifiableList(annotations);
 	}
 
-	protected boolean fieldIsAcceptedByVariantFilter(IField field) {
-		return fieldIsAcceptedByFilter(field, variant);
-	}
-
-	protected boolean computationIsAcceptedByVariantFilter(IComputation computation) {
-		return computationIsAcceptedByFilter(computation, variant);
-	}
-
-	protected boolean ruleIsAcceptedByVariantFilter(IRule rule) {
-		return ruleIsAcceptedByFilter(rule, variant);
-	}
-
-	private Map<String, List<ISortField>> createSortInfo(List<IGroup.ISortField> sortFields, IGroup group) {
+	private Map<String, List<ISortField>> createSortInfo(IGroup group, String groupPath) {
 		List<ISortField> resultList = new ArrayList<>();
 		int i = 0;
-		for (IGroup.ISortField sf : sortFields) {
-			Optional<IField> documentModelObject = sf.getField().getDocumentModelObject();
-			if (documentModelObject.isEmpty()) {
-				problemReporter.reportProblem(new MVKCoreError("Cannot process document models with unexpanded includes. Found " +
-						"unresolved reference.", group));
-				continue;
-			}
-			String fieldName = documentModelObject.get().getName();
+		for (IGroup.ISortField sf : group.getSortFields()) {
+			String sortFieldName = ElementPathUtils.getName(ElementPathUtils.absPath(groupPath, sf.getField().getRelativePath()));
 			ISortField.SortingType sortingType = ISortField.SortingType.Descending;
 			if (IGroup.ISortField.Order.ASC.equals(sf.getOrder())) {
 				sortingType = ISortField.SortingType.Ascending;
 			}
-			resultList.add(new SortField(fieldName, ++i, sortingType));
+			resultList.add(new SortField(sortFieldName, ++i, sortingType));
 		}
 		Map<String, List<ISortField>> resultMap = new HashMap<>();
 		resultMap.put("Standard", resultList);
 		return resultMap;
 	}
 
-	private Field createFieldFromFieldType(final IField field,
+	private @NonNull Field createFieldFromFieldType(final IField field,
 			final String parentPath,
 			final long[] parentMaxIndices,
 			final boolean isInAttachment) {
@@ -315,14 +287,27 @@ public class ValidationModelConverter {
 				rule);
 	}
 
-	private Rule createRuleFromComputation(final IComputation computation,
+	public static Rule createRuleFromComputation(final IComputation computation,
 			final String parentPath,
-			final long[] parentMaxIndices) {
+			final long[] parentMaxIndices,
+			Locale conditionLanguage,
+			List<Locale> modelLanguages,
+			IProblemReporter problemReporter) {
+		ConditionMultiLanguageHandler mlh = new ConditionMultiLanguageHandler(conditionLanguage,
+				new A12SpecificSettings(modelLanguages));
+		return createRuleFromComputation(computation, parentPath, parentMaxIndices, mlh, problemReporter);
+	}
+
+	private static Rule createRuleFromComputation(final IComputation computation,
+			final String parentPath,
+			final long[] parentMaxIndices,
+			ConditionMultiLanguageHandler mlh,
+			IProblemReporter problemReporter) {
 
 		final String rulePath = joinPath(computation, parentPath);
 		final long[] ruleIndices = computeMaxIndices(computation, parentMaxIndices);
 
-		StringWithFragmentsOriginMap statement = getComputationStatement(computation);
+		StringWithFragmentsOriginMap statement = getComputationStatement(computation, mlh, problemReporter);
 		if (statement == null) {
 			return null;
 		}
@@ -340,7 +325,8 @@ public class ValidationModelConverter {
 				computation);
 	}
 
-	protected StringWithFragmentsOriginMap getComputationStatement(final IComputation computation) {
+	private static StringWithFragmentsOriginMap getComputationStatement(final IComputation computation,
+			ConditionMultiLanguageHandler mlh, IProblemReporter problemReporter) {
 		Optional<IField> computedField = computation.getComputedField().getDocumentModelObject();
 		if (computedField.isEmpty()) {
 			String relativePath = computation.getComputedField().getRelativePath();
@@ -361,7 +347,7 @@ public class ValidationModelConverter {
 				.join();
 	}
 
-	private Rule createRuleFromRuleType(final IRule rule,
+	private @NonNull Rule createRuleFromRuleType(final IRule rule,
 			final String parentPath,
 			final long[] parentMaxIndices) {
 
@@ -380,25 +366,12 @@ public class ValidationModelConverter {
 				rule.getId());
 	}
 
-	private void checkForInclude(final String groupPath, final IElement element) {
-		if (element instanceof IGroup group
-				&& group.getIncludeDetails().isPresent()
-				&& group.getElements().isEmpty()) {
-			problemReporter.reportProblem(
-					new MVKCoreError("Cannot process document models with unexpanded includes. Found unexpanded include with path '"
-							+ groupPath
-							+ IIdentifier.SEPARATOR
-							+ element.getName()
-							+ "'.", element));
-		}
-	}
-
-	private String joinPath(final IElement elementType,
+	private static String joinPath(final IElement elementType,
 			final String parentPath) {
 		return parentPath + IIdentifier.SEPARATOR + elementType.getName();
 	}
 
-	private long[] computeMaxIndices(final IElement elementType,
+	private static long[] computeMaxIndices(final IElement elementType,
 			final long[] parentMaxIndices) {
 		final long[] maxIndices = new long[parentMaxIndices.length + 1];
 		System.arraycopy(parentMaxIndices, 0, maxIndices, 0, parentMaxIndices.length);

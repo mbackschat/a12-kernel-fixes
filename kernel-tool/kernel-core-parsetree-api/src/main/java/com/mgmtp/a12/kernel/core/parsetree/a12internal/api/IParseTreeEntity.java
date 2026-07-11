@@ -32,6 +32,7 @@
 
 package com.mgmtp.a12.kernel.core.parsetree.a12internal.api;
 
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.ast.ASTVisitor;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
@@ -89,6 +90,12 @@ public interface IParseTreeEntity {
 	 * For details s EXT-20784
 	 */
 	public static final long REP_NOT_UNQ_REF_LEVEL_HAS_TO_BE_REPLACED = -7L;
+
+	/**
+	 * {@link #INTERNAL_ITERATION} is used to represent a level, that is iterated over in an inner loop.
+	 * It is used, e.g. in the operation of a {@link ISetOpOperation}.
+	 */
+	long INTERNAL_ITERATION = -8L;
 
 	/**
 	 * Schnittstelle zum Traversieren des Baums, d.h. die <code>accept</code>

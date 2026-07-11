@@ -130,10 +130,14 @@ public class ArchiveExtractor {
 	}
 
 	private void extractMultipleFiles(final byte[] bytes, final Path fileSystemPath) {
+		final Path targetDir = fileSystemPath.toAbsolutePath().normalize();
 		try (final ZipInputStream zipinputstream = new ZipInputStream(new ByteArrayInputStream(bytes))) {
 			ZipEntry zipentry;
 			while ((zipentry = zipinputstream.getNextEntry()) != null) {
-				final Path filePath = fileSystemPath.resolve(zipentry.getName());
+				final Path filePath = targetDir.resolve(zipentry.getName()).normalize();
+				if (!filePath.startsWith(targetDir)) {
+					throw new IOException("Zip entry outside of target directory: " + zipentry.getName());
+				}
 				if (zipentry.isDirectory()) {
 					Files.createDirectories(filePath);
 					continue;

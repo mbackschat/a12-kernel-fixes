@@ -32,38 +32,10 @@
 
 package com.mgmtp.a12.kernel.core.onTheFlyTesting.a12internal.api;
 
-import java.util.Collection;
-
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 @OnlyForUsage
 public interface IOnTheFlyTestingService {
-
-	/**
-	 * Performs formal validation for the given data (returned by
-	 * {@link IOnTheFlyTestingParameter#getData()}) and tests the rules. Returns
-	 * the error messages in the language specified by
-	 * {@link IOnTheFlyTestingParameter#getLanguage()}.
-	 * <br>
-	 * Error text parameters are replaced by the values. E.g. if the error text uses an error text
-	 * parameter to specify the value of a field, the error text parameter is replaced by the actual
-	 * value of the field - or the default value, if the value of the field is not specified. Throws
-	 * an {@link IllegalArgumentException}, if the rule does not provide an error message for the
-	 * given languages.
-	 * <br>
-	 * If the rule fires, the error message is reported to the problem reporter
-	 * {@link IOnTheFlyTestingParameter#getProblemReporter()}.
-	 *
-	 * @param rules
-	 * 		specifies the rules of the model, may not be null
-	 * @param params
-	 * 		contains all the information that is additionally required here, for example
-	 * 		<i>data</i> or <i>problem reporter</i>
-	 * @deprecated will be removed with A12K-3593
-	 */
-	@Deprecated(since = "30.2.0")
-	void testRule(Collection<? extends IRule> rules, IOnTheFlyTestingParameter params);
 
 	/**
 	 * Performs formal validation for the given data (returned by

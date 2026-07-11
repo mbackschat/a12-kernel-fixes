@@ -130,11 +130,6 @@ public class IDocumentModelService {
 		// Your own implementation of IDocumentDynamicServiceConfig, consider using 'cache' from above
 		IDocumentDynamicServiceConfig config = new IDocumentDynamicServiceConfig() {
 			@Override
-			public Optional<String> getVariant() {
-				return Optional.empty(); // not supported in A12
-			}
-
-			@Override
 			public IModelCodeCache getCache() {
 				return cache;
 			}
@@ -167,11 +162,6 @@ public class IDocumentModelService {
 
 		// Your own implementation of IDocumentDynamicServiceConfig, consider using 'cache' from above
 		IDocumentStaticServiceConfig config = new IDocumentStaticServiceConfig() {
-			@Override
-			public Optional<String> getVariant() {
-				return Optional.empty(); // not supported in A12
-			}
-
 			@Override
 			public Optional<IStaticModelCodeCache> getCache() {
 				return Optional.of(cache);
@@ -211,7 +201,6 @@ public class IDocumentModelService {
 		// @formatter:off
 		IDocumentDynamicServiceConfig config = new IDocumentDynamicServiceConfig() {
 			@Override public IModelCodeCache getCache() {return modelCodeCache;}
-			@Override public Optional<String> getVariant() {return Optional.empty();}
 			@Override public Optional<ILabelProvider> getLabelProvider() {return Optional.empty();}
 		};
 		// @formatter:on

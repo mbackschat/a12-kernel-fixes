@@ -34,13 +34,10 @@ dependencies {
     // "com.mgmtp.a12.kernel:kernel-md-document-v2:${kernelVersion}"
     generatedTypingsImplementation project(':kernel-md-document-v2')
 
-    // users outside the kernel project should declare the following
-    // instead of the project dependency:
-    // runTypedAccessorGeneratorConfig group: 'com.mgmtp.a12.kernel', name: 'kernel-md-typed-accessor-gen', version: <kernelVersion>, classifier: 'TypedAccessorGenerator-CLI'
-    runTypedAccessorGeneratorConfig project(path: ':kernel-md-typed-accessor-gen', configuration: 'typedAccessorGeneratorCLIConfig')
+    // users outside the kernel project should declare the following instead of the project dependency:
+    // runTypedAccessorGeneratorConfig group: 'com.mgmtp.a12.kernel', name: 'kernel-md-facade', version: <kernelVersion>, classifier: 'typed-accessor-gen-cli'
+    runTypedAccessorGeneratorConfig project(path: ':kernel-md-facade', configuration: 'typedAccessorGeneratorCLIConfig')
 
-    // note: when --mode pojo is used for the typings generator, generatedTypingsImplementation
-    // needs an additional dependency on base-model-utils (for the @Experimental annotation)
     testImplementation project(':kernel-md-document-v2')
 
     // kernel-md-facade is not necessary for the typed accessors or documents themselves,
@@ -58,7 +55,7 @@ dependencies {
 
 tasks.register('runTypedAccessorGenerator', JavaExec) {
     // classpath contains only the executable jar
-    // kernel-md-typed-accessor-gen-xx.x.x-TypedAccessorGenerator-CLI.jar
+    // kernel-md-facade-xx.x.x-typed-accessor-gen-cli.jar
     classpath = configurations.runTypedAccessorGeneratorConfig
     // specify the mainClass explicitly, because implicit spec via
     // the executable jar's attributes can be unreliable

@@ -60,7 +60,6 @@ INDEX: 'index';
 RULE_GROUP: 'RegelKontext';
 VALUE: 'Wert';
 VORDRUCKZEILE: 'Vordruckzeile';
-VORDRUCKNAME: 'Vordruckname';
 REFERENZJAHR: 'Referenzjahr';
 CAT: '->' ;
 

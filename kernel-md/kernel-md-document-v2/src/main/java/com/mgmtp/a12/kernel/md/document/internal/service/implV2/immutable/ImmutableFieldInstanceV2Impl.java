@@ -34,7 +34,6 @@ package com.mgmtp.a12.kernel.md.document.internal.service.implV2.immutable;
 
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.FieldInstanceV2;
 import com.mgmtp.a12.kernel.md.document.internal.service.implV2.DocumentV2InternalUtils;
-import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV1V2Conversion;
 import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV2;
 
 public class ImmutableFieldInstanceV2Impl implements FieldInstanceV2 {
@@ -49,17 +48,6 @@ public class ImmutableFieldInstanceV2Impl implements FieldInstanceV2 {
 	 */
 	public static ImmutableFieldInstanceV2Impl ofValueInternal(Object value) {
 		return new ImmutableFieldInstanceV2Impl(value);
-	}
-
-	/**
-	 * see {@link FieldInstanceV2#ofV1Value(Object)}
-	 *
-	 * @deprecated only relevant for interoperability with the document V1 API. With {@link BasicTypeV2} values,
-	 *        {@link #ofValueInternal(Object)} can be used instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	public static ImmutableFieldInstanceV2Impl ofV1ValueInternal(Object value) {
-		return ofValueInternal(BasicTypeV1V2Conversion.basicTypeV1ToV2(value));
 	}
 
 	/**

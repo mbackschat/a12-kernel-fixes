@@ -175,6 +175,14 @@ public class ElementPathUtils {
 	}
 
 	/**
+	 *
+	 * @return whether the given {@code path} is an absolute path
+	 */
+	public static boolean isAbsolutePath( String path){
+		return path.startsWith(SEPARATOR);
+	}
+
+	/**
 	 * @param descendantPath
 	 * 		the path that should be tested to be below the other one. Must not be blank.
 	 * @param path

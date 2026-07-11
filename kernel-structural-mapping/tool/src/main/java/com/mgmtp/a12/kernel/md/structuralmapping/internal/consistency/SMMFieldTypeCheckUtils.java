@@ -50,19 +50,18 @@ import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.NumberType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.StringType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.TimeType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.TypeDefType;
-import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.UnspecifiedType;
 import com.mgmtp.a12.kernel.md.rt.api.DocumentProcessingConfig;
 import com.mgmtp.a12.kernel.md.rt.api.IDocumentValidationResult;
 import com.mgmtp.a12.kernel.md.rt.internal.service.Identifier;
 import com.mgmtp.a12.kernel.md.rt.internal.service.LowKernelApiUtils;
 import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1.Data;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.dateFormat;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.dateRangeFormat;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.falseValue;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.interpretationOfYear;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.optionalDateType;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.trueValue;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.type;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.DateFormat;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.DateRangeFormat;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.FalseValue;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.InterpretationOfYear;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.OptionalDateType;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.TrueValue;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.Type;
 import com.mgmtp.a12.kernel.mmvalidators.extmpinternal.codegen_mm_smm_fieldtypechecks__0031.Factory_codegen_mm_smm_fieldtypechecks__0031;
 import com.mgmtp.a12.kernel.mmtypings.extmpinternal.mm_smm_fieldtypechecks_1_a12.views.MM_SMM_FieldTypeChecks_1;
 import com.mgmtp.a12.kernel.mmtypings.extmpinternal.mm_smm_fieldtypechecks_1_a12.views._mm_smm_fieldtypechecks_1._smm_fieldtypechecks.Source;
@@ -105,29 +104,29 @@ public class SMMFieldTypeCheckUtils {
 		switch (fieldType) {
 			case BooleanType booleanType -> {
 				return data
-						._with(Data._pointer().type(), type.Escaped_Boolean)
+						._with(Data._pointer().type(), Type.Escaped_Boolean)
 						._with(Data._pointer().trueValue(), booleanType.getNotInDCustomTrueValue()
-								.map(trueValue::_of).orElse(trueValue.Escaped_true))
+								.map(TrueValue::_of).orElse(TrueValue.Escaped_true))
 						._with(Data._pointer().falseValue(), booleanType.getNotInDCustomFalseValue()
-								.map(falseValue::_of).orElse(falseValue.Escaped_false));
+								.map(FalseValue::_of).orElse(FalseValue.Escaped_false));
 			}
 			case ConfirmType confirmType -> {
 				return data
-						._with(Data._pointer().type(), type.Confirm)
+						._with(Data._pointer().type(), Type.Confirm)
 						._with(Data._pointer().trueValue(), confirmType.getNotInDCustomTrueValue()
-								.map(trueValue::_of).orElse(trueValue.Escaped_true));
+								.map(TrueValue::_of).orElse(TrueValue.Escaped_true));
 			}
 			case CustomFieldType customFieldType -> {
 				return data
-						._with(Data._pointer().type(), type.CustomFieldType)
+						._with(Data._pointer().type(), Type.CustomFieldType)
 						._with(Data._pointer().codeName(), customFieldType.getName())
 						._with(Data._pointer().minLength(), customFieldType.getMinLength().map(BigDecimal::valueOf).orElse(null))
 						._with(Data._pointer().maxLength(), customFieldType.getMaxLength().map(BigDecimal::valueOf).orElse(null));
 			}
 			case DateFragmentType dateFragmentType -> {
 				return data
-						._with(Data._pointer().type(), type.DateFragment)
-						._with(Data._pointer().dateFormat(), dateFormat._of(sanitizeDateFormat(
+						._with(Data._pointer().type(), Type.DateFragment)
+						._with(Data._pointer().dateFormat(), DateFormat._of(sanitizeDateFormat(
 								dateFragmentType.getNotInDCustomFormat().orElse(dateFragmentType.getFormatOfFragment()))))
 						._with(Data._pointer().younger1900(), dateFragmentType.isYoungerThan1900Check() ? true : null);
 			}
@@ -135,36 +134,36 @@ public class SMMFieldTypeCheckUtils {
 				String dateFormat = sanitizeDateFormat(dateRangeType.getNotInDCustomFormat().orElse(dateRangeType.getFormat()));
 				String separator = dateRangeType.getNotInDCustomRangeSeparator().orElse(dateRangeType.getRangeSeparator());
 				return data
-						._with(Data._pointer().type(), type.DateRange)
-						._with(Data._pointer().dateRangeFormat(), dateRangeFormat._of(dateFormat + separator + dateFormat))
+						._with(Data._pointer().type(), Type.DateRange)
+						._with(Data._pointer().dateRangeFormat(), DateRangeFormat._of(dateFormat + separator + dateFormat))
 						._with(Data._pointer().younger1900(), dateRangeType.isYoungerThan1900Check() ? true : null)
 						._with(Data._pointer().interpretationOfYear(), dateRangeType.getInterpretationOfYear()
 								.map(ioy -> switch (ioy) {
-									case FROM -> interpretationOfYear.from;
-									case TO -> interpretationOfYear.to;
-								}).orElse(interpretationOfYear.standard));
+									case FROM -> InterpretationOfYear.from;
+									case TO -> InterpretationOfYear.to;
+								}).orElse(InterpretationOfYear.standard));
 			}
 			case DateTimeType dateTimeType -> {
 				return data
-						._with(Data._pointer().type(), type.DateTime)
-						._with(Data._pointer().dateFormat(), dateFormat._of(sanitizeDateFormat(dateTimeType.getFormat())));
+						._with(Data._pointer().type(), Type.DateTime)
+						._with(Data._pointer().dateFormat(), DateFormat._of(sanitizeDateFormat(dateTimeType.getFormat())));
 			}
 			case DateType dateType -> {
 				return data
-						._with(Data._pointer().type(), type.Date)
+						._with(Data._pointer().type(), Type.Date)
 						._with(Data._pointer().dateFormat(),
-								dateFormat._of(sanitizeDateFormat(dateType.getNotInDCustomFormat().orElse(dateType.getFormat()))))
+								DateFormat._of(sanitizeDateFormat(dateType.getNotInDCustomFormat().orElse(dateType.getFormat()))))
 						._with(Data._pointer().younger1900(), dateType.isYoungerThan1900Check() ? true : null)
 						._with(Data._pointer().optionalDateType(), switch (dateType.getDatePrecision()) {
-							case FULL -> optionalDateType.FULL;
-							case DAY_OPTIONAL -> optionalDateType.DAY_OPTIONAL;
-							case MONTH_OPTIONAL -> optionalDateType.MONTH_OPTIONAL;
-							case YEAR_OPTIONAL -> optionalDateType.YEAR_OPTIONAL;
+							case FULL -> OptionalDateType.FULL;
+							case DAY_OPTIONAL -> OptionalDateType.DAY_OPTIONAL;
+							case MONTH_OPTIONAL -> OptionalDateType.MONTH_OPTIONAL;
+							case YEAR_OPTIONAL -> OptionalDateType.YEAR_OPTIONAL;
 						});
 			}
 			case EnumerationType enumerationType -> {
 				return data
-						._with(Data._pointer().type(), type.Enumeration);
+						._with(Data._pointer().type(), Type.Enumeration);
 				// Note: enum values are deliberately not checked and hence not part of the extracted field type attributes
 			}
 			case NumberType numberType -> {
@@ -172,9 +171,9 @@ public class SMMFieldTypeCheckUtils {
 						._with(Data._pointer().type(), numberType.getTrait()
 								.filter(TRAIT_AMOUNT::equals)
 								.map(t -> numberType.getMaxFractionalDigits() > 0
-										? type.GeldBetragMitCent
-										: type.GeldBetragOhneCent)
-								.orElse(type.Number))
+										? Type.GeldBetragMitCent
+										: Type.GeldBetragOhneCent)
+								.orElse(Type.Number))
 						._with(Data._pointer().minFractionalDigits(), BigDecimal.valueOf(numberType.getMinFractionalDigits()))
 						._with(Data._pointer().maxFractionalDigits(), BigDecimal.valueOf(numberType.getMaxFractionalDigits()))
 						._with(Data._pointer().minimalValue(), numberType.getMinValue().orElse(null))
@@ -190,7 +189,7 @@ public class SMMFieldTypeCheckUtils {
 			case StringType stringType -> {
 				return data
 						._with(Data._pointer().type(),
-								stringType.getHintList().isEmpty() ? type.String : type.ExtensibleEnumeration)
+								stringType.getHintList().isEmpty() ? Type.String : Type.ExtensibleEnumeration)
 						._with(Data._pointer().minLength(), stringType.getMinLength().map(BigDecimal::valueOf).orElse(null))
 						._with(Data._pointer().maxLength(), stringType.getMaxLength().map(BigDecimal::valueOf).orElse(null))
 						._with(Data._pointer().linebreaksPermitted(), stringType.isLineBreaksPermitted() ? true : null)
@@ -199,16 +198,12 @@ public class SMMFieldTypeCheckUtils {
 			}
 			case TimeType timeType -> {
 				return data
-						._with(Data._pointer().type(), type.Time)
-						._with(Data._pointer().dateFormat(), dateFormat._of(timeType.getFormat()));
+						._with(Data._pointer().type(), Type.Time)
+						._with(Data._pointer().dateFormat(), DateFormat._of(timeType.getFormat()));
 			}
 			case TypeDefType typeDefType -> throw new IllegalArgumentException(
 					"Encountered an unexpanded type definition (%s). The Document Model must be expanded."
 							.formatted(typeDefType.getId()));
-			case UnspecifiedType unspecifiedType -> {
-				return data
-						._with(Data._pointer().type(), type.Unspecified);
-			}
 			default -> throw new IllegalArgumentException(
 					"Cannot check field type of unknown field type '%s'".formatted(fieldType.getClass().getSimpleName()));
 		}

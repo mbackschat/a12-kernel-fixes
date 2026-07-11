@@ -275,10 +275,8 @@ public class MetaRegelReferenzenBuilder {
 						ei.isOuter(),
 						ei.getUsb(),
 						ei.getRootGroupWildcardStart(), ei.getRootGroupWildcardEnd(),
-						// A12K-3044: this appears to be used in backingbeans/EntityId::addWildcardLayerSpec even for non-H-DVs
-						ei.getRowWildcardStart(), ei.getRowWildcardEnd(),
-						// we might not need this comparison for H-DVs? if so, this can potentially be removed when A12K-3044 is fixed
-						Arrays.toString(ei.getIndices()),
+						ei.getRowWildcardStart(), ei.getRowWildcardEnd(), // maybe not needed for A12-DVs, but probably doesn't harm either.
+						Arrays.toString(ei.getIndices()), // maybe not needed for H-DVs, but probably doesn't harm either
 						Arrays.toString(ei.getMaxValues())
 				).map(Objects::toString)
 				.collect(Collectors.joining("_")); // delimiter in order to disambiguate adjacent number strings

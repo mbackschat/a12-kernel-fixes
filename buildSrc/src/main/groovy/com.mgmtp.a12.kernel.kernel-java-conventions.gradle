@@ -1,3 +1,7 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import groovy.xml.XmlParser
+
 plugins {
     id 'java-library'
     id 'com.mgmtp.a12.kernel.kernel-base-conventions'
@@ -6,6 +10,7 @@ plugins {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    options.release = Integer.parseInt(java_language_version)
 }
 
 static void setSystemPropertyIfDefined(String prop, Task t) {
@@ -28,7 +33,7 @@ java {
 java {
     withJavadocJar()
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(java_language_version))
+        languageVersion.set(JavaLanguageVersion.of(java_toolchain_version))
     }
 }
 
@@ -52,12 +57,14 @@ tasks.withType(Javadoc).configureEach {
 
         // disable this if you want recommendations
         quiet()
-        addBooleanOption('Xdoclint:none', true)
 
         addStringOption(
                 '-snippet-path', // Use a single '-' here because Gradle adds one automatically
                 project.layout.getProjectDirectory().file("src/snippets/java/javadocsnippets").toString()
         )
+
+        // ignore custom annotations and markers
+        tags = ['formatter\\:off::', 'formatter\\:on::']
     }
 }
 
@@ -106,10 +113,8 @@ tasks.build {
 }
 
 static void compile_with_java_version_for_rt_deps(Project proj) {
-    proj.java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(proj.property('java_language_version_for_rt_deps')))
-        }
+    proj.tasks.compileJava {
+        options.release = Integer.parseInt(proj.property('java_language_version_for_rt_deps'))
     }
 }
 

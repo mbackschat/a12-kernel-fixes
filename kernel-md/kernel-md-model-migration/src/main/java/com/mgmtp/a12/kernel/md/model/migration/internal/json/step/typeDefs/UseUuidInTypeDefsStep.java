@@ -41,16 +41,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
-import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfigType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
-import com.mgmtp.a12.kernel.md.model.migration.internal.json.step.BaseJsonNodeMigrationStep;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
+
+import tools.jackson.databind.JsonNode;
 
 /**
  * In this class, following logic is implemented:
@@ -59,29 +58,17 @@ import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
  *     <li>references to the old typeDef-ids should be updated</li>
  * </ul>
  */
-public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
+public final class UseUuidInTypeDefsStep {
 
-	public UseUuidInTypeDefsStep(MigrationCache cache, MigrationStepConfigType stepConfigType,
-			ICustomMigrationConfig customMigConfig) {
-		super(cache, stepConfigType, customMigConfig);
+	private UseUuidInTypeDefsStep() {
 	}
 
-	/**
-	 * assumptions:
-	 * - the document models to migrate are topologically sorted -> document models in docModelsById are already migrated and added
-	 * to the cache
-	 * - document model ids are unique
-	 *
-	 * @param model
-	 * 		the model to migrate
-	 * @param migrationLogger
-	 * 		the logger to report occurred errors and infos
-	 */
-	@Override public void execute(JsonNode model, MigrationLogger migrationLogger) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
+			ICustomMigrationConfig customMigConfig) {
 		String docModelId = ModelJsonUtil.extractModelId(model);
 
 		// ################## local typeDefs ##################
-		updateLocalTypeDefs(model, docModelId);
+		updateLocalTypeDefs(model, docModelId, cache);
 
 		Collection<JsonNode> typeDefTypes = ModelJsonUtil.extractTypeDefTypes(model);
 		if (typeDefTypes.isEmpty()) {
@@ -91,7 +78,7 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 		}
 
 		// ################## referenced typeDefs (local and imported) ##################
-		List<JsonNode> unresolvedTypeDefTypes = updateTypeDefRefsAndGetUnresolved(docModelId, typeDefTypes);
+		List<JsonNode> unresolvedTypeDefTypes = updateTypeDefRefsAndGetUnresolved(docModelId, typeDefTypes, cache);
 
 		// are all TD-refs resolved -> nothing else to migrate
 		if (unresolvedTypeDefTypes.isEmpty()) {
@@ -100,7 +87,7 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 		}
 
 		// ################## included typeDefs ##################
-		IncludedTypeDefsExtractionResult extractionResult = collectTypeDefUuidsByIncludedIds(model);
+		IncludedTypeDefsExtractionResult extractionResult = collectTypeDefUuidsByIncludedIds(model, cache);
 		Optional<MigrationException> extractionException = extractionResult.getException();
 		if (extractionException.isPresent()) {
 			cache.addDocModelById(docModelId, model);
@@ -125,7 +112,7 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 	 * @param model
 	 * 		the document model to migrate
 	 */
-	private void updateLocalTypeDefs(JsonNode model, String docModelId) {
+	private static void updateLocalTypeDefs(JsonNode model, String docModelId, MigrationCache cache) {
 		Set<JsonNode> typeDefs = ModelJsonUtil.extractTypeDefs(model);
 
 		for (JsonNode typeDef : typeDefs) {
@@ -140,7 +127,7 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 								"same id."));
 			}
 
-			String uuid = determineUuid(uniqueId);
+			String uuid = determineUuid(uniqueId, cache);
 			// update caches (also add if the uuid is from the custom type def)
 			cache.addTypeDefUuidByUniqueId(uniqueId, uuid);
 
@@ -149,7 +136,7 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 		}
 	}
 
-	private String determineUuid(String uniqueId) {
+	private static String determineUuid(String uniqueId, MigrationCache cache) {
 		// look first in the custom uuids
 		if (cache.containsCustomTypeDefUuid(uniqueId)) {
 			return cache.getCustomTypeDefUuid(uniqueId);
@@ -164,11 +151,12 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 	 *
 	 * @return a list of typeDefTypes with unresolved typeDef reference
 	 */
-	private List<JsonNode> updateTypeDefRefsAndGetUnresolved(String docModelId, Collection<JsonNode> typeDefTypes) {
+	private static List<JsonNode> updateTypeDefRefsAndGetUnresolved(String docModelId, Collection<JsonNode> typeDefTypes,
+			MigrationCache cache) {
 		// the typeDefRefs are grouped by if there is a UUID present or not
 		return typeDefTypes.stream()
 				.map(typeDefType -> {
-					Optional<String> uuid = findCorrespondingUuid(typeDefType, docModelId);
+					Optional<String> uuid = findCorrespondingUuid(typeDefType, docModelId, cache);
 					if (uuid.isPresent()) {
 						ModelJsonUtil.setTypeDefRefId(typeDefType, uuid.get());
 						return null;
@@ -180,7 +168,7 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 				.toList();
 	}
 
-	private Optional<String> findCorrespondingUuid(JsonNode typeDefType, String docModelId) {
+	private static Optional<String> findCorrespondingUuid(JsonNode typeDefType, String docModelId, MigrationCache cache) {
 		String typeDefRefId = ModelJsonUtil.getTypeDefRefId(typeDefType);
 		// first with the original ref (case of imported typeDefs)
 		if (cache.containsTypeDefUniqueId(typeDefRefId)) {
@@ -191,6 +179,15 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 		return Optional.ofNullable(cache.getTypeDefUuid(uniqueId));
 	}
 
+	// TODO[A12K-4202] fix the migration to loop over versions in the outer loop and dms in the inner loop,
+	//   so that each migration step will only ever get its single expected input version as input
+	public static String getModelRefOrAlias(JsonNode unexpandedIncludingGroup, boolean after2860) {
+		return after2860 ?
+				ModelJsonUtil.getModelReference(unexpandedIncludingGroup)
+				: //until 2840 there was a model alias  directly under the group
+				ModelJsonUtil.getModelAlias(unexpandedIncludingGroup);
+	}
+
 	/**
 	 * Collect all the (transitive) typeDef included ids: the "path" of the including group-ids,
 	 * e.g. include group with id incl_123 whose included model also contains a further including group with id incl_456
@@ -199,21 +196,31 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 	 *
 	 * @return a map of typeDef uuid to typeDef included id
 	 */
-	private IncludedTypeDefsExtractionResult collectTypeDefUuidsByIncludedIds(JsonNode model) {
+	private static IncludedTypeDefsExtractionResult collectTypeDefUuidsByIncludedIds(JsonNode model, MigrationCache cache
+			//TODO[A12K-4202]: refactor for cognitive complexity
+	) {
 		Collection<JsonNode> includingGroups = ModelJsonUtil.extractUnexpandedIncludingGroups(model);
 		String docModelId = ModelJsonUtil.extractModelId(model);
 
+		var afterModalAliasChange = ModelJsonUtil.extractModelVersion(model).compareTo("28.6.0") > 0;
+		//TODO[A12K-4202] : actually we want to change the iteration loop:
+		// Is: outer loop -> topological Sort, inner loop -> dmVersion
+		// better: outer loop ->dmVersion , inner loop ->  topological Sort
+
 		IncludedTypeDefsExtractionResult result = new IncludedTypeDefsExtractionResult();
 
-		Map<String, String> includedDmReferenceByAlias = ModelJsonUtil.createIncludedDmReferenceByAlias(model, false);
+		Map<String, String> includedDmReferenceByAlias =
+				afterModalAliasChange ? null : ModelJsonUtil.createIncludedDmReferenceByAlias(model, false);
 
 		for (JsonNode includingGroup : includingGroups) {
-			String alias = ModelJsonUtil.getModelAlias(includingGroup);
-			String reference = includedDmReferenceByAlias.get(alias);
+
+			String refOrAlias = getModelRefOrAlias(includingGroup, afterModalAliasChange);
+
+			var reference = afterModalAliasChange ? refOrAlias : includedDmReferenceByAlias.get(refOrAlias);
 			String groupId = ModelJsonUtil.extractGroupId(includingGroup);
 			if (reference == null) {
 				return new IncludedTypeDefsExtractionResult(MigrationErrorType.UNKNOWN_REFERENCED_MODEL,
-						"For the referenced document model '" + alias + "' in the include with the id '"
+						"For the referenced document model '" + refOrAlias + "' in the include with the id '"
 								+ groupId + "', there is no corresponding model reference in header.");
 			}
 
@@ -229,7 +236,7 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 
 					if (!cache.containsTypeDefUuid(typeDefUuid)) {
 						return new IncludedTypeDefsExtractionResult(MigrationErrorType.TYPE_DEF_MISSING,
-								"Type definition with id '" + typeDefUuid + "' in included document model with id  '" + reference
+								"Type definition with id '" + typeDefUuid + "' in included document model with id  '" + refOrAlias
 										+ "' cannot be resolved, please make sure to migrate the entire workspace at once.");
 					}
 					String uniqueId = cache.getTypeDefUniqueId(typeDefUuid);
@@ -246,7 +253,7 @@ public class UseUuidInTypeDefsStep extends BaseJsonNodeMigrationStep {
 				}
 
 				// gather transitively included typeDefs
-				IncludedTypeDefsExtractionResult tmpResult = collectTypeDefUuidsByIncludedIds(includedDm);
+				IncludedTypeDefsExtractionResult tmpResult = collectTypeDefUuidsByIncludedIds(includedDm, cache);
 				if (tmpResult.getException().isPresent()) {
 					return tmpResult;
 				}

@@ -5,7 +5,7 @@ package <t.legacyPublicExtmpPackageName>;
 
 import java.util.Set;
 
-import com.mgmtp.a12.kernel.core.rt._30_8.internal.datatransfer.extmp.ExtmpDataTransferFactoryImpl;
+import com.mgmtp.a12.kernel.core.rt._31_1.internal.datatransfer.extmp.ExtmpDataTransferFactoryImpl;
 import com.mgmtp.a12.kernel.core.rt.a12internal.IGeneratedCodeAccessFactory;
 import com.mgmtp.a12.kernel.core.rt.extmp.a12internal.datatransfer.IExtmpDataTransferFactory;
 import com.mgmtp.a12.kernel.core.rt.extmp.a12internal.datatransfer.IExtmpDataTransferService;

@@ -1,33 +1,34 @@
 [versions]
-a12KernelVersion = "30.8.1"
-kernelCoreRuntimeApiVersion = "32.3.4"
-kernelCoreCustomfieldtypeApiVersion = "28.2.0"
+a12KernelVersion = "31.1.0"
+kernelCoreRuntimeApiVersion = "33.0.2"
+kernelCoreCustomfieldtypeApiVersion = "29.0.2"
 
-ctFIELD_TYPE_ATTRIBUTES_1 = "2.4.541339"
-ctMODEL_HEADER_1 = "3.5.541340"
-ctSELECTION_v1 = "2.4.540013"
-mmCombinationModel_1 = "2.9.541404"
-mmMappingModel_2 = "4.9.541359"
-mmPackage_1 = "6.0.541344"
-mmPackage_2 = "2.4.541345"
-mmmmSelectionModel_2 = "1.3.540012"
-mmSmmFieldTypeChecks_1 = "2.4.541348"
-mmStructuralMappingModel_1 = "4.3.541349"
-mmXmlSchemaContainer_1 = "5.2.541350"
-mmCommon_v2 = "19.8.541420"
+ctFIELD_TYPE_ATTRIBUTES_1 = "3.1.551343"
+ctMODEL_HEADER_1 = "3.7.551344"
+ctSELECTION_v1 = "2.7.550017"
+mmCombinationModel_1 = "2.13.551408"
+mmMappingModel_2 = "4.15.551364"
+mmPackage_1 = "6.1.551348"
+mmPackage_2 = "2.5.551349"
+mmmmSelectionModel_2 = "1.6.550017"
+mmSmmFieldTypeChecks_1 = "3.2.551352"
+mmStructuralMappingModel_1 = "4.7.551353"
+mmXmlSchemaContainer_1 = "5.3.551354"
+mmCommon_v2 = "20.1.551424"
 
-com-mgmtp-a12-base = "29.3.0"
-com-fasterxml-jackson-annotations = "2.20"
-com-fasterxml-jackson = "2.20.1"
+com-mgmtp-a12-base = "30.0.0"
+com-fasterxml-jackson-annotations = "2.21"
+tools-jackson = "3.1.2"
 org-antlr = "4.13.2"
 org-antlr-ts = "4.13.2"
 org-slf4j = "2.0.17"
 org-slf4j-reload4j = "2.0.17"
 
-pluginLombok = "9.1.0"
+pluginLombok = "9.4.0"
+pluginShadow = "9.2.2"
 
 [libraries]
-a12KernelRuntimeArtifactId = { module = "com.mgmtp.a12.kernel:kernel-core-runtime-30-8", version.ref = "a12KernelVersion" }
+a12KernelRuntimeArtifactId = { module = "com.mgmtp.a12.kernel:kernel-core-runtime-31-1", version.ref = "a12KernelVersion" }
 kernelCoreRuntimeApi = { module = "com.mgmtp.a12.kernel:kernel-core-runtime-api", version.ref = "kernelCoreRuntimeApiVersion" }
 kernelCoreCustomfieldtypeApi = { module = "com.mgmtp.a12.kernel:kernel-core-customfieldtype-api", version.ref = "kernelCoreCustomfieldtypeApiVersion" }
 
@@ -44,7 +45,6 @@ kernelMmMappingModel2CodegenValidators = { module = "com.mgmtp.a12.kernel:mmvali
 kernelMmMappingModel2NoneDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_mappingmodel-2-none", version.ref = "mmMappingModel_2" }
 kernelMmMappingModel2CodegenDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_mappingmodel-2-codegen", version.ref = "mmMappingModel_2" }
 kernelMmMappingModel2Typings = { module = "com.mgmtp.a12.kernel:mmtypings-mm_mappingmodel-2", version.ref = "mmMappingModel_2" }
-kernelMmPackage1CodegenValidators = { module = "com.mgmtp.a12.kernel:mmvalidators-extmpinternal-mm_package-1-codegen", version.ref = "mmPackage_1" }
 kernelMmPackage2CodegenValidators = { module = "com.mgmtp.a12.kernel:mmvalidators-extmpinternal-mm_package-2-codegen", version.ref = "mmPackage_2" }
 kernelMmPackage2A12Typings = { module = "com.mgmtp.a12.kernel:mmtypings-extmpinternal-mm_package-2-a12", version.ref = "mmPackage_2" }
 kernelMmPackage2NoneDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_package-2-none", version.ref = "mmPackage_2" }
@@ -66,25 +66,23 @@ kernelMmStructuralMappingModel1Typings = { module = "com.mgmtp.a12.kernel:mmtypi
 antlr4 = { module = "org.antlr:antlr4", version.ref = "org-antlr" }
 antlr4Runtime = { module = "org.antlr:antlr4-runtime", version.ref = "org-antlr" }
 antlr4VersionForWeb = { module = "org.antlr:antlr4", version.ref = "org-antlr-ts" }
-apiguardianApi = "org.apiguardian:apiguardian-api:1.1.2"
+dataservicesWcfApi = "com.mgmtp.a12.dataservices.wcf:dataservices-wcf-api:0.2.0"
 baseModelApi = { module = "com.mgmtp.a12.base:base-model-api", version.ref = "com-mgmtp-a12-base" }
 baseModelConsistency = { module = "com.mgmtp.a12.base:base-model-consistency", version.ref = "com-mgmtp-a12-base" }
-baseModelMigrationApi = { module = "com.mgmtp.a12.base:base-model-migration-api", version.ref = "com-mgmtp-a12-base" }
 baseModelUtils = { module = "com.mgmtp.a12.base:base-model-utils", version.ref = "com-mgmtp-a12-base" }
 commonsCli = "commons-cli:commons-cli:1.11.0"
 commonsCollections4 = "org.apache.commons:commons-collections4:4.5.0"
 commonsIo = "commons-io:commons-io:2.21.0"
 commonsLang3 = "org.apache.commons:commons-lang3:3.20.0"
-commonsText = "org.apache.commons:commons-text:1.14.0"
+commonsText = "org.apache.commons:commons-text:1.15.0"
 groovy = "org.codehaus.groovy:groovy:3.0.25"
 gson = "com.google.code.gson:gson:2.13.2"
-guava = "com.google.guava:guava:33.5.0-jre"
+guava = "com.google.guava:guava:33.6.0-jre"
 jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson-annotations" }
-jacksonCore = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson" }
-jacksonDatabind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson" }
-jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "com-fasterxml-jackson" }
-jsr305 = "com.google.code.findbugs:jsr305:3.0.2"
-lombok = "org.projectlombok:lombok:1.18.42"
+jacksonCore = { module = "tools.jackson.core:jackson-core", version.ref = "tools-jackson" }
+jacksonDatabind = { module = "tools.jackson.core:jackson-databind", version.ref = "tools-jackson" }
+jspecify = "org.jspecify:jspecify:1.0.0"
+lombok = "org.projectlombok:lombok:1.18.46"
 slf4jApi = { module = "org.slf4j:slf4j-api", version.ref = "org-slf4j" }
 slf4jLog4j12OnlyForCliJarsAndTests = { module = "org.slf4j:slf4j-reload4j", version.ref = "org-slf4j-reload4j" }
 st4 = "org.antlr:ST4:4.3.4"
@@ -96,3 +94,4 @@ kernelJavaConventions = { id = "com.mgmtp.a12.kernel.kernel-java-conventions"}
 kernelJsConventions = { id = "com.mgmtp.a12.kernel.kernel-js-conventions" }
 kernelUtils = { id = "com.mgmtp.a12.kernel.kernel-utils"}
 lombok = { id = "io.freefair.lombok", version.ref = "pluginLombok" }
+shadow = { id = "com.gradleup.shadow", version.ref = "pluginShadow" }

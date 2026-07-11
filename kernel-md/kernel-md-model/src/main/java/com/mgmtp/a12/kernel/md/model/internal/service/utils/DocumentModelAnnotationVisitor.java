@@ -38,7 +38,6 @@ import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.mgmtp.a12.kernel.md.model.a12internal.Element;
-import com.mgmtp.a12.kernel.md.model.a12internal.services.DocumentModelService;
 import com.mgmtp.a12.kernel.md.model.a12internal.visitor.DocumentModelVisitor;
 import com.mgmtp.a12.kernel.md.model.api.visitor.DocumentModelWalker.VisitProcess;
 import com.mgmtp.a12.model.header.Header;
@@ -46,11 +45,9 @@ import com.mgmtp.a12.model.header.Header;
 public class DocumentModelAnnotationVisitor extends DocumentModelVisitor {
 	private String key;
 	private final Map<String, String> entityPath2Value = new HashMap<>();
-	private final DocumentModelService docModelService;
 
 	public DocumentModelAnnotationVisitor(String antKey) {
 		key = antKey;
-		docModelService = new DocumentModelService();
 	}
 
 	@Override
@@ -72,7 +69,7 @@ public class DocumentModelAnnotationVisitor extends DocumentModelVisitor {
 				.findFirst()
 				.ifPresent(ant -> {
 					var val = ant.getValue();
-					entityPath2Value.put(docModelService.getPath(element), val == null ? "" : val);
+					entityPath2Value.put(ElementUtils.getPath(element), val == null ? "" : val);
 				});
 		return super.visitElement(element);
 	}

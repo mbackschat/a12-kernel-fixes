@@ -35,6 +35,8 @@ package com.mgmtp.a12.utils.conversion.config;
 import com.mgmtp.a12.model.utils.Experimental;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
+import lombok.NonNull;
+
 /**
  * Data type for dates without at least one date part (day, month, year).
  */
@@ -51,7 +53,7 @@ public interface DateFragmentConversionConfig extends DateBasicConversionConfig 
 	/**
 	 * @return "yyyy-MM", "MM-dd", "yyyy" or "MM".
 	 */
-	default String format(DateFragmentFormat dff) {
+	default @NonNull String format(DateFragmentFormat dff) {
 		return switch (dff) {
 			case yyyyMM -> "yyyy-MM";
 			case MMdd -> "MM-dd";

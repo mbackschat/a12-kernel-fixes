@@ -16,26 +16,22 @@ dependencies {
     api libs.baseModelConsistency
     api libs.commonsLang3
     api libs.validationApi
-    api project(":kernel-core-tool-api") // if not api: CheckDocumentModelFactory.java:104: error: cannot access IProblemReporter
-    api project(":kernel-md-model-api") // must be api e.g. because of ValidationModelConverter.convert
-    api project(':kernel-core-base-utils')
-    api project(':kernel-core-codegen-base')
-    api project(':kernel-core-facade')
-    api project(':kernel-core-parser')
-    api project(':kernel-core-service')
-    api project(':kernel-core-tool-api')
-    api project(':kernel-md-a12internal')
+    api project(":kernel-internal-core-tool-api") // if not api: CheckDocumentModelFactory.java:104: error: cannot access IProblemReporter
+    api project(":kernel-md-documentmodel") // must be api e.g. because of ValidationModelConverter.convert
+    api project(':kernel-internal-base-utils')
+    api project(':kernel-internal-core-codegen-base')
+    api project(':kernel-internal-core-facade')
+    api project(':kernel-internal-core-parser')
+    api project(':kernel-internal-core-service')
+    api project(':kernel-internal-core-tool-api')
     api project(':kernel-md-document-v2')
     api project(':kernel-md-serializer')
-    api project(':kernel-core-parsetree-api')
+    api project(':kernel-internal-core-parsetree-api')
 
-    compileOnly project(':kernel-md-util')
     compileOnly libs.baseModelUtils // Only annotations
 
-    implementation project(':kernel-md-document-api')
-    implementation project(':kernel-core-calc')
-    implementation project(':kernel-core-codegen')
-    implementation libs.commonsCli
+    implementation project(':kernel-internal-core-calc')
+    implementation project(':kernel-internal-core-codegen')
     implementation libs.commonsCollections4
     implementation libs.kernelCoreRuntimeApi
     implementation libs.kernelCtModelHeader1Typings

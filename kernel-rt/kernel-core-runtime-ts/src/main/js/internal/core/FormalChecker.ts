@@ -109,7 +109,7 @@ export class FormalChecker {
                 result,
                 idExtern,
                 IFormaleFehlerConstants.FEHLER_FALSCHE_ANZAHL_INDICES,
-                errorLocalizable
+                [errorLocalizable]
             );
             return false;
         }
@@ -144,9 +144,9 @@ export class FormalChecker {
         if (indices[0] < 1) {
             // erster Index ist die laufende Nummer Vordruck
             this.addFormalError(result, idExtern, IFormaleFehlerConstants.FEHLER_LAUFENDE_NR_ZU_KLEIN,
-                LocalizableUtil.createLocalizableFormalError(
+                [LocalizableUtil.createLocalizableFormalError(
                     RuntimeFormalErrorEnum.FEHLER_LAUFENDE_NR_FM_TEXT
-                ));
+                )]);
             return false;
         }
         for (let i = 1; i < indices.length; i++) {
@@ -154,9 +154,9 @@ export class FormalChecker {
                 // letzter Index ist die Zeile
                 if (i === indices.length - 1) {
                     this.addFormalError(result, idExtern, IFormaleFehlerConstants.FEHLER_ZEILENNUMMER_ZU_KLEIN,
-                        LocalizableUtil.createLocalizableFormalError(
+                        [LocalizableUtil.createLocalizableFormalError(
                             RuntimeFormalErrorEnum.FEHLER_ZEILE_FM_TEXT
-                        ));
+                        )]);
                 } else {
                     // wiederholbarer Kontext
                     const parameterReplacements: LocalizableArgs = {
@@ -169,7 +169,7 @@ export class FormalChecker {
                         RuntimeFormalErrorEnum.KONTEXTNUMMER_ZU_KLEIN_FM_TEXT,
                         parameterReplacements
                     );
-                    this.addFormalError(result, idExtern, IFormaleFehlerConstants.FEHLER_KONTEXTNUMMER_ZU_KLEIN, fehlerText);
+                    this.addFormalError(result, idExtern, IFormaleFehlerConstants.FEHLER_KONTEXTNUMMER_ZU_KLEIN, [fehlerText]);
                 }
                 return false;
             }
@@ -192,7 +192,7 @@ export class FormalChecker {
         results: IResult,
         idExtern: IIdentifier,
         key: string,
-        errorMsg: Localizable,
+        errorMsgs: Localizable[],
         errorType: ErrorType = ErrorType.VALUE_ERROR,
     ): void {
         if (!this._meldeFehler) {
@@ -200,7 +200,7 @@ export class FormalChecker {
         }
 
         const fieldNameArg = LocalizableUtil.createFieldReplacementArg(idExtern, this._metaData);
-        const msg = LocalizableUtil.addLocalizableArgs(errorMsg, fieldNameArg);
+        const msgs = errorMsgs.map(errorMsg => LocalizableUtil.addLocalizableArgs(errorMsg, fieldNameArg));
         const referencedFields: Set<IIdentifier> = new Set<IIdentifier>();
         referencedFields.add(idExtern);
         const refOmissionErrorResponsible: Set<IIdentifier> = new Set<IIdentifier>();
@@ -211,7 +211,7 @@ export class FormalChecker {
             IFormaleFehlerConstants.FORMALE_PRUEFUNG,
             key,
             idExtern,
-            [msg],
+            msgs,
             errorType,
             referencedFields,
             refOmissionErrorResponsible,
@@ -221,7 +221,7 @@ export class FormalChecker {
 
     /**
      * @returns an object containing:
-     * - `validity`: {@link ValidType.Invalid} if the value was invalid (and reports an error in `result`), otherwise {@link ValidType.Valid} (or {@link ValidType.Test})
+     * - `validity`: {@link ValidType.Invalid} if the value was invalid (and reports an error in `result`), otherwise {@link ValidType.Valid}
      * - `normalizedValue`: `undefined` if the provided value was not valid or not validated, otherwise the provided `value` with normalized linebreaks.
      * - `internalXmlValue`: `undefined` if the provided value was not valid or not validated, otherwise the provided `value` in internal XML format
      */
@@ -284,9 +284,9 @@ export class FormalChecker {
         if (!this._legalCharTester.pruefeZeichensatz(value)) {
             this.addFormalError(result, idExtern,
                 IFormaleFehlerConstants.ZEICHEN_NICHT_IM_ZEICHENSATZ,
-                LocalizableUtil.createLocalizableFormalError(
+                [LocalizableUtil.createLocalizableFormalError(
                     RuntimeFormalErrorEnum.ZEICHEN_NICHT_IM_ZEICHENSATZ_FM_TEXT
-                )
+                )]
             );
             return ValidType.Invalid;
         }
@@ -294,9 +294,9 @@ export class FormalChecker {
         if (value.startsWith(Constants.BLANK)) {
             this.addFormalError(result, idExtern,
                 IFormaleFehlerConstants.FEHLER_FUEHRENDES_BLANK,
-                LocalizableUtil.createLocalizableFormalError(
+                [LocalizableUtil.createLocalizableFormalError(
                     RuntimeFormalErrorEnum.FEHLER_FUEHRENDES_BLANK_FM_TEXT
-                )
+                )]
             );
             return ValidType.Invalid;
         }
@@ -304,9 +304,9 @@ export class FormalChecker {
         if (value.endsWith(Constants.BLANK)) {
             this.addFormalError(result, idExtern,
                 IFormaleFehlerConstants.FEHLER_NACHFOLGENDES_BLANK,
-                LocalizableUtil.createLocalizableFormalError(
+                [LocalizableUtil.createLocalizableFormalError(
                     RuntimeFormalErrorEnum.FEHLER_NACHFOLGENDES_BLANK_FM_TEXT
-                )
+                )]
             );
             return ValidType.Invalid;
         }
@@ -334,7 +334,7 @@ export class FormalChecker {
             result,
             !this._meldeFehler,
             presentationInfo ?? this._presentationInfoIntern,
-            false, // always lenient with thousand separator placement in conversion
+            true, // always non-lenient with thousand separator placement in conversion
             this._metaData,
             this._modus.customFieldTypeFactory,
         );
@@ -349,9 +349,9 @@ export class FormalChecker {
         if (value.length > FormalChecker.MAX_WERT_LAENGE) {
             this.addFormalError(result, idExtern,
                 IFormaleFehlerConstants.FEHLER_WERT_ZU_LANG,
-                LocalizableUtil.createLocalizableFormalError(
+                [LocalizableUtil.createLocalizableFormalError(
                     RuntimeFormalErrorEnum.FEHLER_WERT_ZU_LANG_FM_TEXT
-                )
+                )]
             );
             return false;
         }
@@ -375,9 +375,9 @@ export class FormalChecker {
                 result,
                 idExtern,
                 IFormaleFehlerConstants.FEHLER_LAUFENDE_NR_ZU_GROSS,
-                LocalizableUtil.createLocalizableFormalError(
+                [LocalizableUtil.createLocalizableFormalError(
                     RuntimeFormalErrorEnum.FEHLER_LAUFENDE_NR_ZU_GROSS_FM_TEXT
-                )
+                )]
             );
             return false;
         }
@@ -392,9 +392,9 @@ export class FormalChecker {
                         result,
                         idExtern,
                         IFormaleFehlerConstants.FEHLER_ZEILENNUMMER_ZU_GROSS,
-                        LocalizableUtil.createLocalizableFormalError(
+                        [LocalizableUtil.createLocalizableFormalError(
                             RuntimeFormalErrorEnum.FEHLER_ZEILENNUMMER_ZU_GROSS_FM_TEXT
-                        )
+                        )]
                     );
                     return false;
                 }
@@ -412,7 +412,7 @@ export class FormalChecker {
                     result,
                     idExtern,
                     IFormaleFehlerConstants.FEHLER_KONTEXTNUMMER_ZU_GROSS,
-                    localizable
+                    [localizable]
                 );
                 return false;
             }

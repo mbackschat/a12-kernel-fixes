@@ -47,7 +47,7 @@ import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrat
 
 import lombok.NonNull;
 
-public class DocumentModelMigrator {
+class DocumentModelMigrator {
 	@Test
 	void migrate() {
 		String targetVersion = "";

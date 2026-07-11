@@ -37,6 +37,8 @@ import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.model.internal.wrapper.DocumentModelWrapper;
 
 public class ExternalDocumentModelSerializerService {
+	private ExternalDocumentModelSerializerService() {
+	}
 
 	public static DocumentModel getInternDocumentModel(IDocumentModel documentModel) {
 		if (documentModel instanceof DocumentModelWrapper wrapper) {

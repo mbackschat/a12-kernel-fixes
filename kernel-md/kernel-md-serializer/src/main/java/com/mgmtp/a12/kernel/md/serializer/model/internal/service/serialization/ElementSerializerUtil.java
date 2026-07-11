@@ -32,10 +32,9 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
-
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.mgmtp.a12.kernel.md.model.a12internal.Element;
+
+import tools.jackson.core.JsonGenerator;
 
 public class ElementSerializerUtil {
 
@@ -43,23 +42,23 @@ public class ElementSerializerUtil {
 		throw new UnsupportedOperationException("Utility classes may not be instantiated!");
 	}
 
-	public static void serializeElementBase(Element value, JsonGenerator gen) throws IOException {
+	public static void serializeElementBase(Element value, JsonGenerator gen) {
 		String subTypeName = value.getClass().getSimpleName();
-		gen.writeStringField("type", subTypeName);
-		gen.writeStringField("id", value.getId());
-		gen.writeStringField("name", value.getName());
+		gen.writeStringProperty("type", subTypeName);
+		gen.writeStringProperty("id", value.getId());
+		gen.writeStringProperty("name", value.getName());
 		if (!value.getAnnotations().isEmpty()) {
-			gen.writeFieldName("annotations");
-			JsonMapper.getWriterForNoNonEmpty().writeValue(gen, value.getAnnotations());
+			gen.writeName("annotations");
+			KernelJsonMapper.getWriterForNoNonEmpty().writeValue(gen, value.getAnnotations());
 		}
 		if (!value.getExternalDescription().isEmpty()) {
-			gen.writeFieldName("externalDescription");
-			gen.writeObject(value.getExternalDescription());
+			gen.writeName("externalDescription");
+			gen.writePOJO(value.getExternalDescription());
 			//mapper.writeValue(gen, value.getExternalDescription());
 		}
 		if (!value.getInternalDescription().isEmpty()) {
-			gen.writeFieldName("internalDescription");
-			gen.writeObject(value.getInternalDescription());
+			gen.writeName("internalDescription");
+			gen.writePOJO(value.getInternalDescription());
 			//mapper.writeValue(gen, value.getInternalDescription());
 		}
 	}

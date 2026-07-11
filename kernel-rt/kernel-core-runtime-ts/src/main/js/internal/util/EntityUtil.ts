@@ -29,7 +29,7 @@
  * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
-import { StringUtil } from "@com.mgmtp.a12.utils/utils-localization/lib/main/conversion/a12internal/index.js";
+import { StringUtil } from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
 import { IIdentifier } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
@@ -264,14 +264,14 @@ export class EntityUtil {
 	 * Checks for an `id` without semantic index if it is relevant, i.e. not erroneous
 	 * and, in the case of partial validation, contained in the set of relevant fields considering
 	 * the special meaning of {@link IIdentifier.ALL_INDICES} for a level.
-	 * 
+	 *
 	 * The indices of `id` may be concrete or {@link IIdentifier.UNKNOWN}, but nothing
 	 * else, i.e. the following indices are **NOT** allowed:
 	 *   - {@link IIdentifier.ALL_INDICES}
 	 *   - {@link IIdentifier.SEMANTIC_INDEX}
 	 *   - {@link IIdentifier.PARALLEL_ITERATION}
 	 *   - {@link IIdentifier.ITERATION}
-	 * 
+	 *
 	 * In case of {@link IIdentifier.UNKNOWN} the field is only detected as relevant if it is with
 	 * {@link IIdentifier.ALL_INDICES} for the respective level in the relevant fields (and not
 	 * if each single repetition is listed as relevant).
@@ -289,7 +289,7 @@ export class EntityUtil {
 			return true;
 		}
 		const isRelevant = this._relevanteEntitiesUmfassenIdentifier(
-			vc.getPruefungsrelevanteFelderIntern(),
+			vc.getPruefungsrelevanteFelderIntern() as any,
 			id
 		);
 		if (!partialIsUnknown || !isRelevant) {
@@ -321,7 +321,7 @@ export class EntityUtil {
 		if (
 			vc.isValidationPartWith3ValueLogic() &&
 			!this._relevanteEntitiesUmfassenIdentifier(
-				vc.getPruefungsrelevanteFelderIntern(),
+				vc.getPruefungsrelevanteFelderIntern() as any,
 				indexFieldIdWithAllIndices
 			)
 		) {

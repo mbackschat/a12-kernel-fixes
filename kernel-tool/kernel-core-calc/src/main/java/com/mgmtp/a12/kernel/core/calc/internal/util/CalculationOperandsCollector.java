@@ -46,6 +46,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.IEntityList
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.IRootGroupCondition;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IGroupOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.INumberOfRootGroupsOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.EntityListConditionName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.GroupOperationName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.RootGroupConditionName;
@@ -54,6 +55,9 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.serviceparams.ICalcula
 
 /**
  * Collects the directly referenced entities in a calculation that are operands / potential dependencies of the calculation.
+ * Note: the collected operands are currently not only used for the dependencies, but also in DatenFilterImpl during evaluation
+ * of calculations (probably to avoid formal-validation errors from unused fields); therefore we cannot omit operands here even
+ * if we know that they are dependency-irrelevant for some reason.
  */
 public class CalculationOperandsCollector extends ASTVisitor {
 	private final String calculatedFieldFullName;
@@ -176,6 +180,24 @@ public class CalculationOperandsCollector extends ASTVisitor {
 			normalGroupReferences.add(rootGroupPath);
 		}
 
+		return false;
+	}
+
+	@Override
+	public boolean visit(ISetOpOperation setOpOperation) {
+		// We must traverse the iterationEntity fully (not just its filter condition), even though
+		// semantically, the ISetOpOperation (aka SumOfTerms) only evaluates
+		// GroupFilled(iterEntity), because:
+		// The way that the direct vk api use in extmp prod currently works, the invariant that
+		// no repetitions of repeatable groups can disappear does not currently hold
+		// (the last filled field of a repetition can (probably) be emptied out by a
+		// computation which makes the whole repetition in effect disappear, because the
+		// group repetition is not explicitly represented in IData
+		// If we consider reintroducing the dependency-elimination for iterationGroup-Only
+		// references, also take the note re DatenFilterImpl at the top of this class into
+		// account
+		setOpOperation.getIterationEntity().traverse(this);
+		setOpOperation.getOperation().traverse(this);
 		return false;
 	}
 

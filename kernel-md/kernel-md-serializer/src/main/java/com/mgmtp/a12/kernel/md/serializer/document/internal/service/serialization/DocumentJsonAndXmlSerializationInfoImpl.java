@@ -38,8 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ValueNode;
 import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
 import com.mgmtp.a12.kernel.md.document.api.services.DocumentSerializationException;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
@@ -58,6 +56,8 @@ import com.mgmtp.a12.utils.conversion.InstantRange;
 import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV2;
 
 import lombok.NonNull;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ValueNode;
 
 public class DocumentJsonAndXmlSerializationInfoImpl
 		implements DocumentV2JsonWriter.ISerializationInfo, DocumentV2XmlWriter.ISerializationInfo {
@@ -116,7 +116,7 @@ public class DocumentJsonAndXmlSerializationInfoImpl
 		if (fullName.equals("/" + DocumentSerializerImpl.ID)) {
 			// Normally fieldValue is always a String, but
 			// it seems that sometimes numbers are used too
-			return factory.textNode(fieldValue.toString());
+			return factory.stringNode(fieldValue.toString());
 		}
 
 		IElement element = dmAndSearchService.searchService().getByPath(fullName)
@@ -134,12 +134,13 @@ public class DocumentJsonAndXmlSerializationInfoImpl
 			// we are not checking if the fieldValue has the correct type given by fieldElement, the user would need to validate
 			return switch (fieldValue) {
 				case null -> factory.nullNode();
-				case String value -> factory.textNode(value);
+				case String value -> factory.stringNode(value);
 				case Boolean value -> factory.booleanNode(value);
 				case BigDecimal value -> factory.numberNode(value);
-				case Instant value -> factory.textNode(FieldValueConverter.serializeXmlValueFromJavaTypeV2(field, timeZone, value));
+				case Instant value -> factory.stringNode(
+						FieldValueConverter.serializeXmlValueFromJavaTypeV2(field, timeZone, value));
 				case InstantRange value ->
-						factory.textNode(FieldValueConverter.serializeXmlValueFromJavaTypeV2(field, timeZone, value));
+						factory.stringNode(FieldValueConverter.serializeXmlValueFromJavaTypeV2(field, timeZone, value));
 				default -> {
 					String errorMsg = String.format("Value of '%s' from type '%s' cannot be serialized.",
 							DocumentPointer.of(this.fullName, this.indexes), fieldValue.getClass().getName());

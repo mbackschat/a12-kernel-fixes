@@ -44,7 +44,6 @@ public interface ISimpleFieldParameter extends IFieldParameter {
 	ISemanticIndex getSemanticIndex();
 
 	void setSemanticIndex(ISemanticIndex semanticIndex);
-	//TODO[A12K-3890]: check whether this setter is still needed, after the FehlertextUtil is cleaned from orphaned methods.
 
 	/**
 	 * @return concrete root group index (lfd. Nr.) as specified in the error text parameter, or

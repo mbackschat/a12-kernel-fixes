@@ -96,7 +96,7 @@ export class DocumentRtServiceImpl implements DocumentRtServiceA12internal {
     const { data, result, validationMode, logger } = this._prepareParameter(document, mapping);
 
     // add ids of global fields
-    const relevantIds = EntityInstanceConverter.convertToIIdentifierSet(relevantEntityInstances);
+    const relevantIds = EntityInstanceConverter.convertToIIdentifierSet(relevantEntityInstances) as any;
     this._addGlobalFieldsToRelevantEntities(this._genCodeAccessor.getMetaModel(), relevantIds);
 
     // fill result
@@ -172,9 +172,5 @@ export class DocumentRtServiceImpl implements DocumentRtServiceA12internal {
     const logger = new LoggerDummy();
     const validationMode = this._validationMode();
     return { data, result, validationMode, logger };
-  }
-
-  applyComputationResult(computationResult: DocumentComputationResult, document: Document): Document {
-    return computationResult.appliedTo(document);
   }
 }

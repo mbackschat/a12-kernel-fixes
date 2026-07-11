@@ -39,29 +39,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaField;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
 import com.mgmtp.a12.kernel.core.rt.a12internal.utils.IMetaKeys;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
-import com.mgmtp.a12.kernel.md.document.api.IDocument;
-import com.mgmtp.a12.kernel.md.document.api.services.IDocumentFactory;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.PartiallyKnownDocumentMultiPointer;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.DocumentV2;
 import com.mgmtp.a12.kernel.md.document.apiV2.utils.DocumentV2Utils;
-import com.mgmtp.a12.kernel.md.document.internal.service.DocumentFactoryImpl;
-import com.mgmtp.a12.kernel.md.document.internal.service.impl.FieldInstanceImpl;
-import com.mgmtp.a12.kernel.md.document.internal.service.implV2.DocumentV1V2ConverterImpl;
-import com.mgmtp.a12.kernel.md.document.internal.service.utils.DocumentUtils;
 import com.mgmtp.a12.kernel.md.rt.api.IComputedFieldInstance;
 import com.mgmtp.a12.kernel.md.rt.api.IDocumentComputationResult;
 import com.mgmtp.a12.kernel.md.rt.api.IMessage;
@@ -69,6 +63,7 @@ import com.mgmtp.a12.kernel.md.rt.internal.service.ComputedFieldInstanceImpl;
 import com.mgmtp.a12.kernel.md.rt.internal.service.DocumentPointerConverter;
 import com.mgmtp.a12.kernel.md.rt.internal.service.LowKernelApiUtils;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
+import com.mgmtp.a12.utils.conversion.a12internal.BasicTypeV2;
 
 import lombok.NonNull;
 
@@ -79,47 +74,11 @@ import lombok.NonNull;
  */
 @OnlyForUsage
 public class DocumentComputationResultImpl implements IDocumentComputationResult {
-
-	/**
-	 * @deprecated the document V1 API, including {@link IDocumentFactory}, is deprecated. Use the document V2 API instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	public static final IDocumentFactory DOC_FACTORY = new DocumentFactoryImpl();
-
-	/**
-	 * @deprecated only used for {@link #getDocument()} remove when the method is removed
-	 */
-	@Deprecated(since = "30.2.0")
-	private IDocument documentV1;
 	private final Collection<IComputedFieldInstance> computedFieldInstancesWithoutErrors = new ArrayList<>();
 	private final Collection<IComputedFieldInstance> computedFieldInstancesWithChanges = new ArrayList<>();
 	private final Collection<IComputedFieldInstance> computedFieldInstancesWithErrors = new ArrayList<>();
 	private final Collection<IComputedFieldInstance> clearedFieldInstances = new ArrayList<>();
 	private final Collection<IMessage> formalErrorsInOperands = new ArrayList<>();
-
-	/**
-	 * Implementation of the result of a document computation.
-	 *
-	 * @param documentV1
-	 * 		the document
-	 * @param computedData
-	 * 		the computed data
-	 * @param resultMessages
-	 * 		the list of error messages
-	 * @param metaModel
-	 * 		the metamodel
-	 * @deprecated use {@link #DocumentComputationResultImpl(DocumentV2, IData, List, IMetaModel)} instead.
-	 */
-	@Deprecated(since = "30.0.0")
-	public DocumentComputationResultImpl(
-			@NonNull IDocument documentV1,
-			@NonNull IData computedData,
-			@NonNull List<IMessage> resultMessages,
-			@NonNull IMetaModel metaModel
-	) {
-		this.documentV1 = documentV1;
-		this.init(DocumentV1V2ConverterImpl.getInstance().ofDocumentV1(documentV1), computedData, resultMessages, metaModel);
-	}
 
 	/**
 	 * Implementation of the result of a document computation.
@@ -139,7 +98,6 @@ public class DocumentComputationResultImpl implements IDocumentComputationResult
 			@NonNull List<IMessage> resultMessages,
 			@NonNull IMetaModel metaModel
 	) {
-		this.documentV1 = DocumentV1V2ConverterImpl.getInstance().toDocumentV1(document);
 		this.init(document, computedData, resultMessages, metaModel);
 		assert resultMessages.stream().allMatch(m -> m.getSeverity() == IMessage.Severity.ERROR);
 	}
@@ -174,7 +132,6 @@ public class DocumentComputationResultImpl implements IDocumentComputationResult
 								"with presentation information present.");
 			}
 			IComputedFieldInstance computedFieldInstance = new ComputedFieldInstanceImpl(
-					this.documentV1,
 					pointer,
 					computedV2Value,
 					computedStringValue,
@@ -184,7 +141,7 @@ public class DocumentComputationResultImpl implements IDocumentComputationResult
 			Object originalValue = originalComputedFieldInstances.remove(pointer);
 			if (errorMessage == null) {
 				computedFieldInstancesWithoutErrors.add(computedFieldInstance);
-				if (!FieldInstanceImpl.fieldValuesEqual(originalValue, computedV2Value)) {
+				if (!Objects.equals(originalValue, computedV2Value)) {
 					computedFieldInstancesWithChanges.add(computedFieldInstance);
 				}
 			} else {
@@ -194,7 +151,7 @@ public class DocumentComputationResultImpl implements IDocumentComputationResult
 
 		// all remaining field instances were not computed --> must have been cleared
 		originalComputedFieldInstances.forEach((pointer, originalValue) ->
-				clearedFieldInstances.add(ComputedFieldInstanceImpl.empty(this.documentV1, pointer))
+				clearedFieldInstances.add(ComputedFieldInstanceImpl.empty(pointer))
 		);
 
 		// all remaining errors are not from computed field instances --> must be from the operands
@@ -231,35 +188,6 @@ public class DocumentComputationResultImpl implements IDocumentComputationResult
 		return formalErrorsInOperands;
 	}
 
-	/**
-	 * @deprecated see {@link IDocumentComputationResult#getDocument()}
-	 */
-	@Deprecated(since = "30.0.0")
-	@SuppressWarnings({ "removal" }) @Override
-	public IDocument getDocument() {
-		return documentV1;
-	}
-
-	/**
-	 * @deprecated see {@link IDocumentComputationResult#apply(Consumer)}
-	 */
-	@Deprecated(since = "30.0.0")
-	@SuppressWarnings("deprecation") @Override
-	public void apply(Consumer<IComputedFieldInstance> errorHandler) {
-		computedFieldInstancesWithChanges.forEach(cfi -> cfi.applyTo(documentV1));
-		computedFieldInstancesWithErrors.forEach(
-				cfi -> DocumentUtils.clearFieldInstanceValue(documentV1, cfi.getPath(), cfi.getRepetitions()));
-	}
-
-	/**
-	 * @deprecated see {@link IDocumentComputationResult#applyTo(IDocument)}
-	 */
-	@Deprecated(since = "30.0.0")
-	@SuppressWarnings({ "removal" }) @Override
-	public void applyTo(IDocument document) {
-		applyTo(document, DOC_FACTORY);
-	}
-
 	@Override
 	public DocumentV2 applyTo(@NonNull DocumentV2 document) {
 		DocumentV2 changedDocument = document;
@@ -274,18 +202,6 @@ public class DocumentComputationResultImpl implements IDocumentComputationResult
 		}
 
 		return changedDocument;
-	}
-
-	/**
-	 * @deprecated see {@link IDocumentComputationResult#applyTo(IDocument, IDocumentFactory)}
-	 */
-	@Deprecated(since = "30.0.0")
-	@SuppressWarnings({ "removal" }) @Override
-	public void applyTo(IDocument document, IDocumentFactory documentFactory) {
-		clearedFieldInstances.forEach(cfi -> cfi.applyTo(document, documentFactory));
-		computedFieldInstancesWithChanges.forEach(cfi -> cfi.applyTo(document, documentFactory));
-		computedFieldInstancesWithErrors.forEach(
-				cfi -> DocumentUtils.clearFieldInstanceValue(document, cfi.getPath(), cfi.getRepetitions()));
 	}
 
 	@SuppressWarnings("unchecked") private static Set<String> getComputedFieldPaths(IMetaModel metaModel) {
@@ -305,8 +221,10 @@ public class DocumentComputationResultImpl implements IDocumentComputationResult
 
 		return computedFieldPaths.stream().map(DocumentMultiPointer::ofPathWithAllWildcards)
 				.flatMap(pointer -> DocumentV2Utils.getFieldInstances(document, pointer).stream()).filter(fi ->
-						DocumentUtils.valueExists(fi.getValue().value())
-				).collect(Collectors.toMap(Map.Entry::getKey, fi -> fi.getValue().value()));
+						BasicTypeV2.nonEmpty(fi.getValue().value())
+				).collect(Java8Utils.toNullableMap(Map.Entry::getKey, fi ->
+						fi.getValue() != null ? fi.getValue().value() : null
+				));
 	}
 
 	@Override public boolean equals(Object o) {
@@ -314,8 +232,7 @@ public class DocumentComputationResultImpl implements IDocumentComputationResult
 			return true;
 		if (!(o instanceof IDocumentComputationResult that))
 			return false;
-		return Objects.equals(documentV1, that.getDocument()) &&
-				Objects.equals(computedFieldInstancesWithoutErrors, that.getComputedFieldInstancesWithoutErrors()) &&
+		return Objects.equals(computedFieldInstancesWithoutErrors, that.getComputedFieldInstancesWithoutErrors()) &&
 				Objects.equals(computedFieldInstancesWithChanges, that.getComputedFieldInstancesWithChanges()) &&
 				Objects.equals(computedFieldInstancesWithErrors, that.getComputedFieldInstancesWithErrors()) &&
 				Objects.equals(clearedFieldInstances, that.getClearedFieldInstances()) &&
@@ -323,7 +240,7 @@ public class DocumentComputationResultImpl implements IDocumentComputationResult
 	}
 
 	@Override public int hashCode() {
-		return Objects.hash(documentV1, computedFieldInstancesWithoutErrors,
+		return Objects.hash(computedFieldInstancesWithoutErrors,
 				computedFieldInstancesWithChanges,
 				computedFieldInstancesWithErrors, clearedFieldInstances, formalErrorsInOperands);
 	}

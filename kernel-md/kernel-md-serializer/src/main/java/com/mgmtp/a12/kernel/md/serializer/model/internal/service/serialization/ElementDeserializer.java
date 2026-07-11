@@ -32,44 +32,46 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mgmtp.a12.kernel.md.model.a12internal.Computation;
 import com.mgmtp.a12.kernel.md.model.a12internal.Element;
 import com.mgmtp.a12.kernel.md.model.a12internal.Field;
 import com.mgmtp.a12.kernel.md.model.a12internal.Group;
 import com.mgmtp.a12.kernel.md.model.a12internal.LocalizedTextMapBuilder;
 import com.mgmtp.a12.kernel.md.model.a12internal.Rule;
-import com.mgmtp.a12.kernel.md.model.api.IGroup;
 import com.mgmtp.a12.kernel.md.model.api.ILocalizedTextMap;
 import com.mgmtp.a12.model.header.Annotation;
 
-public class ElementDeserializer extends JsonDeserializer<Element> {
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ValueDeserializer;
+
+public class ElementDeserializer extends ValueDeserializer<Element> {
 
 	@Override
-	public Element deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+	public Element deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
 		JsonNode node = p.readValueAsTree();
-		String elementTypeName = node.get("type").asText();
+		String elementTypeName = node.get("type").asString();
 		Element element = deriveElement(node, elementTypeName);
 
 		element.setAnnotations(getAnnotations(node));
 
-		element.setId(node.get("id").asText());
-		element.setName(node.get("name").asText());
+		if (node.hasNonNull("id")) {
+			element.setId(node.get("id").asString());
+		}
+		if (node.hasNonNull("name")) {
+			element.setName(node.get("name").asString());
+		}
 		element.setExternalDescription(getDescriptionText(node, "externalDescription"));
 		element.setInternalDescription(getDescriptionText(node, "internalDescription"));
 
-		if (element instanceof Group) {
-			Group parent = (Group) element;
-			parent.getElements().stream().forEach(child -> child.setParent(parent));
+		if (element instanceof Group parent) {
+			parent.getElements().forEach(child -> child.setParent(parent));
 		}
 
 		return element;
@@ -78,63 +80,45 @@ public class ElementDeserializer extends JsonDeserializer<Element> {
 	private List<Annotation> getAnnotations(JsonNode node) {
 		JsonNode annotationsNode = node.get("annotations");
 		if ((annotationsNode) != null && !annotationsNode.isEmpty()) {
-			return JsonMapper.getMapper().convertValue(annotationsNode, new TypeReference<List<Annotation>>() {
+			return KernelJsonMapper.getMapper().convertValue(annotationsNode, new TypeReference<List<Annotation>>() {
 			});
 		}
 		return new ArrayList<>();
 	}
 
-	private ILocalizedTextMap getDescriptionText(JsonNode node, String textfieldName) throws JsonProcessingException {
+	private ILocalizedTextMap getDescriptionText(JsonNode node, String textfieldName) throws JacksonException {
 		JsonNode textNode = node.get(textfieldName);
 		if ((textNode) != null) {
-			return JsonMapper.getMapper().treeToValue(textNode, ILocalizedTextMap.class);
+			return KernelJsonMapper.getMapper().treeToValue(textNode, ILocalizedTextMap.class);
 		}
 		return new LocalizedTextMapBuilder().build();
 	}
 
-	private Element deriveElement(JsonNode elementNode, String elementTypeName) throws IOException {
+	private Element deriveElement(JsonNode elementNode, String elementTypeName) {
 		Element element = null;
 		JsonNode typeNode = elementNode.get(elementTypeName);
 		switch (elementTypeName) {
 			case "Field":
-				element = JsonMapper.getMapper().treeToValue(typeNode, Field.class);
+				element = KernelJsonMapper.getMapper().treeToValue(typeNode, Field.class);
 				if (element == null) {
 					element = new Field();
 				}
 				break;
 			case "Group":
-				element = JsonMapper.getMapper().treeToValue(typeNode, Group.class);
+				element = KernelJsonMapper.getMapper().treeToValue(typeNode, Group.class);
 				if (element == null) {
 					element = new Group();
 				}
-				final Group group = (Group) element;
-				JsonNode excludeRulesNode = typeNode.get("excludeRules");
-				if (excludeRulesNode != null) {
-					group.getIncludeDetails().ifPresent(id -> id.setExcludeRules(excludeRulesNode.booleanValue()));
-				}
-				JsonNode excludeComputations = typeNode.get("excludeComputations");
-				if (excludeComputations != null) {
-					group.getIncludeDetails().ifPresent(id -> id.setExcludeComputations(excludeComputations.booleanValue()));
-				}
-				// Note: it is a bit ugly that we need to handle the includeLevel attribute here, even though it actually
-				// is an attribute of IncludeDetails (not directly of the group). But in the json representation, the IncludeDetails
-				// don't have their own corresponding tree node - instead the include details are flattened into the group (modelAlias
-				// includeLevel, excludeRules, excludeComputations).
-				if (typeNode.get("includeLevel") != null) {
-					assert group.getIncludeDetails().isPresent()
-							: "expect includeDetails to be non-null for groups that have a includeLevel attribute (group name " + element.getName() + ")";
-					group.getIncludeDetails().ifPresent(id ->
-							id.setIncludeLevel(IGroup.IIncludeDetails.IncludeLevel.valueOf(typeNode.get("includeLevel").asText())));
-				}
+
 				break;
 			case "Rule":
-				element = JsonMapper.getMapper().treeToValue(typeNode, Rule.class);
+				element = KernelJsonMapper.getMapper().treeToValue(typeNode, Rule.class);
 				if (element == null) {
 					element = new Rule();
 				}
 				break;
 			case "Computation":
-				element = JsonMapper.getMapper().treeToValue(typeNode, Computation.class);
+				element = KernelJsonMapper.getMapper().treeToValue(typeNode, Computation.class);
 				if (element == null) {
 					element = new Computation();
 				}

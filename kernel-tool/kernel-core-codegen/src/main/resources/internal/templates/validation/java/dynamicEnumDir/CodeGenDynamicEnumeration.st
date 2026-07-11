@@ -4,6 +4,8 @@ public List\<Pair\<String, String\>\> dynEnum_<t.uniqueName>(DynamicEnumerationC
 	 */
 	<t.filterParamsCreationCode; separator = "\n">
 	<t.filterCode; separator= "\n">
+    <t.setOpParamsCreationCode; separator = "\n">
+    <t.setOperationCode; separator="\n">
 
 	<t.rtControllerParamsCreationCode; separator = "\n">
 

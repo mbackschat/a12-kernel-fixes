@@ -77,6 +77,7 @@ import com.mgmtp.a12.kernel.core.parser.internal.check.operation.CheckKonstanteR
 import com.mgmtp.a12.kernel.core.parser.internal.check.operation.CheckOperationImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.check.operation.CheckRundenOpImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.check.operation.CheckRundenOperOpImpl;
+import com.mgmtp.a12.kernel.core.parser.internal.check.operation.CheckSetOperOpImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.check.operation.hdv.CheckAnzahlAngegebenOpHModelImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.check.operation.hdv.CheckExtmpKonstanteUSBImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.check.operation.hdv.CheckFeldListenOpHModelImpl;
@@ -297,6 +298,11 @@ public class FullChecks_ConditionParser extends Lenient_ConditionParser {
 
 	@Override protected void checkRundenOperOp(RundenOperOpContext ctx) {
 		CheckRundenOperOpImpl checker = new CheckRundenOperOpImpl(this);
+		checker.check(ctx);
+	}
+
+	@Override protected void checkSetOperOp(SetOperOpContext ctx) {
+		CheckSetOperOpImpl checker = new CheckSetOperOpImpl(this);
 		checker.check(ctx);
 	}
 

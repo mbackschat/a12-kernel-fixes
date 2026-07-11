@@ -39,8 +39,7 @@ import type { ICustomFieldValidator } from "./ICustomFieldValidator.js";
  */
 export interface ICustomFieldTypeFactory {
 	/**
-	 * {@link CustomFieldTypeService} uses this method to create new instances of custom field types
-	 * without knowing the custom type names supported by the factory.
+	 * Creates new instances of custom field types.
 	 *
 	 * @param customFieldTypeName The name of the custom field type to be instantiated.
 	 * @return A new instance of the custom field type specified by `customFieldTypeName` or `null` if the factory does

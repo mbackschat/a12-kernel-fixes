@@ -41,17 +41,19 @@ import org.apache.commons.lang3.StringUtils;
 import com.mgmtp.a12.utils.conversion.a12internal.util.DateUtil;
 import com.mgmtp.a12.utils.localization.DataFormats;
 
+import lombok.NonNull;
+
 public class DataFormatsUtil {
 
-	public static String calculateDateFormat(
-			String fieldDateFormat,
+	public static @NonNull String calculateDateFormat(
+			@NonNull String fieldDateFormat,
 			DataFormats dataFormats
 	) {
 		return calculateDateFormat(fieldDateFormat, dataFormats, false);
 	}
 
-	public static String calculateDateFormat(
-			String fieldDateFormat,
+	public static @NonNull String calculateDateFormat(
+			@NonNull String fieldDateFormat,
 			DataFormats dataFormats,
 			boolean ignoreDateZeroOptional
 	) {

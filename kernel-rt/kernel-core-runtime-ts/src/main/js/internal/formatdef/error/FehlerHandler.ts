@@ -40,10 +40,11 @@ import {
 
 import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
-import { IFormaleFehlerConstants } from "../../util/IFormaleFehlerConstants.js";
 import type { LocalizableDefaults } from "../../util/LocalizableUtil.js";
 import { LocalizableUtil } from "../../util/LocalizableUtil.js";
 import { ValidType } from "../../util/ValidType.js";
+
+import { IFormaleFehlerConstants } from "../../util/IFormaleFehlerConstants.js";
 
 import type { IValidierungParam } from "../IValidierungParam.js";
 
@@ -107,9 +108,6 @@ export abstract class FehlerHandler {
 				new Set<IIdentifier>(),
 				new Set<IIdentifier>()
 			);
-		}
-		if (errorKey === IFormaleFehlerConstants.TEST_ID_NUMMER) {
-			return ValidType.Test;
 		}
 		return ValidType.Invalid;
 	}

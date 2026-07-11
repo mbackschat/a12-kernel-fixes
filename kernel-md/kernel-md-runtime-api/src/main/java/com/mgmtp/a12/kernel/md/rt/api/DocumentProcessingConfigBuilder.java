@@ -34,7 +34,6 @@ package com.mgmtp.a12.kernel.md.rt.api;
 
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
 
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
 
@@ -42,8 +41,6 @@ public class DocumentProcessingConfigBuilder {
 	private Locale languageOfErrorMessages;
 	private ICustomConditionFactory customConditionFactory = null;
 	private ICustomFieldTypeFactory customFieldTypeFactory= null;
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	private Map<String, Object> additionalInformation = Map.of();
 	private Date currentDateForTest = null;
 
 	public DocumentProcessingConfigBuilder(Locale languageOfErrorMessage) {
@@ -68,12 +65,6 @@ public class DocumentProcessingConfigBuilder {
 		return this;
 	}
 
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	public DocumentProcessingConfigBuilder additionalInformation(Map<String, Object> additionalInformation) {
-		this.additionalInformation = additionalInformation;
-		return this;
-	}
-
 	/**
 	 * @param currentDateForTest see {@link DocumentProcessingConfig#currentDateForTest()}
 	 * @return this builder
@@ -83,10 +74,8 @@ public class DocumentProcessingConfigBuilder {
 		return this;
 	}
 
-	// A12K-3589 remove this SuppressWarnings
-	@SuppressWarnings("removal")
 	public DocumentProcessingConfig build() {
 		return new DocumentProcessingConfigImpl(languageOfErrorMessages, customConditionFactory, customFieldTypeFactory,
-				additionalInformation, currentDateForTest);
+				currentDateForTest);
 	}
 }

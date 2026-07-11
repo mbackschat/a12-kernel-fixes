@@ -32,17 +32,14 @@
 
 package com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization;
 
-import java.io.IOException;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModelRoot;
 import com.mgmtp.a12.kernel.md.model.a12internal.Element;
 
-public class ModelRootSerializer extends StdSerializer<DocumentModelRoot> {
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
-	private static final long serialVersionUID = -7794637932360921525L;
+public class ModelRootSerializer extends StdSerializer<DocumentModelRoot> {
 
 	public ModelRootSerializer() {
 		this(null);
@@ -53,13 +50,13 @@ public class ModelRootSerializer extends StdSerializer<DocumentModelRoot> {
 	}
 
 	@Override
-	public void serialize(DocumentModelRoot value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+	public void serialize(DocumentModelRoot value, JsonGenerator gen, SerializationContext provider) {
 		gen.writeStartObject();
-		gen.writeFieldName("rootGroups");
+		gen.writeName("rootGroups");
 		gen.writeStartArray();
 		// no stream since "throws IOException" is not recognized inside the stream
 		for (Element e : value.getElements()) {
-			gen.writeObject(e);
+			gen.writePOJO(e);
 		}
 		gen.writeEndArray();
 		gen.writeEndObject();
