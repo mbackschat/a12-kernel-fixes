@@ -230,10 +230,10 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 			Consumer<LocaleIndependentNotification> receiverForNonCriticalNotifications) {
 		// Warning: the dms are mutable and some operations (e.g. include expansion) may change them in place.
 		//   (even IDocumentModel (vs DocumentModel), because it is implemented with a wrapper around a DocumentModel)
-		var targetDM = resolveInternalAndRemoveMeta(resolver, this.mappingModelDocument._at(P_TARGET_DM_ID));
+		var targetDM = resolveInternal(resolver, this.mappingModelDocument._at(P_TARGET_DM_ID));
 		Map<String, DocumentModel> sourceDmsById = this.inputSpecs.stream()
 				.map(SourceSpec4Codegen::validationDmId)
-				.distinct().collect(Collectors.toMap(id -> id, id -> resolveInternalAndRemoveMeta(resolver, id)));
+				.distinct().collect(Collectors.toMap(id -> id, id -> resolveInternal(resolver, id)));
 		var allDMs = Stream.concat(Stream.of(targetDM), sourceDmsById.values().stream()).toList();
 
 		// we can safely reuse the resolved DMs between checks (but not during operations that might modify them in place, like expansion)
@@ -253,7 +253,7 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 		// iff all source/target dms have the same explicit baseYear. this would enable precomputations that
 		// compare e.g. MMDD fields with YYYYMMDD or that use JahrAusDatum(f_MMDD)
 		DocumentModel withInputsMounted = addMountpointsAndExpandIncludesInplace(
-				empty, this.inputSpecs, id -> resolveInternalAndRemoveMeta(resolver, id), receiverForNonCriticalNotifications);
+				empty, this.inputSpecs, id -> resolveInternal(resolver, id), receiverForNonCriticalNotifications);
 		copySourceRGAnnotations(withInputsMounted, sourceDmsById);
 		DocumentModel withTargetAdded = addDMs(
 				withInputsMounted, withoutRulesAndComputations(targetDM), receiverForNonCriticalNotifications);
@@ -270,7 +270,7 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 		DocumentModel precomputationModel;
 		String precompFragmentId = this.mappingModelDocument._at(P_PRECOMP_FRAGMENT_DM_ID_IF_GIVEN);
 		if (precompFragmentId != null) {
-			var precompFragmentDM = resolveInternalAndRemoveMeta(resolver, precompFragmentId);
+			var precompFragmentDM = resolveInternal(resolver, precompFragmentId);
 			var allDMs = List.of(baseDmWithSourcesAndTarget, precompFragmentDM);
 			InfosForCheckMessages infosForCheckMessages = baseDmAndInfosForChecks.infosForCheckMessages()
 					.withPrecompFragment(precompFragmentDM);
@@ -282,7 +282,7 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 			// future revision of the code). Given that the resolver caches the dm anyway (incl defensive copying)
 			// in ExtMP, it seems cheap enough and safer to fetch targetDm again here and use the fresh instance for
 			// the checks.
-			var targetDm = resolveInternalAndRemoveMeta(resolver, this.mappingModelDocument._at(P_TARGET_DM_ID));
+			var targetDm = resolveInternal(resolver, this.mappingModelDocument._at(P_TARGET_DM_ID));
 			checkDoesNotComputeIntoFieldsBelowTargetGroups(precompFragmentDM, targetDm);
 			checkPrunedPrecompDoesNotAddIntoTargetGroups(precompFragmentDM, targetDm);
 			List<Locale> supportedLocales = checkAndGetSupportedLocalesIntersectionNonEmptyForPrecomp(allDMs,
@@ -326,7 +326,7 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 	 * 		if the precomputation dm overlaps with the target
 	 */
 	private static void checkDoesNotComputeIntoFieldsBelowTargetGroups(DocumentModel precompFragmentDM, DocumentModel targetDm) {
-		Set<String> targetRgNames = new HashSet<>(getRootGroupNamesWithoutMeta(targetDm));
+		Set<String> targetRgNames = new HashSet<>(getRootGroupNames(targetDm));
 		List<Computation> computationsInPrecompDm = getAllComputations(precompFragmentDM);
 		Predicate<Computation> hasComputedFieldInTarget = comp -> targetRgNames.contains(
 				ElementUtils.resolveRelativePath(comp, comp.getComputedField().getRelativePath()).split("/")[1]);
@@ -350,8 +350,8 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 	 */
 	private static void checkPrunedPrecompDoesNotAddIntoTargetGroups(DocumentModel precompFragmentDM, DocumentModel targetDm) {
 		precompFragmentDM = withEmptyGroupsPruned(precompFragmentDM);
-		Set<String> precompRgs = new HashSet<>(getRootGroupNamesWithoutMeta(precompFragmentDM));
-		Set<String> targetRgs = new HashSet<>(getRootGroupNamesWithoutMeta(targetDm));
+		Set<String> precompRgs = new HashSet<>(getRootGroupNames(precompFragmentDM));
+		Set<String> targetRgs = new HashSet<>(getRootGroupNames(targetDm));
 		Set<String> overlapping = setIntersection(precompRgs, targetRgs);
 		if (!overlapping.isEmpty()) {
 			throw new DataTransferCodegenException(PRECOMP_FRAGMENT_OVERLAPS_TARGET, String.join(", ", overlapping));
@@ -386,19 +386,17 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 		group.setElements(newElements);
 	}
 
-	private static DocumentModel resolveInternalAndRemoveMeta(IDocumentModelResolver externalResolver, String dmId) {
-		return removeMetaGroupInPlace( // addition and include expansion don't currently support the special __meta root group,
-				// so we remove it here in case it is present, as a workaround (A12K-3202, A12K-3203)
-				unwrapIDocumentModel(externalResolver.getDocumentModelById(dmId)));
+	private static DocumentModel resolveInternal(IDocumentModelResolver externalResolver, String dmId) {
+		return unwrapIDocumentModel(externalResolver.getDocumentModelById(dmId));
 	}
 
 	/**
 	 * workaround for non-rootpreserving includes: include expansion does not currently annotate the mountpoint group with the
 	 * annotations from the root group of the included DM, so those annotations would be lost.
 	 * This method copies these annotations to the mountpoint group. If we at some point change include expansion
-	 * so that it does this out of the box, then this method would become unnecessary
+	 * so that it does this out of the box, then this method would become unnecessary. Update: I believe it is not currently planned
+	 * to change the behavior of include expansion in this regard, see discarded status of A12K-3335
 	 */
-	// A12K-3335 can be discarded when A12K-3335 is implemented
 	private void copySourceRGAnnotations(DocumentModel withInputsMounted, Map<String, DocumentModel> sourceDmsById) {
 		var dmss = new DocumentModelSearchService(withInputsMounted);
 		this.inputSpecs.stream()
@@ -406,7 +404,7 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 				.forEach(inputSpec -> {
 					Group mountPoint = (Group) dmss.getByPath(mountPointRgPathForInput(inputSpec.name()))
 							.filter(e -> e instanceof Group).orElseThrow();
-					List<Group> sourceRgs = getRootGroupsWithoutMeta(sourceDmsById.get(inputSpec.validationDmId));
+					List<Group> sourceRgs = getRootGroups(sourceDmsById.get(inputSpec.validationDmId));
 					assert sourceRgs.size() <= 1 : "only intended for single-RG dms in SINGLE_RG includes (not MODEL_ROOT), but got RGs: "
 							+ sourceRgs.stream().map(Element::getName).toList();
 					Group sourceRg = sourceRgs.getFirst();
@@ -502,8 +500,8 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 		DocumentModel precomputationDM = unwrapIDocumentModel(
 				createPrecomputationDm(resolver, receiverForNonCriticalNotifications));
 		DocumentModel precomputationDMWithoutComputations = withoutRulesAndComputations(precomputationDM);
-		var rawTargetDM = resolveInternalAndRemoveMeta(resolver, this.mappingModelDocument._at(P_TARGET_DM_ID));
-		Set<String> targetRootGroupNames = Set.copyOf(getRootGroupNamesWithoutMeta(rawTargetDM));
+		var rawTargetDM = resolveInternal(resolver, this.mappingModelDocument._at(P_TARGET_DM_ID));
+		Set<String> targetRootGroupNames = Set.copyOf(getRootGroupNames(rawTargetDM));
 		DocumentModel targetDM = withRootGroupsFiltered(precomputationDMWithoutComputations,
 				rootGroup -> targetRootGroupNames.contains(rootGroup.getName()));
 		DocumentModel sourceDM = withRootGroupsFiltered(precomputationDMWithoutComputations,
@@ -583,25 +581,6 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 		return rootDm;
 	}
 
-	/**
-	 * remove the optional __meta root group that has recently been introduces in A12, gets sometimes automatically added by SME
-	 * (e.g. when copying DMs), and which is currently not supported by our include expansion (the included DM will be rejected
-	 * because
-	 * it has multiple root groups. Most likely, __meta is also not properly supported by dm addition: It probably gets treated
-	 * like
-	 * a regular group, but we don't want the precomptutaion DM to end up with some meta attributes from target or from the
-	 * precomputation fragment.
-	 * <p/>
-	 * A12K-3202, A12K-3203: when A12K-3202 and A12K-3203 are fixed _and_ if DM-addition is changed to discard __meta root groups
-	 * from the added DM (here the
-	 * precomp fragment and the target), then we can remove this workaround method
-	 */
-	private static DocumentModel removeMetaGroupInPlace(DocumentModel dm) {
-		dm.getContent().getModelRoot().setElements(
-				dm.getContent().getModelRoot().getElements().stream().filter(e -> !"__meta".equals(e.getName())).toList());
-		return dm;
-	}
-
 	private static void expandIncludesAndRemoveRulesAndComputationsFromIncludedDms(
 			DocumentModel baseDm,
 			Function<String, DocumentModel> resolver,
@@ -636,7 +615,7 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 	}
 
 	private void checkNoSourceNameCollidesWithTargetRg(DocumentModel targetDm) {
-		Set<String> rootGroupNamesInTarget = new HashSet<>(getRootGroupNamesWithoutMeta(targetDm));
+		Set<String> rootGroupNamesInTarget = new HashSet<>(getRootGroupNames(targetDm));
 		this.sourceNames().forEach(sourceName -> {
 			if (rootGroupNamesInTarget.contains(sourceName)) {
 				throw new DataTransferCodegenException(SOURCE_NAME_CLASHES_WITH_TARGET_ROOTGROUP, sourceName);
@@ -680,7 +659,7 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 	 * 		</ul>
 	 */
 	private static String checkAndGetSingleNonRepeatableRootGroupPath(DocumentModel dm) {
-		List<Group> rootGroups = getRootGroupsWithoutMeta(dm);
+		List<Group> rootGroups = getRootGroups(dm);
 		if (rootGroups.size() != 1) {
 			throw new DataTransferCodegenException(DataTransferErrorEnum.SOURCE_HAS_MULTIPLE_ROOTGROUPS,
 					id(dm), rootGroups.stream().map(Group::getName).sorted().collect(Collectors.toList()));
@@ -748,18 +727,15 @@ public class FixedShapeMappingModelForCodegen implements MappingModelForCodegen 
 	/**
 	 * @return the names of the dm's root groups (without leading "/")
 	 */
-	private static List<String> getRootGroupNamesWithoutMeta(DocumentModel dm) {
-		return getRootGroupsWithoutMeta(dm).stream()
+	private static List<String> getRootGroupNames(DocumentModel dm) {
+		return getRootGroups(dm).stream()
 				.map(Element::getName)
 				.toList();
 	}
 
-	private static List<Group> getRootGroupsWithoutMeta(DocumentModel dm) {
+	private static List<Group> getRootGroups(DocumentModel dm) {
 		return dm.getContent().getModelRoot().getElements().stream()
 				.filter(e -> e instanceof Group)
-				// should the __meta filter be extracted to a general util method (other code locations might also need the "non-meta" root groups, and are maybe broken since the introduction of __meta (e.g. include expansoin seems broken!
-				// (this filter is currently redundant to removeMetaGroupInPlace, but that method is only a temporary workaround. when it gets removed, we'll _need_ it again)
-				.filter(e -> !"__meta".equals(e.getName()))
 				.map(e -> (Group) e).toList();
 	}
 

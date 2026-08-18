@@ -18,6 +18,7 @@ dependencies {
 
     implementation project(':kernel-core-base-utils')
     implementation project(':kernel-md-a12internal')
+    implementation project(':kernel-md-combination-model')
     implementation project(":kernel-md-serializer")
     implementation libs.baseModelApi
     implementation libs.baseModelConsistency

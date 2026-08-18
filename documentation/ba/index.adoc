@@ -1,4 +1,0 @@
-include::validation_language_guide_en.adoc[]
-
-include::parser_errors_en.adoc[leveloffset=+1]
-

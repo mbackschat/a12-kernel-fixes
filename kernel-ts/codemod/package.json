@@ -1,6 +1,6 @@
 {
   "name": "@com.mgmtp.a12.kernel/kernel-codemod",
-  "version": "30.8.1",
+  "version": "30.8.5",
   "author": "mgm technology partners",
   "license": "(EUPL-1.2 OR LicenseRef-commercial)",
   "scripts": {

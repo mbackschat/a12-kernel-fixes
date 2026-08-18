@@ -614,6 +614,9 @@ and `DocumentRtCustomExtensionService`
 * [A12K-3504] - The method `ICustomConditionFactory#createCustomCondition(String)` which was deprecated in release 29.2.0 has
   now a default
   implementation, so you can remove the corresponding implementation.
+* [A12K-3188] (Java) - `IDocumentRtService#checkStructuralConsistencyWithDm` is deprecated, use `IDmAwareDocService#checkStructuralConsistencyWithDm` instead.
+* [A12K-3425] (Java) - `DocumentSerializationConfig#failIfUnreadableXML is deprecated, there is no replacement as we no longer support xml-illegal characters when serializing to xml.
+* [A12K-3546] - The method `MDSerializerFactory#createDocumentSerializer` (`IDocument`) is deprecated in favor of `MDSerializerFactory#createDocumentSerializerV2` (`DocumentV2`).
 
 === 2025.06
 

@@ -55,6 +55,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -76,11 +77,18 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.stringtemplate.v4.ST;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
+import com.mgmtp.a12.kernel.md.combination.a12internal.CombinationException;
+import com.mgmtp.a12.kernel.md.combination.a12internal.CombinationModelService;
+import com.mgmtp.a12.kernel.md.combination.a12internal.DMWrapper;
+import com.mgmtp.a12.kernel.md.combination.a12internal.IUnexpandedModelResolver;
 import com.mgmtp.a12.kernel.md.document.typed_accessor_gen.internal.util.DMUtilForTypingsGen;
 import com.mgmtp.a12.kernel.md.document.typed_accessor_gen.internal.util.ModelRef4Include;
+import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
+import com.mgmtp.a12.kernel.md.model.a12internal.FieldTypeDefinition;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.model.api.IElement;
 import com.mgmtp.a12.kernel.md.model.api.IField;
+import com.mgmtp.a12.kernel.md.model.api.IFieldTypeDefinition;
 import com.mgmtp.a12.kernel.md.model.api.IGroup;
 import com.mgmtp.a12.kernel.md.model.api.ILocalizedTextMap;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IBooleanType;
@@ -93,7 +101,10 @@ import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IEnumerationType;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IFieldType;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.INumberType;
 import com.mgmtp.a12.kernel.md.model.api.fieldtypes.IStringType;
+import com.mgmtp.a12.kernel.md.model.api.fieldtypes.ITypeDefType;
+import com.mgmtp.a12.kernel.md.model.internal.service.utils.DocumentModelUtils;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.ElementUtils;
+import com.mgmtp.a12.kernel.md.model.internal.wrapper.DocumentModelWrapper;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 @OnlyForUsage
@@ -156,6 +167,23 @@ public class TypedAccessorGenerator {
 						"Note that for SINGLE_RG includes, the suffix with the name of the unique root group of the included " +
 						"DM is required, as shown in the format. " +
 						"Example: '--external-models CT_MODEL_HEADER_1=com.mgmtp.a12.kernel.mmtypings.ct_model_header_1:header'")
+				.get());
+		options.addOption(Option.builder()
+				.longOpt("typedef-models")
+				.hasArgs()
+				.desc("(optional) paths to additional document model files that are used only to resolve type definitions " +
+						"(e.g. typedef models).")
+				.get());
+		options.addOption(Option.builder()
+				.longOpt("use-shared-typedef-classes")
+				.desc("(optional, temporary) if set, the value-class generated for a field whose type comes from a typedef " +
+						"(currently: the enum class of an enum typedef) is generated once per typedef id under " +
+						"'<prefix>/typedefs/<typedef-id>/' and shared by every field/model referencing that typedef, " +
+						"instead of a separate (duplicate) class per field. " +
+						// NOTE (2026_06 / master): make this the default and remove this flag. To keep older invocations
+						// working, the flag should then still be accepted (and ignored) rather than rejected as unknown.
+						"NOTE: this flag exists only to keep the change non-breaking on this branch; from the 2026_06 release " +
+						"this behavior is the default and the flag will go away (it will then be implicit-true).")
 				.get());
 		options.addOption(Option.builder()
 				.longOpt("mode")
@@ -225,8 +253,14 @@ public class TypedAccessorGenerator {
 				.map(arg -> parseExternalModelRef(arg))
 				.collect(Collectors.toSet());
 
-		generateAccessorClassesToFileSystem(allDms, externalModels, outputSourceRootPath, packagePrefix, selectedSubgroupsPerDm,
-				mode, getCLIOptionValues(cmd, "annotations-fqns"));
+		List<IDocumentModel> typedefOnlyModels = getCLIOptionValues(cmd, "typedef-models").stream()
+				.map(DMUtilForTypingsGen::readDmFromFileOrClasspathResource)
+				.toList();
+
+		boolean useSharedTypedefClasses = cmd.hasOption("use-shared-typedef-classes");
+
+		generateAccessorClassesToFileSystem(allDms, externalModels, typedefOnlyModels, outputSourceRootPath, packagePrefix,
+				selectedSubgroupsPerDm, mode, getCLIOptionValues(cmd, "annotations-fqns"), useSharedTypedefClasses);
 	}
 
 	private enum GenMode {
@@ -256,31 +290,33 @@ public class TypedAccessorGenerator {
 	private static void generateAccessorClassesToFileSystem(
 			Collection<IDocumentModel> dms,
 			Set<ModelRef4Include> externalModels,
+			Collection<IDocumentModel> typedefOnlyModels,
 			Path sourcesRoot,
 			String packagePrefix,
 			Map<String, Collection<List<String>>> limitToPathsSubsetPerDm,
 			GenMode mode,
-			List<String> classAnnotationFqns
+			List<String> classAnnotationFqns,
+			boolean useSharedTypedefClasses
 	) {
 		List<String> packagePrefixAsList = packageOrFqnAsList(packagePrefix);
 		var localModelsRefs = DMUtilForTypingsGen.makeLocalModelsRefs(dms, packagePrefixAsList);
 		validateNoIntersection(externalModels, localModelsRefs, ModelRef4Include::dmId,
 				"The same DM id must not occur in _both_ local and external models: duplicate dmIds: ");
-		Set<ModelRef4Include> allModelRefsForIncludes = setUnion(
-				externalModels,
-				DMUtilForTypingsGen.makeLocalModelsRefs(dms, packagePrefixAsList));
+		Set<ModelRef4Include> allModelRefsForIncludes = setUnion(externalModels, localModelsRefs);
+
+		var allModelsForTypedefResolution = concatToList(dms, typedefOnlyModels);
+		IUnexpandedModelResolver typedefResolver = makeAdHocResolver(allModelsForTypedefResolution);
 
 		Map<List<String>, String> classes = new HashMap<>();
 		for (var dm : dms) {
+			dm = enrichWithReferencedTypedefs(dm, typedefResolver);
 			var pathSubset = limitToPathsSubsetPerDm.getOrDefault(dm.getHeader().getId(), null);
 			if (pathSubset != null) {
 				dm = DMUtilForTypingsGen.filterDm(dm, path -> isPathOnOrBelowAny(path, pathSubset));
 			}
 			var classesForCurrentDm = generateAccessorClasses(dm, packagePrefixAsList, allModelRefsForIncludes, mode,
-					classAnnotationFqns);
-			assert setIntersection(classes.keySet(), classesForCurrentDm.keySet()).isEmpty()
-					: "colliding names: " + setIntersection(classes.keySet(), classesForCurrentDm.keySet());
-			classes.putAll(classesForCurrentDm);
+					classAnnotationFqns, useSharedTypedefClasses);
+			mergeGeneratedClasses(classes, classesForCurrentDm);
 		}
 		for (Map.Entry<List<String>, String> e : classes.entrySet()) {
 			Path filePath = sourcesRoot.resolve(String.join("/", e.getKey()) + ".java");
@@ -293,12 +329,91 @@ public class TypedAccessorGenerator {
 		}
 	}
 
+	/**
+	 * Merges the classes generated for one dm into the overall result. The same fully-qualified name may be produced by
+	 * more than one dm, but only if the content is identical: this is expected for value-classes that are shared across
+	 * models via a typedef (see {@link #fieldValueClassLocation}) - e.g. the enum class of an enum typedef is generated
+	 * identically by every model that references that typedef (by its globally unique id), and we want exactly one such
+	 * class. A collision with <em>differing</em> content is a genuine name clash and fails.
+	 */
+	private static void mergeGeneratedClasses(Map<List<String>, String> into, Map<List<String>, String> additional) {
+		additional.forEach((fqn, source) -> {
+			String existing = into.putIfAbsent(fqn, source);
+			if (existing != null && !existing.equals(source)) {
+				throw new IllegalArgumentException("colliding class name with differing content: " + String.join(".", fqn));
+			}
+		});
+	}
+
+	/**
+	 * @return an {@link IUnexpandedModelResolver} that resolves models by their dm id from the given in-memory
+	 * 		{@code models}. Used to obtain the type definitions of imported / included models during enrichment.
+	 */
+	private static IUnexpandedModelResolver makeAdHocResolver(Collection<IDocumentModel> models) {
+		Map<String, IDocumentModel> modelsById = new HashMap<>();
+		for (IDocumentModel model : models) {
+			modelsById.put(model.getHeader().getId(), model);
+		}
+		return modelId -> {
+			IDocumentModel model = modelsById.get(modelId);
+			if (model == null) {
+				throw new CombinationException("No model with id '" + modelId + "' was available to resolve type "
+						+ "definitions / includes. Pass it via --additional-models or --typedef-models.");
+			}
+			return new DMWrapper(model);
+		};
+	}
+
+	/**
+	 * @return a copy of {@code dm} enriched with the type definitions it references but does not define locally (with
+	 * 		references re-resolved); includes are kept unexpanded. If the model cannot be expanded - e.g. because a
+	 * 		referenced (included / imported) model was not provided - the original model is returned unchanged
+	 * 		(best effort: in that case fields with non-local typedefs keep their previous, unresolved behavior).
+	 */
+	private static IDocumentModel enrichWithReferencedTypedefs(IDocumentModel dm, IUnexpandedModelResolver resolver) {
+		Optional<IDocumentModel> expanded;
+		try {
+			// notifications are ignored: the expansion is only used to harvest the flattened set of type definitions, and
+			// the model need not be fully valid on its own for that (e.g. it may have unrelated unresolved references).
+			expanded = CombinationModelService.expand(dm, resolver, Locale.ENGLISH, notification -> { });
+		} catch (RuntimeException e) {
+			return dm;
+		}
+		if (expanded.isEmpty()) {
+			return dm;
+		}
+		// the expanded model is a throwaway copy, so we can take its type definitions directly
+		List<FieldTypeDefinition> typedefs =
+				((DocumentModelWrapper) expanded.get()).getDocumentModel().getContent().getTypeDefinitions();
+		// graft the typedefs onto a deep copy of the *un-expanded* dm (so includes stay unexpanded), then
+		// re-resolve references so fields referencing imported/included typedefs get a resolved effective type.
+		// (deepCopyDM re-resolves references on deserialization, but without the grafted typedefs, hence the extra pass.)
+		// note: the extra deepcopy might be not strictly necessary here.
+		IDocumentModel dmCopy = DMUtilForTypingsGen.deepCopyDM(dm);
+		DocumentModel internalDmCopy = ((DocumentModelWrapper) dmCopy).getDocumentModel();
+		addMissingTypeDefs(internalDmCopy, typedefs);
+		DocumentModelUtils.resolveAndUpdateReferences(internalDmCopy, problem -> { /* best effort, problems ignored */ });
+		return dmCopy;
+	}
+
+	private static void addMissingTypeDefs(DocumentModel dm, List<FieldTypeDefinition> additionalTypeDefs) {
+		List<FieldTypeDefinition> typeDefs = new ArrayList<>(dm.getContent().getTypeDefinitions());
+		Set<String> presentIds = typeDefs.stream().map(FieldTypeDefinition::getId).collect(Collectors.toSet());
+		for (FieldTypeDefinition typeDef : additionalTypeDefs) {
+			if (presentIds.add(typeDef.getId())) {
+				typeDefs.add(typeDef);
+			}
+		}
+		dm.getContent().setTypeDefinitions(typeDefs);
+	}
+
 	private static Map<List<String>, String> generateAccessorClasses(
 			IDocumentModel dm,
 			List<String> packagePrefix,
 			Set<ModelRef4Include> externalModelRefs,
 			GenMode mode,
-			List<String> classAnnotationFqns
+			List<String> classAnnotationFqns,
+			boolean useSharedTypedefClasses
 	) {
 		List<String> packageRest = List.of();
 		String dmIdIfRoot = dm.getHeader().getId();
@@ -309,7 +424,8 @@ public class TypedAccessorGenerator {
 				dmIdIfRoot,
 				Java8Utils.associateBy(externalModelRefs, ModelRef4Include::dmId),
 				mode,
-				classAnnotationFqns
+				classAnnotationFqns,
+				useSharedTypedefClasses
 		).subtreeSources();
 	}
 
@@ -320,7 +436,8 @@ public class TypedAccessorGenerator {
 			String dmIdIfRoot,
 			Map<String, ModelRef4Include> modelRefsForIncludes,
 			GenMode mode,
-			List<String> classAnnotationFqns
+			List<String> classAnnotationFqns,
+			boolean useSharedTypedefClasses
 	) {
 		Map<List<String>, String> result = new HashMap<>();
 
@@ -362,7 +479,7 @@ public class TypedAccessorGenerator {
 					assert subGroupResult.subtreeSources().isEmpty();
 				} else {
 					subGroupResult = generateAccessorClassesInternal(subGroup, packagePrefix, names.subPackageRest, null,
-							modelRefsForIncludes, mode, classAnnotationFqns);
+							modelRefsForIncludes, mode, classAnnotationFqns, useSharedTypedefClasses);
 					result.putAll(subGroupResult.subtreeSources());
 				}
 
@@ -373,8 +490,10 @@ public class TypedAccessorGenerator {
 			} else if (elem instanceof IField fieldElem) {
 				TypedAccessorGenerator.GenResult enumResult = null;
 				if (getFieldType(fieldElem) instanceof IEnumerationType etype) {
-					List<String> packageForSubgroupView = mkPackage4View(packagePrefix, names.subPackageRest);
-					enumResult = generateEnumClass(packageForSubgroupView, elemName, etype, classAnnotationFqns);
+                    // NOTE: for fieldtype classes (like enum classes) from _typedefs_ we could consider generating them always for all existing typedefs, rather than only if they are used by a field (and skip redundant regenerations if they are used multiple times)
+					FieldValueClassLocation loc = fieldValueClassLocation(fieldElem, packagePrefix, names.subPackageRest,
+							useSharedTypedefClasses);
+					enumResult = generateEnumClass(loc, etype, classAnnotationFqns);
 					result.putAll(enumResult.subtreeSources());
 				}
 				List<String> enumClassFqnIfApplicable = enumResult != null ? enumResult.viewClassFqn() : null;
@@ -447,6 +566,42 @@ public class TypedAccessorGenerator {
 
 	private static IFieldType getFieldType(IField field) {
 		return field.getEffectiveType().orElse(field.getFieldType());
+	}
+
+	/**
+	 * The package and base name for a value-class generated for a field whose type warrants one (currently enum fields;
+	 * on later kernel versions also string fields with hint-lists).
+	 *
+	 * @param packagePath
+	 * 		the package the value-class lives in
+	 * @param baseName
+	 * 		the base name used to derive the value-class name
+	 */
+	private record FieldValueClassLocation(List<String> packagePath, String baseName) {
+	}
+
+	/**
+	 * Decides where a field's generated value-class (e.g. its enum class) lives and how it is named.
+	 * <p>
+	 * If {@code useSharedTypedefClasses} is set and the field's type originates from a typedef, the value-class is
+	 * <em>shared</em> by all fields (in any model generated together) that reference the same typedef: it lives under
+	 * {@code <prefix>/typedefs/<typedef-id>/} and is named after the typedef. As typedef ids are globally unique, this
+	 * yields exactly one class per typedef instead of a duplicate per referencing field. Otherwise the value-class is
+	 * generated per field in the group's view package, named after the field.
+	 * <p>
+	 * {@code useSharedTypedefClasses} gates this on the current branch to stay non-breaking; see the
+	 * {@code --use-shared-typedef-classes} CLI flag (which becomes implicit from the 2026_06 release).
+	 */
+	private static FieldValueClassLocation fieldValueClassLocation(IField field, List<String> packagePrefix,
+			List<String> subPackageRest, boolean useSharedTypedefClasses) {
+		assert !(field.getFieldType() instanceof ITypeDefType tdt) || tdt.getTypeDefinition().isPresent()
+				: "typedef not resolved for field '" + field.getName() + "' — pass the typedef model via --typedef-models";
+		if (useSharedTypedefClasses
+				&& field.getFieldType() instanceof ITypeDefType typeDefType && typeDefType.getTypeDefinition().isPresent()) {
+			IFieldTypeDefinition typeDef = typeDefType.getTypeDefinition().get();
+			return new FieldValueClassLocation(mkPackage4Typedef(packagePrefix, typeDefType.getId()), typeDef.getName());
+		}
+		return new FieldValueClassLocation(mkPackage4View(packagePrefix, subPackageRest), field.getName());
 	}
 
 	private static void checkNoCaseInsensitiveElementNameCollisions(IGroup parentGroup) {
@@ -1304,10 +1459,10 @@ public class TypedAccessorGenerator {
 		}
 	}
 
-	private static GenResult generateEnumClass(List<String> enumPackagePrefix, String fieldName, IEnumerationType etype,
+	private static GenResult generateEnumClass(FieldValueClassLocation loc, IEnumerationType etype,
 			List<String> classAnnotationFqns) {
-		String enumClassName = escapeNameIfNecessary(fieldName);
-		List<String> enumClassFqn = appendList(enumPackagePrefix, enumClassName);
+		String enumClassName = escapeNameIfNecessary(loc.baseName());
+		List<String> enumClassFqn = appendList(loc.packagePath(), enumClassName);
 		List<String> stringFqn = GroupClass.parseFqn("java.lang.String");
 		List<String> arraysFqn = GroupClass.parseFqn("java.util.Arrays");
 		List<String> mapFqn = GroupClass.parseFqn("java.util.Map");
@@ -1447,6 +1602,25 @@ public class TypedAccessorGenerator {
 
 	private static List<String> mkPackage4Pointer(List<String> packagePrefix, List<String> packageRest) {
 		return concatToList(packagePrefix, List.of("pointers"), packageRest);
+	}
+
+	/**
+	 * @return the package for the value-classes (e.g. enum classes) of the typedef with the given id. Sibling of the
+	 * 		{@code views}/{@code pointers}/{@code pojos} packages; the per-id segment keeps distinct typedefs apart while
+	 * 		letting all references to the <em>same</em> typedef id share a single class.
+	 */
+	private static List<String> mkPackage4Typedef(List<String> packagePrefix, String typedefId) {
+		return concatToList(packagePrefix, List.of("typedefs", typedefIdAsPackagePart(typedefId)));
+	}
+
+	/**
+	 * Turns a (globally unique) typedef id into a valid, lowercase java package segment.
+	 * <p>
+	 * Standard-format typedef ids as produced by sme will yield nicely-readable strings (just replace "-" by "_"),
+	 * while nonstandard strings will be escaped in a way that makes only mild assumptions regarding collision-safety.
+	 */
+	private static String typedefIdAsPackagePart(String typedefId) {
+		return replaceNonAlphanumericOrUnderscoreWithUnicodeCodepoint(typedefId.replace("-", "_"));
 	}
 
 	private static List<List<String>> parsePathsArgs(String[] pathsArgs) {

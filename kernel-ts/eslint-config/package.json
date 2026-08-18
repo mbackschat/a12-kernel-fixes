@@ -1,6 +1,6 @@
 {
   "name": "@com.mgmtp.a12.kernel/kernel-eslint-config",
-  "version": "30.8.1",
+  "version": "30.8.5",
   "description": "general eslint config (does not get deployed)",
   "scripts": {
     "compile": "npm-run-all --parallel --max-parallel 2 compile:**",

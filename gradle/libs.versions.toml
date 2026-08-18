@@ -1,5 +1,5 @@
 [versions]
-a12KernelVersion = "30.8.1"
+a12KernelVersion = "30.8.5"
 kernelCoreRuntimeApiVersion = "32.3.4"
 kernelCoreCustomfieldtypeApiVersion = "28.2.0"
 
@@ -16,9 +16,9 @@ mmStructuralMappingModel_1 = "4.3.541349"
 mmXmlSchemaContainer_1 = "5.2.541350"
 mmCommon_v2 = "19.8.541420"
 
-com-mgmtp-a12-base = "29.3.0"
-com-fasterxml-jackson-annotations = "2.20"
-com-fasterxml-jackson = "2.20.1"
+com-mgmtp-a12-base = "29.3.1"
+com-fasterxml-jackson-annotations = "2.22"
+com-fasterxml-jackson = "2.22.0"
 org-antlr = "4.13.2"
 org-antlr-ts = "4.13.2"
 org-slf4j = "2.0.17"
