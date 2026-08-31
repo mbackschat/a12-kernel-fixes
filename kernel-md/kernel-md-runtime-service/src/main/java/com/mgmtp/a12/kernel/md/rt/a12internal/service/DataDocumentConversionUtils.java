@@ -37,6 +37,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.PresentationInformation;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaField;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaGroup;
@@ -143,12 +144,37 @@ public class DataDocumentConversionUtils {
 	 *
 	 * @throws IllegalArgumentException
 	 * 		if {@code locale} is not supported in {@code metaModel}
+	 *
+	 ** @deprecated use {@link DataDocumentConversionUtils#createData(DocumentV2, IMetaModel, Locale, IResult, ICustomFieldTypeFactory)} instead.
 	 */
+	@Deprecated(since = "31.2.0")
 	public static IData createData(DocumentV2 document, IMetaModel metaModel, Locale locale, IResult result) {
+		return createData(document, metaModel, locale, result, null);
+	}
+
+	/**
+	 * Utility method to convert an {@link DocumentV2} to {@link IData}.
+	 *
+	 * @param document
+	 *        {@link DocumentV2} to be converted
+	 * @param metaModel
+	 * 		needed to get values for given {@link IIdentifier}s (see e.g. {@link IData#getValue(IIdentifier)}).
+	 * @param locale
+	 * 		needed to get the according display values
+	 * @param result
+	 * 		needed to be able to pass results from conversion while getting the value of a specific field instance
+	 * @param customFieldTypeFactory
+	 * 		the {@link ICustomFieldTypeFactory} to be used. Only required if IData is validated later.
+	 * @return the corresponding {@link IData}-instance.
+	 *
+	 * @throws IllegalArgumentException
+	 * 		if {@code locale} is not supported in {@code metaModel}
+	 */
+	public static IData createData(DocumentV2 document, IMetaModel metaModel, Locale locale, IResult result, ICustomFieldTypeFactory customFieldTypeFactory) {
 		// throw early for wrong locale, otherwise the lazy conversion might throw an exception much later
 		LowKernelApiUtils.checkLocaleIsSupported(metaModel, locale);
 		return LowKernelApiUtils.createData(document, metaModel, locale, result,
-				id -> new Identifier(id.getName(), id.getIndices()).toString());
+				id -> new Identifier(id.getName(), id.getIndices()).toString(), customFieldTypeFactory);
 	}
 }
 

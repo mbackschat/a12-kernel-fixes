@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.ValidationMode;
 import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaField;
@@ -89,8 +90,8 @@ public class LowKernelApiUtils {
 	}
 
 	public static IData createData(DocumentV2 document, IMetaModel metaModel, Locale locale, IResult result,
-			IIdentifierToString identifierToStringFunc) {
-		return new ValidationData(document, metaModel, locale, result, identifierToStringFunc);
+			IIdentifierToString identifierToStringFunc, ICustomFieldTypeFactory customFieldTypeFactory) {
+		return new ValidationData(document, metaModel, locale, result, identifierToStringFunc, customFieldTypeFactory);
 	}
 
 	/**
@@ -123,7 +124,7 @@ public class LowKernelApiUtils {
 		checkLocaleIsSupported(metaModel, config.languageOfErrorMessages());
 		try {
 			DocumentValidationResultImpl formalErrors = new DocumentValidationResultImpl();
-			IData data = createData(document, metaModel, config.languageOfErrorMessages(), formalErrors, identifierToStringFunc);
+			IData data = createData(document, metaModel, config.languageOfErrorMessages(), formalErrors, identifierToStringFunc, config.customFieldTypeFactory());
 			ValidationMode mode = configureValidationMode(config);
 			IData calculatedData = calculator.calculateAll(data, mode, formalErrors);
 			assert formalErrors.getMessages().stream().allMatch(m -> m.getSeverity() == IMessage.Severity.ERROR);
@@ -144,7 +145,7 @@ public class LowKernelApiUtils {
 	) {
 		checkLocaleIsSupported(metaModel, config.languageOfErrorMessages());
 		DocumentValidationResultImpl result = new DocumentValidationResultImpl();
-		IData data = createData(document, metaModel, config.languageOfErrorMessages(), result, identifierToStringFunc);
+		IData data = createData(document, metaModel, config.languageOfErrorMessages(), result, identifierToStringFunc, config.customFieldTypeFactory());
 		ValidationMode mode = configureValidationMode(config);
 
 		try {

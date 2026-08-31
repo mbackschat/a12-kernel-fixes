@@ -1,6 +1,6 @@
 {
   "name": "root",
-  "version": "31.1.0",
+  "version": "31.1.1",
   "private": true,
   "scripts": {
     "clean": "npm run clean:build_files ; npm run clean:node_modules",
@@ -16,7 +16,9 @@
     "xmlbuilder2": "^4.0.1",
     "@cyclonedx/cyclonedx-library": "^9.0.0",
     "serialize-javascript": "^7.0.5",
-    "ws": "^8.21.0"
+    "ws": "^8.21.0",
+    "brace-expansion": "^5.0.9",
+    "diff": "^8.0.3"
   },
   "workspaces": [
     "kernel-md/kernel-md-facade",

@@ -36,10 +36,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
-import com.mgmtp.a12.kernel.md.document.apiV2.DocumentPointer;
+import com.mgmtp.a12.kernel.md.datatransfer.a12internal.mappingmodel.MappingModelService;
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
 import com.mgmtp.a12.kernel.md.model.a12internal.services.DocumentModelService;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
@@ -47,6 +46,7 @@ import com.mgmtp.a12.kernel.md.serializer.model.a12internal.services.DocumentMod
 import com.mgmtp.a12.kernel.md.serializer.model.internal.service.serialization.KernelJsonMapper;
 import com.mgmtp.a12.kernel.mmtypings.mm_combinationmodel_1.views.MM_CombinationModel_1;
 import com.mgmtp.a12.kernel.mmtypings.mm_selectionmodel_2.views.MM_SelectionModel_2;
+import com.mgmtp.a12.model.header.Header;
 import com.mgmtp.a12.model.notification.RankedNotification;
 import com.mgmtp.a12.model.notification.Severity;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
@@ -77,10 +77,14 @@ public class UnexpandedModelResolverImpl implements IUnexpandedModelResolver {
 	}
 
 	@Override public @NonNull DMLike resolve(@NonNull String modelId) throws CombinationException {
+		ObjectNode jsonNode = getJsonNode(modelId);
+		Header header = getHeader(jsonNode, modelId);
+		String modelType = getModelType(header);
+
+		// we explicitly do _not_ reuse the parsed jsonNode as we want to use the "fitting" mapper config
 		try (Reader reader = this.readerForId.apply(modelId)) {
-			String modelType = getModelType(modelId);
 			switch (modelType) {
-				case DocumentModel.MODEL_TYPE_DOCUMENT: {
+				case DocumentModel.MODEL_TYPE_DOCUMENT, MappingModelService.RUNTIME_PRECOMP_FRAGMENT_MODEL_TYPE: {
 					IDocumentModel deserialized;
 					try {
 						deserialized = new DocumentModelService().convertToExternal(
@@ -109,54 +113,58 @@ public class UnexpandedModelResolverImpl implements IUnexpandedModelResolver {
 	}
 
 	@Override public MM_SelectionModel_2 resolveSelectionModel(@NonNull String selId) {
-		try (Reader reader = this.readerForId.apply(selId)) {
-			String modelType = getModelType(selId);
+		ObjectNode jsonNode = getJsonNode(selId);
+		Header header = getHeader(jsonNode, selId);
+		String modelType = getModelType(header);
 
+		// we explicitly do _not_ reuse the parsed jsonNode as we want to use the "fitting" mapper config
+		try (Reader reader = this.readerForId.apply(selId)) {
 			if (SelectionModelService.MODEL_TYPE.equals(modelType)) {
 				List<RankedNotification> notifications = new ArrayList<>();
 				MM_SelectionModel_2 deserialized = SelectionModelService.deserialize(reader, notifications::add);
-				if (!notifications.isEmpty() && notifications.stream().anyMatch(n -> n.getSeverity().isAtLeastAsSevereAs(Severity.ERROR))) {
+				if (!notifications.isEmpty() && notifications.stream()
+						.anyMatch(n -> n.getSeverity().isAtLeastAsSevereAs(Severity.ERROR))) {
 					throw new CombinationException("Error loading selection model:\n" + String.join("\n",
 							notifications.stream().map(RankedNotification::getMessage).toList()));
 				}
 				return deserialized;
 			} else {
-					throw new CombinationException("Unexpected model type " + modelType + " in " + selId + " during SelectionModel resolving");
+				throw new CombinationException(
+						"Unexpected model type " + modelType + " in " + selId + " during SelectionModel resolving");
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e); // can maybe only occur in case _closing_ of the reader fails?
 		}
 	}
 
-	private String getModelType(String modelId) {
+	private static Header getHeader(JsonNode jsonNode, String modelId) {
+		JsonNode headerNode = jsonNode.get("header");
+		if (headerNode == null || headerNode.isNull()) {
+			throw new CombinationException("Header not present in model with id " + modelId);
+		}
+		try {
+			return KernelJsonMapper.getMapper().treeToValue(headerNode, Header.class);
+		} catch (JacksonException e) {
+			throw new CombinationException("Error parsing header of model with id " + modelId + ": " + e.getMessage());
+		}
+	}
+
+	private String getModelType(Header header) {
+		String modelType = header.getModelType();
+		if (modelType == null) {
+			throw new CombinationException("Model type not present in model with id " + header.getId());
+		}
+		return modelType;
+	}
+
+	private ObjectNode getJsonNode(String modelId) {
 		ObjectNode jsonNode;
 		try (Reader reader = this.readerForId.apply(modelId)) {
 			// load as json, to check the modelType
 			jsonNode = KernelJsonMapper.getMapper().readValue(reader, ObjectNode.class);
-		} catch (IOException e) {
+		} catch (IOException | JacksonException e) {
 			throw new CombinationException("Error loading model with model id " + modelId, e);
 		}
-
-		Optional<JsonNode> modelTypeField = getNested(jsonNode, MM_CombinationModel_1._pointer().header().modelType()._unwrap());
-		if (modelTypeField.isEmpty()) {
-			throw new CombinationException("Model type not present in model with id " + modelId);
-		}
-
-		return modelTypeField.get().asString();
-	}
-
-	private static Optional<JsonNode> getNested(@NonNull JsonNode jsonNode, @NonNull DocumentPointer pointer) {
-		String name = pointer.getPathParts().getFirst().name();
-		if (!jsonNode.has(name)) {
-			return Optional.empty();
-		}
-
-		DocumentPointer rest = pointer.rest();
-		jsonNode = jsonNode.get(name);
-
-		if (rest.size() == 0) {
-			return Optional.of(jsonNode);
-		}
-		return getNested(jsonNode, rest);
+		return jsonNode;
 	}
 }

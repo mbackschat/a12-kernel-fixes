@@ -9,5 +9,5 @@ recipeList:
 #        methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.migration.IDocumentModelMigrator getOldestSupportedSourceVersion()'
 #        comment: 'Use the `getFirstSupportedSourceVersion()`  instead.'
   - org.openrewrite.java.ChangeMethodName:
-              methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.migration.IDocumentModelMigrator getOldestSupportedSourceVersion()'
-              newMethodName: 'getFirstSupportedSourceVersion'
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.migration.IDocumentModelMigrator getOldestSupportedSourceVersion()'
+      newMethodName: 'getFirstSupportedSourceVersion'

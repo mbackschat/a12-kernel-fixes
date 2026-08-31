@@ -1,5 +1,5 @@
 [versions]
-a12KernelVersion = "31.1.0"
+a12KernelVersion = "31.1.1"
 kernelCoreRuntimeApiVersion = "33.0.2"
 kernelCoreCustomfieldtypeApiVersion = "29.0.2"
 
@@ -16,9 +16,9 @@ mmStructuralMappingModel_1 = "4.7.551353"
 mmXmlSchemaContainer_1 = "5.3.551354"
 mmCommon_v2 = "20.1.551424"
 
-com-mgmtp-a12-base = "30.0.0"
-com-fasterxml-jackson-annotations = "2.21"
-tools-jackson = "3.1.2"
+com-mgmtp-a12-base = "30.0.2"
+com-fasterxml-jackson-annotations = "2.22"
+tools-jackson = "3.2.1"
 org-antlr = "4.13.2"
 org-antlr-ts = "4.13.2"
 org-slf4j = "2.0.17"
@@ -26,6 +26,8 @@ org-slf4j-reload4j = "2.0.17"
 
 pluginLombok = "9.4.0"
 pluginShadow = "9.2.2"
+pluginOpenrewrite = "7.37.0"
+thirdPartyNoticesPlugin = "0.2.17"
 
 [libraries]
 a12KernelRuntimeArtifactId = { module = "com.mgmtp.a12.kernel:kernel-core-runtime-31-1", version.ref = "a12KernelVersion" }
@@ -95,3 +97,5 @@ kernelJsConventions = { id = "com.mgmtp.a12.kernel.kernel-js-conventions" }
 kernelUtils = { id = "com.mgmtp.a12.kernel.kernel-utils"}
 lombok = { id = "io.freefair.lombok", version.ref = "pluginLombok" }
 shadow = { id = "com.gradleup.shadow", version.ref = "pluginShadow" }
+openrewrite = { id = "org.openrewrite.rewrite", version.ref = "pluginOpenrewrite" }
+devtools-thirdPartyNotices = { id = "com.mgmtp.a12.devtools.plugins.third-party-notices", version.ref = "thirdPartyNoticesPlugin" }

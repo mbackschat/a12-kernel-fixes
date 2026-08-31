@@ -155,14 +155,14 @@ public class DataTransferServiceAdapter implements IMappingServiceA12Internal {
 			DocumentValidationResultImpl eligibilityResult = new DocumentValidationResultImpl();
 			IIdentifierToString identifierToStringFunc = getIdentifierToStringFunc(locale, sourceName);
 			IData data = LowKernelApiUtils.createData(sourceDocument.document(), metaModel, locale, eligibilityResult,
-					identifierToStringFunc);
+					identifierToStringFunc, config.customFieldTypeFactory());
 			listOfSourceData.add(SourceData.of(sourceName, sourceId, data, eligibilityResult));
 		});
 
 		// convert target document to IData
 		IIdentifierToString identifierToStringFunc = getIdentifierToStringFunc(locale, targetDocument.getDocumentModelId());
 		IData targetData = LowKernelApiUtils.createData(targetDocument, targetMetaModel, locale, targetResult,
-				identifierToStringFunc);
+				identifierToStringFunc, config.customFieldTypeFactory());
 
 		// run data transfer
 		MappedData mappedData = transferService.getTransferredData(targetData, listOfSourceData, targetResult,
@@ -233,7 +233,7 @@ public class DataTransferServiceAdapter implements IMappingServiceA12Internal {
 			DocumentProcessingConfig config) {
 		DocumentValidationResultImpl errorResult = new DocumentValidationResultImpl();
 		Locale locale = config.languageOfErrorMessages();
-		IData data = DataDocumentConversionUtils.createData(sourceDocument.document(), metaModel, locale, errorResult);
+		IData data = DataDocumentConversionUtils.createData(sourceDocument.document(), metaModel, locale, errorResult, config.customFieldTypeFactory());
 		if (!errorResult.noErrorOccurred()) {
 			return IMappingServiceA12Internal.ISortedSourceDocumentResult.of(sourceDocument, errorResult.getMessages());
 		}

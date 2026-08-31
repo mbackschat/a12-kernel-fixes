@@ -82,6 +82,7 @@ import lombok.experimental.Accessors;
 @OnlyForUsage
 public class MappingModelService {
 	private static final String META_MODEL_DM_NAME = "extmpinternal/none-mm_mappingmodel-2.json";
+	public static final String RUNTIME_PRECOMP_FRAGMENT_MODEL_TYPE = "runtime_mapping_precompfragment_document";
 	@Getter(value = AccessLevel.PRIVATE, lazy = true)
 	private static final IDocumentModel metaModel = MMDocumentModelLoader.deserializeMMDocumentModel(META_MODEL_DM_NAME);
 	@Getter(value = AccessLevel.PRIVATE, lazy = true)

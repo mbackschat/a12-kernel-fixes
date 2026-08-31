@@ -144,3 +144,4 @@ ext { // make this available to the subproject build scripts
     compile_with_java_version_for_rt_deps = this.&compile_with_java_version_for_rt_deps
     sortAndConvertClasspathEntriesForFatJar = this.&sortAndConvertClasspathEntriesForFatJar
 }
+

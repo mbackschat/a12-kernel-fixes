@@ -69,6 +69,10 @@ export class DocumentServiceFactory {
  * Provides a method to create a {@link IGeneratedCodeAccessor} for a script, which was previously generated.
  */
 export class GeneratedCodeAccessorFactory {
+    /**
+     * @param script generated JavaScript code. Only code generated with the config option
+     * `IValidationCodeGeneratorConfig.JsCodeGenConfig.STANDARD` is accepted here - otherwise an exception might be thrown.
+     */
 	createScriptAccessor(script: string): IGeneratedCodeAccessor {
 		return new GeneratedScriptCodeAccessor(script);
 	}

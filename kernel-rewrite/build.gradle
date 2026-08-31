@@ -1,6 +1,7 @@
 plugins {
     alias libs.plugins.kernelJavaConventions
     alias libs.plugins.lombok
+    alias libs.plugins.openrewrite
 }
 
 dependencies {
@@ -24,6 +25,8 @@ dependencies {
     testImplementation project(':kernel-internal-test-tags')
 
     testRuntimeOnly(testLibs.junitJupiterEngine)
+
+    rewrite files(sourceSets.main.output)
 }
 
 configurations.configureEach {
@@ -98,3 +101,7 @@ tasks.register('downloadDeps', Sync) {
 tasks.processTestResources.dependsOn(tasks.downloadDeps)
 
 description = "Contains the logic to rewrite (breaking) changes, which can be made automatically, see MGM Wiki Shortlink x/yx6KF"
+
+rewrite {
+    activeRecipe('com.mgmtp.a12.kernel.internal.all')
+}

@@ -92,13 +92,11 @@ import lombok.experimental.Accessors;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @OnlyForUsage
 public class StructuralMappingModelService {
-	@NonNull private final DocumentModel sourceDM;
 	@NonNull private final DocumentModel targetDM;
 	@NonNull private final DocumentModelSearchService sourceDMSS;
 	@NonNull private final DocumentModelSearchService targetDMSS;
 
 	private StructuralMappingModelService(@NonNull DocumentModel sourceDM, @NonNull DocumentModel targetDM) {
-		this.sourceDM = sourceDM;
 		this.targetDM = targetDM;
 		this.sourceDMSS = new DocumentModelSearchService(sourceDM);
 		this.targetDMSS = new DocumentModelSearchService(targetDM);

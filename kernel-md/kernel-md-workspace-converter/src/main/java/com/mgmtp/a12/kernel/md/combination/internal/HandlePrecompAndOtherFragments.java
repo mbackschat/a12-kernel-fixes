@@ -62,13 +62,11 @@ import lombok.NonNull;
  * <p>
  * After expansion, additive-document fragments are no longer needed — except when they are referenced as
  * precomputation fragments by mapping models. Those are retained but their modelType is changed to
- * {@value #RUNTIME_PRECOMP_FRAGMENT_MODEL_TYPE} so that e.g. Data Services does not attempt regular DM processing steps that would
+ * {@value MappingModelService#RUNTIME_PRECOMP_FRAGMENT_MODEL_TYPE} so that e.g. Data Services does not attempt regular DM processing steps that would
  * fail for fragments.
  * All other additive-document fragments are removed from the workspace.
  */
 public class HandlePrecompAndOtherFragments {
-
-	private static final String RUNTIME_PRECOMP_FRAGMENT_MODEL_TYPE = "runtime_mapping_precompfragment_document";
 	private static final String ADDITIVE_DOCUMENT_ANNOTATION = "additive-document";
 	private static final String MAPPING_MODEL_TYPE = "mapping";
 
@@ -88,7 +86,7 @@ public class HandlePrecompAndOtherFragments {
 			if (precompFragmentIds.contains(modelId)) {
 				// Retain the fragment but change its modelType
 				Header newHeader = HeaderBuilderUtil.toBuilder(tuple.getHeader())
-						.withModelType(RUNTIME_PRECOMP_FRAGMENT_MODEL_TYPE)
+						.withModelType(MappingModelService.RUNTIME_PRECOMP_FRAGMENT_MODEL_TYPE)
 						.build();
 				// set the header in the model as well
 				models.put(modelId, WorkspaceFactory.getInstance().createModelTuple(newHeader, swapHeaderInDM(newHeader, tuple.getContent(), notificationConsumer)));

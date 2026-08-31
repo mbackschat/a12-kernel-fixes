@@ -20,7 +20,7 @@ recipeList:
   - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
       methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory getSupportedTypeNames()'
   - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
-      methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory createCustomFieldType(String)'
+      methodPattern: 'com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory createCustomFieldType(java.lang.String)'
       newMethodName: 'createCustomFieldTypeV2(String)'
 #  # ICustomConditionService (+ CustomConditionService) -> obsolete with A12K-3205 (deprecation of interface)
 #  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
@@ -38,13 +38,13 @@ recipeList:
   - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
       methodPattern: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory getSupportedConditionNames()'
   - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
-      methodPattern: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory createCustomCondition(String)'
+      methodPattern: 'com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory createCustomCondition(java.lang.String)'
       newMethodName: 'createCustomConditionV2(String)'
   # com.mgmtp.a12.kernel.md.rt.api.ICustomConditionFactory
   - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
       methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.ICustomConditionFactory getSupportedConditionNames()'
   - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:
-      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.ICustomConditionFactory createCustomCondition(String)'
+      methodPattern: 'com.mgmtp.a12.kernel.md.rt.api.ICustomConditionFactory createCustomCondition(java.lang.String)'
       newMethodName: 'createCustomConditionV2(String)'
   # DocumentRtCustomExtensionService
   - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodOverrideImplAndInvocation:

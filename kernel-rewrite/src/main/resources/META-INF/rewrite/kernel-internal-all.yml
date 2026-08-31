@@ -1,0 +1,13 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.internal.all
+displayName: All Kernel recipes
+description: All release lines and all recipes combined
+recipeList:
+  - com.mgmtp.a12.kernel.28.UpgradeMinor
+  - com.mgmtp.a12.kernel.29.UpgradeMajor
+  - com.mgmtp.a12.kernel.29.UpgradeMinor
+  - com.mgmtp.a12.kernel.30.UpgradeMajor
+  - com.mgmtp.a12.kernel.30.UpgradeMinor
+  - com.mgmtp.a12.kernel.31.UpgradeMajor
+  - com.mgmtp.a12.kernel.31.UpgradeMinor
