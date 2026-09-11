@@ -33,16 +33,19 @@ package com.mgmtp.a12.kernel.md.rt.internal.service.conversion;
 
 import java.util.Locale;
 
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.PresentationInformation;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaField;
 import com.mgmtp.a12.kernel.md.rt.a12internal.service.DocumentValidationResultImpl;
 
 public class ConversionService {
 	private final Locale locale;
+	private final ICustomFieldTypeFactory customFieldTypeFactory;
 	private final PresentationInformation presentationInformation;
 
-	public ConversionService(Locale locale) {
+	public ConversionService(Locale locale, ICustomFieldTypeFactory customFieldTypeFactory) {
 		this.locale = locale;
+		this.customFieldTypeFactory = customFieldTypeFactory;
 		this.presentationInformation = PresentationInformationConstants.get(this.locale);
 	}
 
@@ -54,7 +57,7 @@ public class ConversionService {
 		if (value instanceof String stringValue) {
 			result = convertStringToUI(stringValue, metaField);
 		} else {
-			result = metaField.convertFromBasicType(value, presentationInformation, validationResult, locale);
+			result = metaField.convertFromBasicType(value, presentationInformation, validationResult, locale, customFieldTypeFactory);
 			if (!validationResult.noErrorOccurred()) {
 				throw new IllegalArgumentException(validationResult.getMessages().getFirst().getErrorText());
 			}
@@ -64,7 +67,7 @@ public class ConversionService {
 
 	private String convertStringToUI(String value, IMetaField metaField) {
 		try {
-			return metaField.convert(value, presentationInformation, true, locale);
+			return metaField.convert(value, presentationInformation, true, locale, customFieldTypeFactory);
 		} catch (IllegalArgumentException e) {
 			// in this case the value is not valid, that's why we return the original value
 			return value;

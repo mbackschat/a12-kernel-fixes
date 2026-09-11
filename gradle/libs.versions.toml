@@ -1,5 +1,5 @@
 [versions]
-a12KernelVersion = "30.8.5"
+a12KernelVersion = "30.8.7-build.2026-09-07T08-17-41UTC.3"
 kernelCoreRuntimeApiVersion = "32.3.4"
 kernelCoreCustomfieldtypeApiVersion = "28.2.0"
 
@@ -16,15 +16,16 @@ mmStructuralMappingModel_1 = "4.3.541349"
 mmXmlSchemaContainer_1 = "5.2.541350"
 mmCommon_v2 = "19.8.541420"
 
-com-mgmtp-a12-base = "29.3.1"
+com-mgmtp-a12-base = "29.3.2"
 com-fasterxml-jackson-annotations = "2.22"
-com-fasterxml-jackson = "2.22.0"
+com-fasterxml-jackson = "2.22.1"
 org-antlr = "4.13.2"
 org-antlr-ts = "4.13.2"
 org-slf4j = "2.0.17"
 org-slf4j-reload4j = "2.0.17"
 
 pluginLombok = "9.1.0"
+thirdPartyNoticesPlugin = "0.2.17"
 
 [libraries]
 a12KernelRuntimeArtifactId = { module = "com.mgmtp.a12.kernel:kernel-core-runtime-30-8", version.ref = "a12KernelVersion" }
@@ -96,3 +97,4 @@ kernelJavaConventions = { id = "com.mgmtp.a12.kernel.kernel-java-conventions"}
 kernelJsConventions = { id = "com.mgmtp.a12.kernel.kernel-js-conventions" }
 kernelUtils = { id = "com.mgmtp.a12.kernel.kernel-utils"}
 lombok = { id = "io.freefair.lombok", version.ref = "pluginLombok" }
+devtools-thirdPartyNotices = { id = "com.mgmtp.a12.devtools.plugins.third-party-notices", version.ref = "thirdPartyNoticesPlugin" }

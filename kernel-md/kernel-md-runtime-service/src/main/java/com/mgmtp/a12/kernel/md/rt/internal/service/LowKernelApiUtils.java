@@ -40,13 +40,17 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
-import com.mgmtp.a12.kernel.core.rt.a12internal.validation.*;
-
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.ValidationMode;
+import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaField;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
 import com.mgmtp.a12.kernel.core.rt.a12internal.utils.IMetaKeys;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.ICalculator;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IResult;
+import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
 import com.mgmtp.a12.kernel.md.document.api.IDocument;
 import com.mgmtp.a12.kernel.md.document.api.IEntityInstance;
 import com.mgmtp.a12.kernel.md.document.apiV2.DocumentMultiPointer;
@@ -98,12 +102,22 @@ public class LowKernelApiUtils {
 	@Deprecated(since = "30.0.0")
 	public static IData createData(IDocument document, IMetaModel metaModel, Locale locale, IResult result,
 			IIdentifierToString identifierToStringFunc) {
-		return new ValidationData(document, metaModel, locale, result, identifierToStringFunc);
+		return createData(document, metaModel, locale, result, identifierToStringFunc, null);
+	}
+
+	public static IData createData(IDocument document, IMetaModel metaModel, Locale locale, IResult result,
+			IIdentifierToString identifierToStringFunc, ICustomFieldTypeFactory customFieldTypeFactory) {
+		return new ValidationData(document, metaModel, locale, result, identifierToStringFunc, customFieldTypeFactory);
 	}
 
 	public static IData createData(DocumentV2 document, IMetaModel metaModel, Locale locale, IResult result,
 			IIdentifierToString identifierToStringFunc) {
-		return new ValidationData(document, metaModel, locale, result, identifierToStringFunc);
+		return createData(document, metaModel, locale, result, identifierToStringFunc, null);
+	}
+
+	public static IData createData(DocumentV2 document, IMetaModel metaModel, Locale locale, IResult result,
+			IIdentifierToString identifierToStringFunc, ICustomFieldTypeFactory customFieldTypeFactory) {
+		return new ValidationData(document, metaModel, locale, result, identifierToStringFunc, customFieldTypeFactory);
 	}
 
 	/**
@@ -159,7 +173,7 @@ public class LowKernelApiUtils {
 			@NonNull IIdentifierToString identifierToStringFunc) {
 		try {
 			DocumentValidationResultImpl formalErrors = new DocumentValidationResultImpl();
-			IData data = createData(document, metaModel, config.languageOfErrorMessages(), formalErrors, identifierToStringFunc);
+			IData data = createData(document, metaModel, config.languageOfErrorMessages(), formalErrors, identifierToStringFunc, config.customFieldTypeFactory());
 			ValidationMode mode = configureValidationMode(config);
 			IData calculatedData = calculator.calculateAll(data, mode, formalErrors);
 			assert formalErrors.getMessages().stream().allMatch(m -> m.getSeverity() == IMessage.Severity.ERROR);
@@ -201,7 +215,7 @@ public class LowKernelApiUtils {
 			@NonNull IIdentifierToString identifierToStringFunc
 	) {
 		DocumentValidationResultImpl result = new DocumentValidationResultImpl();
-		IData data = createData(document, metaModel, config.languageOfErrorMessages(), result, identifierToStringFunc);
+		IData data = createData(document, metaModel, config.languageOfErrorMessages(), result, identifierToStringFunc, config.customFieldTypeFactory());
 		ValidationMode mode = configureValidationMode(config);
 
 		try {

@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaField;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaGroup;
 import com.mgmtp.a12.kernel.core.rt.a12internal.meta.IMetaModel;
@@ -81,11 +82,12 @@ public class ValidationData implements IData {
 	private final IIdentifierToString identifierToStringFunc;
 
 	public ValidationData(@NonNull DocumentV2 documentV2, @NonNull IMetaModel metaModel, @NonNull Locale locale,
-			@NonNull IResult result, @NonNull IIdentifierToString identifierToStringFunc) {
+			@NonNull IResult result, @NonNull IIdentifierToString identifierToStringFunc,
+			ICustomFieldTypeFactory customFieldTypeFactory) {
 		this.documentV2 = documentV2;
 		this.result = result;
 		this.metaModel = metaModel;
-		this.conversionService = new ConversionService(Objects.requireNonNull(locale));
+		this.conversionService = new ConversionService(Objects.requireNonNull(locale), customFieldTypeFactory);
 		this.identifierToStringFunc = identifierToStringFunc;
 		this.originalIDocumentIfExists = null;
 	}
@@ -96,12 +98,13 @@ public class ValidationData implements IData {
 	 */
 	@Deprecated(since = "30.2.0")
 	public ValidationData(@NonNull IDocument documentV1, @NonNull IMetaModel metaModel, @NonNull Locale locale,
-			@NonNull IResult result, @NonNull IIdentifierToString identifierToStringFunc) {
+			@NonNull IResult result, @NonNull IIdentifierToString identifierToStringFunc,
+			ICustomFieldTypeFactory customFieldTypeFactory) {
 		this.originalIDocumentIfExists = documentV1;
 		this.documentV2 = DocumentV1V2ConverterImpl.getInstance().ofDocumentV1(documentV1);
 		this.result = result;
 		this.metaModel = metaModel;
-		this.conversionService = new ConversionService(Objects.requireNonNull(locale));
+		this.conversionService = new ConversionService(Objects.requireNonNull(locale), customFieldTypeFactory);
 		this.identifierToStringFunc = identifierToStringFunc;
 	}
 

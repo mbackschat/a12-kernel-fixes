@@ -52,7 +52,6 @@ tasks.withType(Javadoc).configureEach {
 
         // disable this if you want recommendations
         quiet()
-        addBooleanOption('Xdoclint:none', true)
 
         addStringOption(
                 '-snippet-path', // Use a single '-' here because Gradle adds one automatically
@@ -139,3 +138,4 @@ ext { // make this available to the subproject build scripts
     compile_with_java_version_for_rt_deps = this.&compile_with_java_version_for_rt_deps
     sortAndConvertClasspathEntriesForFatJar = this.&sortAndConvertClasspathEntriesForFatJar
 }
+
