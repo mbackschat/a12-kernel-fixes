@@ -1,0 +1,9 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.31.A12K-2361
+displayName: Migration for A12K-2361
+description: Migration for A12K-2361.
+recipeList:
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.document.apiV2.PartiallyKnownDocumentMultiPointer of(java.lang.String, int[])'
+      comment: 'Use PartiallyKnownDocumentMultiPointer.of(String, List<Integer>) instead.'

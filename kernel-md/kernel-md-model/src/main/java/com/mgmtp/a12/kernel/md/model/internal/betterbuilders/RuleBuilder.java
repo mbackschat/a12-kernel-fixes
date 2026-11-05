@@ -43,6 +43,8 @@ import com.mgmtp.a12.kernel.md.model.a12internal.Rule;
 import com.mgmtp.a12.kernel.md.model.api.IRule;
 import com.mgmtp.a12.kernel.md.model.internal.service.utils.ElementUtils;
 
+import lombok.NonNull;
+
 public class RuleBuilder {
 
 	private final DocumentModel documentModel;
@@ -68,6 +70,11 @@ public class RuleBuilder {
 		return this;
 	}
 
+	public RuleBuilder adaptId(UnaryOperator<String> idFunc) {
+		ruleBuilder.id(idFunc.apply(ruleBuilder.getId()));
+		return this;
+	}
+
 	public RuleBuilder name(String fullName) {
 		String pathWithRepetitions = BuilderUtil.pathPartOf(fullName);
 		parent = GroupBuilder.with(documentModel).ensureGroup(pathWithRepetitions);
@@ -77,21 +84,23 @@ public class RuleBuilder {
 		return this;
 	}
 
-	public RuleBuilder field(Field field) {
+	public RuleBuilder fieldWithDefaultValuesForTest(Field field) {
 		String fieldFullName = ElementUtils.getPath(field);
-		String fieldRelPath = ElementPathUtils.relPath(fieldFullName, fullName);
-		ruleBuilder
-				.errorEntity(new DocumentModelObjectReferenceBuilder<IEntity>().relativePath(fieldRelPath).dmo(field).build())
-				.errorCondition(String.format("FieldFilled(%s)", field.getName()));
-		return this;
+		return errorFieldToRelPathReference(fieldFullName, field);
 	}
 
 	public RuleBuilder errorFieldToRelPathReference(String fieldFullName) {
+		return errorFieldToRelPathReference(fieldFullName, null);
+	}
+
+	public RuleBuilder errorFieldToRelPathReference(@NonNull String fieldFullName, IEntity objectReference) {
 		String fieldRelPath = ElementPathUtils.relPath(fieldFullName, fullName);
 		String fieldRelPathForCondition = ElementPathUtils.relPath(fieldFullName, ElementPathUtils.getParentPath(fullName));
 		ruleBuilder
-				.errorEntity(new DocumentModelObjectReferenceBuilder<IEntity>().relativePath(fieldRelPath).build())
+				.errorEntity(
+						new DocumentModelObjectReferenceBuilder<IEntity>().relativePath(fieldRelPath).dmo(objectReference).build())
 				.errorCondition(String.format("FieldFilled(%s)", fieldRelPathForCondition));
+
 		return this;
 	}
 

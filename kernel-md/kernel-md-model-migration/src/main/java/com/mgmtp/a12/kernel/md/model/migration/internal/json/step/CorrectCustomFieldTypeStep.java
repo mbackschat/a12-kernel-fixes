@@ -34,7 +34,6 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 import java.util.List;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 
 import tools.jackson.databind.JsonNode;
@@ -49,8 +48,7 @@ public final class CorrectCustomFieldTypeStep {
 	private CorrectCustomFieldTypeStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		List<JsonNode> customTypeNodes = model.findValues(CUSTOM_FIELD_TYPE_JSON_NAME);
 		for (JsonNode customType : customTypeNodes) {
 			for (String propertyToDelete : PROPERTIES_TO_DELETE) {

@@ -77,7 +77,6 @@ public class DataFormatsUtil {
 
 		boolean considerZeroOptional = dataFormats.dateZeroOptional() && !ignoreDateZeroOptional;
 		String separator = Optional.ofNullable(dataFormats.dateSeparator())
-				.filter(f -> !f.isEmpty())
 				.orElse(getDateSeparator(fieldDateFormat));
 		String separatorAtEnd = DateUtil.hasSeparatorAtEnd(fieldDateFormat)
 				? separator

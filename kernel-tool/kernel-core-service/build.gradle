@@ -48,13 +48,13 @@ tasks.sourcesJar {
 }
 
 // see comment in kernel-core-parser/build.gradle
-var antlrOutDir = "${tasks.generateGrammarSource.outputDirectory}/com/mgmtp/a12/kernel/core/service/internal/errortext/grammar/gen".toString()
+var antlrOutDir = file("${tasks.generateGrammarSource.outputDirectory}/com/mgmtp/a12/kernel/core/service/internal/errortext/grammar/gen")
 generateGrammarSource {
     doFirst {
-        mkdir antlrOutDir
+        antlrOutDir.mkdirs()
     }
     arguments += ["-package", "com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen",
-                  "-lib", antlrOutDir,
+                  "-lib", antlrOutDir.path,
                   "-encoding", "utf-8"]
 }
 

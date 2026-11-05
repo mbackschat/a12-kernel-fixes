@@ -178,7 +178,7 @@ public class AddCommentToDeprecatedTypeImplementation extends Recipe {
 	private static boolean typeMatches(boolean checkAssignability, Pattern pattern,
 			JavaType.@Nullable FullyQualified test) {
 		return test != null && (checkAssignability ?
-				test.isAssignableFrom(pattern) :
+				TypeUtils.isAssignableTo(pattern, test) :
 				pattern.matcher(test.getFullyQualifiedName()).matches()
 		);
 	}

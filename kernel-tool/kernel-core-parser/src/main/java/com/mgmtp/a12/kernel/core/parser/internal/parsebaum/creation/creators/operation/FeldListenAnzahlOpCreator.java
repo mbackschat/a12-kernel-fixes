@@ -73,7 +73,8 @@ public class FeldListenAnzahlOpCreator {
 		EntityListOperationName name = extractOperationNameFromContext(ctx);
 
 		IOperation result;
-		if (EntityListUtil.referencesRootGroup(ctx.entityListe(), tc.getParser())) {
+		if (tc.getExpandMode() != ExpandMode.NO_EXPAND_OR_RG_REPLACEMENT &&
+				EntityListUtil.referencesRootGroup(ctx.entityListe(), tc.getParser())) {
 			assert tc.getParser().isA12Model() && (ctx.entityListe().entitySpec()
 					.size() == 1) && (name == EntityListOperationName.NumberOfFilledGroups);
 

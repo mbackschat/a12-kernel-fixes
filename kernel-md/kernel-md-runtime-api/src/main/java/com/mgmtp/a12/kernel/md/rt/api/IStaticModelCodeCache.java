@@ -48,7 +48,6 @@ import lombok.NonNull;
  * <li>In environments in which a lot of document models are deployed but only a few are actually used very often, it
  * might make sense to quickly release references for rarely used document models in order to save resources.</li>
  * </ul>
- * </p>
  * <p>
  * <b>Note:</b> The implementing class has to be thread safe and must be provided by the caller.
  * </p>

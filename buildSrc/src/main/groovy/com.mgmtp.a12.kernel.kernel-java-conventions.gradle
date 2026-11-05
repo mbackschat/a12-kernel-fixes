@@ -1,6 +1,6 @@
+import com.mgmtp.a12.kernel.gradle.BuildReportUtils
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
-import groovy.xml.XmlParser
 
 plugins {
     id 'java-library'
@@ -10,12 +10,13 @@ plugins {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    options.release = Integer.parseInt(java_language_version)
+    options.release = Integer.parseInt(providers.gradleProperty('java_language_version').get())
 }
 
 static void setSystemPropertyIfDefined(String prop, Task t) {
-    if (System.properties.containsKey(prop)) {
-        t.systemProperty(prop, System.getProperty(prop))
+    Provider<String> value = t.project.providers.systemProperty(prop)
+    if (value.present) {
+        t.systemProperty(prop, value.get())
     }
 }
 
@@ -33,7 +34,7 @@ java {
 java {
     withJavadocJar()
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(java_toolchain_version))
+        languageVersion.set(JavaLanguageVersion.of(providers.gradleProperty('java_toolchain_version').get()))
     }
 }
 
@@ -58,13 +59,29 @@ tasks.withType(Javadoc).configureEach {
         // disable this if you want recommendations
         quiet()
 
+        // Javadoc is generated from the delombok output. Lombok-generated members (getters,
+        // setters, constructors, builders) have no Javadoc, which makes doclint's "missing"
+        // checks flood the build with hundreds of "no comment"/"no @return"/"no @param"
+        // warnings. Disable only the "missing" category and keep the html/syntax/reference
+        // checks active so genuine documentation mistakes are still reported.
+        addBooleanOption('Xdoclint:all,-missing', true)
+
         addStringOption(
                 '-snippet-path', // Use a single '-' here because Gradle adds one automatically
                 project.layout.getProjectDirectory().file("src/snippets/java/javadocsnippets").toString()
         )
 
         // ignore custom annotations and markers
-        tags = ['formatter\\:off::', 'formatter\\:on::']
+        // Note: specifying any custom -tag disables the standard doclet's built-in handling of
+        // @apiNote/@implSpec/@implNote, so they have to be re-declared here to avoid "unknown tag"
+        // errors.
+        tags = [
+                'formatter\\:off::',
+                'formatter\\:on::',
+                'apiNote:a:API Note:',
+                'implSpec:a:Implementation Requirements:',
+                'implNote:a:Implementation Note:'
+        ]
     }
 }
 
@@ -108,13 +125,20 @@ publishing {
     // repository defined in base-conventions
 }
 
+// When a subproject applies the 'java-test-fixtures' plugin, it adds testFixtures variants to the 'java' component, which would
+// otherwise be published via `from(components.java)` above. We skip these variants to keep them out of published artifacts.
+plugins.withId('java-test-fixtures') {
+    components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) { skip() }
+    components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) { skip() }
+}
+
 tasks.build {
     dependsOn(javadocJar)
 }
 
 static void compile_with_java_version_for_rt_deps(Project proj) {
     proj.tasks.compileJava {
-        options.release = Integer.parseInt(proj.property('java_language_version_for_rt_deps'))
+        options.release = Integer.parseInt(proj.providers.gradleProperty('java_language_version_for_rt_deps').get())
     }
 }
 

@@ -39,7 +39,7 @@ options {
 bedingung_start	: preamble? bedingung EOF;
 
 preamble:
-        '@' 'UnterdrueckeWarnung' '(' n=NameOhnePunktSTRAmAnfang ')' {this.checkPreamble(_localctx);};
+        '@' 'UnterdrueckeWarnung' '(' n+=NameOhnePunktSTRAmAnfang (',' n+=NameOhnePunktSTRAmAnfang)* ')' {this.checkPreamble(_localctx);};
 
 /* Bedingungen **********************************************************************************/
 
@@ -59,6 +59,12 @@ bedingung:
  * a string snippet that represents a bedingung.
  */
 bedingungSnippet: bedingung EOF;
+
+/**
+ * a string snippet that represents just a preamble (e.g. @SuppressWarning(...) / @UnterdrueckeWarnung(...))
+ * with no condition body. Used to validate a computation's additionalParserInformation field in isolation.
+ */
+preambleSnippet: preamble EOF;
 
 teilBedingung :	 before=Comment? (geklammerteBedingung | einfacheBedingung) after=Comment?;
 geklammerteBedingung: '(' bedingung ')';

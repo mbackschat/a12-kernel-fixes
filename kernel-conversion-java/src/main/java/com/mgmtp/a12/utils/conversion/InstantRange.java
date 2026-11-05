@@ -41,7 +41,7 @@ import com.mgmtp.a12.utils.conversion.internal.InstantRangeImpl;
 
 /**
  * implementations must be immutable
- * <p/>
+ * <p>
  * <em>NOTE</em> the caller must not implement the marked target. Kernel provides the implementation. If kernel
  * adds new methods, this will not be considered as a breaking change. (@OnlyForUsage)
  */

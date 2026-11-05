@@ -57,7 +57,7 @@ public record CodeGeneratorParameters(
 		@Getter List<ICalculationInfo> calculationInformation,
 		@Getter String name,
 		@Getter String rawName,
-		@Getter List<Locale> languages,
+		@Getter @NonNull List<Locale> languages,
 		@Getter String productVersion,
 		@Getter @NonNull Optional<String> javaPackage,
 		@Getter JsVkCodeGenConfig jsVkCodeGenConfig,

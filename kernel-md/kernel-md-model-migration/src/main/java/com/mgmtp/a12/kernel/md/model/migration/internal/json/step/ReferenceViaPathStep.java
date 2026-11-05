@@ -33,6 +33,7 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,11 +41,11 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
+import com.mgmtp.a12.kernel.md.model.migration.internal.DmToMigrate;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
+import com.mgmtp.a12.kernel.md.model.migration.internal.utils.DmsTopologicalSorter;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.NodePath;
 
@@ -58,27 +59,34 @@ public final class ReferenceViaPathStep {
 	private ReferenceViaPathStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
-		// create following map: field path by field id (fieldPathById)
-		Map<String, NodePath> fieldPathById = extractFieldByPathId(model, cache);
-
-		// extract the id of the current DM
-		String docModelId = ModelJsonUtil.extractModelId(model);
-
-		//	add fieldPathById to fieldPathByIdMapByDocModelId with the corresponding DM id
-		cache.addFieldPathByIdMapByDocModelId(docModelId, fieldPathById);
-
-		updateModel(model, cache);
+	public static void execute(List<DmToMigrate> dmsToMigrate, ICustomMigrationConfig customMigConfig) {
+		MigrationCache cache = createCache(dmsToMigrate);
+		dmsToMigrate.forEach(dm -> dm.migrationResult().catchAndReportErrorsDuring(() -> migrateDm(dm, cache)));
 	}
 
-	public static Map<String, NodePath> extractFieldByPathId(JsonNode model, MigrationCache cache) throws MigrationException {
+	private static MigrationCache createCache(List<DmToMigrate> dmsToMigrate) {
+		MigrationCache cache = new MigrationCache();
+		DmsTopologicalSorter.forEachDmSorted(dmsToMigrate, (dm, dmsById) -> {
+			dm.migrationResult().catchAndReportErrorsDuring(() -> {
+				// create following map: field path by field id (fieldPathById)
+				Map<String, NodePath> fieldPathById = extractFieldByPathId(dm, cache);
+				// extract the id of the current DM
+				String docModelId = ModelJsonUtil.extractModelId(dm.jsonNode());
+				//	add fieldPathById to fieldPathByIdMapByDocModelId with the corresponding DM id
+				cache.addFieldPathByIdMapByDocModelId(docModelId, fieldPathById);
+			});
+		});
+		return cache;
+	}
+
+	private static Map<String, NodePath> extractFieldByPathId(DmToMigrate dm, MigrationCache cache) throws MigrationException {
 		// extract all including groups (see also UseUuidInTypeDefsStep#collectTypeDefUuidsByIncludedIds)
-		Collection<ModelJsonUtil.JsonNodeWithPath> includingGroups = ModelJsonUtil.extractUnexpandedIncludingGroupsWithPath(model);
+		Collection<ModelJsonUtil.JsonNodeWithPath> includingGroups = extractUnexpandedIncludingGroupsWithPath(dm.jsonNode());
 
 		// create map: included DM reference by model alias
-		Map<String, String> includedDmReferenceByAlias = ModelJsonUtil.createIncludedDmReferenceByAlias(model, true);
-		Map<String, NodePath> fieldPathById = ModelJsonUtil.extractAllElementsWithPath(model, ModelJsonUtil.TYPE_FIELD).stream()
+		Map<String, String> includedDmReferenceByAlias = ModelJsonUtil.createIncludedDmReferenceByAlias(dm.jsonNode(), true);
+		Map<String, NodePath> fieldPathById = ModelJsonUtil.extractAllElementsWithPath(dm.jsonNode(), ModelJsonUtil.TYPE_FIELD)
+				.stream()
 				.collect(Collectors.toMap(node -> node.node().get(ModelJsonUtil.FIELD_ID).asString(),
 						ModelJsonUtil.JsonNodeWithPath::path));
 
@@ -95,7 +103,7 @@ public final class ReferenceViaPathStep {
 			// compute the included DM reference based on the model alias
 			// if reference is null, we throw an exception
 			if (reference == null) {
-				throw new MigrationException(new MigrationError(MigrationErrorType.UNKNOWN_REFERENCED_MODEL).withMessage(
+				throw new MigrationException(new MigrationError(MigrationErrorType.UNKNOWN_REFERENCED_MODEL,
 						"For the referenced document model '" + alias + "' in the include with the id '"
 								+ groupId + "', there is no corresponding model reference in header."));
 			}
@@ -124,7 +132,7 @@ public final class ReferenceViaPathStep {
 		return fieldPathById;
 	}
 
-	public static void updateModel(JsonNode model, MigrationCache cache) throws MigrationException {
+	private static void migrateDm(DmToMigrate dm, MigrationCache cache) throws MigrationException {
 		// 	update references within the current DM
 		//		extract the json nodes which reference a field
 		//			if there is none, there is nothing to migrate
@@ -132,15 +140,15 @@ public final class ReferenceViaPathStep {
 		//			update them with help of fieldPathById
 		//				the important note at the Design of Solution in A12-15368 should be taken into account.
 		//				identify references which could NOT be resolved
-		List<String> nonResolvableFieldIds = new ArrayList<>(migrateIndexFields(model, cache));
-		nonResolvableFieldIds.addAll(migrateSortFields(model, cache));
-		nonResolvableFieldIds.addAll(migrateComputedFields(model, cache));
-		nonResolvableFieldIds.addAll(migrateErrorFields(model, cache));
+		List<String> nonResolvableFieldIds = new ArrayList<>(migrateIndexFields(dm.jsonNode(), cache));
+		nonResolvableFieldIds.addAll(migrateSortFields(dm.jsonNode(), cache));
+		nonResolvableFieldIds.addAll(migrateComputedFields(dm.jsonNode(), cache));
+		nonResolvableFieldIds.addAll(migrateErrorFields(dm.jsonNode(), cache));
 
 		// if there are no references which could NOT be resolved, we are done with the migration
 		// if there are references which could NOT be resolved, throw an exception
 		if (!nonResolvableFieldIds.isEmpty()) {
-			throw new MigrationException(new MigrationError(MigrationErrorType.UNKNOWN_FIELD_ID).withMessage(
+			throw new MigrationException(new MigrationError(MigrationErrorType.UNKNOWN_FIELD_ID,
 					String.format("The following field IDs could not be resolved: [%s]",
 							String.join(", ", nonResolvableFieldIds))));
 		}
@@ -273,4 +281,33 @@ public final class ReferenceViaPathStep {
 					}
 				}).filter(Objects::nonNull).toList();
 	}
+
+	private static List<ModelJsonUtil.JsonNodeWithPath> extractUnexpandedIncludingGroupsWithPath(JsonNode documentModel) {
+		Iterable<ModelJsonUtil.JsonNodeWithPath> iterable = new ModelJsonUtil.JsonNodeWithPathIterator(documentModel).asIterable();
+		return StreamSupport.stream(iterable.spliterator(), false)
+				.filter(elem -> {
+					JsonNode node = elem.node();
+					//This migration operates on DMs with version  < 29.0.0, thus we have to use the old model alias logic
+					return ModelJsonUtil.isGroup(node) && node.get(ModelJsonUtil.TYPE_GROUP).has(ModelJsonUtil.MODEL_ALIAS)
+							&& !node.get(ModelJsonUtil.TYPE_GROUP).has(ModelJsonUtil.GROUP_ELEMENTS);
+				})
+				.toList();
+	}
+
+	private static class MigrationCache {
+		/**
+		 * For each document model we store the fields and their relative paths to the model root
+		 */
+		private final Map<String, Map<String, NodePath>> fieldPathByIdMapByDocModelId = new HashMap<>();
+
+		public Map<String, NodePath> getFieldPathByIdMapByDocModelId(String docModelId) {
+			return fieldPathByIdMapByDocModelId.getOrDefault(docModelId, Map.of());
+		}
+
+		public void addFieldPathByIdMapByDocModelId(String docModelId, Map<String, NodePath> fieldPathById) {
+			fieldPathByIdMapByDocModelId.computeIfAbsent(docModelId, key -> new HashMap<>()).putAll(fieldPathById);
+		}
+	}
 }
+
+

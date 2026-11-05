@@ -10,7 +10,7 @@ import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
 
 <if(t.extmp)>
 import java.util.Set;
-import com.mgmtp.a12.kernel.core.rt._31_1.internal.datatransfer.extmp.ExtmpDataTransferFactoryImpl;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.datatransfer.extmp.ExtmpDataTransferFactoryImpl;
 import com.mgmtp.a12.kernel.core.rt.extmp.a12internal.datatransfer.IExtmpDataTransferFactory;
 import com.mgmtp.a12.kernel.core.rt.extmp.a12internal.datatransfer.IExtmpDataTransferService;
 <endif>

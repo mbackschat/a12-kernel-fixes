@@ -33,7 +33,6 @@
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
@@ -51,8 +50,7 @@ public final class AddTimezoneStep {
 	private AddTimezoneStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		String timezone = getTimezone(model, customMigConfig);
 		JsonNode modelConfig = ModelJsonUtil.extractDmConfig(model);
 		((ObjectNode) modelConfig).set(TIME_ZONE, StringNode.valueOf(timezone));

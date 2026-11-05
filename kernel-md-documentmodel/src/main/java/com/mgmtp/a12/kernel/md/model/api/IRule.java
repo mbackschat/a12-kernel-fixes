@@ -32,7 +32,9 @@
 package com.mgmtp.a12.kernel.md.model.api;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
@@ -55,16 +57,16 @@ public interface IRule extends IElement, Serializable {
 	}
 
 	/**
-	 * The <i>error entity</i> is a highlighted entity (field or group) that must be referenced
-	 * directly or indirectly in the error condition.
+	 * The <i>error entity</i> is a highlighted entity (field or group) that must be referenced directly or indirectly in the error
+	 * condition.
 	 * <ul>
 	 * <li>directly, by using the entity in a parameter list
 	 * <li>indirectly by using a group that includes the entity.
 	 * </ul>
-	 * The <i>error entity</i> controls the iteration of the rule. If the <i>error entity</i> lies
-	 * in a
-	 * repeatable group, the rule is checked for all repetitions of that repeating level.<br>
-	 * Besides, the <i>error entity</i>
+	 * The <i>error entity</i> controls the iteration of the rule. If the <i>error entity</i> lies in a repeatable group, the rule
+	 * is checked for all repetitions of that repeating level.
+	 * <p>
+	 * The reference to the error entity ({@link IDocumentModelObjectReference#getRelativePath()}) is relative to this rule.
 	 *
 	 * @return the <i>error entity</i>. Not {@code null}.
 	 */
@@ -104,5 +106,30 @@ public interface IRule extends IElement, Serializable {
 	 */
 	@NonNull Map<String, String> getGuiPatterns();
 
+	/**
+	 * Narrows down the set of entities that are reported as possible causes when this {@link IRule} fires.
+	 */
+	interface IFilterForPossiblyCausingEntities extends Serializable {
+		/**
+		 * @return a whitelist applied to the automatically determined list of entities that may be possible causes for this rule
+		 * 		firing when they are filled. The entity references ({@link IDocumentModelObjectReference#getRelativePath()}) are
+		 * 		relative to this rule's parent group.
+		 */
+		@NonNull List<IDocumentModelObjectReference<IEntity>> getEntitiesEnabledAsPossibleCauseIfFilled();
 
+		/**
+		 * @return a whitelist applied to the automatically determined list of entities that may be possible causes for this rule
+		 * 		firing when they are not filled. The entity references ({@link IDocumentModelObjectReference#getRelativePath()}) are
+		 * 		relative to this rule's parent group.
+		 */
+		@NonNull List<IDocumentModelObjectReference<IEntity>> getEntitiesEnabledAsPossibleCauseIfNotFilled();
+	}
+
+	/**
+	 * @return the {@link IFilterForPossiblyCausingEntities} that restricts the entities reported as possible causes when this rule
+	 * 		fires, or
+	 *        {@link Optional#empty()} if no such filter is defined and the automatically determined entities should be reported
+	 * 		unchanged.
+	 */
+	@NonNull Optional<IFilterForPossiblyCausingEntities> getFilterForPossiblyCausingEntities();
 }

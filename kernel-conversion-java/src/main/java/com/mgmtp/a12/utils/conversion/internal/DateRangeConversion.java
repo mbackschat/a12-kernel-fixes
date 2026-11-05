@@ -89,7 +89,7 @@ public class DateRangeConversion {
 		if (value.isEmpty()) {
 			return value;
 		}
-		if (srcDataType.timeZone().equals(destDataType.timeZone())) {
+		if (!srcDataType.timeZone().equals(destDataType.timeZone())) {
 			throw new IllegalArgumentException("conversion between different time zones is not supported");
 		}
 		String inputRangeSeparator = DateRangeConversion.getDateRangeSeparator(srcDataFormats);
@@ -253,7 +253,7 @@ public class DateRangeConversion {
 		TimeZone timeZone = destDataType.timeZone();
 		String rangeSeparator = DateRangeConversion.getDateRangeSeparator(destDataFormats);
 		String destFormat = DataFormatsUtil.calculateDateFormat(destDataType.format(), destDataFormats, true);
-		return Optional.of(DateUtil.convertDateRangeToString(
+		return Optional.ofNullable(DateUtil.convertDateRangeToString(
 				value,
 				rangeSeparator,
 				destFormat,

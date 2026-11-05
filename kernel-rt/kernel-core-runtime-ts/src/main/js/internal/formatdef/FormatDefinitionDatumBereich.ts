@@ -87,11 +87,10 @@ export class FormatDefinitionDatumBereich
 
 	constructor(
 		javaFormat: string,
-		zusatzPruefung: boolean,
 		trenner: string,
 		jahresinterpretation: Jahresinterpretation
 	) {
-		super(javaFormat, zusatzPruefung, DatumTeilbekanntArt.BEKANNT);
+		super(javaFormat, DatumTeilbekanntArt.BEKANNT);
 		this._trenner = trenner;
 		this._laenge = javaFormat.length * 2 + trenner.length;
 		this._metaFormat = this._metaFormat + trenner + this._metaFormat;
@@ -220,31 +219,12 @@ export class FormatDefinitionDatumBereich
 			);
 		}
 		const timeZone = param.getMetaData().getTimeZone();
-		if (this.isZusatzPruefung) {
-			return this._checkZusatzPruefung(dbStartDate, timeZone, param);
-		}
 		// check if date generally valid
 		if (this.dateInvalid(dbStartDate, timeZone)) {
 			return this._createFehlerForDatumBereich(
 				param,
 				RuntimeFormalErrorEnum.DATUM_BEREICH_DATUM,
 				IFormaleFehlerConstants.FEHLER_DATUM_BEREICH_DATUM);
-		}
-		return ValidType.Valid;
-	}
-
-	private _checkZusatzPruefung(
-		dbStart: Date,
-		timeZone: string,
-		param: IValidierungParam
-	): ValidType {
-		if (this.dateInvalidForAdditionalCheck(dbStart, timeZone)) {
-			// liegt das erste Datum vor 1900
-			return this._createFehlerForDatumBereich(
-				param,
-				RuntimeFormalErrorEnum.DATUM_BEREICH_DATUM_ADDITIONAL_CHECK,
-				IFormaleFehlerConstants.FEHLER_DATUM_BEREICH_DATUM
-			);
 		}
 		return ValidType.Valid;
 	}

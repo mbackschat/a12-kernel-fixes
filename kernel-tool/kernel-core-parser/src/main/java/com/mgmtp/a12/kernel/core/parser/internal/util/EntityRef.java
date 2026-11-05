@@ -222,10 +222,6 @@ public class EntityRef {
 	}
 
 	/**
-	 * For ACEntities, this must be of the form <code>//modelName/...</code> The modelName is
-	 * extracted from this representation. It must not start with <code>//</code> for other
-	 * entities.
-	 *
 	 * @return a string representation, primarily used for nice error messages.
 	 */
 	public String getNameBuiltFromConditionText() {

@@ -33,7 +33,6 @@
 package com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.builder.CodeGenTableHolderBuilder;
 import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.StringTemplateGroup;
@@ -52,17 +51,27 @@ import com.mgmtp.a12.kernel.core.codegen.internal.generator.backingbeans.utils.S
 @StringTemplateGroup("root")
 public class CodeGenTableHolder extends CodeGenModel {
 	private int currentTableFileCpp = 0;
-	private List<CodeGenTableCompressed> tablesCompressed;
+	private final List<CodeGenTableCompressed> tablesCompressed;
+	private final List<String> tableNames;
 
 	public CodeGenTableHolder(CodeGenTableHolderBuilder builder) {
 		super(builder);
 		this.tablesCompressed = builder.getCodeGenTablesCompressed();
+		this.tableNames = builder.getTableNames();
+	}
+
+	/**
+	 * @return the names of all tables bundled with the generated code, used to build the allowlist
+	 * 		of valid table resources in the generated table holder.
+	 */
+	public List<String> getTableNames() {
+		return tableNames;
 	}
 
 	public List<String> getConstantDeclarations() {
 		return tablesCompressed.stream()
 				.map(t -> t.toCode("constDecl"))
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	public String getConstantDefinition() {
@@ -76,7 +85,7 @@ public class CodeGenTableHolder extends CodeGenModel {
 	public List<String> getTableEnumTs() {
 		return tablesCompressed.stream()
 				.map(t -> t.toCode("tableEnumT"))
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 }

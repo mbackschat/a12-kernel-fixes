@@ -9,10 +9,10 @@ rootProject.name = "kernel"
 // #### configure composite builds ####
 
 // define the include builds if the properties are set
-if (settings.hasProperty('a12.kernel.include.customfieldtype.api') ? settings['a12.kernel.include.customfieldtype.api']?.toBoolean() : false) {
+if (providers.gradleProperty('a12.kernel.include.customfieldtype.api').map { it.toBoolean() }.getOrElse(false)) {
     includeBuild 'kernel-core-customfieldtype-api'
 }
-if (settings.hasProperty('a12.kernel.include.runtime.api') ? settings['a12.kernel.include.runtime.api']?.toBoolean() : false) {
+if (providers.gradleProperty('a12.kernel.include.runtime.api').map { it.toBoolean() }.getOrElse(false)) {
     includeBuild 'kernel-core-runtime-api'
 }
 
@@ -47,17 +47,13 @@ include(":kernel-core-runtime-ts")
 include(":kernel-internal-core-service")
 include(":kernel-internal-core-tool-api")
 include(":kernel-internal-core-utils")
-include(":kernel-internal-mapping-rt-api")
 include(":kernel-md-document-v2")
 include(":kernel-md-facade")
 include(":kernel-internal-md-model")
 include(":kernel-md-documentmodel")
 include(":kernel-internal-md-model-migration")
 include(":kernel-internal-md-runtime-api")
-include(":kernel-internal-md-runtime-service")
 include(":kernel-md-serializer")
-include(":kernel-internal-md-structuralmapping-codegen")
-include(":kernel-internal-md-structuralmapping-tool")
 include(":kernel-md-workspace-converter")
 include(":kernel-ts")
 
@@ -85,16 +81,8 @@ project(":kernel-core-runtime-ts").projectDir = file("kernel-rt/kernel-core-runt
 project(":kernel-internal-core-service").projectDir = file("kernel-tool/kernel-core-service")
 project(":kernel-internal-core-tool-api").projectDir = file("kernel-tool/kernel-core-tool-api")
 project(":kernel-internal-core-utils").projectDir = file("kernel-tool/kernel-core-utils")
-project(":kernel-internal-mapping-rt-api").projectDir = file("kernel-mapping/rt-api")
-project(":kernel-md-document-v2").projectDir = file("kernel-md/kernel-md-document-v2")
-project(":kernel-md-facade").projectDir = file("kernel-md/kernel-md-facade")
 project(":kernel-internal-md-model").projectDir = file("kernel-md/kernel-md-model")
 project(":kernel-md-documentmodel").projectDir = file("kernel-md-documentmodel")
 project(":kernel-internal-md-model-migration").projectDir = file("kernel-md/kernel-md-model-migration")
 project(":kernel-internal-md-runtime-api").projectDir = file("kernel-md/kernel-md-runtime-api")
-project(":kernel-internal-md-runtime-service").projectDir = file("kernel-md/kernel-md-runtime-service")
-project(":kernel-md-serializer").projectDir = file("kernel-md/kernel-md-serializer")
-project(":kernel-internal-md-structuralmapping-codegen").projectDir = file("kernel-structural-mapping/codegen")
-project(":kernel-internal-md-structuralmapping-tool").projectDir = file("kernel-structural-mapping/tool")
-project(":kernel-md-workspace-converter").projectDir = file("kernel-md/kernel-md-workspace-converter")
 

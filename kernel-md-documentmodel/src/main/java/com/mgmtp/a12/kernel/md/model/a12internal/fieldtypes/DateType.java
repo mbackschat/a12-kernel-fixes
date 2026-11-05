@@ -66,12 +66,10 @@ public class DateType extends FieldType {
 	private @NonNull String format = DEFAULT_FORMAT;
 
 	/**
-	 * @return {@code true} if a date before {@code 1900-01-01} should be considered as a wrong
-	 * 		input, otherwise {@code false}. The default value is {@code false}.
-	 * @param youngerThan1900Check
-	 * 		use {@code true} if a date before {@code 1900-01-01} should be considered as a
-	 * 		wrong input, otherwise {@code false}.
+	 * @deprecated youngerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute  will be
+	 * 		removed with A12K-4439.
 	 */
+	@Deprecated(since = "31.2.0")
 	private boolean youngerThan1900Check = false;
 
 	/**
@@ -91,8 +89,14 @@ public class DateType extends FieldType {
 	 */
 	private String notInDCustomFormat;
 
+	/**
+	 * @deprecated youngerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute  will be
+	 * 		removed with A12K-4439.
+	 */
+	@Deprecated(since = "31.2.0")
 	@Builder(builderClassName = "DateTypeBuilder")
 	private DateType(@NonNull String format,
+			@Deprecated(since = "31.2.0") // will be removed with A12K-4439
 			boolean youngerThan1900Check,
 			@NonNull DatePrecision datePrecision,
 			String notInDCustomFormat) {
@@ -104,6 +108,7 @@ public class DateType extends FieldType {
 
 	public static class DateTypeBuilder {
 		private String format = DEFAULT_FORMAT; // in order to make DateTypeBuilder.format() optional
+		@Deprecated(since = "31.2.0") // will be removed with A12K-4439
 		private boolean youngerThan1900Check = false; // we set explicit the default values
 		private DatePrecision datePrecision = DatePrecision.FULL; // in order to make DateTypeBuilder.datePrecision() optional
 	}

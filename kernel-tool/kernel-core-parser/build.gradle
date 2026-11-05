@@ -50,13 +50,13 @@ tasks.sourcesJar {
 // (as of antlr 4.9.2), because (while 4.7.1+ does at least look in <package path> vs only root build dir), it
 // doesn't seem to handle the combination of specified output directory ("-o" option set by gradle plugin) *and*
 // <package path> correctly (it will look in ./com/mgmtp/...) instead of /<build dir abspath>/com/mgmtp/...)
-var antlrOutDir = "${tasks.generateGrammarSource.outputDirectory}/com/mgmtp/a12/kernel/core/parser/internal/grammar/gen".toString()
+var antlrOutDir = file("${tasks.generateGrammarSource.outputDirectory}/com/mgmtp/a12/kernel/core/parser/internal/grammar/gen")
 generateGrammarSource {
     doFirst {
-        mkdir antlrOutDir
+        antlrOutDir.mkdirs()
     }
     arguments += ["-package", "com.mgmtp.a12.kernel.core.parser.internal.grammar.gen",
-                  "-lib", antlrOutDir,
+                  "-lib", antlrOutDir.path,
                   "-encoding", "utf-8"]
 }
 

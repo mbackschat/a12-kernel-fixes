@@ -87,9 +87,9 @@ categoryRef: '->' (categoryName=nameWithoutDot)? // existence of categoryName ch
 
 
 entitySpec:
-	regelKontextEntity
-	| {this.isHModel()}? entityHModel 
-	| {this.isA12Model()}? entity;
+	(regelKontextEntity
+	| {this.isHModel()}? entityHModel
+	| {this.isA12Model()}? entity) {this.checkEntitySpec(_localctx);};
 
 regelKontextEntity:     'RegelKontext' { this.addRegelKontextEntityToReferencedEntities(_localctx); };
 

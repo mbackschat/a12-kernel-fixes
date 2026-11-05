@@ -4,5 +4,7 @@ name: com.mgmtp.a12.kernel.31.UpgradeMinor
 displayName: Migrate to Kernel 31
 description: Migrate applications to the latest Kernel 31 minor release. This recipe will modify application's build files, make changes 
   to deprecated/preferred APIs, and migrate configuration settings that have changed between versions.
-recipeList: [] # !! remove empty list when adding recipes
+recipeList:
   # contains scripts for 31.2+
+  - com.mgmtp.a12.kernel.31.A12K-4073
+  - com.mgmtp.a12.kernel.31.A12K-2361

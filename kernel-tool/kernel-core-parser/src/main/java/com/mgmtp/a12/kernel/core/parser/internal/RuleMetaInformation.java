@@ -38,6 +38,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils;
 import com.mgmtp.a12.kernel.core.extmpspecifics.internal.utils.ExtmpUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.ExpandMode;
@@ -134,9 +135,11 @@ public class RuleMetaInformation implements IRuleMetaInformation {
 		RegelReferenzenErmittler re = new RegelReferenzenErmittler(_expandedCondition, conditionNoExpand, ec,
 				// is this the right ec?
 				levelToStartDuplicateSearch);
+		String ruleGroupPath = ElementPathUtils.getParentPath(rule4Fullname.getFullName());
 		return re.getReferencedEntityIds4RefEntity(isA12Model).stream().collect(
 				Collectors.groupingBy(
-						eId -> EntityUtils.entityId2RelpathNoValidate(eId, rule4Fullname, true),
+						eId -> ElementPathUtils.mapDmRelPathToDorRelPath(
+								ElementPathUtils.relPath(eId.getFullName(), ruleGroupPath)),
 						HashMap::new,
 						Collectors.toSet()));
 	}

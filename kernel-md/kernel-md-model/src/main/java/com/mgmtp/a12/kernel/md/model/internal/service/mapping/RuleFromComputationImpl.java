@@ -68,7 +68,10 @@ public class RuleFromComputationImpl extends Rule implements IRuleFromComputatio
 				severity,
 				errorEntityRelPath,
 				annotations,
-				originalComputation.getId());
+				originalComputation.getId(),
+				false,
+				List.of(),
+				List.of());
 		this.conditionTextWithFragmentOriginMap = conditionTextWithFragmentOriginMap;
 		this.originalComputation = originalComputation;
 	}

@@ -113,12 +113,26 @@ public class FieldTypeDefinition implements IIdNamed, IDescribed, IAnnotated {
 	 *        {@code null} to unset.
 	 */
 	private String revision;
+	/**
+	 * @param changeNote
+	 * 		the new change note documenting why changes to this type definition were done. May be
+	 *        {@code null} to unset.
+	 */
+	private String changeNote;
 
 	/**
 	 * @return the designation of the version of this type definition (ExtMP-specific).
 	 */
 	public Optional<String> getRevision() {
 		return Optional.ofNullable(revision);
+	}
+
+	/**
+	 * @return the change note documenting why changes to this type definition were done. Empty if
+	 * 		none was defined.
+	 */
+	public Optional<String> getChangeNote() {
+		return Optional.ofNullable(changeNote);
 	}
 
 	/**

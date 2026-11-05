@@ -37,6 +37,11 @@ import java.util.List;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
+
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Result of Migration.
  */
@@ -44,9 +49,9 @@ public class MigrationResult implements MigrationLogger {
 
 	private final List<MigrationError> errors = new ArrayList<>();
 	private final List<MigrationInfo> infos = new ArrayList<>();
-	private MigrationResultType type;
-	private String sourceModelVersion;
-	private String targetModelVersion;
+	@Getter @Setter private MigrationResultType type;
+	@Getter @Setter private String sourceModelVersion;
+	@Getter @Setter private String targetModelVersion;
 
 	/**
 	 * Instantiates a new Migration result.
@@ -58,42 +63,14 @@ public class MigrationResult implements MigrationLogger {
 		this.type = type;
 	}
 
-	/**
-	 * Gets source model version.
-	 *
-	 * @return the source model version
-	 */
-	public String getSourceModelVersion() {
-		return sourceModelVersion;
-	}
-
-	/**
-	 * Sets source model version.
-	 *
-	 * @param sourceModelVersion
-	 * 		the source model version
-	 */
-	public void setSourceModelVersion(final String sourceModelVersion) {
-		this.sourceModelVersion = sourceModelVersion;
-	}
-
-	/**
-	 * Gets target model version.
-	 *
-	 * @return the target model version
-	 */
-	public String getTargetModelVersion() {
-		return targetModelVersion;
-	}
-
-	/**
-	 * Sets target model version.
-	 *
-	 * @param targetModelVersion
-	 * 		the target model version
-	 */
-	public void setTargetModelVersion(final String targetModelVersion) {
-		this.targetModelVersion = targetModelVersion;
+	public void catchAndReportErrorsDuring(Runnable runnnable) {
+		try {
+			runnnable.run();
+		} catch (MigrationException e) {
+			addError(e.getError());
+		} catch (Exception e) {
+			addError(new MigrationError(MigrationErrorType.UNKNOWN_ERROR, e.getMessage()));
+		}
 	}
 
 	/**
@@ -135,41 +112,6 @@ public class MigrationResult implements MigrationLogger {
 	@Override
 	public void addInfo(final MigrationInfo migrationInfo) {
 		infos.add(migrationInfo);
-	}
-
-	/**
-	 * Type of migration result
-	 *
-	 * @return the migration result type
-	 */
-	public MigrationResultType getType() {
-		return type;
-	}
-
-	/**
-	 * Sets type.
-	 *
-	 * @param type
-	 * 		the type
-	 */
-	public void setType(final MigrationResultType type) {
-		this.type = type;
-	}
-
-	/**
-	 * Creates a new {@link MigrationResult} instance with one error inside a error list. That means
-	 * that a result is
-	 * not type.
-	 *
-	 * @param migrationError
-	 * 		the migration error
-	 * @return the migration result
-	 */
-	public static MigrationResult createWithError(final MigrationError migrationError) {
-		final MigrationResult migrationResult = new MigrationResult(MigrationResultType.FAILED);
-		migrationResult.addError(migrationError);
-
-		return migrationResult;
 	}
 
 	@Override

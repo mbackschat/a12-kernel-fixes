@@ -34,7 +34,6 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 import java.util.List;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
@@ -46,8 +45,7 @@ public class RemoveAnnotationFromFieldtype {
 	private RemoveAnnotationFromFieldtype() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		List<JsonNode> fieldTypeNodes = model.findValues(ModelJsonUtil.FIELD_FIELD_TYPE);
 		for (JsonNode fieldTypeNode : fieldTypeNodes) {
 			if (fieldTypeNode instanceof ObjectNode objectNode) {

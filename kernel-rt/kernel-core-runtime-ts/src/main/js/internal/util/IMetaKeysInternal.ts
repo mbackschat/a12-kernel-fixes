@@ -84,11 +84,7 @@ export class IMetaKeysInternal {
 	public static get FELD_INTERNENR(): string {
 		return "InterneNr";
 	}
-	/** Falls das Feld ein Datumsfeld oder ein Datumbereich ist, wird <code>true</code> zurückgegeben, wenn für das Feld eine
-	 * Zusatzprüfung durchgeführt werden soll. In der Zusatzprüfung wird geprüft, dass die Datumsangaben nicht vor 1900 liegen. */
-	public static get FELD_ZUSATZPRUEFUNG(): string {
-		return "Zusatzpruefung";
-	}
+
 	/** Gibt den internen Namen des Felds als String zurück. Der Name ist ein eindeutiger, kurzer Name für das Feld. Der
 	 * Algorithmus zum Bestimmen des eindeutigen Namens kann variieren und wird an der Schnittstelle nicht zugesichert. Intern
 	 * wird der UniqueName verwendet, da Pfadnamen zu lang sind. */
@@ -142,6 +138,16 @@ export class IMetaKeysInternal {
 	 * Regelbedingung referenziert werden. */
 	public static get REGEL_REFFELDIDS_AUSLASSUNG_INTERN(): string {
 		return "RefFeldIdentifierAuslassungsFehlerIntern";
+	}
+	/** Returns the referenced entities of the rule (may contain groups) as a
+	 * `HashSet<RtIdentifierTemplate>`, used for the V2 possibly-causing-entities API. */
+	public static get REGEL_REFENTITYIDS_INTERN(): string {
+		return "ReferenzierteEntityIdentifierIntern";
+	}
+	/** Returns the referenced entities of the rule that could cause omission errors (may contain
+	 * groups) as a `HashSet<RtIdentifierTemplate>`, used for the V2 possibly-causing-entities API. */
+	public static get REGEL_REFENTITYIDS_AUSLASSUNG_INTERN(): string {
+		return "RefEntityIdentifierAuslassungsFehlerIntern";
 	}
 
 }

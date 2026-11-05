@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 
 import tools.jackson.databind.JsonNode;
@@ -75,8 +74,7 @@ public final class LocalizedTextToListStep {
 	private LocalizedTextToListStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		relevantFields.forEach(f -> convertLocalizedTexts(model, f));
 		// Variant error messages are inside of a map and therefore have to be handled separately
 		model.findValues("Rule").forEach(r -> handleVariantErrorMessages(r.get("variantErrorMessages")));

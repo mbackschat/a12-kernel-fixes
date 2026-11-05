@@ -32,6 +32,7 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,16 @@ public class DocumentModelSearchServiceImpl implements IDocumentModelSearchServi
 		} else {
 			return Optional.empty();
 		}
+	}
+
+	@Override
+	public Map<String, IElement> getAllElementsById() {
+		return Collections.unmodifiableMap(elementsById);
+	}
+
+	@Override
+	public Map<String, IElement> getAllElementsByPath() {
+		return Collections.unmodifiableMap(elementsByPath);
 	}
 
 	private class DocumentModelSearchInfoCollector extends DocumentModelVisitorWithFullNames {

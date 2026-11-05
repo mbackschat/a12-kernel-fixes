@@ -32,16 +32,21 @@
 
 package com.mgmtp.a12.kernel.md.model.a12internal;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.mgmtp.a12.kernel.md.model.api.ILocalizedTextMap;
+import com.mgmtp.a12.kernel.md.model.api.IRule;
 import com.mgmtp.a12.kernel.md.model.api.IRule.Severity;
 import com.mgmtp.a12.kernel.md.utils.NoNeedToAdaptSerialVersionUID;
 import com.mgmtp.a12.model.header.Annotation;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -56,15 +61,16 @@ import lombok.NonNull;
 @EqualsAndHashCode(callSuper = true)
 public class Rule extends Element {
 
-	@NoNeedToAdaptSerialVersionUID
+	@NoNeedToAdaptSerialVersionUID @Serial
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * @return the referenced {@link IEntity} which controls the iteration of this rule. Is never
-	 *        {@code null}.
+	 * @return the reference to the {@link IEntity} which controls the iteration of this rule. The reference to the error entity
+	 * 		({@link IDocumentModelObjectReference#getRelativePath()}) is relative to this rule. Never {@code null}.
 	 * @param errorEntity
-	 * 		the new referenced {@link IEntity} of this rule (for more information see
-	 *        {@link #getErrorEntity()}). May not be {@code null}.
+	 * 		the new reference to the error {@link IEntity} (for more information see {@link #getErrorEntity()}). The reference to
+	 * 		the error entity ({@link IDocumentModelObjectReference#getRelativePath()}) is relative to this rule. May not be
+	 *        {@code null}.
 	 */
 	private @NonNull IDocumentModelObjectReference<IEntity> errorEntity;
 	/**
@@ -110,18 +116,54 @@ public class Rule extends Element {
 	 *        {@link #getGuiPatterns()}). May not be {@code null} or empty.
 	 */
 	private @NonNull Map<String, String> guiPatterns = new LinkedHashMap<>();
+
+	/**
+	 * See {@link IRule.IFilterForPossiblyCausingEntities}
+	 */
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
+	public static class FilterForPossiblyCausingEntities implements Serializable {
+
+		@NoNeedToAdaptSerialVersionUID @Serial
+		private static final long serialVersionUID = 1L;
+
+		/**
+		 * @return see {@link IRule.IFilterForPossiblyCausingEntities#getEntitiesEnabledAsPossibleCauseIfFilled()}
+		 * @param entitiesEnabledAsPossibleCauseIfFilled the new list
+		 */
+		@Builder.Default
+		private @NonNull List<IDocumentModelObjectReference<IEntity>> entitiesEnabledAsPossibleCauseIfFilled = new ArrayList<>();
+
+		/**
+		 * @return see {@link IRule.IFilterForPossiblyCausingEntities#getEntitiesEnabledAsPossibleCauseIfNotFilled()}
+		 * @param entitiesEnabledAsPossibleCauseIfNotFilled the new list
+		 */
+		@Builder.Default
+		private @NonNull List<IDocumentModelObjectReference<IEntity>> entitiesEnabledAsPossibleCauseIfNotFilled = new ArrayList<>();
+	}
+
+	/**
+	 * @return see {@link IRule#getFilterForPossiblyCausingEntities()}
+	 * @param filterForPossiblyCausingEntities the new filter. Use {@code null} to unset.
+	 */
+	private FilterForPossiblyCausingEntities filterForPossiblyCausingEntities;
+
 	@Builder(builderClassName = "RuleBuilder")
 	private Rule(@NonNull String id, @NonNull String name, @NonNull ILocalizedTextMap internalDescription,
 			@NonNull ILocalizedTextMap externalDescription, @NonNull List<Annotation> annotations,
 			@NonNull IDocumentModelObjectReference<IEntity> errorEntity, @NonNull String errorCode, @NonNull String errorCondition,
-			@NonNull Severity severity, @NonNull ILocalizedTextMap errorMessage, @NonNull Map<String, String> guiPatterns) {
-		super(null, id, name, internalDescription, externalDescription, annotations);
+			@NonNull Severity severity, @NonNull ILocalizedTextMap errorMessage, @NonNull Map<String, String> guiPatterns,
+			String changeNote, FilterForPossiblyCausingEntities filterForPossiblyCausingEntities) {
+		super(null, id, name, internalDescription, externalDescription, annotations, changeNote);
 		this.errorEntity = errorEntity;
 		this.errorCode = errorCode;
 		this.errorCondition = errorCondition;
 		this.severity = severity;
 		this.errorMessage = errorMessage;
 		this.guiPatterns = guiPatterns;
+		this.filterForPossiblyCausingEntities = filterForPossiblyCausingEntities;
 	}
 
 	public static class RuleBuilder {
@@ -131,6 +173,14 @@ public class Rule extends Element {
 		private Map<String, String> guiPatterns = new LinkedHashMap<>(); // in order to make RuleBuilder.guiPatterns() optional
 		private ILocalizedTextMap errorMessage = new LocalizedTextMapBuilder().build(); // in order to make RuleBuilder.errorMessage() optional
 		private Severity severity = Severity.ERROR;
+
+		public String getId() {
+			return this.id;
+		}
+	}
+
+	public @NonNull Optional<FilterForPossiblyCausingEntities> getFilterForPossiblyCausingEntities() {
+		return Optional.ofNullable(filterForPossiblyCausingEntities);
 	}
 
 }

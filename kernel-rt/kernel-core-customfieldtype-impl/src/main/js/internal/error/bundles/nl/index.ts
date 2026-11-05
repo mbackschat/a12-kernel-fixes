@@ -70,6 +70,13 @@ set(
 	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.EWAZ_FORMATSCHLUESSEL_FEHLER],
 	"Ongeldige Aktenzeichen."
 );
+set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_FORMAT_FEHLER], "Ongeldige Ermittlungsnummer.");
+set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_FINANZAMT_FEHLER], "Ongeldige Ermittlungsnummer.");
+set(
+	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_UNTERSCHEIDUNGSNUMMER_FEHLER],
+	"Ongeldige Ermittlungsnummer."
+);
+set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_PRUEFZIFFER_FEHLER], "Ongeldige Ermittlungsnummer.");
 set(
 	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.STRING_ZU_KURZ],
 	"Waarde te kort: De waarde moet minimaal $minLength$ tekens bevatten."

@@ -36,7 +36,6 @@ import java.util.function.Consumer;
 
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblem;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
-import com.mgmtp.a12.model.notification.RankedNotification;
 import com.mgmtp.a12.model.notification.Severity;
 
 public class Consumer2ProblemReporter implements IProblemReporter {

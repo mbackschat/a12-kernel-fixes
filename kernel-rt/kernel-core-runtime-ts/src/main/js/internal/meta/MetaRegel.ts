@@ -37,6 +37,7 @@ import type { Regel_t } from "../formatdef/Regel_t.js";
 import { IMetaKeysInternal } from "../util/IMetaKeysInternal.js";
 import { LocaleUtil } from "../util/LocaleUtil.js";
 import { LocalizableUtil } from "../util/LocalizableUtil.js";
+import type { RtIdentifierTemplate } from "../util/RtIdentifierTemplate.js";
 import type { RtInternalIdentifier } from "../util/RtInternalIdentifier.js";
 
 import { MetaEntity } from "./MetaEntity.js";
@@ -67,13 +68,17 @@ export class MetaRegel extends MetaEntity implements IMetaRule, IMetaKeysInterna
 		MetaRegel._internalKeys.add(IMetaKeysInternal.REGEL_PARAMETER_MAPPING);
 		MetaRegel._internalKeys.add(IMetaKeysInternal.REGEL_REFFELDIDS_INTERN);
 		MetaRegel._internalKeys.add(IMetaKeysInternal.REGEL_REFFELDIDS_AUSLASSUNG_INTERN);
+		MetaRegel._internalKeys.add(IMetaKeysInternal.REGEL_REFENTITYIDS_INTERN);
+		MetaRegel._internalKeys.add(IMetaKeysInternal.REGEL_REFENTITYIDS_AUSLASSUNG_INTERN);
 	})();
 
 	constructor(
 		metaModel: MetaModelImpl,
 		r: Regel_t,
 		refFeldIdsIntern: HashSet<RtInternalIdentifier>,
-		refIdentifierAuslassungIntern: HashSet<RtInternalIdentifier>
+		refIdentifierAuslassungIntern: HashSet<RtInternalIdentifier>,
+		refEntity: HashSet<RtIdentifierTemplate>,
+		refOmissionEntity: HashSet<RtIdentifierTemplate>
 	) {
 		super(MetaRegel._schluessel, MetaRegel._internalKeys);
 		this._metaModel = metaModel;
@@ -92,6 +97,8 @@ export class MetaRegel extends MetaEntity implements IMetaRule, IMetaKeysInterna
 			IMetaKeysInternal.REGEL_REFFELDIDS_AUSLASSUNG_INTERN,
 			refIdentifierAuslassungIntern
 		);
+		this.addWert(IMetaKeysInternal.REGEL_REFENTITYIDS_INTERN, refEntity);
+		this.addWert(IMetaKeysInternal.REGEL_REFENTITYIDS_AUSLASSUNG_INTERN, refOmissionEntity);
 		this.addWert(IMetaKeys.RULE_REF_ROOTGROUP_OMISSION_ERROR, r.getRefAuslassungsVordrucke());
 
 		this.addWert(IMetaKeys.RULE_ANNOTATION, undefined); // will be overwritten by additional values if any annotation is provided.

@@ -35,18 +35,25 @@ package com.mgmtp.a12.kernel.md.model.api.services.internal;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import com.mgmtp.a12.kernel.md.model.api.services.IValidationCodeGeneratorConfig;
 import com.mgmtp.a12.kernel.md.model.api.services.a12internal.ICodeGeneratorConfigV1_2;
 
 import lombok.NonNull;
 
 public record CodeGeneratorConfigV1_2Impl(String packageName, Supplier<ProgrammingLanguage> programmingLanguageLazy)
 		implements ICodeGeneratorConfigV1_2 {
+	/**
+	 * Null {@code packageName} is accepted for "default", see {@link IValidationCodeGeneratorConfig#getPackageName()} for details.
+	 */
 	public CodeGeneratorConfigV1_2Impl {
 		if (packageName != null && packageName.endsWith(".")) {
 			packageName = packageName.substring(0, packageName.length() - 1);
 		}
 	}
 
+	/**
+	 * @param packageName {@code null} is accepted for "default", see {@link IValidationCodeGeneratorConfig#getPackageName()} for details.
+	 */
 	public static CodeGeneratorConfigV1_2Impl of(String packageName, Supplier<ProgrammingLanguage> programmingLanguageLazy) {
 		return new CodeGeneratorConfigV1_2Impl(packageName, programmingLanguageLazy);
 	}

@@ -1,0 +1,202 @@
+
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.kernelJsConventions
+    alias libs.plugins.lombok
+
+}
+
+description = "service facade for services provided by kernel, for example runtime services like validation or computation"
+
+// read once via the Provider API so the property is tracked as a configuration cache input
+def kernelGroupId = providers.gradleProperty('A12_kernel_group_id').get()
+
+configurations {
+
+    cliResources
+    typedAccessorGeneratorCLIConfig
+}
+
+
+dependencies {
+    api libs.baseModelApi
+    api libs.baseModelConsistency
+    api project(':kernel-conversion-java')
+
+    api libs.kernelMmMappingModel2Typings
+    implementation libs.kernelMmMappingModel2CodegenValidators
+    runtimeOnly libs.kernelMmMappingModel2NoneDmjsons
+    runtimeOnly libs.kernelMmMappingModel2CodegenDmjsons
+
+    api libs.kernelMmStructuralMappingModel1Typings
+    implementation libs.kernelMmStructuralMappingModel1CodegenValidators
+    runtimeOnly libs.kernelMmStructuralMappingModel1NoneDmjsons
+    runtimeOnly libs.kernelMmStructuralMappingModel1CodegenDmjsons
+
+    api libs.kernelMmDependencyModel1Typings
+    implementation libs.kernelMmDependencyModel1CodegenValidators
+    runtimeOnly libs.kernelMmDependencyModel1NoneDmjsons
+    runtimeOnly libs.kernelMmDependencyModel1CodegenDmjsons
+
+    implementation libs.kernelMmSmmFieldTypeChecks1Typings
+    implementation libs.kernelMmSmmFieldTypeChecks1CodegenValidators
+
+    implementation libs.kernelCtFieldTypeAttributes1Typings
+
+    api libs.kernelCtModelHeader1Typings
+    api libs.kernelCtSelection1Typings
+    api libs.kernelMmCombinationModel1Typings
+    api libs.kernelMmSelectionModel2Typings
+
+    api libs.kernelCoreCustomfieldtypeApi
+    api libs.kernelCoreRuntimeApi
+    api project(":${A12_kernel_runtime_artifact_id}")
+    api project(':kernel-core-customfieldtype-impl')
+    api project(':kernel-md-document-v2')
+    api project(':kernel-md-documentmodel')
+    api project(':kernel-md-serializer')
+    api project(':kernel-internal-base-utils')
+
+    api project(':kernel-internal-core-calc')
+    api project(':kernel-internal-core-codegen')
+    api project(':kernel-internal-core-codegen-base')
+    api project(':kernel-internal-core-codegen-condition')
+    api project(':kernel-internal-core-codegen-entities')
+    api project(':kernel-internal-core-codegen-meta-base')
+    api project(':kernel-internal-core-codegen-rules')
+    api project(':kernel-internal-core-extmpspecifics')
+    api project(':kernel-internal-core-facade')
+    api project(':kernel-internal-core-ontheflytesting')
+    api project(':kernel-internal-core-parser')
+    api project(':kernel-internal-core-parsetree-api')
+    api project(':kernel-internal-core-service')
+    api project(':kernel-internal-core-tool-api')
+    api project(':kernel-internal-core-utils')
+    api project(':kernel-internal-md-model')
+    api project(':kernel-internal-md-model-migration')
+    api project(':kernel-internal-md-runtime-api')
+    api libs.jacksonAnnotations
+    api libs.st4
+    api libs.commonsLang3
+    api libs.groovy
+
+    compileOnly libs.baseModelUtils // Only annotations
+
+    implementation libs.commonsCli
+    implementation libs.commonsIo
+    implementation libs.commonsText
+    implementation libs.commonsCollections4
+    implementation libs.slf4jApi
+
+    runtimeOnly libs.jacksonCore
+    runtimeOnly libs.jacksonDatabind
+
+    implementation libs.kernelMmSelectionModel2CodegenValidators
+    implementation libs.kernelMmCombinationModel1CodegenValidators
+
+    runtimeOnly libs.kernelMmCombinationModel1NoneDmjsons
+    runtimeOnly libs.kernelMmCombinationModel1CodegenDmjsons
+    runtimeOnly libs.kernelMmSelectionModel2NoneDmjsons
+    runtimeOnly libs.kernelMmSelectionModel2CodegenDmjsons
+
+}
+
+
+tasks.register('make_internal_BatchDocumentModelExpanderCli', Jar) { // only temporary and for testing, can be removed soon-ish
+    dependsOn configurations.runtimeClasspath
+    dependsOn sourceSets.main.output
+    from(sourceSets.main.resources) // must be first so project's log4j.properties wins over dependency JARs
+    from {
+        sortAndConvertClasspathEntriesForFatJar(
+                sourceSets.main.output
+                        + configurations.runtimeClasspath
+                        + configurations.cliResources
+        )
+    }
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
+    archiveClassifier = "internal_BatchDocumentModelExpander"
+    manifest {
+        attributes "Main-Class": "${kernelGroupId}.md.facade.internal.cli.BatchDocumentModelExpander"
+    }
+}
+
+tasks.register('make_MappingModelCodegenCli', Jar) {
+    dependsOn configurations.runtimeClasspath
+    dependsOn sourceSets.main.output
+    from {
+        sortAndConvertClasspathEntriesForFatJar(
+                sourceSets.main.output
+                        + configurations.runtimeClasspath
+        )
+    }
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
+    archiveClassifier = "MappingCodeGenerator-CLI"
+
+    manifest {
+        attributes "Main-Class": "${kernelGroupId}.mapping.cli.MappingModelCodegenCLI"
+    }
+}
+
+tasks.register('make_MigratorCli', Jar) {
+    dependsOn configurations.runtimeClasspath
+    dependsOn sourceSets.main.output
+    from(sourceSets.main.resources) // must be first so project's log4j.properties wins over dependency JARs
+    from {
+        sortAndConvertClasspathEntriesForFatJar(
+                sourceSets.main.output
+                        + configurations.runtimeClasspath
+                        + configurations.cliResources
+        )
+    }
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
+    archiveClassifier = "migrator-cli"
+    manifest {
+        attributes "Main-Class": "${kernelGroupId}.tool.migration.MigratorCli"
+    }
+}
+
+tasks.register('make_TypedAccessorCodegenCli', Jar) {
+    dependsOn configurations.runtimeClasspath
+    dependsOn sourceSets.main.output
+    from {
+        sortAndConvertClasspathEntriesForFatJar(
+                sourceSets.main.output
+                        + configurations.runtimeClasspath
+        )
+    }
+
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
+    archiveClassifier = "typed-accessor-gen-cli"
+
+    manifest {
+        attributes "Main-Class": "${kernelGroupId}.md.document.typed_accessor_gen.TypedAccessorGenerator"
+    }
+}
+
+tasks.named('npm_compile') { Task it ->
+    addBuildTaskDependency(it, ':kernel-core-runtime-api-ts', ':kernel-core-runtime-ts')
+}
+
+
+tasks.named('assemble') {
+    dependsOn tasks.named('make_internal_BatchDocumentModelExpanderCli')
+    dependsOn tasks.named('make_MappingModelCodegenCli')
+    dependsOn tasks.named('make_MigratorCli')
+    dependsOn tasks.named('make_TypedAccessorCodegenCli')
+}
+
+
+artifacts {
+    typedAccessorGeneratorCLIConfig make_TypedAccessorCodegenCli
+}
+
+publishing {
+    publications {
+        maven(org.gradle.api.publish.maven.MavenPublication) {
+            // already includes sources jar and javadoc jar
+            artifact make_MappingModelCodegenCli
+            artifact make_MigratorCli
+            artifact make_TypedAccessorCodegenCli
+        }
+    }
+}

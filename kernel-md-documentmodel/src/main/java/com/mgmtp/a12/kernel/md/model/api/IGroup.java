@@ -52,6 +52,13 @@ public interface IGroup extends IElement, IEntity, Serializable {
 
 	/**
 	 * Definition of the sort parameter.
+	 *
+	 * <p><strong>Note:</strong> Sort fields are used only in the mapping scenario
+	 * and are only relevant for the source model(s). They define the order of the
+	 * repetitions of a group. This sorting takes place <em>before</em> mapping.
+	 * For example, if only the first three entries of a repeatable group are to be
+	 * included in the mapping, the sort order is critical, because it defines which
+	 * repetitions will be mapped.
 	 */
 	interface ISortField extends Serializable {
 
@@ -61,7 +68,8 @@ public interface IGroup extends IElement, IEntity, Serializable {
 		}
 
 		/**
-		 * @return the referenced {@link IField}. May not be {@code null}.
+		 * @return the reference to the sort field. The reference ({@link IDocumentModelObjectReference#getRelativePath()}) is
+		 * 		relative to the group holding the sort field.
 		 */
 		IDocumentModelObjectReference<IField> getField();
 
@@ -128,8 +136,8 @@ public interface IGroup extends IElement, IEntity, Serializable {
 	int getRepeatability();
 
 	/**
-	 * @return the referenced index field or an empty Optional instance if no index field is
-	 * 		specified.
+	 * @return the reference to the index field or {@link Optional#empty()} if no index field is specified. The reference
+	 * 		({@link IDocumentModelObjectReference#getRelativePath()}) is relative to this group.
 	 */
 	Optional<IDocumentModelObjectReference<IField>> getIndexField();
 
@@ -148,6 +156,11 @@ public interface IGroup extends IElement, IEntity, Serializable {
 	/**
 	 * @return a list of the specified {@link ISortField}s of the group or an empty list if no
 	 *        {@link ISortField} is specified. Does not return {@code null}.
+	 * 		<p>
+	 * 		<strong>Note:</strong> Sort fields are used only in the mapping scenario and are only relevant for the source model(s).
+	 * 		They define the order of the repetitions of a group. This sorting takes place <em>before</em> mapping. For example, if
+	 * 		only the first three entries of a repeatable group are to be included in the mapping, the sort order is critical,
+	 * 		because it defines which repetitions will be mapped.
 	 */
 	@NonNull List<ISortField> getSortFields();
 
@@ -158,19 +171,25 @@ public interface IGroup extends IElement, IEntity, Serializable {
 	@NonNull List<IElement> getElements();
 
 	/**
-	 * The following requirements must be met for an include:
+	 * The requirements for an include depend on the {@link IIncludeConfig.IncludeLevel} (see {@link IIncludeConfig#includeLevel()}).
+	 * <p>
+	 * For the default {@link IIncludeConfig.IncludeLevel#SINGLE_RG} the following requirements must be met:
 	 * <ol>
-	 * <li>the included model must be a document model (see {@link Header#getModelType()})</li>
+	 * <li>the included model must be a document model (see {@link Header#getModelType()}) (or a model that expands to a document model, e.g. a CombinationModel)</li>
 	 * <li>for the included document model only a single group may be defined at the first nesting
 	 * level (in other words {@link IDocumentModelContent#getDocumentModelRoot()}.getElements() ==
 	 * 1)</li>
-	 * <li>the single group mentioned in #2 may not be empty</li>
+	 * <li>the single group mentioned in #2 must not be repeatable</li>
 	 * <li>the current group references the group mentioned in #2.<br>
 	 * Hint: Both name and repeatability of the group can be changed here. No further
 	 * changes to the included document model are supported.</li>
 	 * <li>the usage type (see also {@link #getUsageType()}) of this group is
 	 * {@code complexType}</li>
 	 * </ol>
+	 * <p>
+	 * For {@link IIncludeConfig.IncludeLevel#MODEL_ROOT} (a "rootPreserving" include) the included document model's root group(s)
+	 * are preserved as children of this group, so the single-non-repeatable-root-group requirements (#2 and #3 above) do not apply:
+	 * the included DM may have multiple and/or repeatable root groups.
 	 *
 	 * @return details of the configuration for an included document model or an empty Optional instance if no include is
 	 * 		specified.

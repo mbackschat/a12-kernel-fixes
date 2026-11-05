@@ -31,6 +31,8 @@
  */
 
 
+import type { SupportedType } from "@com.mgmtp.a12.utils/utils-localization";
+
 import type { IData, IMetaField } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 import {
 	ArrayMap,
@@ -53,12 +55,14 @@ import { GesetzteWiederholungen } from "../util/GesetzteWiederholungen.js";
 import { IMetaKeysInternal } from "../util/IMetaKeysInternal.js";
 import { MetaDataUtilValidierung } from "../util/MetaDataUtilValidierung.js";
 import { RtExternalIdentifier } from "../util/RtExternalIdentifier.js";
+import { RtExternalIdentifierWithSemanticIndex } from "../util/RtExternalIdentifierWithSemanticIndex.js";
 import { RtInternalIdentifier } from "../util/RtInternalIdentifier.js";
 import type { SemanticIndexSpec } from "../util/SemanticIndexSpec.js";
 
 import { GroupFillCache } from "./GroupFillCache.js";
 import type { IMetaDataValidierung } from "./IMetaDataValidierung.js";
 import { IndexFieldCache } from "./IndexFieldCache.js";
+import { ResultBaseImpl } from "./ResultBaseImpl.js";
 
 export class WerteContainer {
 	constructor(private readonly _feldWertOberflaeche: string, private readonly _feldWertXML: string) { }
@@ -577,14 +581,56 @@ export class ValidationCache {
 	 * @param idIntern 	zu konvertierende Identifier.
 	 * @return externer Identifier
 	 */
-	public convert2Extern(idIntern: RtInternalIdentifier): RtExternalIdentifier {
+	public convert2Extern(idIntern: RtInternalIdentifier, useSemanticIndex = false): RtExternalIdentifier {
 		let externName: string = this._metaData.getPfadName(idIntern.getName());
 		if (externName == null) {
 			externName = idIntern.getName();
 		}
 		const resolvedId: RtInternalIdentifier = this.resolveSemanticIndex(idIntern);
-
+		const semIndexSpec: SemanticIndexSpec | undefined = idIntern.getSemanticIndex();
+		const indicesContainUnknown: boolean =
+			ArrayUtils.indexOf(resolvedId.getIndices(), IIdentifier.UNKNOWN) >= 0;
+		if (useSemanticIndex && semIndexSpec != undefined && indicesContainUnknown) {
+			const indexValue: string = this.getSemanticIndexValue(semIndexSpec);
+			const semIdxLevel: number = ArrayUtils.indexOf(idIntern.getIndices(), IIdentifier.SEMANTIC_INDEX);
+			const indexField: RtExternalIdentifier = this._createIndexField(
+				externName,
+				resolvedId.getIndices(),
+				semIdxLevel
+			);
+			let indexValueAsBasicType: SupportedType | undefined = undefined;
+			if (indexValue != undefined && indexValue !== "") {
+				indexValueAsBasicType = this._metaData.getMetaField(indexField.getName())
+					.convertWithOnlyBasicTypeCheck(indexValue, null, new ResultBaseImpl());
+			}
+			return new RtExternalIdentifierWithSemanticIndex(
+				externName,
+				resolvedId.getIndices(),
+				indexField,
+				indexValue,
+				indexValueAsBasicType
+			);
+		}
 		return new RtExternalIdentifier(externName, resolvedId.getIndices());
+	}
+
+	/**
+	 * Creates the (external) index field identifier for an entity whose repetition is determined by an
+	 * unresolved semantic index at the given hierarchy level.
+	 */
+	private _createIndexField(
+		fullNameOfEntityWithSemIdx: string,
+		indicesOfEntityWithSemIdx: number[],
+		levelOfSemIdx: number
+	): RtExternalIdentifier {
+		const groupPath: string = EntityUtil.getPathOfHierarchyLevel(fullNameOfEntityWithSemIdx, levelOfSemIdx);
+		const indexFields: IMetaField[] = this._metaData.getIndexFields(groupPath);
+		// codegen guarantees a single index field for groups referenced with a semantic index
+		const indexField: IMetaField = indexFields[0];
+		const indexFieldName: string = indexField.getValue(IMetaKeys.FIELD_FULLNAME);
+		const indices: number[] = indicesOfEntityWithSemIdx.slice(0, levelOfSemIdx + 2);
+		indices[levelOfSemIdx + 1] = 1; // Field index always 1
+		return new RtExternalIdentifier(indexFieldName, indices);
 	}
 
 	/**

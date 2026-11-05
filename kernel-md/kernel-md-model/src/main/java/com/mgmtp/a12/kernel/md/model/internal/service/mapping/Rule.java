@@ -41,6 +41,7 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.model.header.Annotation;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 /**
@@ -55,19 +56,25 @@ public class Rule extends Entity implements IRule {
 	@Getter private final RuleSeverityType severityType;
 	@Getter private final String errorEntityRelPath;
 	@Getter @Setter private IEntity errorEntity;
+	@Getter private final boolean hasCustomRefEntities;
+	@Getter private final @NonNull List<String> customRefErrorEntitiesIfFilled;
+	@Getter private final @NonNull List<String> customRefErrorEntitiesIfNotFilled;
 
 	public Rule(
-			final String name,
-			final String path,
-			final long[] maxIndices,
-			final String conditionText,
-			final Map<Locale, String> errorMessages,
-			final String errorCode,
-			final RuleSeverityType severityType,
-			final String errorEntityRelPath,
+			String name,
+			String path,
+			long[] maxIndices,
+			String conditionText,
+			Map<Locale, String> errorMessages,
+			String errorCode,
+			RuleSeverityType severityType,
+			String errorEntityRelPath,
 			List<Annotation> annotations,
-			final String ruleId) {
-
+			String ruleId,
+			boolean hasCustomRefEntities,
+			@NonNull List<String> customRefErrorEntitiesIfFilled,
+			@NonNull List<String> customRefErrorEntitiesIfNotFilled
+	) {
 		super(name, path, maxIndices, annotations, ruleId);
 
 		this.errorConditionText = conditionText;
@@ -75,6 +82,9 @@ public class Rule extends Entity implements IRule {
 		this.errorCode = errorCode;
 		this.severityType = severityType;
 		this.errorEntityRelPath = errorEntityRelPath;
+		this.hasCustomRefEntities = hasCustomRefEntities;
+		this.customRefErrorEntitiesIfFilled = customRefErrorEntitiesIfFilled;
+		this.customRefErrorEntitiesIfNotFilled = customRefErrorEntitiesIfNotFilled;
 	}
 
 	@Override
@@ -90,13 +100,5 @@ public class Rule extends Entity implements IRule {
 	@Override
 	public Stream<Entity> flattenToStream() {
 		return Stream.of(this);
-	}
-
-	@Override public List<String> getCustomRefErrorEntitiesIfFilled() {
-		return List.of(); // [A12K-2281] [A12K-2361] update implementation when customRefErrorEntities get supported in A12
-	}
-
-	@Override public List<String> getCustomRefErrorEntitiesIfNotFilled() {
-		return List.of(); // [A12K-2281] [A12K-2361] update implementation when customRefErrorEntities get supported in A12
 	}
 }

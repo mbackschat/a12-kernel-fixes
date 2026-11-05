@@ -67,6 +67,11 @@ public class ComputationBuilder {
 		return this;
 	}
 
+	public ComputationBuilder adaptId(UnaryOperator<String> idFunc) {
+		computationBuilder.id(idFunc.apply(computationBuilder.getId()));
+		return this;
+	}
+
 	public ComputationBuilder name(String fullName) {
 		String pathWithRepetitions = BuilderUtil.pathPartOf(fullName);
 		parent = GroupBuilder.with(documentModel).ensureGroup(pathWithRepetitions);
@@ -76,29 +81,17 @@ public class ComputationBuilder {
 		return this;
 	}
 
-	public ComputationBuilder field(Field field) {
-		String fieldFullName = ElementUtils.getPath(field);
-		String fieldRelativePath = ElementPathUtils.relPath(fieldFullName, fullName);
-		computationBuilder
-				.computedField(new DocumentModelObjectReferenceBuilder<Field>().relativePath(fieldRelativePath).dmo(field).build())
-				.computationAlternatives(List.of(
-						Computation.ComputationAlternative.builder()
-								.precondition("GroupFilled(RuleGroup)")
-								.operation("5").build()
-				));
-		return this;
+	public ComputationBuilder fieldWithDefaultValuesForTest(Field field) {
+		return fieldWithDefaultValuesForTest(field, "\"compareText\"");
 	}
 
-	public ComputationBuilder field(String fieldFullName) {
-		String fieldRelativePath = ElementPathUtils.relPath(fieldFullName, fullName);
-		computationBuilder
-				.computedField(new DocumentModelObjectReferenceBuilder<Field>().relativePath(fieldRelativePath).build())
-				.computationAlternatives(List.of(
-						Computation.ComputationAlternative.builder()
-								.precondition("GroupFilled(RuleGroup)")
-								.operation("5").build()
-				));
-		return this;
+	public ComputationBuilder fieldWithDefaultValuesForTest(Field field, String valueToCompute) {
+		String fieldFullName = ElementUtils.getPath(field);
+		String groupRelativePath = ElementPathUtils.relPath(ElementPathUtils.getParentPath(fieldFullName), ElementPathUtils.getParentPath(fullName));
+		if (groupRelativePath.isEmpty()) { // same group
+			groupRelativePath = "RuleGroup";
+		}
+		return field(field, List.of(Pair.of(String.format("GroupFilled(%s)", groupRelativePath), valueToCompute)));
 	}
 
 	public ComputationBuilder field(Field field, List<Pair<String, String>> preconditionOperationPairs) {
@@ -113,6 +106,18 @@ public class ComputationBuilder {
 										.operation(preconditionOperationPair.getRight()).build()
 						).toList()
 				);
+		return this;
+	}
+
+	public ComputationBuilder fieldWithDefaultValuesForTest(String fieldFullName) {
+		String fieldRelativePath = ElementPathUtils.relPath(fieldFullName, fullName);
+		computationBuilder
+				.computedField(new DocumentModelObjectReferenceBuilder<Field>().relativePath(fieldRelativePath).build())
+				.computationAlternatives(List.of(
+						Computation.ComputationAlternative.builder()
+								.precondition("GroupFilled(RuleGroup)")
+								.operation("5").build()
+				));
 		return this;
 	}
 

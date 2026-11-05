@@ -132,7 +132,7 @@ public class ReferencedDmsChecker {
 		if (matcher.matches()) {
 			return Integer.parseInt(matcher.group(1)) >= reference;
 		} else {
-			throw new MigrationException(new MigrationError(MigrationErrorType.MODEL_VERSION_WRONG).withMessage("The format of " +
+			throw new MigrationException(new MigrationError(MigrationErrorType.MODEL_VERSION_WRONG, "The format of " +
 					"the document model version is not as expected."));
 		}
 	}

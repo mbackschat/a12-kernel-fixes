@@ -103,7 +103,7 @@ public class RuleInfoBuilder {
 	}
 
 	public ICondition getConditionNoExpandForCustomRefErrorEntities() {
-		if (rule.getCustomRefErrorEntitiesIfFilled().isEmpty() && rule.getCustomRefErrorEntitiesIfNotFilled().isEmpty()) {
+		if (!rule.hasCustomRefEntities()) {
 			return null;
 		}
 		if (this.conditionNoExpandForCustomRefErrorEntities == null && !errorInCondition) {

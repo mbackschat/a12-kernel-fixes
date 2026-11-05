@@ -47,6 +47,10 @@ export class CustomFieldTypeErrorKeys {
 		return "ungueltigesEinheitswertAktenzeichen";
 	}
 
+	static get UNGUELTIGE_ESSTERMNR(): string {
+		return "ungueltigeESStErmittlungsnummer";
+	}
+
 	static get UNGUELTIGE_BUFANR(): string {
 		return "ungueltigeBundesfinanzamtsnummer";
 	}

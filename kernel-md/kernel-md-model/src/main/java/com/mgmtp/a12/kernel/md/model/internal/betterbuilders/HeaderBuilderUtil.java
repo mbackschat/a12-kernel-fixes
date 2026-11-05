@@ -35,7 +35,8 @@ package com.mgmtp.a12.kernel.md.model.internal.betterbuilders;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
+
+import org.apache.commons.collections4.ListUtils;
 
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
 import com.mgmtp.a12.model.header.Header;
@@ -56,7 +57,7 @@ public class HeaderBuilderUtil {
 	 */
 	public static void normalizeModelRefsList(DocumentModel dm) {
 		List<ModelReference> refs = dm.getHeader().getModelReferences();
-		if(refs == null) {
+		if (refs == null) {
 			List<ModelReference> normalizedRefs = List.of();
 			dm.setHeader(toBuilder(dm.getHeader()).withModelReferences(normalizedRefs).build());
 			return;
@@ -88,9 +89,9 @@ public class HeaderBuilderUtil {
 		}
 
 		return builder
-				.withLabels(Optional.ofNullable(header.getLabels()).orElse(List.of()))
-				.withLocales(Optional.ofNullable(header.getLocales()).orElse(List.of()))
-				.withAnnotations(Optional.ofNullable(header.getAnnotations()).orElse(List.of()))
-				.withModelReferences(Optional.ofNullable(header.getModelReferences()).orElse(List.of()));
+				.withLabels(ListUtils.emptyIfNull(header.getLabels()))
+				.withLocales(ListUtils.emptyIfNull(header.getLocales()))
+				.withAnnotations(ListUtils.emptyIfNull(header.getAnnotations()))
+				.withModelReferences(ListUtils.emptyIfNull(header.getModelReferences()));
 	}
 }

@@ -9,6 +9,10 @@ var Meta_Regel_<t.name> = (function () {
 		this._refAuslassungsIdentifier = new Array(Meta_Regel_<t.name>.ANZAHL_REGELN);
 		// speichert pro Regel die Vordrucke, die einen Auslassungsfehler erzeugen können
 		this._refAuslassungsVordrucke = new Array(Meta_Regel_<t.name>.ANZAHL_REGELN);
+		// stores the referenced entities per rule (can contain groups)
+		this._refEntity = new Array(Meta_Regel_<t.name>.ANZAHL_REGELN);
+		// stores the referenced entities per rule, which could cause omission errors (may contain groups)
+		this._refAuslassungsEntity = new Array(Meta_Regel_<t.name>.ANZAHL_REGELN);
 		this._mehrsprachigeFehlertexte = new Map();
 		this._fehlertexteParameterMapping = new Map();
 		this._constructor = (function () {

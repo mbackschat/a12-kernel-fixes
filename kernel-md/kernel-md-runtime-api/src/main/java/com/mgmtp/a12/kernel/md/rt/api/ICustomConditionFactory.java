@@ -40,10 +40,10 @@ import lombok.NonNull;
  * Common interface for custom condition factories.
  * <p>
  * <i>Notes:</i>
- * <o>
+ * <ul>
  * <li>The caller has to provide an implementation of this interface.</li>
  * <li>Implementing classes must guarantee thread-safety of all methods.</li>
- * </o>
+ * </ul>
  */
 public interface ICustomConditionFactory {
 

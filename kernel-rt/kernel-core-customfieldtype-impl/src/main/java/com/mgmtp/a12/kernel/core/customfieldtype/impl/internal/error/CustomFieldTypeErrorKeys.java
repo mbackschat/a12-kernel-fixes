@@ -62,4 +62,6 @@ public final class CustomFieldTypeErrorKeys {
 	public static final String UNGUELTIGE_IBANINTERNATIONAL = "ungueltigeIBANinternational";
 
 	public static final String UNGUELTIGES_STRAFAZ = "ungueltigesStrafAktenzeichen";
+
+	public static final String UNGUELTIGE_ESSTERMNR = "ungueltigeESStErmittlungsnummer";
 }

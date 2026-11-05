@@ -15,7 +15,7 @@ dependencies {
     runtimeOnly(testLibs.rewriteJavaDependencies)
     runtimeOnly(testLibs.rewriteJava21)
 
-    testImplementation libs.commonsIo
+    testImplementation libs.commonsIo //This is! required transitively by IOUtils4Test (it is detected as obsolete by gradle buildHealth)
     testImplementation(testLibs.junitJupiterApi)
     testImplementation(testLibs.rewriteTest)
     testImplementation(project(':kernel-internal-test-utils')) {
@@ -38,6 +38,9 @@ configurations.configureEach {
 }
 
 HashMap<String, List<String>> configs = [
+        "31_2_0": [
+                "com.mgmtp.a12.kernel:kernel-md-document-v2:31.1.0"
+        ],
         "31_0_0": [
                 "com.mgmtp.a12.kernel:kernel-md-model-api:30.7.1",
                 "com.mgmtp.a12.kernel:kernel-md-model:30.7.1",

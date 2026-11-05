@@ -167,10 +167,11 @@ public class FormatterVisitor extends ASTVisitor {
 	}
 
 	private void addSuppressedWarnings(Set<String> suppressedWarnings) {
-		for (String suppressedWarning : suppressedWarnings) {
-			fData.append("@" + mlh.getTerminalName(Base_ConditionLexer.UNTERDRUECKE_WARNUNG) + "(" + suppressedWarning + ")");
-			fData.newline();
-		}
+		// All warnings are emitted as a single comma-separated preamble, since the grammar allows at
+		// most one preamble.
+		fData.append("@" + mlh.getTerminalName(Base_ConditionLexer.UNTERDRUECKE_WARNUNG) + "("
+				+ String.join(", ", suppressedWarnings) + ")");
+		fData.newline();
 	}
 
 	private void addCommentLines(String commentString) {

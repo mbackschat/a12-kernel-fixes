@@ -29,6 +29,8 @@
  * NON-INFRINGEMENT, EXCEPT WHERE SUCH DISCLAIMERS ARE HELD TO BE
  * LEGALLY INVALID. SEE THE RESPECTIVE LICENSE TEXT FOR DETAILS.
  */
+import type { RtIdentifierTemplate } from "../util/RtIdentifierTemplate.js";
+
 import type { Identifier_t } from "./Identifier_t.js";
 
 /**
@@ -46,6 +48,8 @@ export class Regel_t {
 		private _regelArt: string,
 		private _refIdentifier: Identifier_t[],
 		private _refAuslassungsIdentifier: Identifier_t[],
+		private _refEntity: RtIdentifierTemplate[],
+		private _refOmissionEntity: RtIdentifierTemplate[],
 		private _refAuslassungsVordrucke: string[],
 		private _fehlerfeld: string,
 		private _serverBerechnungsRegel: boolean,
@@ -95,6 +99,22 @@ export class Regel_t {
 
 	public get refIdentifier(): Identifier_t[] {
 		return this._refIdentifier;
+	}
+
+	/**
+	 * The referenced entities (may contain groups) used for the V2 possibly-causing-entities API.
+	 * Empty if the rule has none.
+	 */
+	public get refEntity(): RtIdentifierTemplate[] {
+		return this._refEntity ?? [];
+	}
+
+	/**
+	 * The referenced entities that could cause omission errors (may contain groups) used for the V2
+	 * possibly-causing-entities API. Empty if the rule has none.
+	 */
+	public get refOmissionEntity(): RtIdentifierTemplate[] {
+		return this._refOmissionEntity ?? [];
 	}
 
 	public get fehlerFeld(): string {

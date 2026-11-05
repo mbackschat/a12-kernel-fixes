@@ -32,6 +32,8 @@
 
 /**
  * Parameter interface used for validating custom field types.
+ *
+ * @OnlyForUsage - Should not be implemented. New properties will not be considered breaking.
  */
 export interface ICustomFieldTypeValidationParam {
 	/**

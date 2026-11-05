@@ -1,5 +1,0 @@
-{
-  "js/ts.validate.enabled": true,
-	"js/ts.preferences.importModuleSpecifierEnding": "js",
-	"js/ts.tsdk.path": "node_modules/typescript/lib",
-}

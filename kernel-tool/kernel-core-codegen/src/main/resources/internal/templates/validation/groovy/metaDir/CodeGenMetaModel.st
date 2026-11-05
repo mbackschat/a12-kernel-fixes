@@ -2,14 +2,6 @@ CodeGenMetaModel(t) ::= <<
 <\n>
 class <t.groovyPackageClassnamePrefix>Meta_<t.name> implements IMetaModel, IMetaEntityInternal {
 
-<! WARNING: Updated by versionupdate script. Don't change this manually! !>
-	// Don't remove 'new String(..)' to prevent constant inlining (at compile-time).
-	private static final String RUNTIME_VERSION = new String("<t.GencodeJavaGroovyRuntimeVersion>");
-
-	static {
-		VersionCompatibilityCheck.checkGeneratedCodeCompatibleWithRuntime(RUNTIME_VERSION);
-	}
-
 	private MetaModelImpl meta = null;
 	private <t.groovyPackageClassnamePrefix>Meta_Felder_<t.name> metaFelder = new <t.groovyPackageClassnamePrefix>Meta_Felder_<t.name>();
 	<t.metaRegelnNumbers:{ number | private <t.groovyPackageClassnamePrefix>Meta_Regel_<t.name>_<number> metaRegeln_<number> = new <t.groovyPackageClassnamePrefix>Meta_Regel_<t.name>_<number>();<\n>}>

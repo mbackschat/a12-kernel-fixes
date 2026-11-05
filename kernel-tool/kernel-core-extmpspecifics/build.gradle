@@ -8,10 +8,10 @@ description = "models specifics to the extended modeling platform (ExtMP)"
 dependencies {
     api project(':kernel-internal-core-parsetree-api') //should be kept (regardless of any gradle buildHealth suggestions)
     api project(':kernel-internal-core-tool-api')
+    api project(':kernel-internal-base-utils')
     api libs.baseModelApi
 
     compileOnly libs.baseModelUtils // Only annotations
-
-    implementation project(':kernel-internal-base-utils')
+    
     implementation libs.commonsLang3
 }

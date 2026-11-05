@@ -180,6 +180,10 @@ public class RuleInfo implements IRule {
 		return rule.getSeverityType();
 	}
 
+	@Override public boolean hasCustomRefEntities() {
+		return rule.hasCustomRefEntities();
+	}
+
 	@Override public List<String> getCustomRefErrorEntitiesIfFilled() {
 		return rule.getCustomRefErrorEntitiesIfFilled();
 	}

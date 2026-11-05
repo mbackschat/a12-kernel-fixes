@@ -91,7 +91,7 @@ public class NumberConversion {
 		char inputDecimalSeparator = srcDataFormats.decimalSeparator();
 		Optional<String> srcThousandsSeparator = srcDataFormats.thousandsSeparator();
 		if (srcThousandsSeparator.isPresent()) {
-			value = value.replaceAll(srcThousandsSeparator.get(), "");
+			value = value.replace(srcThousandsSeparator.get(), "");
 		}
 		char outputDecimalSeparator = destDataFormats.decimalSeparator();
 		value = value.replace(inputDecimalSeparator, outputDecimalSeparator);
@@ -182,13 +182,13 @@ public class NumberConversion {
 		}
 		if (!(value instanceof BigDecimal bigDecimal)) {
 			throw new IllegalArgumentException(
-					"The type of the value (" + value.getClass().getSimpleName() + ") is not a BigDecimal"
+					"The type of the value (" + value.getClass().getName() + ") is not a BigDecimal"
 			);
 		}
 		String thousandsSeparator = destDataFormats.thousandsSeparator().orElse(null);
 		NumberConversion.checkSeparators(decimalSeparator, thousandsSeparator);
 		int fractionalDigits = NumberConversion.determineFractionalDigits(bigDecimal, destDataType, destDataFormats);
-		String resultWithDot = bigDecimal.setScale(fractionalDigits, RoundingMode.UNNECESSARY).toPlainString();
+		String resultWithDot = bigDecimal.setScale(fractionalDigits, RoundingMode.HALF_UP).toPlainString();
 		String result = resultWithDot.replace('.', decimalSeparator);
 		if (!StringUtils.isEmpty(thousandsSeparator)) {
 			result = NumberUtil.addThousandsSeparator(
@@ -205,17 +205,39 @@ public class NumberConversion {
 			NumberConversionConfig numberDataType,
 			DataFormats dataFormats
 	) {
-		int minScale = bigDecimal.stripTrailingZeros().scale();
+		// negative for numbers with trailing zeros in the integer part (12000000 -> 1.2E+7 -> -7),
+		// therefore it must not be used as a fractional digit count on its own
+		int minScale = Math.max(0, bigDecimal.stripTrailingZeros().scale());
 		int minFractionalDigits = dataFormats.decimalPlacesOptional()
 				? 0
 				: numberDataType.minFractionalDigits();
 		int currentFractionalDigits = Math.max(minScale, minFractionalDigits);
+		// NOTE: names for minScale, minFractionalDigits and currentFractionalDigits seem slightly off but currently mirror what the
+		// TS impl does - both impls should probably be either renamed jointly or not at all.
+
 		// in case the number is too big (more than 15 digits)
+		// Note: this is _not_ sufficient for making the number fit into MAX_ALLOWED_NUMBER_OF_DIGITS because
+		//       a) numberOfIntegerDigits might be larger than MAX_ALLOWED_NUMBER_OF_DIGITS so the max(0, ...) kicks in
+		//       b) numberOfIntegerDigits can actually be _negative_, so the result is larger than numberOfIntegerDigits
+		//       c) numberOfIntegerDigits can be zero, in which case toPlainString() will prepend one extra digit, pre-decimal zero
+		//          - although whether this counts against the max digits seems not entirely clear (depends on what invariant
+		//          MAX_ALLOWED_NUMBER_OF_DIGITS is actually meant to provide)
+		// BUT this is the same that the TypeScript impl does as of 2026-09-11 - so _maybe_ it is ok or even intentional?
 		int maxAllowedFractionalDigits = Math.max(
 				0,
-				NumberConversion.MAX_ALLOWED_NUMBER_OF_DIGITS - (bigDecimal.precision() - minScale)
+				NumberConversion.MAX_ALLOWED_NUMBER_OF_DIGITS - NumberConversion.numberOfIntegerDigits(bigDecimal)
 		);
 		return Math.min(currentFractionalDigits, maxAllowedFractionalDigits);
+	}
+
+	/**
+	 * Returns the number of digits left of the decimal point. The result is zero or negative for values
+	 * below 1 (0.5 -> 0, 0.0000001 -> -6), which deliberately mirrors the TypeScript implementation.
+	 * Both terms must be taken from the same representation, otherwise trailing zeros in the integer
+	 * part would be counted twice.
+	 */
+	private static int numberOfIntegerDigits(BigDecimal bigDecimal) {
+		return bigDecimal.precision() - bigDecimal.scale();
 	}
 
 	private static Optional<ParseError> sanityCheck(
@@ -268,9 +290,10 @@ public class NumberConversion {
 	) {
 		if (NumberConversion.VALID_SEPARATORS[0] != decimalSeparator &&
 				NumberConversion.VALID_SEPARATORS[1] != decimalSeparator) {
+			String separatorForMessage = decimalSeparator == 0 ? "" : String.valueOf(decimalSeparator);
 			throw new IllegalArgumentException(
 					"Invalid number conversion configuration: The decimal separator '" +
-							decimalSeparator + "' is invalid."
+							separatorForMessage + "' is invalid."
 			);
 		}
 

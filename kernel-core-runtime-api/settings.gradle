@@ -7,7 +7,7 @@ pluginManagement {
 rootProject.name = 'kernel-core-runtime-api'
 
 // should always be compatible to the local customfieldtype-api
-if (settings.hasProperty('a12.kernel.include.customfieldtype.api') ? settings['a12.kernel.include.customfieldtype.api']?.toBoolean() : false) {
+if (providers.gradleProperty('a12.kernel.include.customfieldtype.api').map { it.toBoolean() }.getOrElse(false)) {
     includeBuild '../kernel-core-customfieldtype-api'
 }
 

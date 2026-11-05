@@ -70,6 +70,13 @@ set(
 	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.EWAZ_FORMATSCHLUESSEL_FEHLER],
 	"Aktenzeichen invalide."
 );
+set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_FORMAT_FEHLER], "Ermittlungsnummer invalide.");
+set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_FINANZAMT_FEHLER], "Ermittlungsnummer invalide.");
+set(
+	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_UNTERSCHEIDUNGSNUMMER_FEHLER],
+	"Ermittlungsnummer invalide."
+);
+set(CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_PRUEFZIFFER_FEHLER], "Ermittlungsnummer invalide.");
 set(
 	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.STRING_ZU_KURZ],
 	"Valeur trop courte: la valeur doit contenir au moins $minLength$ caractères."

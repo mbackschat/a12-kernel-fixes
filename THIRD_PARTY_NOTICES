@@ -27,7 +27,10 @@ The following third-party components are included in this distribution:
 - @babel/plugin-transform-modules-commonjs 7.29.7, licensed under MIT
 	Copyright (c) 2014-present Sebastian McKenzie and other contributors
 	Source: https://github.com/babel/babel
-- @com.mgmtp.a12.antlrcodeeditor/antlrcodeeditor-core 7.0.0, licensed under EUPL v1.2
+- @com.mgmtp.a12.antlrcodeeditor/antlrcodeeditor-core 7.1.0, licensed under EUPL v1.2
+	Copyright (C) 2012-2026 mgm technology partners GmbH
+	Source: https://github.com/mgm-tp
+- @com.mgmtp.a12.base/base-model-api 30.1.1, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
 - @com.mgmtp.a12.devtools/eslint-config 3.1.2, licensed under EUPL v1.2
@@ -39,37 +42,43 @@ The following third-party components are included in this distribution:
 - @com.mgmtp.a12.devtools/tsconfig 2.0.1, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- @com.mgmtp.a12.kernel/kernel-core-runtime-api-ts 31.1.1-SNAPSHOT, licensed under EUPL v1.2
+- @com.mgmtp.a12.kernel/kernel-core-runtime-api-ts 31.3.1-SNAPSHOT, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- @com.mgmtp.a12.kernel/kernel-eslint-config 31.1.1-SNAPSHOT, licensed under EUPL v1.2
+- @com.mgmtp.a12.kernel/kernel-eslint-config 31.3.1-SNAPSHOT, licensed under EUPL v1.2
+	Copyright (C) 2012-2026 mgm technology partners GmbH
+	Source: https://github.com/mgm-tp
+- @com.mgmtp.a12.kernel/kernel-internal-test-utils-ts 31.3.1-SNAPSHOT, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
 - @com.mgmtp.a12.utils/utils-collections 7.0.1, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- @com.mgmtp.a12.utils/utils-localization 8.0.1, licensed under EUPL v1.2
+- @com.mgmtp.a12.utils/utils-localization 8.1.0, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- @com.mgmtp.a12.utils/utils-logging 7.0.1, licensed under EUPL v1.2
+- @com.mgmtp.a12.utils/utils-logging 7.1.0, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- @cyclonedx/cyclonedx-npm 5.0.0, licensed under Apache-2.0
+- @cyclonedx/cyclonedx-npm 6.0.1, licensed under Apache-2.0
 	Copyright (c) OWASP Foundation. All Rights Reserved.
 	Source: https://github.com/CycloneDX
-- @types/big.js 6.2.2, licensed under MIT
+- @types/big.js 7.0.0, licensed under MIT
 	Copyrights are respective of each contributor listed at the beginning of each definition file
 	Source: https://github.com/DefinitelyTyped/DefinitelyTyped
-- @types/luxon 3.7.2, licensed under MIT
+- @types/json5 0.0.30, licensed under MIT
+	Copyrights are respective of each contributor listed at the beginning of each definition file
+	Source: https://github.com/DefinitelyTyped/DefinitelyTyped
+- @types/luxon 3.7.4, licensed under MIT
 	Copyrights are respective of each contributor listed at the beginning of each definition file
 	Source: https://github.com/DefinitelyTyped/DefinitelyTyped
 - @types/mocha 10.0.10, licensed under MIT
 	Copyrights are respective of each contributor listed at the beginning of each definition file
 	Source: https://github.com/DefinitelyTyped/DefinitelyTyped
 - @types/node 24.13.3, licensed under MIT
-	Copyright Node.js contributors
+	Copyrights are respective of each contributor listed at the beginning of each definition file.
 	Source: https://github.com/DefinitelyTyped/DefinitelyTyped
-- @types/react 19.2.17, licensed under MIT
+- @types/react 19.2.18, licensed under MIT
 	Copyrights are respective of each contributor listed at the beginning of each definition file.
 	Source: https://github.com/DefinitelyTyped/DefinitelyTyped
 - @types/styled-components 5.1.36, licensed under MIT
@@ -102,13 +111,16 @@ The following third-party components are included in this distribution:
 - eslint-plugin-prefer-arrow 1.2.3, licensed under MIT
 	Copyright (c) 2018 Triston Jones
 	Source: https://github.com/TristonJ/eslint-plugin-prefer-arrow
-- mocha 11.7.6, licensed under MIT
+- json5 2.2.3, licensed under MIT
+	Copyright (c) 2012-2018 Aseem Kishore, and others
+	Source: https://github.com/json5/json5
+- mocha 11.8.0, licensed under MIT
 	Copyright (c) 2011-2024 OpenJS Foundation and contributors, https://openjsf.org
 	Source: https://github.com/mochajs/mocha
 - npm-run-all 4.1.5, licensed under MIT
 	Copyright (c) 2015 Toru Nagashima
 	Source: https://github.com/mysticatea/npm-run-all
-- prettier 3.9.5, licensed under MIT
+- prettier 3.9.6, licensed under MIT
 	Copyright © James Long and contributors
 	Source: https://github.com/prettier/prettier
 - rimraf 6.1.3, licensed under BlueOak-1.0.0
@@ -123,94 +135,109 @@ The following third-party components are included in this distribution:
 - typescript 6.0.3, licensed under Apache-2.0
 	Copyright (c) Microsoft Corporation
 	Source: https://github.com/microsoft/TypeScript
-- typescript-eslint 8.65.0, licensed under MIT
+- typescript-eslint 8.67.0, licensed under MIT
 	Copyright (c) 2019 typescript-eslint and other contributors
 	Source: https://github.com/typescript-eslint/typescript-eslint
 - com.fasterxml.jackson.core/jackson-annotations 2.22, licensed under Apache-2.0
 	Copyright 2007-, Tatu Saloranta (tatu.saloranta@iki.fi)
 	Source: https://github.com/FasterXML/jackson-annotations
-- com.mgmtp.a12.base/base-model-api 30.0.2, licensed under EUPL v1.2
+- com.mgmtp.a12.base/base-model-api 30.1.1, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.base/base-model-consistency 30.0.2, licensed under EUPL v1.2
+- com.mgmtp.a12.base/base-model-consistency 30.1.1, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.dataservices.wcf/dataservices-wcf-api 0.2.0, licensed under EUPL v1.2
+- com.mgmtp.a12.dataservices.wcf/dataservices-wcf-api 0.3.0, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-ct_field_type_attributes-1-a12 3.1.551343, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/kernel-core-customfieldtype-api 29.0.2, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_combinationmodel-1-codegen 2.13.551408, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/kernel-core-runtime-api 33.2.1, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_combinationmodel-1-none 2.13.551408, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_combinationmodel-1-codegen 2.13.561410, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_mappingmodel-2-codegen 4.15.551364, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_combinationmodel-1-none 2.13.561410, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_mappingmodel-2-none 4.15.551364, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_dependencymodel-1-codegen 1.4.560022, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_selectionmodel-2-codegen 1.6.550017, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_dependencymodel-1-none 1.4.560022, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_selectionmodel-2-none 1.6.550017, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_mappingmodel-2-codegen 5.2.561369, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_structuralmappingmodel-1-codegen 4.7.551353, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_mappingmodel-2-none 5.2.561369, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_structuralmappingmodel-1-none 4.7.551353, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_selectionmodel-2-codegen 2.0.560020, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmtypings-ct_model_header-1 3.7.551344, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_selectionmodel-2-none 2.0.560020, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmtypings-ct_selection-v1 2.7.550017, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_structuralmappingmodel-1-codegen 5.0.561357, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmtypings-extmpinternal-ct_field_type_attributes-1-a12 3.1.551343, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmdmjsons-extmpinternal-mm_structuralmappingmodel-1-none 5.0.561357, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmtypings-extmpinternal-mm_smm_fieldtypechecks-1-a12 3.2.551352, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmtypings-ct_model_header-1 3.7.561346, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmtypings-mm_combinationmodel-1 2.13.551408, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmtypings-ct_selection-v1 2.8.560020, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmtypings-mm_mappingmodel-2 4.15.551364, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmtypings-extmpinternal-ct_field_type_attributes-1-a12 4.1.561347, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmtypings-mm_selectionmodel-2 1.6.550017, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmtypings-extmpinternal-mm_dependencymodel-1-codegen 1.4.560022, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmtypings-mm_structuralmappingmodel-1 4.7.551353, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmtypings-extmpinternal-mm_smm_fieldtypechecks-1-a12 4.1.561356, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_combinationmodel-1-codegen 2.13.551408, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmtypings-mm_combinationmodel-1 2.13.561410, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_common-v2-codegen 20.1.551424, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmtypings-mm_mappingmodel-2 5.2.561369, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_mappingmodel-2-codegen 4.15.551364, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmtypings-mm_selectionmodel-2 2.0.560020, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_selectionmodel-2-codegen 1.6.550017, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmtypings-mm_structuralmappingmodel-1 5.0.561357, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_smm_fieldtypechecks-1-codegen 3.2.551352, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_combinationmodel-1-codegen 2.13.561410, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
-- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_structuralmappingmodel-1-codegen 4.7.551353, licensed under EUPL v1.2
+- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_common-v2-codegen 21.3.561430, licensed under EUPL v1.2
+	Copyright (C) 2012-2026 mgm technology partners GmbH
+	Source: https://github.com/mgm-tp
+- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_dependencymodel-1-codegen 1.4.560022, licensed under EUPL v1.2
+	Copyright (C) 2012-2026 mgm technology partners GmbH
+	Source: https://github.com/mgm-tp
+- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_mappingmodel-2-codegen 5.2.561369, licensed under EUPL v1.2
+	Copyright (C) 2012-2026 mgm technology partners GmbH
+	Source: https://github.com/mgm-tp
+- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_selectionmodel-2-codegen 2.0.560020, licensed under EUPL v1.2
+	Copyright (C) 2012-2026 mgm technology partners GmbH
+	Source: https://github.com/mgm-tp
+- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_smm_fieldtypechecks-1-codegen 4.1.561356, licensed under EUPL v1.2
+	Copyright (C) 2012-2026 mgm technology partners GmbH
+	Source: https://github.com/mgm-tp
+- com.mgmtp.a12.kernel/mmvalidators-extmpinternal-mm_structuralmappingmodel-1-codegen 5.0.561357, licensed under EUPL v1.2
 	Copyright (C) 2012-2026 mgm technology partners GmbH
 	Source: https://github.com/mgm-tp
 - commons-cli/commons-cli 1.11.0, licensed under Apache-2.0
 	Copyright 2002-2025 The Apache Software Foundation
 	Source: https://github.com/apache/commons-cli
-- commons-io/commons-io 2.21.0, licensed under Apache-2.0
+- commons-io/commons-io 2.22.0, licensed under Apache-2.0
 	Copyright 2002-2025 The Apache Software Foundation
 	Source: https://github.com/apache/commons-io
 - jakarta.validation/jakarta.validation-api 3.1.1, licensed under Apache-2.0
@@ -222,7 +249,7 @@ The following third-party components are included in this distribution:
 - org.antlr/ST4 4.3.4, licensed under BSD-3-Clause
 	Copyright (c) 2011-2022 Terence Parr
 	Source: https://github.com/antlr/stringtemplate4
-- org.apache.commons/commons-collections4 4.5.0, licensed under Apache-2.0
+- org.apache.commons/commons-collections4 4.6.0, licensed under Apache-2.0
 	Copyright 2001-2025 The Apache Software Foundation
 	Source: https://github.com/apache/commons-collections
 - org.apache.commons/commons-lang3 3.20.0, licensed under Apache-2.0
@@ -234,13 +261,13 @@ The following third-party components are included in this distribution:
 - org.codehaus.groovy/groovy 3.0.25, licensed under Apache-2.0
 	Copyright 2003-2023 The Apache Software Foundation
 	Source: https://github.com/apache/groovy
-- org.slf4j/slf4j-api 2.0.17, licensed under MIT
+- org.slf4j/slf4j-api 2.0.18, licensed under MIT
 	Copyright (c) 2004-2022 QOS.ch Sarl (Switzerland)
 	Source: https://github.com/qos-ch/slf4j
-- tools.jackson.core/jackson-core 3.2.1, licensed under Apache-2.0
+- tools.jackson.core/jackson-core 3.2.4, licensed under Apache-2.0
 	Copyright 2007-, Tatu Saloranta (tatu.saloranta@iki.fi)
 	Source: https://github.com/FasterXML/jackson-core
-- tools.jackson.core/jackson-databind 3.2.1, licensed under Apache-2.0
+- tools.jackson.core/jackson-databind 3.2.4, licensed under Apache-2.0
 	Copyright 2007-, Tatu Saloranta (tatu.saloranta@iki.fi)
 	Source: https://github.com/FasterXML/jackson-databind
 
@@ -257,7 +284,6 @@ Copyright (c) OWASP Foundation. All Rights Reserved.
 This product includes software developed by the
 CycloneDX community (https://cyclonedx.org/).
 
-
 NOTICE file of commons-cli
 ---------------------------
 
@@ -267,7 +293,6 @@ Copyright 2002-2026 The Apache Software Foundation
 This product includes software developed at
 The Apache Software Foundation (https://www.apache.org/).
 
-
 NOTICE file of commons-io
 ---------------------------
 
@@ -276,7 +301,6 @@ Copyright 2002-2026 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (https://www.apache.org/).
-
 
 NOTICE file of jakarta.validation
 ---------------------------
@@ -324,8 +348,6 @@ Test dependencies:
  * [JCommander](https://github.com/cbeust/jcommander) - Apache License 2.0
  * [SnakeYAML](https://bitbucket.org/asomov/snakeyaml/src) - Apache License 2.0
 
-
-
 NOTICE file of org.apache.commons
 ---------------------------
 
@@ -334,7 +356,6 @@ Copyright 2001-2019 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
-
 
 NOTICE file of org.codehaus.groovy
 ---------------------------

@@ -172,7 +172,7 @@ public class DocumentModelBuilder {
 				.build();
 	}
 
-	public static void addInclude(
+	public static Group addInclude(
 			DocumentModel baseDm, String includedDmID, List<String> mountpointPath, int maxRep,
 			IGroup.IIncludeConfig.IncludeLevel includeLevel) {
 		assert baseDm != null;
@@ -191,6 +191,8 @@ public class DocumentModelBuilder {
 				.includeLevel(includeLevel)
 				.build());
 		baseDm.getHeader().getModelReferences().add(includeReference);
+
+		return mountPointGroup;
 	}
 
 	/**

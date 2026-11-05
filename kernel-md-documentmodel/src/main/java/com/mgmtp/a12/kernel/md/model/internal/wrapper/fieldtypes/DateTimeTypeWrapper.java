@@ -54,6 +54,11 @@ public class DateTimeTypeWrapper extends FieldTypeWrapper<DateTimeType> implemen
 		return fieldType.getFormat();
 	}
 
+	/**
+	 * @deprecated isYoungerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute  will be
+	 * removed with A12K-4439.
+	 */
+	@Deprecated(since = "31.2.0")
 	@Override
 	public boolean isYoungerThan1900Check() {
 		return false;

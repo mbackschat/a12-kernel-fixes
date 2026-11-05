@@ -42,8 +42,8 @@ import {
 	ERROR_DURING_DATA_CHECK_EVAL,
 	RuntimeFormalErrorEnum
 } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
-import type { IMetaField, IResult, ValidationMode } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
-import { ArraySet, CustomConditionException, ErrorType, HashSet, IIdentifier, ValidatorException } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import type { ICause, IMetaField, IResult, ValidationMode } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import { CustomConditionException, ErrorType, HashSet, IIdentifier, SeverityType, ValidatorException } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 import type { IFormatDefinition } from "../formatdef/IFormatDefinition.js";
 import { FehlerHandler } from "../formatdef/error/FehlerHandler.js";
@@ -51,11 +51,15 @@ import type { ValidationLogger } from "../logging/ValidationLogger.js";
 import { ArrayUtils } from "../util/ArrayUtils.js";
 import { Constants } from "../util/Constants.js";
 import { EntityIterator } from "../util/EntityIterator.js";
+import { EntityUtil } from "../util/EntityUtil.js";
+import { ErrorCause } from "../util/ErrorCause.js";
 import { IMetaKeysInternal } from "../util/IMetaKeysInternal.js";
 import type { IterationState } from "../util/IterationState.js";
 import { MetaDataUtilValidierung } from "../util/MetaDataUtilValidierung.js";
+import { ReadOnlyEmptyHashSet } from "../util/ReadOnlyEmptyHashSet.js";
 import { RtExternalIdentifier } from "../util/RtExternalIdentifier.js";
 import { RtIdentifierTemplate } from "../util/RtIdentifierTemplate.js";
+import { RtIdentifierTemplateLayerSpec } from "../util/RtIdentifierTemplateLayerSpec.js";
 import { RtInternalIdentifier } from "../util/RtInternalIdentifier.js";
 
 import { IFormaleFehlerConstants } from "../util/IFormaleFehlerConstants.js";
@@ -473,7 +477,7 @@ export class MainValidatorController extends RuntimeController {
 				fehlerTyp,
 				localizable,
 				false,
-				new ArraySet<number[]>() as any
+				ReadOnlyEmptyHashSet.instance<number[]>()
 			);
 		} else {
 			// since ErrorType.<value> returns a number and 0 is a valid value for the enum
@@ -488,7 +492,7 @@ export class MainValidatorController extends RuntimeController {
 				idx,
 				key,
 				fehlerTyp,
-				new ArraySet<number[]>() as any
+				ReadOnlyEmptyHashSet.instance<number[]>()
 			);
 		}
 	}
@@ -503,7 +507,7 @@ export class MainValidatorController extends RuntimeController {
 		const errorTexts = this.metaData.getErrorTexts(this._regelName);
 		const parameterMapping = this.metaData.getParameterMapping(this._regelName);
 		const args: LocalizableArgs = this._substParameters(idx, parameterMapping);
-		const localizableKey = LocalizableUtil.createRuleErrorKey(this._regelName, this.metaData);
+		const localizableKey = LocalizableUtil.createRuleErrorKey(this._regelName, this.metaData.getModelId());
 		const localizable: Localizable = {
 			key: localizableKey,
 			args,
@@ -525,22 +529,25 @@ export class MainValidatorController extends RuntimeController {
 			// we take key otherwise we cannot do fehlerTyp === ErrorType.OMISSION_ERROR
 			return;
 		}
-		const id: RtInternalIdentifier = RtInternalIdentifier.createFromIterationState(
-			fehlerFeldName,
-			idx
-		);
+		const id = RtInternalIdentifier.createFromIterationState(fehlerFeldName, idx);
+		const idExtern = this.validationCache.convert2Extern(id);
 
-		const idExtern: RtExternalIdentifier = this.validationCache.convert2Extern(id);
-
-		const referencedFields: HashSet<RtExternalIdentifier> = acquireReferencedFields
+		const referencedFields = acquireReferencedFields
 			? this._getReferencedFields(idx, this._regelName, erroneousRepetitions)
-			: new HashSet<RtExternalIdentifier>();
-		const refOmissionFields: HashSet<RtExternalIdentifier> =
-			fehlerTyp === ErrorType.OMISSION_ERROR && acquireReferencedFields
-				? this._getRefOmissionFields(idx, this._regelName, erroneousRepetitions)
-				: new HashSet<RtExternalIdentifier>();
-		const unknowns: HashSet<RtExternalIdentifier> = this._extractUnknowns(referencedFields);
-		this._addValidatorMessageToResult(key, fehlerTyp, localizable, idExtern, referencedFields as any, refOmissionFields as any, unknowns as any);
+			: ReadOnlyEmptyHashSet.instance<RtExternalIdentifier>();
+		const refOmissionFields = fehlerTyp === ErrorType.OMISSION_ERROR && acquireReferencedFields
+			? this._getRefOmissionFields(idx, this._regelName, erroneousRepetitions)
+			: ReadOnlyEmptyHashSet.instance<RtExternalIdentifier>();
+		const unknowns = this._extractUnknowns(referencedFields);
+
+		const referencedEntities = acquireReferencedFields
+			? this._getReferencedEntities(this._regelName, erroneousRepetitions)
+			: [];
+		const referencedOmissionEntities = acquireReferencedFields
+			? this._getRefOmissionEntities(this._regelName, erroneousRepetitions)
+			: [];
+		const cause = this.createCause(idExtern, idx, referencedEntities, referencedOmissionEntities, fehlerTyp);
+		this._addValidatorMessageToResult(key, fehlerTyp, localizable, idExtern, referencedFields, refOmissionFields, unknowns, cause);
 	}
 
 	private _addValidatorMessageToResult(
@@ -550,8 +557,10 @@ export class MainValidatorController extends RuntimeController {
 		idExtern: RtExternalIdentifier,
 		referencedFields: Set<IIdentifier>,
 		refOmissionFields: Set<IIdentifier>,
-		unknowns: Set<IIdentifier>
+		unknowns: Set<IIdentifier>,
+		cause: ICause
 	) {
+		let severity: SeverityType;
 		if (this._pruefErgebnisTyp === PruefErgebnisTyp.Fehler) {
 			this.pruefErgebnis.addError(
 				this._regelName,
@@ -563,6 +572,7 @@ export class MainValidatorController extends RuntimeController {
 				refOmissionFields,
 				unknowns
 			);
+			severity = SeverityType.ERROR;
 		} else if (this._pruefErgebnisTyp === PruefErgebnisTyp.Hinweis) {
 			this.pruefErgebnis.addHint(
 				this._regelName,
@@ -574,6 +584,7 @@ export class MainValidatorController extends RuntimeController {
 				refOmissionFields,
 				unknowns
 			);
+			severity = SeverityType.HINT;
 		} else {
 			this.pruefErgebnis.addInfo(
 				this._regelName,
@@ -585,16 +596,16 @@ export class MainValidatorController extends RuntimeController {
 				refOmissionFields,
 				unknowns
 			);
+			severity = SeverityType.INFO;
 		}
+		this.pruefErgebnis.addMessageV2(this._regelName, key, [localizable], fehlerTyp, severity, cause);
 		this.logger.logRegelFires(this._regelName, idExtern);
 	}
 
-	private _extractUnknowns(
-		referencedFields: HashSet<RtExternalIdentifier>
-	): HashSet<RtExternalIdentifier> {
-		const result: HashSet<RtExternalIdentifier> = new HashSet<RtExternalIdentifier>();
+	private _extractUnknowns(referencedFields: HashSet<RtExternalIdentifier>): HashSet<RtExternalIdentifier> {
+		const result = new HashSet<RtExternalIdentifier>();
 		for (const refField of referencedFields) {
-			if (ArrayUtils.indexOf(refField.getIndices(), IIdentifier.UNKNOWN) >= 0) {
+			if (refField.getIndices().includes(IIdentifier.UNKNOWN)) {
 				result.add(refField);
 			}
 		}
@@ -633,12 +644,11 @@ export class MainValidatorController extends RuntimeController {
 		ruleName: string,
 		erroneousRepetitions: Set<number[]>
 	): HashSet<RtExternalIdentifier> {
-		const fields: HashSet<RtInternalIdentifier> =
-			this.metaData.getReferencedFieldsWithoutReplacement(ruleName);
+		const fields = this.metaData.getReferencedFieldsWithoutReplacement(ruleName);
 		const result: HashSet<RtExternalIdentifier> = new HashSet<RtExternalIdentifier>();
 		for (const field of fields) {
 			const refId = this._resolveExternField(field, idx);
-			if (ArrayUtils.contains(field.getIndices(), IIdentifier.REP_NOT_UNQ_REF_LEVEL_HAS_TO_BE_REPLACED)) {
+			if (field.getIndices().includes(IIdentifier.REP_NOT_UNQ_REF_LEVEL_HAS_TO_BE_REPLACED)) {
 				// special case: erroneousRepetitions is empty. This means, in the RepetitinoNotUnique part of the rule condition
 				// there was no error. So it is ok not to add the field to the referenced fields
 				erroneousRepetitions.forEach(errRep => result.add(this._replaceRepNonUnqConstants(refId, errRep)));
@@ -657,6 +667,174 @@ export class MainValidatorController extends RuntimeController {
 			}
 		}
 		return new RtExternalIdentifier(id.getName(), newIndices);
+	}
+
+	// ===========================================================
+	// V2 message API: possibly-causing entities (customRefErrorEntities)
+	// ===========================================================
+
+	/**
+	 * Builds the {@link ICause} for a message, grouping the possibly-causing entities by given-ness.
+	 *
+	 * For {@link ErrorType.OMISSION_ERROR} two groups are produced: group 0 = not-given omission
+	 * entities, group 1 = given referenced entities (with entities that are both given and not-given
+	 * deduped into group 0 only). For {@link ErrorType.VALUE_ERROR} a single unioned group is produced.
+	 */
+	public createCause(
+		idExtern: RtExternalIdentifier,
+		iterState: IterationState,
+		referencedEntities: RtIdentifierTemplate[],
+		refOmissionEntities: RtIdentifierTemplate[],
+		fehlerTyp: ErrorType
+	): ICause {
+		const emptyEntities = this._filter4GivenAndMapToIIdentifier(refOmissionEntities, false, iterState);
+		const givenEntities = this._filter4GivenAndMapToIIdentifier(referencedEntities, true, iterState);
+		if (fehlerTyp === ErrorType.OMISSION_ERROR) {
+			// an entity that is both given and not-given (e.g. aggregation [0]) is deduped into group 0 only
+			const givenOnly: HashSet<IIdentifier> = new HashSet<IIdentifier>();
+			for (const e of givenEntities) {
+				if (!emptyEntities.has(e)) {
+					givenOnly.add(e);
+				}
+			}
+			return new ErrorCause(idExtern, [emptyEntities, givenOnly]);
+		} else {
+			const allEntities: HashSet<IIdentifier> = new HashSet<IIdentifier>();
+			for (const e of givenEntities) {
+				allEntities.add(e);
+			}
+			for (const e of emptyEntities) {
+				allEntities.add(e);
+			}
+			return new ErrorCause(idExtern, [allEntities]);
+		}
+	}
+
+	/**
+	 * Filters the given entity templates to keep only the ones that are given (`given==true`) or
+	 * not-given (`given==false`) for the specified `iterState`, and maps them to external identifiers.
+	 * Aggregation layers are represented by a `0` (wildcard) in the resulting identifier.
+	 */
+	private _filter4GivenAndMapToIIdentifier(
+		refEntities: RtIdentifierTemplate[],
+		given: boolean,
+		iterState: IterationState
+	): HashSet<IIdentifier> {
+		const result = new HashSet<IIdentifier>();
+		for (const tpl of refEntities) {
+			if (this._isGiven(tpl, given, iterState)) {
+				// isGiven has already been called *before* this conversion, so it is ok to use
+				// createFromTemplateReplaceAggregationsWith0DoNotProcessFurther()
+				const intId = RtInternalIdentifier.createFromTemplateReplaceAggregationsWith0DoNotProcessFurther(tpl, iterState);
+				result.add(this.validationCache.convert2Extern(intId, true));
+			}
+		}
+		return result;
+	}
+
+	private _isGiven(id: RtIdentifierTemplate, given: boolean, iterState: IterationState): boolean {
+		if (!EntityUtil.uniqueNameIsRootGroup(id.getUniqueName())) {
+			// TODO [A12K-2281] maybe we need still more tests, particularly for partialValidation
+			if (given) {
+				return this.mindestensEineEntityAngegeben(iterState, [id]).isKnownAndTrue();
+			} else {
+				return this.nichtAlleOderKeineEntityAngegeben(iterState, [id], true).isKnownAndTrue();
+			}
+		} else {
+			const lfdNr: number = this._deriveLfdNr4Vordruck(id, iterState);
+			const rootGroupName: string = EntityUtil.getRootGroupName(this.metaData.getPfadName(id.getUniqueName()));
+			if (given) {
+				return this.mindestensEinVordruckAngegeben(rootGroupName, lfdNr, iterState, id) !==
+					ValidierungsErgebnis.FALSE_OR_UNKNOWN;
+			} else {
+				if (id.isAggregation()) {
+					// for root-groups, we lack an implementation of nichtAlleOderKeine...Angegeben, so we
+					// keep this "err-on-safe-side" shortcut: assume there is always at least one not-given
+					// repetition for repeatable root groups.
+					return true;
+				}
+				// use mindestensEinVordruckAngegeben (instead of keinVordruckAngegeben) so that we err on
+				// the side of returning true, avoiding incorrectly filtering out (omission) entities.
+				return this.mindestensEinVordruckAngegeben(rootGroupName, lfdNr, iterState, id) ===
+					ValidierungsErgebnis.FALSE_OR_UNKNOWN;
+			}
+		}
+	}
+
+	private _deriveLfdNr4Vordruck(id: RtIdentifierTemplate, iterState: IterationState): number {
+		const layersResolved: RtIdentifierTemplateLayerSpec[] =
+			EntityUtil.resolveIterations(id.getLayerSpec(), iterState.getIndexes());
+		let lfdNr: number = layersResolved[0].getIdxStart();
+		const lfdNrEnd: number = layersResolved[0].getIdxEnd();
+		if (lfdNr !== lfdNrEnd) {
+			// replace explicit ranges by IIdentifier.ALL_INDICES
+			lfdNr = IIdentifier.ALL_INDICES;
+		}
+		return lfdNr;
+	}
+
+	private _getReferencedEntities(
+		ruleName: string,
+		erroneousRepetitions: Set<number[]>
+	): RtIdentifierTemplate[] {
+		const entities: HashSet<RtIdentifierTemplate> =
+			this.metaData.getReferencedEntitiesWithoutReplacement(ruleName);
+		return this._expandRepetitionNotUniqueIndices(erroneousRepetitions, entities);
+	}
+
+	private _getRefOmissionEntities(
+		ruleName: string,
+		erroneousRepetitions: Set<number[]>
+	): RtIdentifierTemplate[] {
+		const entities: HashSet<RtIdentifierTemplate> =
+			this.metaData.getReferencedOmissionEntitiesWithoutReplacement(ruleName);
+		return this._expandRepetitionNotUniqueIndices(erroneousRepetitions, entities);
+	}
+
+	private _expandRepetitionNotUniqueIndices(
+		erroneousRepetitions: Set<number[]>,
+		entities: HashSet<RtIdentifierTemplate>
+	): RtIdentifierTemplate[] {
+		const result: RtIdentifierTemplate[] = [];
+		for (const entity of entities) {
+			if (
+				entity.getLayerSpec().some(
+					lSpec => lSpec.getIdxStart() === IIdentifier.REP_NOT_UNQ_REF_LEVEL_HAS_TO_BE_REPLACED
+				)
+			) {
+				erroneousRepetitions.forEach(errRep =>
+					result.push(this._replaceRepNonUnqConstantsTemplate(entity, errRep))
+				);
+			} else {
+				result.push(entity);
+			}
+		}
+		return result;
+	}
+
+	private _replaceRepNonUnqConstantsTemplate(
+		entity: RtIdentifierTemplate,
+		erroneousRepetition: number[]
+	): RtIdentifierTemplate {
+		const oldLayers: RtIdentifierTemplateLayerSpec[] = entity.getLayerSpec();
+		const newLayers: RtIdentifierTemplateLayerSpec[] = [];
+		for (let i = 0; i < oldLayers.length; i++) {
+			if (oldLayers[i].getIdxStart() === IIdentifier.REP_NOT_UNQ_REF_LEVEL_HAS_TO_BE_REPLACED) {
+				const idxStartAndEnd: number = erroneousRepetition[i];
+				newLayers.push(new RtIdentifierTemplateLayerSpec(idxStartAndEnd, idxStartAndEnd));
+			} else {
+				newLayers.push(oldLayers[i]);
+			}
+		}
+		return new RtIdentifierTemplate(
+			entity.getUniqueName(),
+			newLayers,
+			entity.getSemanticIndex(),
+			entity.isField(),
+			entity.getCategory(),
+			entity.getFilter(),
+			entity.isOuter()
+		);
 	}
 
 	public preliminaryError(
@@ -687,7 +865,7 @@ export class MainValidatorController extends RuntimeController {
 	}
 
 	private _createMandatoryErrorWithFallback(id: RtInternalIdentifier, idExtern: RtExternalIdentifier, args: LocalizableArgs, errorType: ErrorType) {
-		const key1 = LocalizableUtil.createFieldRequiredErrorKey(idExtern, this.metaData);
+		const key1 = LocalizableUtil.createFieldRequiredErrorKey(idExtern.getName(), this.metaData.getModelId());
 		// These might be empty
 		const defaults1 = this.metaData.getErrorMessage4Req(id.getName());
 		const error: Localizable = { key: key1, args, defaults: defaults1 };

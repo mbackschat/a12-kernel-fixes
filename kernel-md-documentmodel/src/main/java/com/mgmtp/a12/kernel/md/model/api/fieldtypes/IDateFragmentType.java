@@ -60,10 +60,10 @@ public interface IDateFragmentType extends IFieldType {
 	String getFormatOfFragment();
 
 	/**
-	 * @return {@code true} if a date fragment containing the year part before {@code 1900} should
-	 * 		be considered as a wrong input, otherwise {@code false}. The default value is
-	 *        {@code false}.
+	 * @deprecated isYoungerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute will be
+	 * removed with A12K-4439.
 	 */
+	@Deprecated(since = "31.2.0")
 	boolean isYoungerThan1900Check();
 
 	/**

@@ -31,82 +31,18 @@
  */
 package com.mgmtp.a12.kernel.md.model.migration.internal;
 
-import org.apache.commons.lang3.Validate;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Describes occurred migration error.
  */
+@RequiredArgsConstructor @Getter
 public class MigrationError {
 
-	private final MigrationErrorType errorType;
-	private String elementId;
-	private String message;
-
-	/**
-	 * Instantiates a new Migration error.
-	 *
-	 * @param errorType
-	 * 		the error type
-	 */
-	public MigrationError(final MigrationErrorType errorType) {
-		Validate.notNull(errorType, "errorType must not be NULL");
-		this.errorType = errorType;
-	}
-
-	// BUILDER Methods -----------------------------------------------
-
-	/**
-	 * With element id.
-	 *
-	 * @param elementId
-	 * 		the element id
-	 * @return the migration error
-	 */
-	public MigrationError withElementId(final String elementId) {
-		this.elementId = elementId;
-		return this;
-	}
-
-	/**
-	 * With message.
-	 *
-	 * @param message
-	 * 		the message
-	 * @return the migration error
-	 */
-	public MigrationError withMessage(final String message) {
-		this.message = message;
-		return this;
-	}
-
-	// Getter Methods -----------------------------------------------
-
-	/**
-	 * Gets error type.
-	 *
-	 * @return the error type
-	 */
-	public MigrationErrorType getErrorType() {
-		return errorType;
-	}
-
-	/**
-	 * Gets element id.
-	 *
-	 * @return the element id
-	 */
-	public String getElementId() {
-		return elementId;
-	}
-
-	/**
-	 * Gets message.
-	 *
-	 * @return the message
-	 */
-	public String getMessage() {
-		return message;
-	}
+	private final @NonNull MigrationErrorType errorType;
+	private final @NonNull String message;
 
 	@Override
 	public String toString() {

@@ -40,12 +40,14 @@ public enum CalculationErrorType {
 	MVK_ERROR_REFERENCE_TO_CALCULATED_FIELD, // "Das berechnete Feld darf in Vorbedingungen und den Berechnungsfunktionen nicht verwendet werden."
 	MVK_ERROR_ITERATION_UNCHECKED, // "Ist das berechnete Feld wiederholbar, muss für jede Teilberechnung sichergestellt werden, dass für die jeweilige Wiederholung auch andere Werte existieren."
 	MVK_ERROR_INVALID_COMPARISON, // "Teilberechnungen müssen mit einem Ungleich- oder Toleranzvergleich des berechneten Feldes mit der Berechnungsfunktion enden."
+	// Note: The constant 'MVK_ERROR_INVALID_ENUM_CALCULATION' is also referenced as a string in the parser
 	MVK_ERROR_INVALID_ENUM_CALCULATION, // "Enumerationswerte dürfen nur aus Konstanten, Enumerationen oder Kategorien von Enumerationen zugewiesen werden, die zu den Enumerationswerten passen."
 	MVK_ERROR_COMPARISON_WITH_OR, // "Der Berechnungsvergleich muss mit UND von der Vorbedingung getrennt werden."
 	MVK_ERROR_EMPTY_PRECONDITION, // "Leere Vorbedingung hier nicht erlaubt."
 	MVK_ERROR_INVALID_LANGUAGE_FEATURE, // "In Berechnungsregeln ist das Sprachkonstrukt '%s' nicht erlaubt."
 	MVK_ERROR_INVALID_FIELD_GATE, // "Die Regelbedingung muss von der Form FeldAngegeben(<BerechnetesFeld>) UND ... sein."
 	MVK_ERROR_WRONG_ROUNDING_MODE, // "Bei exakten Berechnungsvergleichen darf nur die Rundungsart 'Exakt' verwendet werden."
+	MVK_ERROR_INVALID_FIELDTYPE, // "Bei Toleranzvergleichen mit Rundungsart 'Exakt' darf das berechnete Felde nur vom Typ 'Zahl' sein."
 
 	MVK_ERROR_CALC_CYCLE, // Folgende Berechnete Felder bilden über die in Klammern angegeben Regeln verbunden einen Zyklus: %s.
 

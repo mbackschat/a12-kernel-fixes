@@ -43,13 +43,11 @@ import com.mgmtp.a12.kernel.md.model.internal.service.utils.DocModelToIECMapping
 class DateTypeImpl implements IDateType {
 
 	private final String dateFormat;
-	private final boolean additionalCheck;
 	private final PartlyKnownDateType partlyKnownDateType;
 
-	public DateTypeImpl(final String dateFormat, final boolean youngerThan1900Check, final DatePrecision datePrecision) {
+	public DateTypeImpl(final String dateFormat, final DatePrecision datePrecision) {
 		Validate.notBlank(dateFormat);
 		this.dateFormat = dateFormat;
-		this.additionalCheck = youngerThan1900Check;
 		this.partlyKnownDateType = DocModelToIECMappingUtils.convertDatePrecision(datePrecision);
 	}
 
@@ -58,9 +56,14 @@ class DateTypeImpl implements IDateType {
 		return dateFormat;
 	}
 
+	/**
+	 * @deprecated isAdditionalCheck is no longer evaluated and its value is therefore irrelevant. This attribute will be
+	 * removed with A12K-4439.
+	 */
+	@Deprecated(since = "31.2.0")
 	@Override
 	public boolean isAdditionalCheck() {
-		return additionalCheck;
+		return false;
 	}
 
 	@Override

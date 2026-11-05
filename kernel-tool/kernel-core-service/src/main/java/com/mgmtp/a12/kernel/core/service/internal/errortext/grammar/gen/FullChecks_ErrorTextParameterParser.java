@@ -696,6 +696,15 @@ public class FullChecks_ErrorTextParameterParser extends GrammarOnly_ErrorTextPa
 		checker.check(context);
 	}
 
+	@Override protected void checkEntitySpec(EntitySpecContext ctx) {
+		EntityRef ref = referencedEntities.get(ctx);
+		// A12K-4276: climbing to the technical root ("/") is allowed as a turning point into a sibling root group ("../../RG2/x"),
+		// but a path ending on it is not a valid target (mirrors the condition side's CheckEntitySpecImpl).
+		if (ref != null && ref.getEntity() != null && EntityUtils.isTechnicalRootPath(ref.getEntity().getFullName())) {
+			throw composeError(FehlertextErrorType.ERROR_TEXT_PARAMETER_TOO_MANY_PARENT_GROUPS, ctx.getText());
+		}
+	}
+
 	/**
 	 * checks only that the path does not climb above the root group
 	 */

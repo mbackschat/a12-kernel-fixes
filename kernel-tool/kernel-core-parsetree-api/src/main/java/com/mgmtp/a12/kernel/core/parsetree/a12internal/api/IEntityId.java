@@ -204,7 +204,7 @@ public interface IEntityId extends IParseTreeEntity {
 	 * @return a {@link PathNotationConfig} that contains additional details if the IEntityId is a
 	 * 		relative path (with upward '..' parts).
 	 * 		Has to be implemented in implementations. The default implementation always returns
-	 * 		<code>PathNotationConfig.NO_RELATIVE_UPWARD_PATH</code>.
+	 * 		<code>{@link PathNotationConfig#DEFAULT_MAYBELOSSY}</code>.
 	 */
 	public default PathNotationConfig getPathNotationConfig() {
 		return PathNotationConfig.DEFAULT_MAYBELOSSY;

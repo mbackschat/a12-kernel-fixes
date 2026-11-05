@@ -33,11 +33,14 @@ import type { Localizable, LocalizableArgs } from "@com.mgmtp.a12.utils/utils-lo
 
 
 import type { IIdentifier, IResult, ValidationMode } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
-import { ErrorType } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import { ErrorType, SeverityType } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 import {
     RuntimeFormalErrorEnum
 } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
+
+import { ErrorCause } from "../util/ErrorCause.js";
+
 
 import type { IFormatDefinition } from "../formatdef/IFormatDefinition.js";
 import { ValidierungParam } from "../formatdef/ValidierungParam.js";
@@ -216,6 +219,14 @@ export class FormalChecker {
             referencedFields,
             refOmissionErrorResponsible,
             new Set<IIdentifier>()
+        );
+        results.addMessageV2(
+            IFormaleFehlerConstants.FORMALE_PRUEFUNG,
+            key,
+            msgs,
+            errorType,
+            SeverityType.ERROR,
+            ErrorCause.createSingleFieldCause(idExtern)
         );
     }
 

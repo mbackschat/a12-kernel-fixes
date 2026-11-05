@@ -57,12 +57,14 @@ public class ArchiveExtractor {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ArchiveExtractor.class);
 	private final boolean logToSysError;
+	private   boolean errorOccured;
 
 	public ArchiveExtractor(boolean logToSysError) {
 		this.logToSysError = logToSysError;
 	}
 
 	private void error(String msg, Exception e) {
+		errorOccured = true;
 		if (logToSysError) {
 			System.err.println(msg);
 			e.printStackTrace(System.err);
@@ -192,4 +194,7 @@ public class ArchiveExtractor {
 		return parentPath.resolve(fileNameWoExtension + CodeGenConstants.TS_DEF_CODE_SUFFIX);
 	}
 
+	public int getExitStatus() {
+		return errorOccured? 1: 0;
+	}
 }

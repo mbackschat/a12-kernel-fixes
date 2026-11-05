@@ -58,6 +58,12 @@ public class CodeGenTableHolderBuilder extends CodeGenModelBuilder {
 		this.enumerationTables = enumerationTables;
 	}
 
+	public List<String> getTableNames() {
+		return enumerationTables.keySet().stream()
+				.sorted()
+				.toList();
+	}
+
 	public List<CodeGenTableCompressed> getCodeGenTablesCompressed() {
 		List<CodeGenTableCompressed> result = new ArrayList<>();
 		if (data.getParams().getProgrammingLanguage() == ProgrammingLanguage.CPLUS) {

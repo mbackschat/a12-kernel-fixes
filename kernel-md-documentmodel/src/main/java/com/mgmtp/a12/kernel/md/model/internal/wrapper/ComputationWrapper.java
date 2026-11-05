@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 
 import com.mgmtp.a12.kernel.md.model.a12internal.Computation;
 import com.mgmtp.a12.kernel.md.model.a12internal.Computation.ComputationAlternative;
-import com.mgmtp.a12.kernel.md.model.a12internal.Field;
 import com.mgmtp.a12.kernel.md.model.api.IComputation;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModelObjectReference;
 import com.mgmtp.a12.kernel.md.model.api.IField;
@@ -87,14 +86,16 @@ public class ComputationWrapper extends ElementWrapper implements IComputation {
 
 	@Override
 	public @NonNull IDocumentModelObjectReference<IField> getComputedField() {
-		com.mgmtp.a12.kernel.md.model.a12internal.IDocumentModelObjectReference<Field> computedField = computation.getComputedField();
-		return new DocumentModelObjectReferenceWrapper<>(
-				computedField.getRelativePath(),
-				computedField.getDocumentModelObject().map(FieldWrapper::new).orElse(null)
-		);
+		return DocumentModelObjectReferenceWrapper.wrapField(computation.getComputedField());
 	}
 
 	@Override
+	public Optional<String> getAdditionalParserInformation() {
+		return computation.getAdditionalParserInformation();
+	}
+
+	@Override
+	@Deprecated(since = "31.2.0")
 	public @NonNull List<String> getErrorCodesToSuppress() {
 		return computation.getErrorCodesToSuppress();
 	}
@@ -118,6 +119,11 @@ public class ComputationWrapper extends ElementWrapper implements IComputation {
 	@Override
 	public Optional<String> getRoundingMode() {
 		return computation.getRoundingMode();
+	}
+
+	@Override
+	public Optional<String> getErrorCode() {
+		return computation.getErrorCode();
 	}
 
 	@Override

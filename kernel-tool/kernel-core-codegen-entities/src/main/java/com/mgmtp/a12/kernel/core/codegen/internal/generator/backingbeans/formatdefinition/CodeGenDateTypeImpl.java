@@ -53,8 +53,6 @@ public class CodeGenDateTypeImpl extends CodeGenFeldTypBasis {
 
 	private String format;
 
-	//wird auf TRUE gesetzt, wenn auf Datum > 1900 geprüft werden soll
-	private boolean zusatzPruefung;
 	private PartlyKnownDateType teilbekanntArt;
 
 	private Locale aktuelleSprache;
@@ -70,7 +68,6 @@ public class CodeGenDateTypeImpl extends CodeGenFeldTypBasis {
 		}
 		IDateType dateType = (IDateType) type;
 		this.format = dateType.getFormat();
-		this.zusatzPruefung = dateType.isAdditionalCheck();
 		this.teilbekanntArt = dateType.partlyKnownDate();
 		if (teilbekanntArt != PartlyKnownDateType.BEKANNT && !teilbekanntesDatumErlaubt(format)) {
 			throw new IllegalArgumentException("Teilbekanntes Datum nicht erlaubt für Format: " + format);
@@ -86,10 +83,6 @@ public class CodeGenDateTypeImpl extends CodeGenFeldTypBasis {
 	public static boolean teilbekanntesDatumErlaubt(String format) {
 		String tmpFormat = format.toUpperCase().replace("D", "T").replace("Y", "J");
 		return tmpFormat.contains("TT") && tmpFormat.contains("MM") && tmpFormat.contains("JJJJ");
-	}
-
-	public boolean isZusatzPruefung() {
-		return zusatzPruefung;
 	}
 
 	public String getTeilbekanntArt() {
@@ -182,7 +175,7 @@ public class CodeGenDateTypeImpl extends CodeGenFeldTypBasis {
 	 */
 	public int hashCode() {
 		int code = hashCodeHelperAdd(37 * transformFormat(format).hashCode(), teilbekanntArt.ordinal());
-		return hashCodeHelperAdd(code, zusatzPruefung ? 1 : 0);
+		return hashCodeHelperAdd(code, 0);
 	}
 
 	/**
@@ -204,8 +197,7 @@ public class CodeGenDateTypeImpl extends CodeGenFeldTypBasis {
 		CodeGenDateTypeImpl o = (CodeGenDateTypeImpl) other;
 
 		return (transformFormat(format).equals(transformFormat(o.format))
-				&& teilbekanntArt.equals(o.teilbekanntArt)
-				&& zusatzPruefung == o.zusatzPruefung);
+				&& teilbekanntArt.equals(o.teilbekanntArt));
 	}
 
 	public void setSprache(Locale aktuelleSprache) {

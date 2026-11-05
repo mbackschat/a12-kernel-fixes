@@ -31,20 +31,23 @@
  */
 package com.mgmtp.a12.kernel.core.parser.internal.check.bedingung;
 
+import org.antlr.v4.runtime.Token;
+
 import com.mgmtp.a12.kernel.core.parser.internal.check.CheckImplLenientBaseClass;
-import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorTypesEnum;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.PreambleContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.Lenient_ConditionParser;
 
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Implements the checks for <code>checkPreamble</code>.
+ * Implements the lenient checks for <code>checkPreamble</code>.
  * <p>
- * The given warning to be suppressed is tested if it is supported and is added as suppressed
- * warning to the parser.
+ * Every warning specified in the preamble is registered as a suppressed warning on the parser
+ * <em>without</em> validation; unknown warning names are accepted silently. Multiple warnings can be
+ * specified as a comma-separated list.
  * <p>
- * Currently, only {@link ParserErrorTypesEnum#MVK_INVALID_COMPARE_DEC_PLACES} is supported.
+ * The strict variant {@link CheckPreambleImpl} additionally validates that only supported warnings
+ * are specified.
  */
 public class CheckPreambleLenientImpl extends CheckImplLenientBaseClass {
 
@@ -53,6 +56,8 @@ public class CheckPreambleLenientImpl extends CheckImplLenientBaseClass {
 	}
 
 	public void check(@NotNull PreambleContext ctx) {
-		parser.addSuppressedWarning(ctx.n.getText());
+		for (Token warning : ctx.n) {
+			parser.addSuppressedWarning(warning.getText());
+		}
 	}
 }

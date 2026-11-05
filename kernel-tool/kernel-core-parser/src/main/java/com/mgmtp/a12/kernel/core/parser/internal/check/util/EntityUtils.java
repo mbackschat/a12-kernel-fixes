@@ -108,6 +108,14 @@ public class EntityUtils {
 	}
 
 	/**
+	 * @return true if the given path denotes the technical {@code DocumentModelRoot} (i.e. a single slash {@code "/"}, one level
+	 * 		above the root groups). See {@link TechnicalRootEntity}.
+	 */
+	public static boolean isTechnicalRootPath(String path) {
+		return TechnicalRootEntity.INSTANCE.getFullName().equals(path);
+	}
+
+	/**
 	 * returns true if the given ancestorGroup is on the given descendentPath. I.e. the descendentPath starts with the full name
 	 * of the ancestorGroup. if both are equal, true is returned.
 	 *
@@ -321,7 +329,7 @@ public class EntityUtils {
 	}
 
 	@SuppressWarnings("serial")
-	public static class RelativeBeyondRootException extends Exception {
+	public static class RelativeBeyondDocumentRootException extends Exception {
 	}
 
 	/**
@@ -344,51 +352,24 @@ public class EntityUtils {
 	 * @return the result of joining path and toAdd by using the semantics of '..' as stepping up
 	 * 		the path toward root group
 	 *
-	 * @throws RelativeBeyondRootException
+	 * @throws RelativeBeyondDocumentRootException
 	 * 		exception is thrown if too many upward steps ".." are
 	 * 		contained in toAdd
 	 */
-	public static String relPath2AbsPath(String path, String toAdd) throws RelativeBeyondRootException {
-		String[] parts = toAdd.split(SEPARATOR);
+	public static String relPath2AbsPath(String path, String toAdd) throws RelativeBeyondDocumentRootException {
+		String[] partsToAdd = toAdd.split(SEPARATOR);
 		List<String> pathParts = new ArrayList<>(Arrays.asList(StringUtils.split(path, SEPARATOR)));
-		for (String part : parts) {
-			if (part.startsWith(PATH_UP)) {
-				if (pathParts.size() - 2 < CheckRelUpImpl.MIN_LEVEL_FOR_UPWARD_PATHS) {//we reached the root group, we can't go further up
-					throw new RelativeBeyondRootException();
+		for (String partToAdd : partsToAdd) {
+			if (partToAdd.startsWith(PATH_UP)) {
+				if (pathParts.isEmpty()) {//we are at the document root - we cannot step further up
+					throw new RelativeBeyondDocumentRootException();
 				}
-				pathParts.remove(pathParts.size() - 1);
+				pathParts.removeLast();
 			} else {
-				pathParts.add(part);
+				pathParts.add(partToAdd);
 			}
 		}
 		return SEPARATOR + String.join(SEPARATOR, pathParts);
-	}
-
-	/**
-	 * Note: does not warn/reject for inputs where the path ends up pointing to a different root group.
-	 * <p/>
-	 * Will always create relpaths with implicit turning point (e.g. "../G2/f1") and never with explicit turning point
-	 * ("..G/G2/f1")
-	 */
-	public static String absPath2RelPathNoValidate(String abspath, String ruleGroupAbsPath, boolean replaceEmptyPathByDotSlash) {
-		int lowestCommonAncestorLevel = getCommonAncestorLevel(abspath, ruleGroupAbsPath); // 0-based level
-		String[] absPathParts = getPathParts(abspath);
-		String[] ruleGroupAbsPathParts = getPathParts(ruleGroupAbsPath);
-		int ruleGroupLevel = ruleGroupAbsPathParts.length - 1; // 0-based
-
-		String relPath = StringUtils.repeat("../", ruleGroupLevel - lowestCommonAncestorLevel)
-				+ String.join(SEPARATOR,
-				Arrays.copyOfRange(absPathParts, lowestCommonAncestorLevel + 1, absPathParts.length));
-		if (replaceEmptyPathByDotSlash && relPath.isEmpty()) {
-			return "./";
-		} else {
-			return relPath;
-		}
-	}
-
-	public static String entityId2RelpathNoValidate(IEntityId e, IRule rule, boolean replaceEmptyPathByDotSlash) {
-		return EntityUtils.absPath2RelPathNoValidate(e.getFullName(), EntityUtils.getParentPath(rule.getFullName()),
-				replaceEmptyPathByDotSlash);
 	}
 
 	/**

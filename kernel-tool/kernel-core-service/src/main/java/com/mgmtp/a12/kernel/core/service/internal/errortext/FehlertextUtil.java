@@ -35,6 +35,7 @@ package com.mgmtp.a12.kernel.core.service.internal.errortext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -248,13 +249,11 @@ public class FehlertextUtil {
 	}
 
 	private static String makeRelOrAbsPath(@NonNull String fullName, @NonNull IRule rule) {
-		var ruleGroupPath = ElementPathUtils.getParentPath(rule.getFullName());
-		var replacedPath = fullName;
-		if (EntityUtils.getRootGroupName(ruleGroupPath).equals(EntityUtils.getRootGroupName(fullName))) {
-			//use relPath:
-			replacedPath = EntityUtils.absPath2RelPathNoValidate(fullName, ruleGroupPath, true);
-		}
-		return replacedPath;
+		var path = ElementPathUtils.splitAbsPath(fullName);
+		var rulePath = ElementPathUtils.splitAbsPath(rule.getFullName());
+		return Objects.equals(rulePath.getFirst(), path.getFirst()) // same root group?
+				? ElementPathUtils.relPath(path, rulePath.subList(0, rulePath.size() - 1)) // -> relative path from rule group
+				: fullName; // -> absolute path
 	}
 
 	/**

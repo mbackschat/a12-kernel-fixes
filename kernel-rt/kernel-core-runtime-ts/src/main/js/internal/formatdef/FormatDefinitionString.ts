@@ -341,7 +341,7 @@ export class FormatDefinitionString implements IFormatDefinition {
 
         if (this._pattern != undefined) {
             if (!this._pattern.test(wert)) {
-                const key = LocalizableUtil.createFieldErrorKey(param.getIdentifier(), param.getMetaData());
+                const key = LocalizableUtil.createFieldErrorKey(param.getIdentifier().getName(), param.getMetaData().getModelId());
                 const args = FormatDefinitionString._getLocalizableArgs(param);
                 const defaults = this.getFehlertexte();
                 const fehler: Localizable = {
@@ -365,7 +365,7 @@ export class FormatDefinitionString implements IFormatDefinition {
                 match = true;
             }
             if (!match) {
-                const key1 = LocalizableUtil.createFieldErrorKey(param.getIdentifier(), param.getMetaData());
+                const key1 = LocalizableUtil.createFieldErrorKey(param.getIdentifier().getName(), param.getMetaData().getModelId());
                 const args = FormatDefinitionString._getLocalizableArgs(param);
                 const defaults1 = this.getFehlertexte();
                 const error: Localizable = { key: key1, args, defaults: defaults1 };

@@ -36,42 +36,47 @@ import java.util.Optional;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.IDocumentModelMigratorResult;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.exceptions.DocumentModelMigratorException;
+import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationResult;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationResultType;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor @Getter
 public class DocumentModelMigratorResultImpl implements IDocumentModelMigratorResult {
+	private final @NonNull String documentModelId;
+	private final @NonNull String originalInputString;
+	private final @NonNull MigrationResultType type;
+	private final String migratedDocumentModel;
+	private final MigrationResult migrationResult;
+	private final DocumentModelMigratorException exception;
 
-	private final String docModelId;
-	private String migratedDocModel;
-	private DocumentModelMigratorException exception;
-	private final MigrationResultType type;
-
-	public DocumentModelMigratorResultImpl(String docModelId, String migratedDocModel, MigrationResultType type) {
-		this.docModelId = docModelId;
-		this.migratedDocModel = migratedDocModel;
-		this.type = type;
+	public static DocumentModelMigratorResultImpl successfulOrNotRequired(
+			@NonNull String documentModelId,
+			@NonNull String originalInputString,
+			@NonNull MigrationResultType successOrSkip,
+			@NonNull String migratedDocModel,
+			@NonNull MigrationResult migrationResult
+	) {
+		return new DocumentModelMigratorResultImpl(
+				documentModelId, originalInputString, successOrSkip, migratedDocModel, migrationResult, null);
 	}
 
-	public DocumentModelMigratorResultImpl(String docModelId, DocumentModelMigratorException exception) {
-		this.docModelId = docModelId;
-		this.exception = exception;
-		this.type = MigrationResultType.FAILED;
-	}
-
-	@Override public @NonNull String getDocumentModelId() {
-		return docModelId;
+	public static DocumentModelMigratorResultImpl failed(
+			@NonNull String documentModelId,
+			@NonNull String originalInputString,
+			@NonNull DocumentModelMigratorException exception
+	) {
+		return new DocumentModelMigratorResultImpl(
+				documentModelId, originalInputString, MigrationResultType.FAILED, null, null, exception);
 	}
 
 	@Override public Optional<String> getMigratedDocumentModel() {
-		return Optional.ofNullable(migratedDocModel);
+		return Optional.ofNullable(migratedDocumentModel);
 	}
 
 	@Override public Optional<DocumentModelMigratorException> getException() {
 		return Optional.ofNullable(exception);
-	}
-
-	public MigrationResultType getType() {
-		return type;
 	}
 }

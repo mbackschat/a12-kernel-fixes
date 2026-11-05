@@ -4,16 +4,23 @@ plugins {
 
 def npmWorkingDir = file(".")
 
-String osName = System.getProperty("os.name").toLowerCase()
+String osName = providers.systemProperty("os.name").get().toLowerCase()
 project.ext.npm_executable = osName.contains("windows") ? "npm.cmd" : "npm"
 def npm_groupName = "npm"
 
+// This package is part of the root package.json workspaces, so the regular
+// npm_install (root workspace install) provides dependencies for compile/lint.
+// For packing we additionally need a non-hoisted install so `npm pack` can bundle
+// the bundledDependencies from this package's own node_modules.
 tasks.register('custom_npm_install', Exec) {
     group = npm_groupName
     workingDir npmWorkingDir
 
+    // run the local bundling install only after the regular workspace-based build is
+    // done, so compilation uses the hoisted workspace dependencies as usual
+    mustRunAfter tasks.named('npm_assemble')
+
     inputs.file("${npmWorkingDir}/package.json")
-    inputs.file("${npmWorkingDir}/tsconfig.json")
     inputs.file("${npmWorkingDir}/package-lock.json")
 
     // the lockfile in node_modules can be used to identify if there are relevant changes,
@@ -25,27 +32,15 @@ tasks.register('custom_npm_install', Exec) {
     // see https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure
     outputs.cacheIf { false }
 
-    commandLine npm_executable, "install", "--legacy-peer-deps", "--loglevel", "warn", "--no-progress"
+    commandLine npm_executable, "install", "--no-workspaces", "--loglevel", "warn", "--no-progress"
 }
-
-tasks.named('npm_install') {
-    dependsOn tasks.named('custom_npm_install')
-}
-
-tasks.named('npm_compile') {
-    dependsOn tasks.named('custom_npm_install')
-}
-
-tasks.named('test') {
-    enabled = false
-}
-tasks.named('npm_test') {
-    enabled = false
-}
-
 
 tasks.named('npm_cyclonedx') {
     enabled = false
+}
+
+tasks.named('npm_pack') {
+    dependsOn tasks.named('custom_npm_install')
 }
 
 description = "codemod for the kernel modules"

@@ -32,11 +32,8 @@
 import type { DataFormats } from "@com.mgmtp.a12.utils/utils-localization";
 
 import {
-	DateAndFormat,
-	DateConversion,
 	DatePart,
 	DateUtil,
-	PartiallyKnownDatesUtil,
 	StringUtil
 } from "@com.mgmtp.a12.utils/utils-localization/a12internal";
 
@@ -63,11 +60,9 @@ export class DarstellungsInfoDatum implements DarstellungsInfoDatumProxy {
 	private readonly _datumTrenner: string | undefined;
 	private readonly _datumBereichTrenner: string | undefined;
 	private readonly _fragmentReihenfolge: IDatumReihenfolge | undefined;
-	private readonly _baseYear: number;
 	readonly _nullenOptional: boolean;
 	readonly _dateTimeFormat: string | undefined;
 	readonly _timeFormat: string | undefined;
-	private readonly _timeZone: string;
 
 	private DatumReihenfolge = class implements IDatumReihenfolge {
 		private fragmente: DatePart[] = new Array(3);
@@ -110,11 +105,8 @@ export class DarstellungsInfoDatum implements DarstellungsInfoDatumProxy {
 	};
 
 	constructor(
-		baseYear: number,
-		timeZone: string,
 		info?: DataFormats
 	) {
-		this._baseYear = baseYear;
 		if (!info) {
 			this._datumTrenner = undefined;
 			this._datumBereichTrenner = undefined;
@@ -122,7 +114,6 @@ export class DarstellungsInfoDatum implements DarstellungsInfoDatumProxy {
 			this._nullenOptional = false;
 			this._dateTimeFormat = undefined;
 			this._timeFormat = undefined;
-			this._timeZone = timeZone;
 		} else {
 			this._datumTrenner = info.dateSeparator;
 			this._datumBereichTrenner = info.dateRangeSeparator;
@@ -137,8 +128,6 @@ export class DarstellungsInfoDatum implements DarstellungsInfoDatumProxy {
 			this._dateTimeFormat = info.dateTimeFormat;
 
 			this._timeFormat = info.timeFormat;
-
-			this._timeZone = timeZone;
 
 			this._checkSchluesselWerte();
 		}
@@ -311,80 +300,6 @@ export class DarstellungsInfoDatum implements DarstellungsInfoDatumProxy {
 
 	convertDatumBereichTrennerXML2Ofl(xmlDatumBereichTrenner: string): string {
 		return this._datumBereichTrenner ? this._datumBereichTrenner : xmlDatumBereichTrenner;
-	}
-
-	/**
-	 * Konvertiere den Datumswert in den XML Wert
-	 *
-	 * <pre>
-	 * Der Wert ist ein gültiges Datum. Dies wurde bereits überprüft.
-	 * </pre>
-	 */
-	convertDatumOfl2Xml(
-		oflWert: string,
-		xmlFormat: string,
-		istTeilbekannt: boolean,
-		pErgaenzungsJahr?: number
-	): string {
-		const ergaenzungsJahr: number = pErgaenzungsJahr || Number(this._baseYear);
-
-		// Zur Konvertierung wird das Oberflächenformat benötigt
-		const oflFormat: string = this.convertDatumFormatXml2Ofl(xmlFormat);
-		const oflDateWithFormat: DateAndFormat = new DateAndFormat(oflWert, oflFormat, this._timeZone);
-		let geaenderteDatumsAngabeTeile: DatePart[] = [];
-		if (istTeilbekannt) {
-			geaenderteDatumsAngabeTeile =
-				PartiallyKnownDatesUtil.replaceUnknownDateParts(oflDateWithFormat);
-		}
-		const xmlWert: string = DateConversion.convertDateInternal(
-			oflDateWithFormat,
-			xmlFormat,
-			ergaenzungsJahr
-		);
-		const xmlDateWithFormat: DateAndFormat = new DateAndFormat(xmlWert, xmlFormat, this._timeZone);
-
-		// Setze nicht bekannte DatumsAngabeTeile wieder auf nicht bekannt.
-		PartiallyKnownDatesUtil.setDatePartsToUnknown(
-			xmlDateWithFormat,
-			geaenderteDatumsAngabeTeile
-		);
-
-		return xmlDateWithFormat.date;
-	}
-
-	/**
-	 * Konvertiert ein Datum in XML-Darstellung in ein Datum
-	 * in Oberflächendarstellung. Behandelt alle Datumsarten, d.h. auch
-	 * die teilbekannten Datumsangaben.
-	 */
-	public convertDatumXml2Ofl(
-		xmlWert: string,
-		xmlFormat: string,
-		istTeilbekannt: boolean,
-		jahr?: number
-	): string {
-		const ergaenzungsJahr: number = jahr || Number(this._baseYear);
-		const xmlDateWithFormat: DateAndFormat = new DateAndFormat(xmlWert, xmlFormat, this._timeZone);
-
-		let geaenderteDatumsteile: DatePart[] = new Array<DatePart>();
-		if (istTeilbekannt) {
-			geaenderteDatumsteile =
-				PartiallyKnownDatesUtil.replaceUnknownDateParts(xmlDateWithFormat);
-		}
-
-		const oflFormat: string = this.convertDatumFormatXml2Ofl(xmlFormat);
-		const oflWert: string = DateConversion.convertDateInternal(
-			xmlDateWithFormat,
-			oflFormat,
-			ergaenzungsJahr
-		);
-		const oflDateWithFormat: DateAndFormat = new DateAndFormat(oflWert, oflFormat, this._timeZone);
-
-		PartiallyKnownDatesUtil.setDatePartsToUnknown(
-			oflDateWithFormat,
-			geaenderteDatumsteile
-		);
-		return oflDateWithFormat.date;
 	}
 
 	/**

@@ -104,6 +104,6 @@ export class Constants {
 	 * <b>WARNING:</b> Don't change this line. Updated by versionupdate script
 	 */
 	// prettier-ignore
-	public static get RUNTIME_VERSION(): string { return "31.1"; }
+	public static get RUNTIME_VERSION(): string { return "31.3"; }
 
 }

@@ -36,6 +36,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import com.mgmtp.a12.kernel.md.model.api.ILocalizedTextMap;
 import com.mgmtp.a12.kernel.md.utils.NoNeedToAdaptSerialVersionUID;
@@ -105,9 +106,10 @@ public class Element implements IIdNamed, IDescribed, IAnnotated, Serializable {
 	 * 		be {@code null}. Use an empty map to unset.
 	 */
 	protected List<Annotation> annotations = new ArrayList<>();
+	protected String changeNote;
 
 	protected Element(Group parent, @NonNull String id, @NonNull String name, ILocalizedTextMap internalDescription,
-			ILocalizedTextMap externalDescription, List<Annotation> annotations) {
+			ILocalizedTextMap externalDescription, List<Annotation> annotations, String changeNote) {
 		super();
 		this.parent = parent;
 		this.id = id;
@@ -116,6 +118,15 @@ public class Element implements IIdNamed, IDescribed, IAnnotated, Serializable {
 		this.externalDescription = externalDescription;
 		this.annotations = new ArrayList<>();
 		this.annotations.addAll(annotations);
+		this.changeNote = changeNote;
+	}
+
+	/**
+	 * @return the change note documenting why changes to this element were done. Empty if none was
+	 * 		defined.
+	 */
+	public Optional<String> getChangeNote() {
+		return Optional.ofNullable(changeNote);
 	}
 
 	@Override

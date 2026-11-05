@@ -36,12 +36,14 @@ import java.io.Serializable;
 
 import com.mgmtp.a12.kernel.md.model.internal.impl.DocumentModelObjectReferenceImpl;
 
+import lombok.NonNull;
+
 public class DocumentModelObjectReferenceBuilder<T extends Serializable> {
 
 	private String relativePath;
 	private T documentModelObject;
 
-	public DocumentModelObjectReferenceBuilder<T> relativePath(String relativePath) {
+	public DocumentModelObjectReferenceBuilder<T> relativePath(@NonNull String relativePath) {
 		this.relativePath = relativePath;
 		return this;
 	}

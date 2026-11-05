@@ -31,25 +31,53 @@
  */
 package com.mgmtp.a12.kernel.md.model.internal.wrapper;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Optional;
+import java.util.function.Function;
 
+import com.mgmtp.a12.kernel.md.model.a12internal.Field;
+import com.mgmtp.a12.kernel.md.model.a12internal.Group;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModelObjectReference;
+import com.mgmtp.a12.kernel.md.model.api.IEntity;
+import com.mgmtp.a12.kernel.md.model.api.IField;
 import com.mgmtp.a12.kernel.md.utils.NoNeedToAdaptSerialVersionUID;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class DocumentModelObjectReferenceWrapper<T extends Serializable> implements IDocumentModelObjectReference<T> {
 
-	@NoNeedToAdaptSerialVersionUID
+	@NoNeedToAdaptSerialVersionUID @Serial
 	private static final long serialVersionUID = 1L;
 
-	private String relativePath;
-	private T documentModelObject;
+	private final @NonNull String relativePath;
+	private final T documentModelObject;
 
-	public DocumentModelObjectReferenceWrapper(@NonNull String relativePath, T documentModelObject) {
-		this.relativePath = relativePath;
-		this.documentModelObject = documentModelObject;
+	public static DocumentModelObjectReferenceWrapper<IEntity> wrapEntity(
+			@NonNull com.mgmtp.a12.kernel.md.model.a12internal.IDocumentModelObjectReference<com.mgmtp.a12.kernel.md.model.a12internal.IEntity> reference
+	) {
+		return wrap(reference, dmo -> switch (dmo) {
+			case Group group -> new GroupWrapper(group);
+			case Field field -> new FieldWrapper(field);
+			default -> null;
+		});
+	}
+
+	public static DocumentModelObjectReferenceWrapper<IField> wrapField(
+			@NonNull com.mgmtp.a12.kernel.md.model.a12internal.IDocumentModelObjectReference<com.mgmtp.a12.kernel.md.model.a12internal.Field> reference
+	) {
+		return wrap(reference, FieldWrapper::new);
+	}
+
+	private static <T extends Serializable, R extends Serializable> DocumentModelObjectReferenceWrapper<R> wrap(
+			@NonNull com.mgmtp.a12.kernel.md.model.a12internal.IDocumentModelObjectReference<T> reference,
+			@NonNull Function<T, R> dmoMapper
+	) {
+		return new DocumentModelObjectReferenceWrapper<>(
+				reference.getRelativePath(),
+				reference.getDocumentModelObject().map(dmoMapper).orElse(null));
 	}
 
 	@Override

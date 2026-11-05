@@ -112,6 +112,11 @@ public class GroupBuilder {
 		return this;
 	}
 
+	public GroupBuilder adaptId(UnaryOperator<String> idFunc) {
+		groupBuilder.id(idFunc.apply(groupBuilder.getId()));
+		return this;
+	}
+
 	public GroupBuilder name(String fullName) {
 		String pathWithRepetitions = BuilderUtil.pathPartOf(fullName);
 		parent = ensureGroup(pathWithRepetitions);

@@ -41,6 +41,7 @@ dependencies {
     testImplementation libs.kernelCoreRuntimeApi
     testImplementation project(':kernel-md-document-v2')
     testImplementation project(':kernel-md-documentmodel')
+    testImplementation project(':kernel-internal-md-runtime-api')
 
     testRuntimeOnly testLibs.junitJupiterParams
     testRuntimeOnly testLibs.junitJupiterEngine

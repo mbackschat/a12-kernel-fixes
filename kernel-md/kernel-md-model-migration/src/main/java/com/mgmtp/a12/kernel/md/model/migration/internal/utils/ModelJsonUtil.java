@@ -34,6 +34,7 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
@@ -44,6 +45,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -75,6 +77,8 @@ public class ModelJsonUtil {
 	public static final String ANNOTATIONS = "annotations";
 	public static final String ANNOTATION_NAME = "name";
 	public static final String ANNOTATION_VALUE = "value";
+	public static final String CONDITION_LANGUAGE = "conditionLanguage";
+	public static final String CONDITION_LANGUAGE_CODE = "code";
 	public static final String CONTENT = "content";
 	public static final String COMPUTED_FIELD_ID = "computedFieldId";
 	public static final String COMPUTED_FIELD_REL_PATH = "computedFieldRelPath";
@@ -132,6 +136,12 @@ public class ModelJsonUtil {
 		throw new IllegalStateException("Utility class");
 	}
 
+	public static String serializeJson(JsonNode docModel) {
+		StringWriter writer = new StringWriter();
+		KernelJsonMapperProvider.createPreconfiguredObjectMapper().build().writeValue(writer, docModel);
+		return writer.toString();
+	}
+
 	public record JsonNodeWithPath(JsonNode node, NodePath path) {
 	}
 
@@ -178,8 +188,8 @@ public class ModelJsonUtil {
 	public static JsonNode tryRemoveElementFromObject(JsonNode dmModel, String absolutePath) {
 
 		var child = ElementPathUtils.getName(absolutePath);
-		if( ! ElementPathUtils.isAbsolutePath(absolutePath)){
-			throw new IllegalArgumentException("Path needs to be absolute, given:" +absolutePath);
+		if (!ElementPathUtils.isAbsolutePath(absolutePath)) {
+			throw new IllegalArgumentException("Path needs to be absolute, given:" + absolutePath);
 		}
 		var parentPath = ElementPathUtils.getParentPath(absolutePath);
 
@@ -380,6 +390,22 @@ public class ModelJsonUtil {
 		return dm.get(CONTENT).get(MODEL_CONFIG);
 	}
 
+	/**
+	 * The return of Optional.empty means that no supported locale (de_DE or en_US) was given.
+	 */
+	public static Optional<Locale> extractConditionLanguage(JsonNode dm) {
+		JsonNode config = extractDmConfig(dm);
+		if (config instanceof ObjectNode && config.get(CONDITION_LANGUAGE) instanceof ObjectNode conditionLanguage) {
+			return switch (conditionLanguage.path(CONDITION_LANGUAGE_CODE).asString()) {
+				case "de_DE" -> Optional.of(Locale.GERMANY);
+				case "en_US" -> Optional.of(Locale.US);
+				default -> Optional.empty();
+			};
+		}
+		// Fallback for unset property
+		return Optional.of(Locale.US);
+	}
+
 	public static Optional<Integer> extractBaseYearIfPresent(ObjectNode model) {
 		var by = model.path(CONTENT).path("modelInfo").path("baseYear");
 		if (by.isNumber()) {
@@ -413,7 +439,7 @@ public class ModelJsonUtil {
 		return List.of();
 	}
 
-	private static boolean isGroup(JsonNode jsonNode) {
+	public static boolean isGroup(JsonNode jsonNode) {
 		return jsonNode.get(ELEMENT_TYPE).asString().equals(TYPE_GROUP);
 	}
 
@@ -500,28 +526,31 @@ public class ModelJsonUtil {
 		boolean apply(JsonNode group);
 	}
 
-	public static List<JsonNode> extractUnexpandedIncludingGroups(JsonNode documentModel) {
+	/**
+	 * Note that the json node 'modelAlias' has been removed in DM version 29.0.0. For newer versions, use
+	 * {@link #extractUnexpandedIncludingGroupsByIncludeConfig } instead
+	 */
+	public static List<JsonNode> extractUnexpandedIncludingGroupsByModelAlias(JsonNode documentModel) {
 		IsUnexpanded groupIsUnexpandedIncludingGroup =
-				group -> group.get(TYPE_GROUP).has(MODEL_INCLUDE_CONFIG) || group.get(TYPE_GROUP).has(MODEL_ALIAS);
-		// TODO[A12K-4202]: this is dependent on the verion of documentModel || is maybe just a temporary workaround; introduced for separating includeConfig and backward migration topics
+				group -> group.get(TYPE_GROUP).has(MODEL_ALIAS);
 
+		return extractUnexpandedIncludingGroupsByIncludeConfig(documentModel, groupIsUnexpandedIncludingGroup);
+	}
+
+	public static List<JsonNode> extractUnexpandedIncludingGroupsByIncludeConfig(JsonNode documentModel) {
+		IsUnexpanded groupIsUnexpandedIncludingGroup =
+				group -> group.get(TYPE_GROUP).has(MODEL_INCLUDE_CONFIG);
+
+		return extractUnexpandedIncludingGroupsByIncludeConfig(documentModel, groupIsUnexpandedIncludingGroup);
+	}
+
+	private static List<JsonNode> extractUnexpandedIncludingGroupsByIncludeConfig(JsonNode documentModel,
+			IsUnexpanded groupPredicate) {
 		Iterable<JsonNode> iterable = createRootGroupsIterable(documentModel);
 		return StreamSupport.stream(iterable.spliterator(), false)
 				.flatMap(rootGroup -> extractUnexpandedIncludingGroupsInGroup(rootGroup,
-						groupIsUnexpandedIncludingGroup).stream())
+						groupPredicate).stream())
 				.toList();
-	}
-
-	public static List<JsonNodeWithPath> extractUnexpandedIncludingGroupsWithPath(JsonNode documentModel) {
-		Iterable<JsonNodeWithPath> iterable = new JsonNodeWithPathIterator(documentModel).asIterable();
-		return StreamSupport.stream(iterable.spliterator(), false)
-				.filter(elem -> {
-					JsonNode node = elem.node();
-					return isGroup(node) && node.get(TYPE_GROUP).has(MODEL_ALIAS) && !node.get(TYPE_GROUP).has(GROUP_ELEMENTS);
-				})
-				.toList();
-		// TODO[A12K-4202]: move this to referenceViaPathStep, because it depends on DM version < 29.0.0
-		// and search for other logic depending on model alias
 	}
 
 	private static Iterable<JsonNode> createRootGroupsIterable(JsonNode documentModel) {
@@ -548,6 +577,10 @@ public class ModelJsonUtil {
 		return List.of();
 	}
 
+	/**
+	 * Note that the json node 'modelAlias' has been removed in DM version 29.0.0. For newer versions, use
+	 * {@link #getModelReference } instead
+	 */
 	public static String getModelAlias(JsonNode group) {
 		return group.get(TYPE_GROUP).get(MODEL_ALIAS).asString();
 	}

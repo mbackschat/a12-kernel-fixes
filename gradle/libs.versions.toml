@@ -1,36 +1,51 @@
 [versions]
-a12KernelVersion = "31.1.1"
-kernelCoreRuntimeApiVersion = "33.0.2"
+a12KernelVersion = "31.3.1"
+kernelCoreRuntimeApiVersion = "33.2.1"
 kernelCoreCustomfieldtypeApiVersion = "29.0.2"
 
-ctFIELD_TYPE_ATTRIBUTES_1 = "3.1.551343"
-ctMODEL_HEADER_1 = "3.7.551344"
-ctSELECTION_v1 = "2.7.550017"
-mmCombinationModel_1 = "2.13.551408"
-mmMappingModel_2 = "4.15.551364"
-mmPackage_1 = "6.1.551348"
-mmPackage_2 = "2.5.551349"
-mmmmSelectionModel_2 = "1.6.550017"
-mmSmmFieldTypeChecks_1 = "3.2.551352"
-mmStructuralMappingModel_1 = "4.7.551353"
-mmXmlSchemaContainer_1 = "5.3.551354"
-mmCommon_v2 = "20.1.551424"
+ctFIELD_TYPE_ATTRIBUTES_1 = "4.1.561347"
+ctMODEL_HEADER_1 = "3.7.561346"
+ctSELECTION_v1 = "2.8.560020"
+mmCombinationModel_1 = "2.13.561410"
+mmDependencyModel_1 = "1.4.560022"
+mmField_1 = "15.10.561439"
+mmMappingModel_2 = "5.2.561369"
+mmPackage_1 = "6.1.561350"
+mmPackage_2 = "3.6.561358"
+mmmmSelectionModel_2 = "2.0.560020"
+mmSmmFieldTypeChecks_1 = "4.1.561356"
+mmStructuralMappingModel_1 = "5.0.561357"
+mmXmlSchemaContainer_1 = "6.0.561358"
+mmCommon_v2 = "21.3.561430"
 
-com-mgmtp-a12-base = "30.0.2"
+com-mgmtp-a12-dataservices-wcf-api = "0.3.0"
+com-mgmtp-a12-base = "30.1.1"
 com-fasterxml-jackson-annotations = "2.22"
-tools-jackson = "3.2.1"
+tools-jackson = "3.2.4"
 org-antlr = "4.13.2"
 org-antlr-ts = "4.13.2"
-org-slf4j = "2.0.17"
-org-slf4j-reload4j = "2.0.17"
+org-antlr-st4 = "4.3.4"
+org-slf4j = "2.0.18"
+org-slf4j-reload4j = "2.0.18"
+commons-cli = "1.11.0"
+commons-io = "2.22.0"
+org-apache-commons-collections4 = "4.6.0"
+org-apache-commons-lang3 = "3.20.0"
+org-apache-commons-text = "1.15.0"
+org-codehaus-groovy = "3.0.25"
+com-google-code-gson = "2.14.0"
+com-google-guava = "33.7.1-jre"
+org-jspecify = "1.0.1"
+org-projectlombok = "1.18.46"
+jakarta-validation = "3.1.1"
 
-pluginLombok = "9.4.0"
-pluginShadow = "9.2.2"
-pluginOpenrewrite = "7.37.0"
-thirdPartyNoticesPlugin = "0.2.17"
+pluginLombok = "9.5.0"
+pluginShadow = "9.6.1"
+pluginOpenrewrite = "7.39.0"
+thirdPartyNoticesPlugin = "0.2.26"
 
 [libraries]
-a12KernelRuntimeArtifactId = { module = "com.mgmtp.a12.kernel:kernel-core-runtime-31-1", version.ref = "a12KernelVersion" }
+a12KernelRuntimeArtifactId = { module = "com.mgmtp.a12.kernel:kernel-core-runtime-31-3", version.ref = "a12KernelVersion" }
 kernelCoreRuntimeApi = { module = "com.mgmtp.a12.kernel:kernel-core-runtime-api", version.ref = "kernelCoreRuntimeApiVersion" }
 kernelCoreCustomfieldtypeApi = { module = "com.mgmtp.a12.kernel:kernel-core-customfieldtype-api", version.ref = "kernelCoreCustomfieldtypeApiVersion" }
 
@@ -42,6 +57,10 @@ kernelMmCombinationModel1CodegenValidators = { module = "com.mgmtp.a12.kernel:mm
 kernelMmCombinationModel1NoneDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_combinationmodel-1-none", version.ref = "mmCombinationModel_1" }
 kernelMmCombinationModel1CodegenDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_combinationmodel-1-codegen", version.ref = "mmCombinationModel_1" }
 kernelMmCombinationModel1Typings = { module = "com.mgmtp.a12.kernel:mmtypings-mm_combinationmodel-1", version.ref = "mmCombinationModel_1" }
+kernelMmDependencyModel1CodegenValidators = { module = "com.mgmtp.a12.kernel:mmvalidators-extmpinternal-mm_dependencymodel-1-codegen", version.ref = "mmDependencyModel_1" }
+kernelMmDependencyModel1NoneDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_dependencymodel-1-none", version.ref = "mmDependencyModel_1" }
+kernelMmDependencyModel1CodegenDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_dependencymodel-1-codegen", version.ref = "mmDependencyModel_1" }
+kernelMmDependencyModel1Typings = { module = "com.mgmtp.a12.kernel:mmtypings-extmpinternal-mm_dependencymodel-1-codegen", version.ref = "mmDependencyModel_1" }
 kernelMmCommonV2CodegenValidators = { module = "com.mgmtp.a12.kernel:mmvalidators-extmpinternal-mm_common-v2-codegen", version.ref = "mmCommon_v2" }
 kernelMmMappingModel2CodegenValidators = { module = "com.mgmtp.a12.kernel:mmvalidators-extmpinternal-mm_mappingmodel-2-codegen", version.ref = "mmMappingModel_2" }
 kernelMmMappingModel2NoneDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_mappingmodel-2-none", version.ref = "mmMappingModel_2" }
@@ -68,27 +87,28 @@ kernelMmStructuralMappingModel1Typings = { module = "com.mgmtp.a12.kernel:mmtypi
 antlr4 = { module = "org.antlr:antlr4", version.ref = "org-antlr" }
 antlr4Runtime = { module = "org.antlr:antlr4-runtime", version.ref = "org-antlr" }
 antlr4VersionForWeb = { module = "org.antlr:antlr4", version.ref = "org-antlr-ts" }
-dataservicesWcfApi = "com.mgmtp.a12.dataservices.wcf:dataservices-wcf-api:0.2.0"
+dataservicesWcfApi = { module = "com.mgmtp.a12.dataservices.wcf:dataservices-wcf-api", version.ref = "com-mgmtp-a12-dataservices-wcf-api" }
 baseModelApi = { module = "com.mgmtp.a12.base:base-model-api", version.ref = "com-mgmtp-a12-base" }
 baseModelConsistency = { module = "com.mgmtp.a12.base:base-model-consistency", version.ref = "com-mgmtp-a12-base" }
 baseModelUtils = { module = "com.mgmtp.a12.base:base-model-utils", version.ref = "com-mgmtp-a12-base" }
-commonsCli = "commons-cli:commons-cli:1.11.0"
-commonsCollections4 = "org.apache.commons:commons-collections4:4.5.0"
-commonsIo = "commons-io:commons-io:2.21.0"
-commonsLang3 = "org.apache.commons:commons-lang3:3.20.0"
-commonsText = "org.apache.commons:commons-text:1.15.0"
-groovy = "org.codehaus.groovy:groovy:3.0.25"
-gson = "com.google.code.gson:gson:2.13.2"
-guava = "com.google.guava:guava:33.6.0-jre"
+commonsCli = { module = "commons-cli:commons-cli", version.ref = "commons-cli" }
+commonsCollections4 = { module = "org.apache.commons:commons-collections4", version.ref = "org-apache-commons-collections4" }
+commonsIo = { module = "commons-io:commons-io", version.ref = "commons-io" }
+commonsLang3 = { module = "org.apache.commons:commons-lang3", version.ref = "org-apache-commons-lang3" }
+commonsText = { module = "org.apache.commons:commons-text", version.ref = "org-apache-commons-text" }
+groovy = { module = "org.codehaus.groovy:groovy", version.ref = "org-codehaus-groovy" }
+gson = { module = "com.google.code.gson:gson", version.ref = "com-google-code-gson" }
+guava = { module = "com.google.guava:guava", version.ref = "com-google-guava" }
 jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson-annotations" }
 jacksonCore = { module = "tools.jackson.core:jackson-core", version.ref = "tools-jackson" }
 jacksonDatabind = { module = "tools.jackson.core:jackson-databind", version.ref = "tools-jackson" }
-jspecify = "org.jspecify:jspecify:1.0.0"
-lombok = "org.projectlombok:lombok:1.18.46"
+jspecify = { module = "org.jspecify:jspecify", version.ref = "org-jspecify" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "org-projectlombok" }
 slf4jApi = { module = "org.slf4j:slf4j-api", version.ref = "org-slf4j" }
 slf4jLog4j12OnlyForCliJarsAndTests = { module = "org.slf4j:slf4j-reload4j", version.ref = "org-slf4j-reload4j" }
-st4 = "org.antlr:ST4:4.3.4"
-validationApi = "jakarta.validation:jakarta.validation-api:3.1.1"
+st4 = { module = "org.antlr:ST4", version.ref = "org-antlr-st4" }
+validationApi = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
+
 
 [plugins]
 kernelBaseConventions = { id = "com.mgmtp.a12.kernel.kernel-base-conventions" }

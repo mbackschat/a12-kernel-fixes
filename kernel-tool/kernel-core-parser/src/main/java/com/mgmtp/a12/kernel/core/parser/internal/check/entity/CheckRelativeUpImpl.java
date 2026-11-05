@@ -33,7 +33,8 @@
 package com.mgmtp.a12.kernel.core.parser.internal.check.entity;
 
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
-import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils.RelativeBeyondRootException;
+import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils.RelativeBeyondDocumentRootException;
+import com.mgmtp.a12.kernel.core.parser.internal.check.util.TechnicalRootEntity;
 import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorTypesEnum;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.RelativeUpContext;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.Lenient_ConditionParser;
@@ -67,13 +68,17 @@ public class CheckRelativeUpImpl extends CheckIdNameRefCommonImpl {
 		String groupPath;
 		try {
 			groupPath = EntityUtils.relPath2AbsPath(rulePath, relPath);
-		} catch (RelativeBeyondRootException e) {
+		} catch (RelativeBeyondDocumentRootException e) {
 			// this can happen even if checkRelUp has not failed, because relative upward paths with a single upward steps
 			// have no relUp
 			String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_TOO_MANY_PARENT_GROUPS);
 			throw createMVKParserError(errMessage);
 		}
-		IEntity entity = parser.getEc().get(groupPath);
+		// A12K-4276: the turning point may be the technical DocumentModelRoot ("/") to descend into a sibling root group
+		// ("../../RG2/x"). It has no container entity, so bind it to a virtual one and skip its index (not an indexable level);
+		// ending on it is rejected in CheckEntitySpecImpl.
+		boolean isTechnicalRoot = EntityUtils.isTechnicalRootPath(groupPath);
+		IEntity entity = isTechnicalRoot ? TechnicalRootEntity.INSTANCE : parser.getEc().get(groupPath);
 		if (entity == null) {
 			String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_TOO_MANY_PARENT_GROUPS);
 			throw createMVKParserError(errMessage);
@@ -102,8 +107,10 @@ public class CheckRelativeUpImpl extends CheckIdNameRefCommonImpl {
 
 		EntityRef ref = putEntityToEntityMap(entity, nameUsedInConditionText,
 				new PathNotationConfig(PathNotationConfig.Type.RELATIVE, true, hasExplicitTurningPoint));
-		long index = EntityUtils.isRepeatableOnLowestLevel(entity) ? IParseTreeEntity.ITERATION : 1;
-		ref.addIndex(index);
+		if (!isTechnicalRoot) {
+			long index = EntityUtils.isRepeatableOnLowestLevel(entity) ? IParseTreeEntity.ITERATION : 1;
+			ref.addIndex(index);
+		}
 	}
 
 	@Override

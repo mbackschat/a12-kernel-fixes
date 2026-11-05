@@ -38,14 +38,12 @@ class DateRangeTypeImpl implements IDateRangeType {
 
 	private String formatOfDate;
 	private String separator;
-	private boolean youngerThan1900Check;
 	private InterpretationOfYear interpretationOfYear;
 
-	public DateRangeTypeImpl(String formatOfDate, String separator, boolean youngerThan1900Check,
+	public DateRangeTypeImpl(String formatOfDate, String separator,
 			com.mgmtp.a12.kernel.md.model.api.fieldtypes.IDateRangeType.InterpretationOfYear intOfYr) {
 		this.formatOfDate = formatOfDate;
 		this.separator = separator;
-		this.youngerThan1900Check = youngerThan1900Check;
 		this.interpretationOfYear = getCoreInterpretationOfYear(intOfYr);
 	}
 
@@ -64,11 +62,6 @@ class DateRangeTypeImpl implements IDateRangeType {
 		return interpretationOfYear;
 	}
 
-	@Override
-	public boolean isAdditionalCheck() {
-		return youngerThan1900Check;
-	}
-
 	private InterpretationOfYear getCoreInterpretationOfYear(
 			com.mgmtp.a12.kernel.md.model.api.fieldtypes.IDateRangeType.InterpretationOfYear intOfYr) {
 		if (intOfYr == null) {
@@ -82,5 +75,15 @@ class DateRangeTypeImpl implements IDateRangeType {
 			default:
 				throw new IllegalArgumentException(String.format("Unknown interpretation of year in date range: %s", intOfYr));
 		}
+	}
+
+	/**
+	 * @deprecated isAdditionalCheck is no longer evaluated and its value is therefore irrelevant. This attribute will be
+	 * removed with A12K-4439.
+	 */
+	@Deprecated(since = "31.2.0")
+	@Override
+	public boolean isAdditionalCheck() {
+		return false;
 	}
 }

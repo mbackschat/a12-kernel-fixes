@@ -151,6 +151,7 @@ public interface IDocumentRtService {
 	 * <li>If a field contains an invalid value, a corresponding error will be reported.</li>
 	 * <li>If a required field is empty, no error will be reported.</li>
 	 * <li>If an index field is empty or not unique, an error will be reported.</li>
+	 * </ol>
 	 * The errors reported in this step will be returned in {@link IDocumentComputationResult#getFormalErrorsInOperands()}.
 	 * <p>
 	 * Regardless of the formal errors found, computations will be performed. Any computations relying directly or indirectly on

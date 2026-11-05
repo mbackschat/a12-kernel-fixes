@@ -31,7 +31,9 @@
  */
 import type { Localizable } from "@com.mgmtp.a12.utils/utils-localization";
 
+import type { ICause } from "./ICause.js";
 import type { IIdentifier } from "./IIdentifier.js";
+import type { SeverityType } from "./SeverityType.js";
 
 /**
  * Errors have different types:
@@ -152,6 +154,33 @@ export interface IResult {
 		referencedFields: Set<IIdentifier>,
 		refOmissionErrorResponsible: Set<IIdentifier>,
 		unknowns: Set<IIdentifier>
+	): void;
+
+	/**
+	 * Adds a message (error, hint, or info) to the result set, using the V2 message API that carries
+	 * the grouped possibly-causing entities.
+	 *
+	 * Whenever the runtime reports an error via {@link addError}/{@link addHint}/{@link addInfo}, it immediately reports the
+	 * same message via `addMessageV2` (if implemented), in that order.
+	 *
+	 * @param ruleName 	rule name - unique per rule set. Error messages concerning the syntactical
+	 *          validation will always specify {@link FORMAL_VALIDATION_RULE_NAME}.
+	 * @param errorCode 	the error code of the rule as given in the editor or the error code of the
+	 *          syntactical validation. It is not necessarily unique per rule.
+	 * @param message 	A detailed localizable message that should be displayed to the end user.
+	 * @param type 	Specification of the error type ( {@link ErrorType.OMISSION_ERROR} or
+	 *          {@link ErrorType.VALUE_ERROR}).
+	 * @param severity 	the severity of the message ({@link SeverityType.ERROR}, {@link SeverityType.HINT}
+	 *          or {@link SeverityType.INFO}).
+	 * @param possiblyCausingEntities 	information regarding the entities causing the message.
+	 */
+	addMessageV2(
+		ruleName: string,
+		errorCode: string,
+		message: Localizable[],
+		type: ErrorType,
+		severity: SeverityType,
+		possiblyCausingEntities: ICause
 	): void;
 
 	/**

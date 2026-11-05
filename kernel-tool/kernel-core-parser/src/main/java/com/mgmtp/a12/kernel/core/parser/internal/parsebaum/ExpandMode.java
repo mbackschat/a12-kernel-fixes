@@ -31,15 +31,28 @@
  */
 package com.mgmtp.a12.kernel.core.parser.internal.parsebaum;
 
+import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.creation.creators.bedingung.KontextListenBedingungCreator;
+import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.creation.creators.operation.FeldListenAnzahlOpCreator;
+
 /**
  * ExpandMode definiert, ob expandiert werden soll, wenn der ParseBaum erzeugt wird.
  */
 public enum ExpandMode {
 
 	/**
-	 * Keine Änderungen für Kontexte und Sprachkonstrukte
+	 * No change for groups or language constructs.
+	 * But some group language constructs when used for root groups are created as root group constructs in the parse tree (see
+	 * {@link KontextListenBedingungCreator} and {@link FeldListenAnzahlOpCreator}).
 	 */
 	NO_EXPAND,
+	/**
+	 * Like {@link #NO_EXPAND}, but the group constructs that {@link #NO_EXPAND} turns into root group constructs are kept as
+	 * ordinary group constructs.
+	 * The mode should be used when a rule or computation is parsed in the context of an include, which changes the root group
+	 * to an ordinary group.
+	 * It should not be used for code generation or similar for real root groups.
+	 */
+	NO_EXPAND_OR_RG_REPLACEMENT,
 	/**
 	 * Kontexte werden durch ihre Feldlisten ersetzt (bei dem Sprachkonstrukt
 	 * AnzahlAngegebenerKontexte wird zusätzlich der Kontext der jeweiligen Feldliste
@@ -78,6 +91,8 @@ public enum ExpandMode {
 		switch (expandMode) {
 			case NO_EXPAND:
 				return NO_EXPAND;
+			case NO_EXPAND_OR_RG_REPLACEMENT:
+				return NO_EXPAND_OR_RG_REPLACEMENT;
 			case EXPAND:
 				return EXPAND;
 			case EXPAND_AND_ADD_GROUPS:

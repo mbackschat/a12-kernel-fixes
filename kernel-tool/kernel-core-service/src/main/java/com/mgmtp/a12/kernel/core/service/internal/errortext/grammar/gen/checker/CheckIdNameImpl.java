@@ -210,7 +210,7 @@ public class CheckIdNameImpl {
 	private String constructEntityFullName(String name, boolean isAbsolutePath) {
 		try {
 			return isAbsolutePath ? name : EntityUtils.relPath2AbsPath(rulePath, name);
-		} catch (EntityUtils.RelativeBeyondRootException e) {
+		} catch (EntityUtils.RelativeBeyondDocumentRootException e) {
 			throw errorComposer.composeError(FehlertextErrorType.ERROR_TEXT_PARAMETER_TOO_MANY_PARENT_GROUPS, name);
 		}
 	}

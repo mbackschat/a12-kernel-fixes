@@ -33,7 +33,6 @@
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
@@ -50,9 +49,8 @@ public final class RemoveModelAliasSuffix {
 	private RemoveModelAliasSuffix() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
-		ModelJsonUtil.extractUnexpandedIncludingGroups(model)
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
+		ModelJsonUtil.extractUnexpandedIncludingGroupsByModelAlias(model)
 				.forEach(it -> updateModelAlias(it.get(ModelJsonUtil.TYPE_GROUP), ModelJsonUtil.MODEL_ALIAS));
 		// we don't use ModelJsonUtil#extractReferencesToDms since the suffix comes from the data modeler
 		// and the typeDef import was implemented after having retired the data modeler (only includes are relevant)

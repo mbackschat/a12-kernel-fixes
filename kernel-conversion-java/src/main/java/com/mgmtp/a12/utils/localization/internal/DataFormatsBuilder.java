@@ -62,6 +62,27 @@ public class DataFormatsBuilder {
 		// since there are a lot of fields, we do the initialization above
 	}
 
+	/**
+	 * Seeds the builder from an existing {@link DataFormats}, so callers can copy it and override only the
+	 * few fields they care about.
+	 */
+	public DataFormatsBuilder(DataFormats seed) {
+		this.decimalSeparator = seed.decimalSeparator();
+		this.thousandsSeparator = seed.thousandsSeparator().orElse(null);
+		this.decimalPlacesOptional = seed.decimalPlacesOptional();
+		this.trueValue = seed.trueValue();
+		this.falseValue = seed.falseValue();
+		this.dateSeparator = seed.dateSeparator();
+		this.dateZeroOptional = seed.dateZeroOptional();
+		this.dateFragmentOrdering = seed.dateFragmentOrdering();
+		this.dateRangeSeparator = seed.dateRangeSeparator();
+		this.dateTimeFormat = seed.dateTimeFormat();
+		this.timeFormat = seed.timeFormat();
+		this.formatCharacters = seed.formatCharacters();
+		this.convertCustomFieldTypesList = seed.convertCustomFieldTypesList();
+		this.convertCustomFieldTypesAlL = seed.convertCustomFieldTypesAll();
+	}
+
 	public DataFormatsBuilder decimalSeparator(char decimalSeparator) {
 		this.decimalSeparator = decimalSeparator;
 		return this;

@@ -41,7 +41,6 @@ import java.util.Locale;
 import java.util.function.Function;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
@@ -54,13 +53,9 @@ public final class RewriteToReferenzjahrStep {
 	private RewriteToReferenzjahrStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
-		var mc = ModelJsonUtil.extractDmConfig(model);
-		String conditionLanguageString = mc instanceof ObjectNode && mc.get("conditionLanguage") instanceof ObjectNode clNode
-				? clNode.get("code").asString()
-				: null;
-		if ("de_DE".equals(conditionLanguageString) && extractBaseYearIfPresent((ObjectNode) model).isPresent()) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
+		if (Locale.GERMANY.equals(ModelJsonUtil.extractConditionLanguage(model).orElse(null))
+				&& extractBaseYearIfPresent((ObjectNode) model).isPresent()) {
 			ModelJsonUtil.extractAllElements(model, "Rule").forEach(rule -> {
 				updateRuleDE(rule.get("Rule"));
 			});

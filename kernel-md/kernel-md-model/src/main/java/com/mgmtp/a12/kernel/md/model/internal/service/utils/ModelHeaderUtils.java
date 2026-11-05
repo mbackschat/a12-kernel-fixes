@@ -32,9 +32,11 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.service.utils;
 
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.LocaleUtils;
+import java.util.List;
+import java.util.Locale;
 
+import org.apache.commons.collections4.ListUtils;
+import com.mgmtp.a12.kernel.core.utils.internal.CommonUtils;
 import com.mgmtp.a12.kernel.md.document.apiV2.immutable.GroupInstanceV2;
 import com.mgmtp.a12.kernel.mmtypings.ct_model_header_1.views._ct_model_header_1.Header;
 import com.mgmtp.a12.kernel.mmtypings.ct_model_header_1.views._ct_model_header_1._header.Annotations;
@@ -66,10 +68,10 @@ public class ModelHeaderUtils {
 
 		return builder
 				.withLocales(header.locales().stream()
-						.map(locale -> LocaleUtils.toLocale(locale.code()))
+						.map(locale -> CommonUtils.toLocale(locale.code()))
 						.toList())
 				.withLabels(header.labels().stream()
-						.map(label -> HeaderFactory.createLabel(LocaleUtils.toLocale(label.locale()), label.text()))
+						.map(label -> HeaderFactory.createLabel(CommonUtils.toLocale(label.locale()), label.text()))
 						.toList())
 				.withAnnotations(header.annotations().stream()
 						.map(annotation -> HeaderFactory.createAnnotation(annotation.name(), annotation.value()))
@@ -84,22 +86,19 @@ public class ModelHeaderUtils {
 				.build();
 	}
 
-	public static @NonNull GroupInstanceV2 toGroupInstance(@NonNull com.mgmtp.a12.model.header.Header header) {
+	public static @NonNull Header toGroupInstance(@NonNull com.mgmtp.a12.model.header.Header header) {
 		return Header._empty()
 				._with(Header._pointer().id(), header.getId())
 				._with(Header._pointer().modelType(), header.getModelType())
 				._with(Header._pointer().modelVersion(), header.getModelVersion())
 				._with(Header._pointer().description(), header.getDescription())
-				._with(Header._pointer().locales(), header.getLocales().stream()
-						.map(locale -> Locales._empty()
-								._with(Locales._pointer().code(), locale.getLanguage()))
-						.toList())
-				._with(Header._pointer().labels(), header.getLabels().stream()
+				._with(Header._pointer().locales(), toModelLocales(ListUtils.emptyIfNull(header.getLocales())))
+				._with(Header._pointer().labels(), ListUtils.emptyIfNull(header.getLabels()).stream()
 						.map(label -> Labels._empty()
-								._with(Labels._pointer().locale(), label.getLocale().getLanguage())
+								._with(Labels._pointer().locale(), CommonUtils.localeToCode(label.getLocale()))
 								._with(Labels._pointer().text(), label.getText()))
 						.toList())
-				._with(Header._pointer().annotations(), header.getAnnotations().stream()
+				._with(Header._pointer().annotations(), ListUtils.emptyIfNull(header.getAnnotations()).stream()
 						.map(annotation -> Annotations._empty()
 								._with(Annotations._pointer().name(), annotation.getName())
 								._with(Annotations._pointer().value(), annotation.getValue()))
@@ -110,7 +109,13 @@ public class ModelHeaderUtils {
 								._with(ModelReferences._pointer().modelType(), modelReference.getModelType())
 								._with(ModelReferences._pointer().purpose(), modelReference.getPurpose())
 								._with(ModelReferences._pointer().reference(), modelReference.getReference()))
-						.toList())
-				._unwrap();
+						.toList());
+	}
+
+	public static List<Locales> toModelLocales(List<Locale> locales) {
+		return locales.stream()
+				.map(locale -> Locales._empty()
+						._with(Locales._pointer().code(), CommonUtils.localeToCode(locale)))
+				.toList();
 	}
 }

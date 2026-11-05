@@ -35,42 +35,40 @@ package com.mgmtp.a12.kernel.md.model.a12internal;
 import java.io.Serializable;
 import java.util.Optional;
 
+import lombok.NonNull;
 
 /**
- * Models a {@link DocumentModel} object which is referenced relative to the reference holder.
+ * Models a reference to another object inside this {@link DocumentModel}.
  * <p>
- * Provides access to the relative path of the object (based off of the reference holder) and to the object itself if and only if it
- * was succesfully retrieved.
+ * Provides access to the relative path of the object (based off of a reference base specified by the concrete usage) and to the
+ * object itself if and only if it was successfully retrieved.
  *
  * @param <T>
  * 		specific type of the referenced {@link DocumentModel} object.
  */
 public interface IDocumentModelObjectReference<T> extends Serializable {
+
 	/**
-	 * @return the relative path to referenced {@link DocumentModel} object from the reference holder. May not be {@code null}.
-	 * Note: if the reference holder is a group, the path will be relative to the fullname of the group. It the reference holder
-	 * is a rule, computation or field, the path will be relative to the fullname of that rule, computation or field (i.e. it will
-	 * not be relative to the parent group of the field, as one might potentially expect).
+	 * @return the relative path to referenced {@link DocumentModel} object from the reference base (e.g. {@code "G11/f1"},
+	 *        {@code "../G2/f2"}, {@code "../../RG2/G2"}, {@code "f4"}). May not be {@code null}.
 	 */
-	String getRelativePath();
+	@NonNull String getRelativePath();
 
 	/**
 	 * @param relativePath
 	 * 		the relativePath of the referenced {@link DocumentModel} object. May not be {@code null} or blank.
 	 */
-	void setRelativePath(String relativePath);
+	void setRelativePath(@NonNull String relativePath);
 
 	/**
-	 * @return the {@link DocumentModel} object which is referenced by its id. It is empty if the
-	 * 		object itself has not been retrieved yet (e.g. before expanding the document model)
-	 * 		or could not be retrieved (e.g. the object does not exist).
+	 * @return the {@link DocumentModel} object which is referenced. It is empty if the object itself has not been retrieved yet
+	 * 		(e.g. before expanding the document model) or could not be retrieved (e.g. the object does not exist).
 	 */
 	Optional<T> getDocumentModelObject();
 
 	/**
 	 * @param documentModelObject
-	 * 		the actual {@link DocumentModel} object which is referenced by its id. May be
-	 *        {@code null} to unset.
+	 * 		the actual {@link DocumentModel} object which is referenced. May be {@code null} to unset.
 	 */
 	void setDocumentModelObject(T documentModelObject);
 

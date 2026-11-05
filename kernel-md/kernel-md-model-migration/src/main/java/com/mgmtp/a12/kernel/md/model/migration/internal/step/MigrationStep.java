@@ -31,8 +31,10 @@
  */
 package com.mgmtp.a12.kernel.md.model.migration.internal.step;
 
+import java.util.List;
+
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
+import com.mgmtp.a12.kernel.md.model.migration.internal.DmToMigrate;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.config.MigrationStepConfig;
 
@@ -45,27 +47,30 @@ import tools.jackson.databind.JsonNode;
  */
 @RequiredArgsConstructor
 public class MigrationStep {
-	protected final MigrationCache cache;
 	protected final MigrationStepConfig stepConfig;
 	protected final ICustomMigrationConfig customMigConfig;
 	protected final Implementation implementation;
 
 	@FunctionalInterface
 	public interface Implementation {
-		void execute(@NonNull JsonNode model, @NonNull MigrationLogger migrationLogger, @NonNull MigrationCache cache,
-				@NonNull ICustomMigrationConfig customMigConfig);
+		void execute(@NonNull List<DmToMigrate> dmsToMigrate, @NonNull ICustomMigrationConfig customMigConfig);
 	}
 
-	/**
-	 * Transforms the given model.
-	 *
-	 * @param model
-	 * 		the model
-	 * @param migrationLogger
-	 * 		the logger to report occurred errors and infos
-	 */
-	public void execute(JsonNode model, MigrationLogger migrationLogger) {
-		implementation.execute(model, migrationLogger, cache, customMigConfig);
+	public static Implementation wrapPerDmImplementation(@NonNull MigrationStep.PerDmImplementation perDemImplementation) {
+		return (List<DmToMigrate> dmsToMigrate, ICustomMigrationConfig customMigConfig) ->
+				dmsToMigrate.forEach(dm ->
+						dm.migrationResult().catchAndReportErrorsDuring(() ->
+								perDemImplementation.execute(dm.jsonNode(), dm.migrationResult(), customMigConfig)));
+	}
+
+	@FunctionalInterface
+	public interface PerDmImplementation {
+		void execute(@NonNull JsonNode model, @NonNull MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig);
+
+	}
+
+	public void execute(List<DmToMigrate> dmsToMigrate) {
+		implementation.execute(dmsToMigrate, customMigConfig);
 	}
 
 	/**

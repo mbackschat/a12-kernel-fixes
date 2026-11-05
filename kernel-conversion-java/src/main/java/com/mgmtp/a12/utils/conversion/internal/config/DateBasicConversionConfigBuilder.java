@@ -64,7 +64,7 @@ public class DateBasicConversionConfigBuilder extends ValueConversionConfigBuild
 	}
 
 	public DateBasicConversionConfigBuilder withTimeZone(TimeZone timeZone) {
-		this.timeZone = timeZone;
+		this.timeZone = timeZone != null ? timeZone : TimeZone.getTimeZone("UTC");
 		return this;
 	}
 

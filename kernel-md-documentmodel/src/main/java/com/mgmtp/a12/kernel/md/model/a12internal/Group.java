@@ -82,11 +82,11 @@ public class Group extends Element implements IEntity, ILabeled {
 		private static final long serialVersionUID = 1L;
 
 		/**
-		 * @return the referenced {@link Field} on which the sorting of the data is based. Is never
-		 *        {@code null}.
+		 * @return the reference to the sort field. The reference ({@link IDocumentModelObjectReference#getRelativePath()}) is
+		 * 		relative to the group holding the sort field. Never {@code null}.
 		 * @param field
-		 * 		the new referenced {@link Field} on which the sorting of the data should be
-		 * 		based. May not be {@code null}.
+		 * 		the new reference to the sort field. The reference ({@link IDocumentModelObjectReference#getRelativePath()}) is
+		 * 		relative to the group holding the sort field. May not be {@code null}.
 		 */
 		private @NonNull IDocumentModelObjectReference<Field> field;
 		/**
@@ -177,6 +177,13 @@ public class Group extends Element implements IEntity, ILabeled {
 	 */
 	private String usageType;
 	/**
+	 * <p><strong>Note:</strong> Sort fields are used only in the mapping scenario
+	 * and are only relevant for the source model(s). They define the order of the
+	 * repetitions of a group. This sorting takes place <em>before</em> mapping.
+	 * For example, if only the first three entries of a repeatable group are to be
+	 * included in the mapping, the sort order is critical, because it defines which
+	 * repetitions will be mapped.
+	 *
 	 * @return a list with the sort configuration. The order of the list reflects the priority in
 	 * 		which the data will be sorted. Is never {@code null}. If no sort configuration was
 	 * 		defined, the list is empty.
@@ -194,13 +201,11 @@ public class Group extends Element implements IEntity, ILabeled {
 	 * 		<p>
 	 * 		<b>Important notes:</b>
 	 * 		<ul>
-	 * 		<li>This method does not set the parent-relationship between
-	 * 		the new {@link Element}s and {@code this} {@link Group}: if you want to set the
-	 * 		new {@link Element}s through this method, also think of calling
-	 *                  {@link Group#setParent(Group)}. Otherwise use
-	 *                  {@link Group#addElement(Element)}.</li>
-	 * 		<li>Other use case of this method is to set another implementation of
-	 *                  {@link List}, internally an {@link ArrayList} is used.</li>
+	 * 		<li>This method does not set the parent-relationship between the new {@link Element}s and {@code this} {@link Group}:
+	 * 		if you want to set the new {@link Element}s through this method, also think of calling {@link Group#setParent(Group)}.
+	 * 		Otherwise use {@link Group#addElement(Element)}.</li>
+	 * 		<li>Other use case of this method is to set another implementation of {@link List}, internally an {@link ArrayList} is
+	 * 		used.</li>
 	 * 		</ul>
 	 */
 	private @NonNull List<Element> elements = new ArrayList<>();
@@ -218,8 +223,8 @@ public class Group extends Element implements IEntity, ILabeled {
 			@NonNull ILocalizedTextMap internalDescription, @NonNull ILocalizedTextMap externalDescription,
 			@NonNull List<Annotation> annotations,
 			@NonNull ILocalizedTextMap label, int repeatability, IDocumentModelObjectReference<Field> indexField,
-			String usageType, @NonNull List<SortField> sortFields, IncludeConfig includeConfig) {
-		super(null, id, name, internalDescription, externalDescription, annotations);
+			String usageType, @NonNull List<SortField> sortFields, IncludeConfig includeConfig, String changeNote) {
+		super(null, id, name, internalDescription, externalDescription, annotations, changeNote);
 		this.label = label;
 		this.repeatability = repeatability;
 		this.indexField = indexField;
@@ -229,7 +234,8 @@ public class Group extends Element implements IEntity, ILabeled {
 	}
 
 	/**
-	 * @return the index {@link Field} for this group.
+	 * @return the reference to the index field or {@link Optional#empty()} if no index field is specified. The reference
+	 * 		({@link IDocumentModelObjectReference#getRelativePath()}) is relative to this group.
 	 */
 	public Optional<IDocumentModelObjectReference<Field>> getIndexField() {
 		return Optional.ofNullable(indexField);
@@ -331,6 +337,29 @@ public class Group extends Element implements IEntity, ILabeled {
 		private ILocalizedTextMap label = new LocalizedTextMapBuilder().build(); // in order to make GroupBuilder.label() optional
 		private List<SortField> sortFields = new ArrayList<>(); // in order to make GroupBuilder.sortFields() optional
 		private boolean required = false;
+
+		public String getId() {
+			return this.id;
+		}
+
+		/**
+		 * <p><strong>Note:</strong> Sort fields are used only in the mapping scenario
+		 * and are only relevant for the source model(s). They define the order of the
+		 * repetitions of a group. This sorting takes place <em>before</em> mapping.
+		 * For example, if only the first three entries of a repeatable group are to be
+		 * included in the mapping, the sort order is critical, because it defines which
+		 * repetitions will be mapped.
+		 *
+		 * @param sortFields
+		 * 		a list with the new sort configuration (for more information see
+		 *        {@link Group#getSortFields()}). May not be {@code null}. Use an empty list to
+		 * 		unset.
+		 * @return this builder
+		 */
+		public GroupBuilder sortFields(@NonNull List<SortField> sortFields) {
+			this.sortFields = sortFields;
+			return this;
+		}
 	}
 
 }

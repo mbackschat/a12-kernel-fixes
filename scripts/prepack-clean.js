@@ -60,6 +60,12 @@ delete pkg.publishConfig;
 delete pkg.repository;
 delete pkg.devDependencies;
 
+// packages that declare bundleOnPack get those deps moved into bundledDependencies at pack time
+if (pkg.bundleOnPack) {
+  pkg.bundledDependencies = pkg.bundleOnPack;
+  delete pkg.bundleOnPack;
+}
+
 pkg.files = pkg.files.concat([
   "LICENSE",
   "NOTICE",

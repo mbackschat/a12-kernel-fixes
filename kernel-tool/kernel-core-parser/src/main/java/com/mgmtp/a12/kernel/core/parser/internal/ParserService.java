@@ -298,7 +298,7 @@ public class ParserService {
 		Objects.requireNonNull(expand, "parseCondition: Parameter 'expand' may not be null.");
 		Objects.requireNonNull(rule, "parseCondition: Parameter 'rule' may not be null.");
 
-		if (strictness == IServiceConfiguration.ParserStrictness.LENIENT && expand != ExpandMode.NO_EXPAND) {
+		if (strictness == IServiceConfiguration.ParserStrictness.LENIENT && expand != ExpandMode.NO_EXPAND && expand != ExpandMode.NO_EXPAND_OR_RG_REPLACEMENT) {
 			throw new IllegalArgumentException("Cannot use lenient parser with expansion.");
 		}
 

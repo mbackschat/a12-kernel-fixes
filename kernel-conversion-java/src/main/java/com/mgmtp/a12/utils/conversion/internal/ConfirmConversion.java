@@ -98,9 +98,9 @@ public class ConfirmConversion {
 		// null is already handled
 		if (!(value instanceof Boolean)) {
 			throw new IllegalArgumentException(
-					"The type of the value (" + value.getClass().getSimpleName() + ") is not a boolean");
+					"The type of the value (" + value.getClass().getName() + ") is not a Boolean");
 		} else if (!((boolean) value)) {
-			throw new IllegalArgumentException("false is not a valid value for a confirm type.");
+			throw new IllegalArgumentException("Boolean.FALSE is not a valid value for a confirm type.");
 		}
 		return Optional.of(ConfirmConversion.getTrueValue(destDataFormats));
 	}

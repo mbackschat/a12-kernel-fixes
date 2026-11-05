@@ -1,17 +1,17 @@
 {
   "name": "@com.mgmtp.a12.kernel/kernel-codemod",
-  "version": "31.1.1",
+  "version": "31.3.1",
   "author": "mgm technology partners",
   "license": "(EUPL-1.2 OR LicenseRef-commercial)",
+  "type": "module",
   "scripts": {
-    "start": "tsc --watch --preserveWatchOutput --noUnusedLocals false",
     "clean": "rimraf lib coverage",
-    "lint": "npm run compile:eslint",
-    "compile": "run-s compile:*",
-    "compile:eslint": "eslint src --quiet",
-    "compile:typescript": "tsc",
-    "test": "jest --ci",
-    "test:update": "jest -u",
+    "compile": "tsc",
+    "watch": "tsc --watch",
+    "runner": "node --test --test-reporter=dot",
+    "test": "npm run runner -- --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=./build/npm_reports/TEST-com.mgmtp.a12.kernel-kernel-codemod.xml \"lib/test/**/*.test.js\"",
+    "test:updateSnapshots": "npm run runner -- --test-update-snapshots \"lib/test/**/*.test.js\"",
+    "lint": "eslint src --quiet",
     "eslint:fix": "eslint src --quiet --fix",
     "prepack": "node ../../scripts/prepack-clean.js",
     "postpack": "node ../../scripts/postpack-restore.js"
@@ -21,44 +21,29 @@
     "lib",
     "bin",
     "README.md",
-    "!**/__tests__/**/*"
+    "!**/test/**",
+    "!**/*.test.*"
   ],
   "bin": {
     "kernel-codemod": "./bin/kernel-codemod"
   },
   "dependencies": {
-    "jscodeshift": "^17.3.0",
-    "yargs": "^17.7.2"
+    "@com.mgmtp.a12.devtools/codemod": "2.2.2",
+    "ts-morph": "27.0.2"
   },
-  "bundledDependencies": [
-    "jscodeshift",
-    "yargs"
+  "bundleOnPack": [
+    "@com.mgmtp.a12.devtools/codemod",
+    "ts-morph"
   ],
-  "jest-junit": {
-    "outputDirectory": "build/npm_reports",
-    "outputName": "TEST-com.mgmtp.a12.kernel-kernel-codemod.xml",
-    "suiteName": "com.mgmtp.a12.kernel.kernel-codemod"
-  },
   "devDependencies": {
     "@com.mgmtp.a12.devtools/tsconfig": "^2.0.0",
     "@com.mgmtp.a12.devtools/eslint-config": "^3.1.0",
-    "@com.mgmtp.a12.devtools/prettier-config": "^1.1.0",
-    "@types/jest": "^30.0.0",
-    "@types/jscodeshift": "^17.3.0",
-    "@types/node": "^24.12.2",
-    "@types/yargs": "^17.0.35",
-    "eslint": "^9.39.4",
+    "@com.mgmtp.a12.devtools/prettier-config": "^1.1.1",
+    "@types/node": "^24.13.3",
+    "eslint": "^9.39.5",
     "eslint-plugin-notice": "1.1.0-rc1",
-    "jest": "^30.3.0",
-    "jest-junit": "^16.0.0",
-    "npm-run-all": "^4.1.5",
-    "ts-jest": "^29.4.9",
-    "typescript": ">=6.0.2",
-    "typescript-eslint": "^8.59.0"
-  },
-  "overrides": {
-    "js-yaml": "4.2.0",
-    "tmp": "0.2.7",
-    "uuid": "^11.1.1"
+    "rimraf": "^6.1.3",
+    "typescript": ">=6.0.3",
+    "typescript-eslint": "^8.67.0"
   }
 }

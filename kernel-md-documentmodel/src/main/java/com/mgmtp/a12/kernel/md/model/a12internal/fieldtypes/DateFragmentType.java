@@ -62,13 +62,10 @@ public class DateFragmentType extends FieldType {
 	private @NonNull String formatOfFragment;
 
 	/**
-	 * @return {@code true} if a date fragment containing the year part before {@code 1900} should
-	 * 		be considered as a wrong input, otherwise {@code false}. The default value is
-	 *        {@code false}.
-	 * @param youngerThan1900Check
-	 * 		use {@code true} if a date fragment containing the year part before {@code 1900}
-	 * 		should be considered as a wrong input, otherwise {@code false}.
+	 * @deprecated youngerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute  will be
+	 * 		removed with A12K-4439.
 	 */
+	@Deprecated(since = "31.2.0")
 	private boolean youngerThan1900Check = false;
 
 	/**
@@ -78,14 +75,24 @@ public class DateFragmentType extends FieldType {
 	 */
 	private String notInDCustomFormat;
 
+	/**
+	 * @deprecated youngerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute  will be
+	 * 		removed with A12K-4439.
+	 */
+	@Deprecated(since = "31.2.0")
 	@Builder(builderClassName = "DateFragmentTypeBuilder")
-	private DateFragmentType(@NonNull String formatOfFragment, boolean youngerThan1900Check, String notInDCustomFormat) {
+	private DateFragmentType(
+			@NonNull String formatOfFragment,
+			@Deprecated(since = "31.2.0") // will be removed with A12K-4439
+			boolean youngerThan1900Check,
+			String notInDCustomFormat
+	) {
 		this.formatOfFragment = formatOfFragment;
-		this.youngerThan1900Check = youngerThan1900Check;
 		this.notInDCustomFormat = notInDCustomFormat;
 	}
 
 	public static class DateFragmentTypeBuilder {
+		@Deprecated(since = "31.2.0") // will be removed with A12K-4439
 		private boolean youngerThan1900Check = false; // we set explicit the default values
 	}
 

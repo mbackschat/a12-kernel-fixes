@@ -40,19 +40,24 @@ ext {
     hideExecTaskOutputUnlessFailure = { Task task, boolean printErrors = true ->
         assert task instanceof Exec || task instanceof JavaExec:
                 "hideExecTaskOutputUnlessFailure only works for Exec or JavaExec (tasks that have the necessary properties)"
-        task.standardOutput = new ByteArrayOutputStream()
-        task.errorOutput = new ByteArrayOutputStream()
         task.ignoreExitValue = true
-        task.doLast {
-            def stdout = task.standardOutput.toString()
-            def stderr = task.errorOutput.toString()
+        // Assign the capturing streams at execution time (doFirst), not at configuration time: a
+        // ByteArrayOutputStream held as a task's standardOutput/errorOutput cannot be serialized by the
+        // configuration cache (only System.out/System.err are supported there).
+        task.doFirst { Task t ->
+            t.standardOutput = new ByteArrayOutputStream()
+            t.errorOutput = new ByteArrayOutputStream()
+        }
+        task.doLast { Task t ->
+            def stdout = t.standardOutput.toString()
+            def stderr = t.errorOutput.toString()
 
-            if (task.executionResult.get().getExitValue() > 0 && printErrors) {
-                println(task.executionResult.get().getExitValue())
+            if (t.executionResult.get().getExitValue() > 0 && printErrors) {
+                println(t.executionResult.get().getExitValue())
                 println(stdout)
                 println(stderr)
 
-                throw new RuntimeException("Error: error during " + task.name)
+                throw new RuntimeException("Error: error during " + t.name)
             }
         }
     }
@@ -75,25 +80,6 @@ ext {
             outputs.files.each { println "Output file: $it" }
         }
     }
-
-    // Deep copy & modify the JSON tree
-    filterJsonLeaves = { node, filterRegex  ->
-        if (node instanceof Map) {
-            // Recursively transform the map
-            node.collectEntries { k,v -> [k, filterJsonLeaves(v, filterRegex)] }
-        } else if (node instanceof List) {
-            // Recursively transform the list
-            node.collect { filterJsonLeaves(it, filterRegex) }
-        } else {
-            // node is a leaf; yield conditionally
-            def test =  (node instanceof String) && (node as String).matches(filterRegex)
-            if ( test) {
-               //To DEBUG: println "removed node ${node}"
-            } else {
-                return node
-            }
-        }
-    }
 }
 
 String A12_kernel_version() {
@@ -113,7 +99,7 @@ String A12_kernel_runtime_api_version() {
     return libs.kernelCoreRuntimeApi.get().versionConstraint.toString()
 }
 
-group = A12_kernel_group_id
+group = providers.gradleProperty('A12_kernel_group_id').get()
 version = A12_kernel_version()
 
 ext { // make this available to the subproject build scripts

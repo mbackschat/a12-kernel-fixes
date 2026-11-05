@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -128,12 +129,12 @@ public class DocumentModelServiceUtils {
 
 		@Override
 		public List<Annotation> getAnnotations() {
-			return documentModel.getHeader().getAnnotations() == null ? List.of() : documentModel.getHeader().getAnnotations();
+			return ListUtils.emptyIfNull(documentModel.getHeader().getAnnotations());
 		}
 	}
 
 	public static IServiceConfiguration createServiceConfiguration(IDocumentModel documentModel, IEC ec) {
-		List<Locale> locales = documentModel.getHeader().getLocales();
+		List<Locale> locales = ListUtils.emptyIfNull(documentModel.getHeader().getLocales());
 		Locale conditionLanguage = documentModel.getContent().getDocumentModelConfig().getConditionLanguage();
 
 		return new ServiceConfiguration(

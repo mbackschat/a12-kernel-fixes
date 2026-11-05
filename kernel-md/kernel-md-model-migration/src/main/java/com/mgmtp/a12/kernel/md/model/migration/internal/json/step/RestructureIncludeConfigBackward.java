@@ -32,7 +32,6 @@
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
@@ -45,10 +44,9 @@ public final class RestructureIncludeConfigBackward {
 	private RestructureIncludeConfigBackward() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 
-		ModelJsonUtil.extractUnexpandedIncludingGroups(model)
+		ModelJsonUtil.extractUnexpandedIncludingGroupsByIncludeConfig(model)
 				.forEach(it ->
 						moveFromIncludeConfig(it.get(ModelJsonUtil.TYPE_GROUP)));
 
@@ -87,12 +85,14 @@ public final class RestructureIncludeConfigBackward {
 	private static void moveFromAliasFromNewModelIncludeConfig(ObjectNode containerAsObj) {
 		ObjectNode modelIncludeConfigNd = (ObjectNode) containerAsObj.get(ModelJsonUtil.MODEL_INCLUDE_CONFIG);
 		if (modelIncludeConfigNd == null || !modelIncludeConfigNd.isObject()) {
-			throw MigrationUtils.contentNotSupportedException("The document model contains erroneous '" + ModelJsonUtil.MODEL_INCLUDE_CONFIG + "'.");
+			throw MigrationUtils.contentNotSupportedException(
+					"The document model contains erroneous '" + ModelJsonUtil.MODEL_INCLUDE_CONFIG + "'.");
 		}
 
 		var modelRefValue = modelIncludeConfigNd.get(ModelJsonUtil.MODEL_REFERENCE);
 		if (modelRefValue == null || !modelRefValue.isString()) {
-			throw MigrationUtils.contentNotSupportedException("The document model contains erroneous '" + ModelJsonUtil.MODEL_REFERENCE + "'.");
+			throw MigrationUtils.contentNotSupportedException(
+					"The document model contains erroneous '" + ModelJsonUtil.MODEL_REFERENCE + "'.");
 		}
 		containerAsObj.set(ModelJsonUtil.MODEL_ALIAS, modelRefValue);
 

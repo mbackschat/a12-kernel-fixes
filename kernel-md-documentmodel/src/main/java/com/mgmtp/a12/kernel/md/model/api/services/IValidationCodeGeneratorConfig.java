@@ -81,13 +81,14 @@ public interface IValidationCodeGeneratorConfig {
 	/**
 	 * For generated java code, the packageName will be used as the package name of the
 	 * generated factory class that serves as the entry point to the generated code.
-	 * When empty, the default value {@code com.mgmtp.a12.kernel.generated.} will be used,
+	 * When empty (or null in cases where the parameter is represented as a nullable String rather than {@code Optional<String>}), the default value {@code com.mgmtp.a12.kernel.generated.}
+	 * (from {@code ICodeGeneratorParameters.DEFAULT_PACKAGE_PATH}) will be used,
 	 * but files other than the factory might be placed below different subdirectories,
 	 * for historic reasons.
 	 * When non-empty, <em>all</em> generated source files (for java codegen) will be placed below
 	 * the corresponding subdirectory in the generated source zip; except for the file
 	 * runtime-version.properties, which is always put in the root of the zip.
-	 * <p/>
+	 * <p>
 	 * Code generation for other target languages may or should ideally use this parameter
 	 * in an analogous way as far as this is meaningful and appropriate for the target language
 	 * (to avoid name and file-path clashes between generated code).

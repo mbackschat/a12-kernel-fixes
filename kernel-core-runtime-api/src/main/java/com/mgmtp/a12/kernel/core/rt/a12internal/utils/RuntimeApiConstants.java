@@ -36,15 +36,18 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 @OnlyForUsage
 public class RuntimeApiConstants {
+	/**
+	 * @deprecated no longer evaluated; the value is frozen and not maintained anymore. (kept only in order to not break generated
+	 * 		code / runtime of previous versions that still run the compat check)
+	 */
 	// Don't remove 'new String(..)' to prevent constant inlining (at compile-time).
-	// Don't change the format of this line, it is automatically parsed and checked by verify-versions.sh
-	// see  MGM Wiki Shortlink x/ZGQqDQ   for notes on how to update
-	public static final String API_VERSION = new String("33.0.2");
+	@Deprecated(since = "31.2.0")
+	public static final String API_VERSION = new String("33.2.1");
+	/**
+	 * @deprecated no longer evaluated; the value is frozen and not maintained anymore. (kept only in order to not break generated
+	 * 		code / runtime of previous versions that still run the compat check)
+	 */
 	// Don't remove 'new String(..)' to prevent constant inlining (at compile-time).
-	// Don't change the format of this line, it is automatically parsed and checked by verify-versions.sh
-	// see MGM Wiki Shortlink x/ZGQqDQ   for notes on how to update
-	// @formatter:off
-	// NOTE: The version specified below is the Kernel version, not the runtime API version!!!
-	public static final String OLDEST_COMPATIBLE_RUNTIME_AND_GENCODE_VERSION = new String("30.4.8"); // last checked for api version 33.0.2 Keep this comment here as it is (no extra or new line breaks), it will be automatically checked during api deployment
-	// @formatter:on
+	@Deprecated(since = "31.2.0")
+	public static final String OLDEST_COMPATIBLE_RUNTIME_AND_GENCODE_VERSION = new String("30.4.8");
 }

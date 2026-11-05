@@ -1,6 +1,6 @@
 {
   "name": "@com.mgmtp.a12.kernel/kernel-core-parser-web",
-  "version": "31.1.1",
+  "version": "31.3.1",
   "description": "kernel core parser version in typescript",
   "scripts": {
     "lint": "npm run internal:eslint",
@@ -34,29 +34,31 @@
     "antlr4ForA12Kernel": "npm:@com.mgmtp.a12.kernel.antlr4/antlr4@4.13.2-3"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
-    "@babel/cli": "^7.28.6",
-    "@babel/core": "^7.29.0",
-    "@babel/plugin-transform-modules-commonjs": "^7.28.6",
-    "@com.mgmtp.a12.antlrcodeeditor/antlrcodeeditor-core": "^7.0.0",
-    "@com.mgmtp.a12.devtools/prettier-config": "^1.1.0",
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@babel/cli": "^7.29.7",
+    "@babel/core": "^7.29.7",
+    "@babel/plugin-transform-modules-commonjs": "^7.29.7",
+    "@com.mgmtp.a12.antlrcodeeditor/antlrcodeeditor-core": "^7.1.0",
+    "@com.mgmtp.a12.devtools/prettier-config": "^1.1.1",
     "@com.mgmtp.a12.devtools/tsconfig": "^2.0.0",
-    "@com.mgmtp.a12.kernel/kernel-eslint-config": "31.1.1",
-    "@cyclonedx/cyclonedx-npm": "^5.0.0",
+    "@com.mgmtp.a12.kernel/kernel-eslint-config": "31.3.1",
+    "@cyclonedx/cyclonedx-npm": "^6.0.0",
+    "@types/json5": "^0.0.30",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^24.12.2",
-    "@types/react": "^19.2.14",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
     "@types/styled-components": "^5.1.36",
     "copyfiles": "^2.4.1",
-    "mocha": "^11.7.5",
+    "json5": "^2.2.3",
+    "mocha": "^11.8.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.8.3",
+    "prettier": "^3.9.6",
     "tsconfig-paths": "^4.2.0",
-    "typedoc": "^0.28.19",
-    "typescript": ">=6.0.2"
+    "typedoc": "^0.28.20",
+    "typescript": ">=6.0.3"
   },
   "peerDependencies": {
-    "@com.mgmtp.a12.antlrcodeeditor/antlrcodeeditor-core": "^7.0.0"
+    "@com.mgmtp.a12.antlrcodeeditor/antlrcodeeditor-core": "^7.1.0"
   },
   "files": [
     "lib/main",

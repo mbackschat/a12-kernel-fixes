@@ -31,10 +31,8 @@
  */
 package com.mgmtp.a12.kernel.core.rt.a12internal;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
 
 import com.mgmtp.a12.kernel.core.customfieldtype.ICustomFieldTypeFactory;
 import com.mgmtp.a12.kernel.core.rt.a12internal.custom.ICustomConditionFactory;
@@ -182,18 +180,6 @@ public class ValidationMode {
 
 	public void setPresentationInformation(PresentationInformation presentationInformation) {
 		this.presentationInformation = presentationInformation;
-	}
-
-	/**
-	 * @return {@link Collections#emptyMap()}. Any previously entered additional information is ignored.
-	 *
-	 * @deprecated since version 30.6.0. Will be removed with A12K-4094. Use {@link #customFieldTypeFactory()}  instead. In your
-	 * 		implementation of {@link ICustomFieldTypeFactory} you can already create the objects in the suitable configuration.
-	 * 		Therefore, it is not necessary to pass this data all the way through any longer.
-	 */
-	@Deprecated(since = "30.6.0", forRemoval = true)
-	public Map<String, Object> getAllAdditionalInformation() {
-		return Collections.emptyMap();
 	}
 
 	public Date currentDateForTest() {

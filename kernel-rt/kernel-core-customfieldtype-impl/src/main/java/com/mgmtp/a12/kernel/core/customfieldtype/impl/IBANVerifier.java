@@ -161,6 +161,7 @@ public class IBANVerifier implements ICustomFieldValidator {
 		ibanLaenderXPattern.put("MD", Pattern.compile("MD[0-9]{2}[a-zA-Z0-9]{2}[a-zA-Z0-9]{18}")); // Moldova
 		ibanLaenderXPattern.put("ME", Pattern.compile("ME[0-9]{2}[0-9]{3}[0-9]{13}[0-9]{2}")); // Montenegro
 		ibanLaenderXPattern.put("MK", Pattern.compile("MK[0-9]{2}[0-9]{3}[a-zA-Z0-9]{10}[0-9]{2}")); // North Macedonia
+		ibanLaenderXPattern.put("RS", Pattern.compile("RS[0-9]{2}[0-9]{3}[0-9]{13}[0-9]{2}")); // Serbia
 
 		LAENDER_X_PATTERN = Collections.unmodifiableMap(ibanLaenderXPattern);
 	}

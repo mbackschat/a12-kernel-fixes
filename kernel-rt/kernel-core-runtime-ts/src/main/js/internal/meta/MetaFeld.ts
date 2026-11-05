@@ -50,7 +50,6 @@ import type { IFormatDefinition } from "../formatdef/IFormatDefinition.js";
 import { ValidierungParam } from "../formatdef/ValidierungParam.js";
 import { Constants } from "../util/Constants.js";
 import { DarstellungsInformationIntern } from "../util/DarstellungsInformationIntern.js";
-import { ErgebnisImpl } from "../util/ErgebnisImpl.js";
 import { IMetaKeysInternal } from "../util/IMetaKeysInternal.js";
 import { LocaleUtil } from "../util/LocaleUtil.js";
 import { LocalizableUtil } from "../util/LocalizableUtil.js";
@@ -61,6 +60,8 @@ import { ValidType } from "../util/ValidType.js";
 import { FormatDefinitionDatum } from "../formatdef/FormatDefinitionDatum.js";
 import { FormatDefinitionVordefiniert } from "../formatdef/FormatDefinitionVordefiniert.js";
 import { ZahlArt } from "../formatdef/FormatDefinitionZahl.js";
+
+import { ResultBaseImpl } from "../core/ResultBaseImpl.js";
 
 import type { MetaContainer } from "./MetaContainer.js";
 import { MetaEntity } from "./MetaEntity.js";
@@ -126,7 +127,6 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
         MetaFeld._schluessel.add(IMetaKeys.FIELD_CUSTOM_ERROR_MESSAGE_FOR_REQUIRED);
 
         MetaFeld._internalKeys.add(IMetaKeysInternal.FELD_INTERNENR);
-        MetaFeld._internalKeys.add(IMetaKeysInternal.FELD_ZUSATZPRUEFUNG);
         MetaFeld._internalKeys.add(IMetaKeysInternal.FELD_UNIQUENAME);
         MetaFeld._internalKeys.add(IMetaKeysInternal.FELD_MAXINDICES);
     })();
@@ -163,7 +163,6 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
         if (this._formatDef instanceof FormatDefinitionDatumBereich) {
             const fdd = new FormatDefinitionDatum(
                 this._formatDef.format,
-                this._formatDef.isZusatzPruefung,
                 this._formatDef.teilbekanntArt
             );
             this.addWert(
@@ -263,7 +262,7 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
         if (data == undefined) {
             return undefined;
         }
-        const erg = new ErgebnisImpl();
+        const erg = new ResultBaseImpl();
         const conversionResult = this._convertInternal(
             data,
             darstellungsInfo,
@@ -273,8 +272,8 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
             erg,
             customFieldTypeFactory,
         );
-        if (erg.fehlerText != undefined) {
-            throw new LocalizableError(erg.fehlerText);
+        if (erg.v1Messages.length > 0) {
+            throw new LocalizableError(erg.v1Messages[erg.v1Messages.length - 1].message);
         }
         return conversionResult ?? "";
     }
@@ -762,7 +761,6 @@ export class MetaFeld extends MetaEntity implements IMetaFieldInternalTmpA12K264
             key === IMetaKeys.FIELD_ZERO_ALLOWED ||
             key === IMetaKeys.FIELD_LEADING_ZEROS ||
             key === IMetaKeys.FIELD_FORMAT ||
-            key === IMetaKeysInternal.FELD_ZUSATZPRUEFUNG ||
             key === IMetaKeys.FIELD_VALUE_TRUE ||
             key === IMetaKeys.FIELD_VALUE_FALSE ||
             key === IMetaKeys.FIELD_ENUMERATION_VALUES ||

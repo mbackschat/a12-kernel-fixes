@@ -31,83 +31,20 @@
  */
 package com.mgmtp.a12.kernel.md.model.migration.internal;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Used to log a different information, that should be displayed for the client.
  */
+@RequiredArgsConstructor @Getter
 public class MigrationInfo {
-
-	private String elementId;
-	private String message;
-
-	/**
-	 * Instantiates a new Migration info.
-	 */
-	public MigrationInfo() {
-	}
-
-	/**
-	 * Instantiates a new Migration info with a message.
-	 *
-	 * @param message
-	 * 		the message
-	 */
-	public MigrationInfo(final String message) {
-		this.message = message;
-	}
-
-	// BUILDER Methods -----------------------------------------------
-
-	/**
-	 * With element id.
-	 *
-	 * @param elementId
-	 * 		the element id
-	 * @return the migration info
-	 */
-	public MigrationInfo withElementId(final String elementId) {
-		this.elementId = elementId;
-		return this;
-	}
-
-	/**
-	 * With message.
-	 *
-	 * @param message
-	 * 		the message
-	 * @return the migration info
-	 */
-	public MigrationInfo withMessage(final String message) {
-		this.message = message;
-		return this;
-	}
-
-	// Getter Methods -----------------------------------------------
-
-	/**
-	 * Gets element id.
-	 *
-	 * @return the element id
-	 */
-	public String getElementId() {
-		return elementId;
-	}
-
-	/**
-	 * Gets message.
-	 *
-	 * @return the message
-	 */
-	public String getMessage() {
-		return message;
-	}
+	private final @NonNull String message;
+	private final @NonNull String elementId;
 
 	@Override
 	public String toString() {
-		return new ToStringBuilder(this)
-				.append("elementId", elementId)
-				.append("message", message)
-				.toString();
+		return "Info for element with id '%s': %s".formatted(elementId, message);
 	}
 }

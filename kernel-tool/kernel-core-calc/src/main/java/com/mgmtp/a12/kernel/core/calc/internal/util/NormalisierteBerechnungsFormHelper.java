@@ -53,6 +53,7 @@ import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_Conditi
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.languages.ConditionMultiLanguageHandler;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.EntityIdImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.bedingung.CompositeConditionImpl;
+import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.bedingung.ConditionImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.util.AnalyseService;
 import com.mgmtp.a12.kernel.core.parser.internal.util.MissingEntityEC;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IEntityId;
@@ -94,12 +95,16 @@ import com.mgmtp.a12.kernel.core.tool.a12internal.api.services.IServiceConfigura
 import com.mgmtp.a12.kernel.core.utils.internal.EnumBasedErrorLookup;
 
 /**
- * Die Klasse <code>NormalisierteBerechnungsFormHelper</code> stellt Methoden zur Prüfung der
- * "normalisierten Form" für (serverseitige) Berechnungen und Extraktion der Informationen aus der
- * "normalisierten Form" zur Verfügung.
+ * The class <code>NormalisierteBerechnungsFormHelper</code> provides methods for checking the
+ * "normalized form" for calculations and for extracting the information from the "normalized form".
  * <p>
- * Die "normalisierte Form" wird im AHB im Kapitel zu den serverseitigen Berechnungsinformationen
- * beschrieben.
+ * More documentation can be found in the German BA docs under  "normalisierte Berechnungsform".
+ * <p>
+ * <b>Note:</b> This class is stateful and is neither thread-safe nor reusable. Fields such as
+ * {@code wasGeneralReferenceErrorReported}, {@code reportedReferenceErrorEntities} and
+ * {@code suppressedWarnings} are mutated during a check run and are never reset. A fresh instance
+ * must therefore be created for each call (see {@code CalculationService#getBerechnungsHelper}); an
+ * instance must not be shared across multiple threads or multiple check runs.
  */
 public class NormalisierteBerechnungsFormHelper {
 	private final EnumBasedErrorLookup<CalculationErrorType> errorLookup;
@@ -112,6 +117,7 @@ public class NormalisierteBerechnungsFormHelper {
 	private final IServiceConfiguration.ParserStrictness strictness;
 	private boolean wasGeneralReferenceErrorReported = false;
 	private final Set<EntityIdImpl> reportedReferenceErrorEntities = new HashSet<>();
+	private Set<String> suppressedWarnings = Collections.emptySet();
 
 	/**
 	 * @param errorLookup
@@ -165,6 +171,9 @@ public class NormalisierteBerechnungsFormHelper {
 	 * 		<code>false</code>.
 	 */
 	public boolean checkNormalisierteForm(ICondition bedingung, IField errorField) {
+		if (bedingung instanceof ConditionImpl condImpl && condImpl.getSuppressedWarnings() != null) {
+			this.suppressedWarnings = condImpl.getSuppressedWarnings();
+		}
 		// 1. Feld-Gate-Bedingung: FeldAngegeben(bF) Und ...
 		if (!(bedingung instanceof ICompositeCondition zgb)) {
 			reportProblem(CalculationErrorType.MVK_ERROR_INVALID_FIELD_GATE);
@@ -329,7 +338,14 @@ public class NormalisierteBerechnungsFormHelper {
 		 * Nachkommastellen, wie das berechnete Feld maximal haben darf
 		 */
 		if (isToleranzVergleich(vb.getCmpOp()) && roundingMode == RoundingMode.EXACT) {
-			int fractionalDigits = ((INumberType) calcField.getType()).getMaxFractionalDigits();
+
+			if (!(calcField.getType() instanceof INumberType calcNumberFieldType)) {
+				reportProblem(CalculationErrorType.MVK_ERROR_INVALID_FIELDTYPE);
+				//for this situation it appears more robust to return CalcOperationWithCompOp thereby hiding
+				// the fractional digits
+				return Optional.of(new CalcOperationWithCompOp(vb.getOperation2(), vb.getCmpOp()));
+			}
+			int fractionalDigits = calcNumberFieldType.getMaxFractionalDigits();
 			return Optional.of(
 					new CalcOperationRoundDownWithCompOp(vb.getOperation2(),
 							fractionalDigits, vb.getCmpOp()));
@@ -350,7 +366,8 @@ public class NormalisierteBerechnungsFormHelper {
 			return false;
 		}
 
-		if (strictness == IServiceConfiguration.ParserStrictness.STRICT && FieldUtils.isEnum(errorField)) {
+		if (strictness == IServiceConfiguration.ParserStrictness.STRICT && FieldUtils.isEnum(errorField)
+				&& !suppressedWarnings.contains(CalculationErrorType.MVK_ERROR_INVALID_ENUM_CALCULATION.name())) {
 			IEnumerationType fieldType = (IEnumerationType) errorField.getType();
 			if (!isEnumValueCompatible(feldOp, fieldType)) {
 				reportProblem(CalculationErrorType.MVK_ERROR_INVALID_ENUM_CALCULATION);
@@ -390,19 +407,19 @@ public class NormalisierteBerechnungsFormHelper {
 				return false;
 			}
 
-			return isEntityIdCompatibleWithEnumValues(fieldIdOp.getField(), errorFieldType, xmlValues);
+			return isEntityIdCompatibleWithEnumValues(fieldIdOp.getField(), xmlValues);
 		}
 		if ((op instanceof IEntityListOperation entityListOp)) {
 			if (entityListOp.getOperatorName() != EntityListOperationName.FirstFilledValue) {
 				return false;
 			}
 			return entityListOp.getEntityList().getEntityIdList().stream()
-					.allMatch(entityId -> isEntityIdCompatibleWithEnumValues(entityId, errorFieldType, xmlValues));
+					.allMatch(entityId -> isEntityIdCompatibleWithEnumValues(entityId, xmlValues));
 		}
 		return false;
 	}
 
-	private boolean isEntityIdCompatibleWithEnumValues(IEntityId fieldId, IEnumerationType errorFieldType, Set<String> xmlValues) {
+	private boolean isEntityIdCompatibleWithEnumValues(IEntityId fieldId, Set<String> xmlValues) {
 		String category = fieldId.getCategoryName();
 		IField field = (IField) ec.get(fieldId.getFullName());
 		if (!FieldUtils.isEnum(field)) {

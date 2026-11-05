@@ -205,15 +205,11 @@ public class FieldDataCollector {
 	private void addDateType(String parentPrefix, IDateType type) {
 		String idPrefix = parentPrefix + "DateType[1]/";
 
-		String format = type.getFormat().replace('d', 'T').replace('y', 'J');
+		String format = type.getFormat();
 		String partlyKnown = type.partlyKnownDate().name();
-		boolean additionalCheck = type.isAdditionalCheck();
 
 		addValue(idPrefix + "format[1]", format);
 		addValue(idPrefix + "optionalDateType[1]", partlyKnown);
-		if (additionalCheck) {
-			addValue(idPrefix + "additionalCheck[1]", Boolean.TRUE.toString());
-		}
 	}
 
 	private void addPredefinedType(String parentPrefix, IPredefinedType type) {
@@ -408,15 +404,10 @@ public class FieldDataCollector {
 		InterpretationOfYear interpretationOfYear = type.getInterpretationOfYear();
 		String separator = type.getSeparator();
 		String format = type.getFormatOfDate() + separator + type.getFormatOfDate();
-		String displayFormat = format.replace('d', 'T').replace('y', 'J');
-		boolean additionalCheck = type.isAdditionalCheck();
 
-		addValue(idPrefix + "formatDateRange[1]", displayFormat);
+		addValue(idPrefix + "formatDateRange[1]", format);
 		addValue(idPrefix + "interpretationOfYear[1]", mapInterpretationOfYear(interpretationOfYear));
 		addValue(idPrefix + "dateRangeSeparator[1]", separator);
-		if (additionalCheck) {
-			addValue(idPrefix + "additionalCheckDateRange[1]", Boolean.TRUE.toString());
-		}
 	}
 
 	private String mapInterpretationOfYear(InterpretationOfYear interpretationOfYear) {
@@ -424,9 +415,9 @@ public class FieldDataCollector {
 			case STANDARD:
 				return "standard";
 			case PREVIOUS:
-				return "von";
+				return "from";
 			case SUBSEQUENT:
-				return "bis";
+				return "to";
 			default:
 				throw new IllegalArgumentException("Unknown interpretation of year " + interpretationOfYear);
 		}

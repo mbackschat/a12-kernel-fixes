@@ -72,14 +72,20 @@ void sonarQube(final Closure body) {
     }
 }
 
-void buildEnvironment(final Closure body) {
+void buildEnvironmentWithoutSSH(final Closure body) {
     bitbucketCredentials {
         gradleCredentials {
             npmCredentials {
-                sshAgent {
-                    body()
-                }
+                body()
             }
+        }
+    }
+}
+
+void buildEnvironment(final Closure body) {
+    buildEnvironmentWithoutSSH {
+        sshAgent {
+            body()
         }
     }
 }
@@ -111,6 +117,36 @@ String branchName() {
 // gradle
 String publishTaskName() {
     'publishAllPublicationsToMgm-maven-releasesRepository'
+}
+
+//use gradle task 'printA12DocsTarget' to determine an A12_DOCS_TARGET, following rules depending on the branch name
+String a12DocsTarget() {
+    String docsTarget = ''
+    buildEnvironment {
+        // only the prefixed line is the docs target, any other output of the build is ignored
+        final String docsTargetPrefix = 'A12_DOCS_TARGET='
+        String docsTargetLine = sh(script: "gradle -q printA12DocsTarget", returnStdout: true).readLines().find { it.startsWith(docsTargetPrefix) }
+        docsTarget = docsTargetLine ? docsTargetLine.substring(docsTargetPrefix.length()).trim() : ''
+    }
+    docsTarget
+}
+
+// test reporting: exclude node_modules folder from globpattern, because it may contain symlinks to our kernel modules (TS) and thereby duplicate results
+void publishAllTestReports(final Map junitArgs = [:]) {
+    String testReports = sh(script: "find . -name '*TEST*.xml'", returnStdout: true)
+            .split('\n')
+            .findAll { it && !it.split('/').contains('node_modules') }
+            .collect { it.replaceFirst('^\\./', '') }//adjust find resulting path for Junit
+            .join(',')
+    // echo "Test reports found:\n${testReports.replace(',', '\n')}"
+    if (!testReports) {
+        if (junitArgs.allowEmptyResults) {
+            echo 'No test reports found.'
+            return
+        }
+        error('No test reports found.')
+    }
+    junit(junitArgs + [testResults: testReports])
 }
 
 return this

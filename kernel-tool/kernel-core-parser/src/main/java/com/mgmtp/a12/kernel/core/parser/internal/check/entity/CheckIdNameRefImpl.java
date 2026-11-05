@@ -34,7 +34,7 @@ package com.mgmtp.a12.kernel.core.parser.internal.check.entity;
 import java.util.Set;
 
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
-import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils.RelativeBeyondRootException;
+import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils.RelativeBeyondDocumentRootException;
 import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorTypesEnum;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.IdNameRefContext;
@@ -174,7 +174,7 @@ public class CheckIdNameRefImpl extends CheckIdNameRefCommonImpl {
 	private String constructEntityFullName(String name) {
 		try {
 			return isAbsolutPath() ? name : EntityUtils.relPath2AbsPath(getRulePrefix(), name);
-		} catch (RelativeBeyondRootException e) {
+		} catch (RelativeBeyondDocumentRootException e) {
 			String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_TOO_MANY_PARENT_GROUPS);
 			throw createMVKParserError(errMessage);
 		}

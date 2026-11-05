@@ -119,8 +119,8 @@ public class Field extends Element implements IEntity, ILabeled {
 			@NonNull ILocalizedTextMap externalDescription, @NonNull List<Annotation> annotations,
 			@NonNull ILocalizedTextMap label, boolean isGlobal, boolean isTransient,
 			RequirednessConfig requirednessConfig, @NonNull FieldType fieldType,
-			@NonNull ILocalizedTextMap helperText, String additionalInfo) {
-		super(null, id, name, internalDescription, externalDescription, annotations);
+			@NonNull ILocalizedTextMap helperText, String additionalInfo, String changeNote) {
+		super(null, id, name, internalDescription, externalDescription, annotations, changeNote);
 		this.label = label;
 		this.requirednessConfig = requirednessConfig;
 		this.isGlobal = isGlobal;
@@ -163,6 +163,10 @@ public class Field extends Element implements IEntity, ILabeled {
 		private List<Annotation> annotations = new ArrayList<>(); // in order to make FieldBuilder.annotations() optional
 		private ILocalizedTextMap label = new LocalizedTextMapBuilder().build(); // in order to make FieldBuilder.label() optional
 		private ILocalizedTextMap helperText = new LocalizedTextMapBuilder().build(); // in order to make FieldBuilder.helperText() optional
+
+		public String getId() {
+			return this.id;
+		}
 	}
 
 }

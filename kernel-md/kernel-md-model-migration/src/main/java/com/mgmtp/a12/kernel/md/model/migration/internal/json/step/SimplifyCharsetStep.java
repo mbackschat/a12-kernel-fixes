@@ -38,7 +38,6 @@ import java.util.List;
 import com.mgmtp.a12.kernel.core.base.utils.internal.CharsetUtil;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
@@ -57,8 +56,7 @@ public final class SimplifyCharsetStep {
 	private SimplifyCharsetStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		for (final JsonNode supportedCharactersNode : model.findValues(ModelJsonUtil.SUPPORTED_CHARACTERS)) {
 			// All restricted charsets should be string arrays.
 			// If we encounter malformed charset definitions, we don't touch anything

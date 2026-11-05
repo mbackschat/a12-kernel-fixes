@@ -17,11 +17,11 @@ dependencies {
     api libs.kernelCoreRuntimeApi
     api project(':kernel-internal-core-service')
     api project(':kernel-internal-core-tool-api')
+    api project(':kernel-internal-core-utils')
 
     implementation project(':kernel-internal-core-calc')
     implementation project(':kernel-internal-core-codegen-meta-base')
     implementation project(':kernel-internal-core-parser')
-    implementation project(':kernel-internal-core-utils')
     implementation libs.baseModelConsistency
     implementation libs.commonsLang3
 

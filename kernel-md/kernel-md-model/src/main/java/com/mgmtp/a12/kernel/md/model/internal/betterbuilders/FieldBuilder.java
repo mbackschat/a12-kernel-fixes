@@ -35,9 +35,11 @@ import java.util.function.UnaryOperator;
 
 import com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel;
 import com.mgmtp.a12.kernel.md.model.a12internal.Field;
+import com.mgmtp.a12.kernel.md.model.a12internal.FieldTypeDefinition;
 import com.mgmtp.a12.kernel.md.model.a12internal.Group;
 import com.mgmtp.a12.kernel.md.model.internal.betterbuilders.ft.FieldTypeBuilder;
 import com.mgmtp.a12.kernel.md.model.internal.betterbuilders.ft.StringTypeBuilder;
+import com.mgmtp.a12.kernel.md.model.internal.betterbuilders.ft.TypeDefTypeBuilder;
 
 public class FieldBuilder {
 
@@ -63,6 +65,11 @@ public class FieldBuilder {
 		return this;
 	}
 
+	public FieldBuilder adaptId(UnaryOperator<String> idFunc) {
+		fieldBuilder.id(idFunc.apply(fieldBuilder.getId()));
+		return this;
+	}
+
 	public FieldBuilder name(String fullName) {
 		String pathWithRepetitions = BuilderUtil.pathPartOf(fullName);
 		parent = GroupBuilder.with(documentModel).ensureGroup(pathWithRepetitions);
@@ -75,6 +82,11 @@ public class FieldBuilder {
 	public <T extends FieldTypeBuilder> FieldBuilder ft(T fieldTypeBuilder) {
 		this.fieldTypeBuilder = fieldTypeBuilder;
 		return this;
+	}
+
+	public FieldBuilder ft(FieldTypeDefinition fieldTypeDefinition) {
+		return ft(TypeDefTypeBuilder.builder()
+				.modify(wb -> wb.id(fieldTypeDefinition.getId()).typeDefinition(fieldTypeDefinition)));
 	}
 
 	public FieldBuilder modify(UnaryOperator<Field.FieldBuilder> modifier) {

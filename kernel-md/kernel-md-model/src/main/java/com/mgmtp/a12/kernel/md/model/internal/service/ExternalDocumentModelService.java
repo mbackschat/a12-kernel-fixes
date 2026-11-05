@@ -40,6 +40,7 @@ import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.Validate;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.Consumer2ProblemReporter;
@@ -188,7 +189,7 @@ public class ExternalDocumentModelService implements IDocumentModelService {
 				calculationInfo,
 				DocumentModelServiceUtils.createGeneratedCodeId(model),
 				model.getHeader().getId(),
-				model.getHeader().getLocales(),
+				ListUtils.emptyIfNull(model.getHeader().getLocales()),
 				DocumentModelContent.VERSION,
 				config.getPackageName(),
 				DocModelToIECMappingUtils.convertJsCodeGenConfig(config.getJsCodeGenConfig()),

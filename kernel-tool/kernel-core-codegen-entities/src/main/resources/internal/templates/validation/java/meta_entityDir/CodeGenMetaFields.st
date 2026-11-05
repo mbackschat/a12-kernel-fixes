@@ -12,11 +12,11 @@ import java.util.Map;
 import java.util.Set;
 
 import com.mgmtp.a12.kernel.core.rt.a12internal.Pair;
-import com.mgmtp.a12.kernel.core.rt._31_1.internal.formatdef.*;
-import com.mgmtp.a12.kernel.core.rt._31_1.internal.formatdef.IFormatDefinition.FeldFormatEnumType;
-import com.mgmtp.a12.kernel.core.rt._31_1.internal.meta.util.MapBuilder;
-import com.mgmtp.a12.kernel.core.rt._31_1.internal.meta.util.MetaFeldUtil;
-import com.mgmtp.a12.kernel.core.rt._31_1.internal.util.DatumTeilbekanntArt;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.formatdef.*;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.formatdef.IFormatDefinition.FeldFormatEnumType;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.meta.util.MapBuilder;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.meta.util.MetaFeldUtil;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.util.DatumTeilbekanntArt;
 
 import com.mgmtp.a12.utils.conversion.InterpretationOfYear;
 

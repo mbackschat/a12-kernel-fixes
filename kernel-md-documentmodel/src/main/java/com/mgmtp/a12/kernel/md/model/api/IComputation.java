@@ -63,8 +63,8 @@ public interface IComputation extends IElement, Serializable {
 		/**
 		 * @return the operation with which the value is computed if the precondition (see also
 		 *        {@link #getPrecondition()}) is fulfilled.
-		 *        Normally non-empty, but may be empty (but never null) for incomplete computation alternatives for
-		 *        which modeling has not been completed yet.
+		 * 		Normally non-empty, but may be empty (but never null) for incomplete computation alternatives for
+		 * 		which modeling has not been completed yet.
 		 */
 		String getOperation();
 
@@ -75,19 +75,32 @@ public interface IComputation extends IElement, Serializable {
 	}
 
 	/**
-	 * @return the referenced {@link IField} to be computed. Is never {@code null}.
+	 * @return the reference to the {@link IField} to be computed. The reference
+	 * 		({@link IDocumentModelObjectReference#getRelativePath()}) is relative to this computation. Never {@code null}.
 	 */
 	@NonNull IDocumentModelObjectReference<IField> getComputedField();
+
+	/**
+	 * @return the additional parser information for this computation: a parser preamble, e.g.
+	 * 		{@code @SuppressWarning(MVK_INVALID_COMPARE_DEC_PLACES)}, that may carry additional parser directives
+	 * 		in the future. {@link Optional#empty()} if none is set.
+	 */
+	Optional<String> getAdditionalParserInformation();
 
 	/**
 	 * @return a list of the parser error codes which should be suppressed while parsing the
 	 * 		complete computation statement. Never {@code null}.
 	 * 		<p>
-	 * 		At the moment, the list can contain following error codes:
+	 * 		At the moment, the list can contain the following error codes:
 	 * 		<ul>
 	 * 		<li>MVK_INVALID_COMPARE_DEC_PLACES</li>
+	 * 		<li>MVK_ERROR_INVALID_ENUM_CALCULATION</li>
 	 * 		</ul>
+	 *
+	 * @deprecated since 31.2.0. Use {@link #getAdditionalParserInformation()} instead, which holds the
+	 * 		complete preamble; this accessor extracts the codes (best-effort) from it.
 	 */
+	@Deprecated(since = "31.2.0")
 	@NonNull List<String> getErrorCodesToSuppress();
 
 	/**
@@ -115,5 +128,11 @@ public interface IComputation extends IElement, Serializable {
 	 * 		"RoundDown" are supported.
 	 */
 	Optional<String> getRoundingMode();
+
+	/**
+	 * @return the errorCode used for the validation rule auto-generated from this computation.
+	 * 		If not set (empty {@link Optional}), the rule's errorCode falls back to the computation's name.
+	 */
+	Optional<String> getErrorCode();
 
 }

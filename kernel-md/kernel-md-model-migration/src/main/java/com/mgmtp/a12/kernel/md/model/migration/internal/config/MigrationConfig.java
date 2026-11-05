@@ -39,7 +39,6 @@ import java.util.List;
 import com.mgmtp.a12.kernel.core.base.utils.internal.Java8Utils;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationCode;
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.step.MigrationStep;
 
 import lombok.Getter;
@@ -53,7 +52,6 @@ public class MigrationConfig {
 
 	public static @NonNull MigrationConfig create(
 			@NonNull List<InternalStep> internalSteps,
-			@NonNull MigrationCache cache,
 			ICustomMigrationConfig customConfigOrNull,
 			boolean isForward
 	) {
@@ -68,21 +66,21 @@ public class MigrationConfig {
 
 		List<MigrationStep> migrationSteps = new ArrayList<>();
 		chunks.forEach(chunk ->
-					migrationSteps.addAll(processChunk(cache, isForward, customConfig, chunk))
+				migrationSteps.addAll(processChunk(isForward, customConfig, chunk))
 		);
 
 		return new MigrationConfig(migrationSteps, customConfig);
 	}
 
-
 	/**
 	 * create a {@link MigrationStep} for {@link InternalStep} and assign custom codes from custom config, where appropriate.
-	 * Background: If internal intermediate steps are executed on the way to a version, the custom code to be executed beforehand must be
+	 * Background: If internal intermediate steps are executed on the way to a version, the custom code to be executed beforehand
+	 * must be
 	 * executed before the first of these internal intermediate steps, i.e. before processing the first step of a chunk.
 	 * This is necessary because external projects do not know the internal intermediate steps;
 	 * the custom code is always assigned to externally visible versions.
 	 */
-	private static List<MigrationStep> processChunk(MigrationCache cache, boolean isForward, ICustomMigrationConfig customConfig,
+	private static List<MigrationStep> processChunk(boolean isForward, ICustomMigrationConfig customConfig,
 			List<InternalStep> chunk) {
 
 		List<MigrationStep> migrationSteps = new ArrayList<>();
@@ -94,19 +92,19 @@ public class MigrationConfig {
 		Java8Utils.forEachIndexed(chunk, (i, step) -> {
 
 			var targetVersionOfStep = step.getTargetVersion(isForward);
-			var targetVersionOfStepIsInternal = ! (externalTargetVersionOfChunk.equals(targetVersionOfStep));
+			var targetVersionOfStepIsInternal = !(externalTargetVersionOfChunk.equals(targetVersionOfStep));
 
 			MigrationStepConfig stepConfig =
 					MigrationStepConfig.builder()
-					.sourceModelVersion(step.getSourceVersion(isForward))
-					.targetModelVersion( targetVersionOfStep)
-					.targetVersionIsInternal(targetVersionOfStepIsInternal)
-					.customCodeBefore(i == 0 ? customCodeBefore : null)
-					.customCodeAfter(i == chunk.size() - 1 ? customCodeAfter : null)
-					.build();
+							.sourceModelVersion(step.getSourceVersion(isForward))
+							.targetModelVersion(targetVersionOfStep)
+							.targetVersionIsInternal(targetVersionOfStepIsInternal)
+							.customCodeBefore(i == 0 ? customCodeBefore : null)
+							.customCodeAfter(i == chunk.size() - 1 ? customCodeAfter : null)
+							.build();
 			var implementation = isForward ? step.forwardMigration() : step.backwardMigration();
 			if (implementation != null) {
-				migrationSteps.add(new MigrationStep(cache, stepConfig, customConfig, implementation));
+				migrationSteps.add(new MigrationStep(stepConfig, customConfig, implementation));
 			}
 		});
 		return migrationSteps;
@@ -115,7 +113,7 @@ public class MigrationConfig {
 	/**
 	 * consider all internal steps for a forward migration and group them into chunks, each each chunk consisting of intermediat
 	 * internal target versions, and ending with a step towards an external target version
-	 * (this is needed, to decide at which steps user custom code should be executed) 
+	 * (this is needed, to decide at which steps user custom code should be executed)
 	 */
 	private static List<List<InternalStep>> groupStepsIntoExternallyVisibleChunks(List<InternalStep> internalSteps) {
 		if (internalSteps.isEmpty()) {

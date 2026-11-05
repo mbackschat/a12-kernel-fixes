@@ -109,7 +109,8 @@ public class FeldIdCreator {
 	public static List<IEntityId> createFeldIdListe(EntitySpecContext ctx, Lenient_ConditionParser parser, ExpandMode expandMode) {
 		EntityRef ref = parser.getEntityRef(ctx);
 
-		if (expandMode == ExpandMode.NO_EXPAND || ref.getEntity().isField()) {//no need to expand
+		if (expandMode == ExpandMode.NO_EXPAND || expandMode == ExpandMode.NO_EXPAND_OR_RG_REPLACEMENT || ref.getEntity()
+				.isField()) {//no need to expand
 			return Collections.singletonList(createEntityId(ref, parser));
 		} else {//expand the group
 			return expandEntityRef(ref, parser, ctx, expandMode);

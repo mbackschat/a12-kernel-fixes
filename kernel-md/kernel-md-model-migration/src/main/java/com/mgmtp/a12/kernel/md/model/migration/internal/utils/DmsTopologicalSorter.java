@@ -35,12 +35,15 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.utils;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import com.mgmtp.a12.kernel.core.utils.internal.TopologicalSortHelper;
+import com.mgmtp.a12.kernel.md.model.migration.internal.DmToMigrate;
 
 import tools.jackson.databind.JsonNode;
 
@@ -52,23 +55,35 @@ public class DmsTopologicalSorter {
 	private final Map<String, Set<String>> graph;
 
 	/**
-	 * Prerequisites:
-	 * <ul>
-	 *     <li>document model ids must be unique</li>
-	 *     <li>the file name must be equal the document model id</li>
-	 * </ul>
+	 * Applies the given consumer to every document model in {@code dmsToMigrate}, visiting them in topological order so
+	 * that a document model is always processed after all the document models it imports/includes. Document models that
+	 * (invalidly) share the same id are grouped together and visited consecutively; the sort order between such groups is
+	 * determined by treating all document models with the same id as a single node in the dependency graph.
 	 *
-	 * @param dmsToSort
-	 * 		document models by id. Must not be {@code null}.
+	 * @param dmsToMigrate the document models to visit
+	 * @param consumer invoked once per document model with the document model itself and a lookup map from document
+	 *                 model id to all document models carrying that id
+	 * @throws IllegalArgumentException if the imported/included references between the document models form a cycle
 	 */
-	public static DmsTopologicalSorter ofByIdMap(Map<String, JsonNode> dmsToSort) {
-		Map<String, Set<String>> graph = dmsToSort.entrySet().stream()
-				.collect(Collectors.toMap(
-						Map.Entry::getKey,
-						entry -> getReferencedDocModelIds(entry.getValue(), dmsToSort.keySet())
-				));
-		return new DmsTopologicalSorter(graph);
+	public static void forEachDmSorted(
+			List<DmToMigrate> dmsToMigrate,
+			BiConsumer<DmToMigrate, Map<String, List<DmToMigrate>>> consumer
+	) {
+		Map<String, List<DmToMigrate>> dmsById = dmsToMigrate.stream()
+				.collect(Collectors.groupingBy(dm -> ModelJsonUtil.extractModelId(dm.jsonNode())));
+		List<String> dmIdsInOrder = DmsTopologicalSorter.sortedIds(dmsToMigrate.stream().map(DmToMigrate::jsonNode).toList());
+		dmIdsInOrder.forEach(dmId ->
+				dmsById.get(dmId).forEach(dm -> consumer.accept(dm, dmsById)));
+	}
 
+	private static List<String> sortedIds(Collection<JsonNode> dmsToSort) {
+		DmsTopologicalSorter sorter = DmsTopologicalSorter.ofDMsWithAmbiguousIds(dmsToSort);
+		TopologicalSortHelper.TopologicalSortResult<String> sortResult = sorter.sort();
+		if (!sortResult.isSuccessful()) {
+			throw new IllegalArgumentException("Following document models " +
+					"create a cycle: " + String.join(" -> ", sortResult.getCycle()));
+		}
+		return sortResult.getSort();
 	}
 
 	/**
@@ -78,7 +93,7 @@ public class DmsTopologicalSorter {
 	 * DM, with respect to the dependency graph. This can result in false-positive cycle detections, but not in false-negative
 	 * results (where a cycle exists, but none is reported).
 	 */
-	public static DmsTopologicalSorter ofDMsWithAmbiguousIds(Collection<JsonNode> dmsToSort) {
+	private static DmsTopologicalSorter ofDMsWithAmbiguousIds(Collection<JsonNode> dmsToSort) {
 		Set<String> relevantDocModelIds = dmsToSort.stream().map(ModelJsonUtil::extractModelId).collect(Collectors.toSet());
 		Map<String, Set<String>> graph = new HashMap<>();
 		for (JsonNode docModel : dmsToSort) {

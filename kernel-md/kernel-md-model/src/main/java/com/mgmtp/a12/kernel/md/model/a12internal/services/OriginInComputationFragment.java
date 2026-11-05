@@ -96,6 +96,22 @@ public class OriginInComputationFragment {
 				new OriginInComputationFragment.TextPosition(endLineInFragment, endColInFragment, fragemntText));
 	}
 
+	/**
+	 * Creates an origin within a computation's additional parser information (the preamble, e.g.
+	 * <code>@SuppressWarning(...)</code>).
+	 *
+	 * line numbers are 1-based and endLineInFragment is inclusive</br>
+	 * column numbers are 0-based and endColInFragment is exclusive
+	 */
+	public static OriginInComputationFragment ofAdditionalParserInformation(String fragmentText,
+			int startLineInFragment, int startColInFragment,
+			int endLineInFragment, int endColInFragment) {
+		return new OriginInComputationFragment(
+				ComputationAlternativesJoiner.ComputationAlternativeFragmentOriginRef.forAdditionalParserInformation(),
+				new OriginInComputationFragment.TextPosition(startLineInFragment, startColInFragment, fragmentText),
+				new OriginInComputationFragment.TextPosition(endLineInFragment, endColInFragment, fragmentText));
+	}
+
 	private static Optional<OriginInComputationFragment> of(IRuleFromComputation rule, int startLine, int startColumn, int endLine,
 			int endColumn) {
 		var start = new TextPosition(startLine, startColumn, rule.getErrorConditionText());
@@ -142,11 +158,23 @@ public class OriginInComputationFragment {
 	 * @return <code>true</code> iff the parser problem originates from the common precondition field of a computation.
 	 */
 	public boolean isCommonPrecondition() {
-		return fragmentDescriptor.alternativeIdx() == -1 && fragmentDescriptor.isPrecondition();
+		return fragmentDescriptor.isCommonPrecondition();
 	}
 
 	/**
-	 * @return the index (0-based) of the computation alternative that corresponds to the parser problem.
+	 * @return <code>true</code> iff the parser problem originates from the additional parser information (the preamble,
+	 * 		e.g. <code>@SuppressWarning(...)</code>) of a computation. If so, {@link #getComputationAlternativeIndex()} and
+	 *        {@link #isPrecondition()} are not meaningful.
+	 */
+	public boolean isAdditionalParserInformation() {
+		return fragmentDescriptor.isAdditionalParserInformation();
+	}
+
+	/**
+	 * @return the index (0-based) of the computation alternative that corresponds to the parser problem, or a
+	 * 		negative sentinel for problems that do not belong to an alternative: {@code -1} for the common
+	 * 		precondition ({@link #isCommonPrecondition()}) and {@code -2} for the additional parser information
+	 * 		({@link #isAdditionalParserInformation()}).
 	 */
 	public int getComputationAlternativeIndex() {
 		return fragmentDescriptor.alternativeIdx();

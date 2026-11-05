@@ -71,10 +71,10 @@ public interface IDateRangeType extends IFieldType {
 	@NonNull String getFormat();
 
 	/**
-	 * @return {@code true} if ({@code from} and/or {@code to}) dates before {@code 1900-01-01}
-	 * 		should be considered as a wrong input, otherwise {@code false}. The default value is
-	 *        {@code false}.
+	 * @deprecated isYoungerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute will be
+	 * removed with A12K-4439.
 	 */
+	@Deprecated(since = "31.2.0")
 	boolean isYoungerThan1900Check();
 
 	/**

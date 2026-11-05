@@ -32,10 +32,10 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.service.utils;
 
+import static com.mgmtp.a12.kernel.md.model.internal.service.utils.AnnotationUtils.findAnnotation;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.collections4.CollectionUtils;
 
 import com.mgmtp.a12.kernel.md.model.a12internal.Element;
 import com.mgmtp.a12.kernel.md.model.a12internal.visitor.DocumentModelVisitor;
@@ -52,25 +52,19 @@ public class DocumentModelAnnotationVisitor extends DocumentModelVisitor {
 
 	@Override
 	public VisitProcess visitHeader(final Header header) {
-		CollectionUtils.emptyIfNull(header.getAnnotations()).stream()
-				.filter(a -> a.getName().equals(key))
-				.findFirst()
-				.ifPresent(ant -> {
-					var val = ant.getValue();
-					entityPath2Value.put("", val == null ? "" : val);
-				});
+		findAnnotation(header.getAnnotations(), key).ifPresent(ant -> {
+			var val = ant.getValue();
+			entityPath2Value.put("", val == null ? "" : val);
+		});
 		return super.visitHeader(header);
 	}
 
 	@Override
 	public VisitProcess visitElement(Element element) {
-		CollectionUtils.emptyIfNull(element.getAnnotations()).stream()
-				.filter(a -> a.getName().equals(key))
-				.findFirst()
-				.ifPresent(ant -> {
-					var val = ant.getValue();
-					entityPath2Value.put(ElementUtils.getPath(element), val == null ? "" : val);
-				});
+		findAnnotation(element.getAnnotations(), key).ifPresent(ant -> {
+			var val = ant.getValue();
+			entityPath2Value.put(ElementUtils.getPath(element), val == null ? "" : val);
+		});
 		return super.visitElement(element);
 	}
 

@@ -48,20 +48,27 @@ public interface IGroup extends IEntity {
 	 * @return set of short field names specifying the index fields of the group. The set is empty,
 	 * 		if no index is specified for the group.
 	 */
-	public Set<String> getIndexFieldNames();
+	Set<String> getIndexFieldNames();
 
 	/**
 	 * @return map from sort-category-name to list of corresponding sort fields. The sort field list
 	 * 		on a category is null, if no sort information is specified for the category.
+	 *
+	 * <p><strong>Note:</strong> Sort fields are used only in the mapping scenario
+	 * and are only relevant for the source model(s). They define the order of the
+	 * repetitions of a group. This sorting takes place <em>before</em> mapping.
+	 * For example, if only the first three entries of a repeatable group are to be
+	 * included in the mapping, the sort order is critical, because it defines which
+	 * repetitions will be mapped.
 	 */
-	public default Map<String, List<ISortField>> getSortInfo() {
+	default Map<String, List<ISortField>> getSortInfo() {
 		return new HashMap<>();
 	}
 
 	/**
 	 * @return the custom type of the group or {@code null} if no custom type was defined.
 	 */
-	public default Optional<String> getCustomType() {
+	default Optional<String> getCustomType() {
 		return Optional.empty();
 	}
 

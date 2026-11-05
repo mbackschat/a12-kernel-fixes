@@ -246,7 +246,7 @@ public class CalculationService implements ICalculationService {
 				.extractCalculationInfo(condition, cr.getRoundingMode(), cr.getCalculatedField());
 	}
 
-	private NormalisierteBerechnungsFormHelper getBerechnungsHelper(IProblemReporter pm, IRule rule) {
+	public NormalisierteBerechnungsFormHelper getBerechnungsHelper(IProblemReporter pm, IRule rule) {
 		CalculationErrorLookup errorLookup = new CalculationErrorLookup(
 				serviceConfig.getModelSpecificSettings().getLanguageUsedInConditionText());
 		return new NormalisierteBerechnungsFormHelper(errorLookup, pm, rule, serviceConfig.getIEC(),

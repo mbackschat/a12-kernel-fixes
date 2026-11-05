@@ -153,7 +153,6 @@ public class TypeConverter {
 				considerNotInD
 						? dType.getNotInDCustomRangeSeparator().orElse(dType.getRangeSeparator())
 						: dType.getRangeSeparator(),
-				dType.isYoungerThan1900Check(),
 				dType.getInterpretationOfYear().orElse(null));
 	}
 
@@ -162,7 +161,6 @@ public class TypeConverter {
 				considerNotInD
 						? dateType.getNotInDCustomFormat().orElse(dateType.getFormat())
 						: dateType.getFormat(),
-				dateType.isYoungerThan1900Check(),
 				dateType.getDatePrecision());
 	}
 
@@ -171,7 +169,6 @@ public class TypeConverter {
 				considerNotInD
 						? dateFragmentType.getNotInDCustomFormat().orElse(dateFragmentType.getFormatOfFragment())
 						: dateFragmentType.getFormatOfFragment(),
-				dateFragmentType.isYoungerThan1900Check(),
 				DatePrecision.FULL);
 	}
 

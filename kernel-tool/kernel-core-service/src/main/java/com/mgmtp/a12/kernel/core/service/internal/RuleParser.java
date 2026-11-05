@@ -122,7 +122,7 @@ public class RuleParser implements IRuleParser {
 			@NonNull IProblemReporter pm,
 			Function<R, ICondition> customRule2ConditionNoExpandForCustomRefErrorEntities
 	) {
-		if (rule.getCustomRefErrorEntitiesIfFilled().isEmpty() && rule.getCustomRefErrorEntitiesIfNotFilled().isEmpty()) {
+		if (!rule.hasCustomRefEntities()) {
 			// no need to parse
 			return true;
 		}

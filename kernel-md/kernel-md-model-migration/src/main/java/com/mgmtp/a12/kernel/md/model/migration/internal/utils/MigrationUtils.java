@@ -43,10 +43,11 @@ public class MigrationUtils {
 	public static final ObjectMapper MAPPER = new ObjectMapper();
 
 	public static MigrationException contentNotSupportedException(String errorMsg) {
-		return new MigrationException(new MigrationError(MigrationErrorType.MODEL_CONTENT_NOT_SUPPORTED).withMessage(errorMsg));
+		return new MigrationException(new MigrationError(MigrationErrorType.MODEL_CONTENT_NOT_SUPPORTED, errorMsg));
 	}
 
 	private MigrationUtils() {
 		throw new UnsupportedOperationException("Cannot instantiate utils class.");
 	}
+
 }

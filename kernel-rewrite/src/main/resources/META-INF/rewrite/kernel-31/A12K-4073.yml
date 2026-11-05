@@ -1,0 +1,21 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.mgmtp.a12.kernel.31.A12K-4073
+displayName: Migration for A12K-4073
+description: Migration for A12K-4073.
+recipeList:
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.fieldtypes.IDateFragmentType isYoungerThan1900Check()'
+      comment: 'This attribute is no longer evaluated and its value is therefore irrelevant.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.fieldtypes.IDateRangeType isYoungerThan1900Check()'
+      comment: 'This attribute is no longer evaluated and its value is therefore irrelevant.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.md.model.api.fieldtypes.IDateType isYoungerThan1900Check()'
+      comment: 'This attribute is no longer evaluated and its value is therefore irrelevant.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IDateRangeType isAdditionalCheck()'
+      comment: 'This attribute is no longer evaluated and its value is therefore irrelevant.'
+  - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
+      methodPattern: 'com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IDateType isAdditionalCheck()'
+      comment: 'This attribute is no longer evaluated and its value is therefore irrelevant.'

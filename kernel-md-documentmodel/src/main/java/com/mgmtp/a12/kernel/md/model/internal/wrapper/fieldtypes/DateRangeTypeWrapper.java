@@ -53,14 +53,19 @@ public class DateRangeTypeWrapper extends FieldTypeWrapper<DateRangeType> implem
 		return fieldType.getFormat();
 	}
 
+	/**
+	 * @deprecated isYoungerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute  will be
+	 * removed with A12K-4439.
+	 */
+	@Deprecated(since = "31.2.0")
 	@Override
-	public @NonNull String getRangeSeparator() {
-		return fieldType.getRangeSeparator();
+	public boolean isYoungerThan1900Check() {
+		return false;
 	}
 
 	@Override
-	public boolean isYoungerThan1900Check() {
-		return fieldType.isYoungerThan1900Check();
+	public @NonNull String getRangeSeparator() {
+		return fieldType.getRangeSeparator();
 	}
 
 	@Override

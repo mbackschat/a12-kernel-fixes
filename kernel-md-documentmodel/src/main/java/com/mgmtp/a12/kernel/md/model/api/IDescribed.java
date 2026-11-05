@@ -32,6 +32,7 @@
 package com.mgmtp.a12.kernel.md.model.api;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
@@ -54,5 +55,13 @@ public interface IDescribed extends Serializable {
 	 * 		defined, the {@link ILocalizedTextMap} is empty.
 	 */
 	@NonNull ILocalizedTextMap getExternalDescription();
+
+	/**
+	 * @return the change note documenting why changes to this object were done. Empty if none was
+	 * 		defined or if the implementation does not support change notes.
+	 */
+	default Optional<String> getChangeNote() {
+		return Optional.empty();
+	}
 
 }

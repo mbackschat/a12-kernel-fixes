@@ -71,11 +71,13 @@ public interface IDateType extends IFieldType {
 	 */
 	public String getFormat();
 
+
 	/**
-	 * @return <code>true</code>, if the syntactic checks for the field should contain a comparison
-	 * 		to the year 1900.
+	 * @deprecated isAdditionalCheck is no longer evaluated and its value is therefore irrelevant. This attribute will be
+	 * removed with A12K-4439.
 	 */
-	public boolean isAdditionalCheck();
+	@Deprecated(since = "31.2.0")
+	boolean isAdditionalCheck();
 
 	/**
 	 * In order to model birth dates, partly known dates may be used,

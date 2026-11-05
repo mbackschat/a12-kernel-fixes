@@ -36,6 +36,7 @@ import type { HashSet } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a
 
 import type { IFormatDefinition } from "../formatdef/IFormatDefinition.js";
 import type { LocalizableDefaults } from "../util/LocalizableUtil.js";
+import type { RtIdentifierTemplate } from "../util/RtIdentifierTemplate.js";
 import type { RtInternalIdentifier } from "../util/RtInternalIdentifier.js";
 import type { TrieNode } from "../util/TrieNode.js";
 
@@ -215,6 +216,18 @@ export interface IMetaDataValidierung {
 	getReferencedFieldsWithoutReplacement(ruleName: string): HashSet<RtInternalIdentifier>;
 
 	getReferencedOmissionFieldsWithoutReplacement(ruleName: string): HashSet<RtInternalIdentifier>;
+
+	/**
+	 * @return the referenced entities of the rule (may contain groups) used for the V2
+	 * possibly-causing-entities API. Indices are unresolved (as in the code-generated templates).
+	 */
+	getReferencedEntitiesWithoutReplacement(ruleName: string): HashSet<RtIdentifierTemplate>;
+
+	/**
+	 * @return the referenced entities of the rule that could cause omission errors (may contain
+	 * groups) used for the V2 possibly-causing-entities API. Indices are unresolved.
+	 */
+	getReferencedOmissionEntitiesWithoutReplacement(ruleName: string): HashSet<RtIdentifierTemplate>;
 
 	/**
 	 * @return <code>true</code> if the given field was explicitly set as mandatory (not through rules, but through

@@ -15,5 +15,12 @@ dependencies {
 
     implementation libs.slf4jApi
 
+    // A12K-4377 dependency modelling: DocumentV2-based (de)serialization of the embedded dependency
+    // model plus the generated typed views, used by the dependency runtime service. This is the
+    // deliberate heavy-dependency consequence of the DocumentV2 usage.
+    implementation project(':kernel-md-serializer')
+    implementation libs.kernelMmDependencyModel1Typings
+    runtimeOnly libs.kernelMmDependencyModel1NoneDmjsons
+
 }
 

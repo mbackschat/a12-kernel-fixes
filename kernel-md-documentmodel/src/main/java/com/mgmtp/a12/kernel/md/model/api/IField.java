@@ -110,8 +110,8 @@ public interface IField extends IElement, IEntity, Serializable {
 	 *        {@link IFieldTypeDefinition} could not be resolved.
 	 */
 	default Optional<IFieldType> getEffectiveType() {
-		if (getFieldType() instanceof ITypeDefType) {
-			return ((ITypeDefType) getFieldType()).getTypeDefinition().map(IFieldTypeDefinition::getFieldType);
+		if (getFieldType() instanceof ITypeDefType tdt) {
+			return tdt.getTypeDefinition().map(IFieldTypeDefinition::getFieldType);
 		} else {
 			return Optional.of(getFieldType());
 		}

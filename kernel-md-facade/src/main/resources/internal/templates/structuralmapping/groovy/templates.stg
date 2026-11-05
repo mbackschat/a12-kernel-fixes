@@ -1,0 +1,136 @@
+StructuralMappingCodeGenerationService_imports(t) ::= <<
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.structuralmapping.Entity;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.structuralmapping.execution.StructuralMapperVK;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.structuralmapping.model.FieldMapping;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.structuralmapping.model.Fold;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.structuralmapping.model.MappingBlock;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.structuralmapping.model.ResolutionStrategy;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.structuralmapping.model.Slice;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.structuralmapping.model.StructuralMappingModelForCodegen;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.structuralmapping.EntityRegistry;
+
+>>
+
+StructuralMappingCodeGenerationService(t) ::= <<
+public class <t.groovyPackage><t.className> {
+	public static StructuralMapperVK getStructuralMapper() {
+		return mapper;
+	}
+
+	public static StructuralMappingModelForCodegen getStructuralMappingModel() {
+		return model;
+	}
+
+	private <t.groovyPackage><t.className>() {
+		throw new UnsupportedOperationException();
+	}
+
+	private static Map\<String, Entity> createSourceEntitiesByFullName() {
+        def builder = EntityRegistry.builder();
+        <t.partitionedSourceEntities:{entities|createSourceEntities<i>(builder);}; separator="\n">
+        return builder.build().toMap();
+	}
+
+	<t.partitionedSourceEntities:{entities|<entityRegistryPartialCreationFunction(entities, "createSourceEntities", i)>}; separator={<\n><\n>}>
+
+	private static Map\<String, Entity> createTargetEntitiesByFullName() {
+	    def builder = EntityRegistry.builder();
+        <t.partitionedSourceEntities:{entities|createTargetEntities<i>(builder);}; separator="\n">
+        return builder.build().toMap();
+	}
+
+	<t.partitionedTargetEntities:{entities|<entityRegistryPartialCreationFunction(entities, "createTargetEntities", i)>}; separator={<\n><\n>}>
+
+	private static Entity s(String fullName) {
+		return sourceEntitiesByFullName.get(fullName);
+	}
+
+	private static Entity t(String fullName) {
+		return targetEntitiesByFullName.get(fullName);
+	}
+
+	private static StructuralMappingModelForCodegen createStructuralMappingModel() {
+		return new StructuralMappingModelForCodegen(createMappingBlocks(), sourceEntitiesByFullName, targetEntitiesByFullName);
+	}
+
+	private static List\<MappingBlock> createMappingBlocks() {
+		List\<MappingBlock> mappingBlocks = new ArrayList\<>(<t.mappingBlocks.size>);
+		<t.mappingBlocks:{mappingBlock|mappingBlocks.add(<mappingBlockCreationFunctionName(i)>());}; separator={<\n>}>
+		return mappingBlocks;
+	}
+
+	<t.mappingBlocks:{mappingBlock|<mappingBlockCreationFunctions(mappingBlock, i)>}; separator={<\n><\n>}>
+
+    /**
+     * The call must be performed after the initializiation of all the used closures.
+     */
+	private static final Map\<String, Entity> sourceEntitiesByFullName = createSourceEntitiesByFullName();
+	private static final Map\<String, Entity> targetEntitiesByFullName = createTargetEntitiesByFullName();
+	private static final StructuralMappingModelForCodegen model = createStructuralMappingModel();
+	private static final StructuralMapperVK mapper = StructuralMapperVK.fromModel(model);
+}
+
+>>
+
+mappingBlockCreationFunctions(mappingBlock, blockIndex) ::= <<
+private static MappingBlock <mappingBlockCreationFunctionName(blockIndex)>() {
+	List\<FieldMapping> fieldMappings = new ArrayList\<>(<mappingBlock.fieldMappings.size>);
+	<mappingBlock.partitionedFieldMappings:{fieldMapping|createFieldMappingsForMappingBlock<blockIndex>_<i>(fieldMappings);}; separator={<\n>}>
+	return new MappingBlock(fieldMappings);
+}
+
+<mappingBlock.partitionedFieldMappings:{entities|<fieldMappingListPartialCreationFunction(entities, {createFieldMappingsForMappingBlock<blockIndex>}, i)>}; separator={<\n><\n>}>
+>>
+
+mappingBlockCreationFunctionName(blockIndex) ::= <<
+createMappingBlock<blockIndex>
+>>
+
+fieldMappingListPartialCreationFunction(partialFieldMappings, partialFunctionBaseName, partitionIndex) ::= <<
+static Closure <partialFunctionBaseName>_<partitionIndex> = { List\<FieldMapping> fieldMappings -> <!
+    WARNING: Changes to the following line might require changes in StructuralMappingCodeGenerationService::guesstimateNumBytecodes !>
+	<partialFieldMappings:{fieldMapping|fieldMappings.add(<fieldMapping:createFieldMapping()>);}; separator={<\n>}>
+}
+>>
+
+createFieldMapping(fieldMapping) ::= <<
+new FieldMapping(<fieldMapping.sourceField:sourceEntity()>, <fieldMapping.targetField:targetEntity()>, [<fieldMapping.resolutionStrategiesByTargetLevel:createResolutionStrategy(); separator=", ", null="(ResolutionStrategy)null">], <fieldMapping.groupToClear:targetEntity(); null="null">)
+>>
+
+createResolutionStrategy(resolutionStrategy) ::= <<
+<if (resolutionStrategy.isSlice)><\\>
+new Slice(<resolutionStrategy.rank>, <resolutionStrategy.sourceGroup:sourceEntity()>, <resolutionStrategy.targetGroup:targetEntity()>, <\\>
+<resolutionStrategy.sourceField:sourceEntity()>, <resolutionStrategy.targetField:targetEntity()>)<\\>
+<elseif (resolutionStrategy.isFold)><\\>
+new Fold(<resolutionStrategy.rank>, <resolutionStrategy.sourceGroup:sourceEntity()>, <resolutionStrategy.targetGroup:targetEntity()>)<\\>
+<endif>
+>>
+
+sourceEntity(entity) ::= <<
+s(<entity.fullName>)
+>>
+
+targetEntity(entity) ::= <<
+t(<entity.fullName>)
+>>
+
+entityRegistryPartialCreationFunction(partialEntities, partialFunctionBaseName, partitionIndex) ::= <<
+private static void <partialFunctionBaseName><partitionIndex>(EntityRegistry.Builder builder) {<!
+    WARNING: Changes to the following line might require changes in StructuralMappingCodeGenerationService::guesstimateNumBytecodes !>
+    <partialEntities:{entity|builder<entity:entityRegistryBuilderCall()>;}; separator="\n">
+}
+>>
+
+entityRegistryBuilderCall(entity) ::= <<<!
+WARNING: Changes here might require changes in StructuralMappingCodeGenerationService::guesstimateNumBytecodes !>
+<if (entity.isField)><\\>
+.field(<entity.fullName>)<\\>
+<else><\\>
+.group(<entity.fullName>, <entity.repeatability>)<\\>
+<endif>
+>>

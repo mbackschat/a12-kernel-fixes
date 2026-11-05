@@ -79,6 +79,11 @@ public class FieldTypeDefinitionWrapper implements IFieldTypeDefinition {
 	}
 
 	@Override
+	public Optional<String> getChangeNote() {
+		return fieldTypeDefinition.getChangeNote();
+	}
+
+	@Override
 	public @NonNull List<Annotation> getAnnotations() {
 		return fieldTypeDefinition.getAnnotations();
 	}

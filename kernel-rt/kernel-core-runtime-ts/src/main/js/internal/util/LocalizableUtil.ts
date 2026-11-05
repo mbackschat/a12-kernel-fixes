@@ -171,7 +171,7 @@ export class LocalizableUtil {
 	}
 
 	private static _extractDotSeparatedPath(fullName: string): string {
-		return fullName.split(EntityUtil.SEPARATOR_CHAR).join(".")
+		return fullName.replaceAll(EntityUtil.SEPARATOR_CHAR, ".");
 	}
 
 	public static createFieldNameParameterReplacement(fieldSpec: string, metaData: IMetaDataValidierung): LocalizableArgs {
@@ -196,8 +196,8 @@ export class LocalizableUtil {
 	public static createLocalizableFieldNamePlaceholder(fieldSpec: string, metaData: IMetaDataValidierung): Placeholder {
 		const metaField = metaData.getMetaField(fieldSpec)
 		const fullName: string = metaField.getValue(IMetaKeys.FIELD_FULLNAME);
-		const defaults = metaField.getValidKeys().indexOf(IMetaKeys.FIELD_LABEL) >= 0 ? this.defaultsFromMap(metaField.getValue(IMetaKeys.FIELD_LABEL) ?? new Map()) : undefined
-		const key = this.createModelKey(fullName, metaData, "label");
+		const defaults = metaField.getValidKeys().includes(IMetaKeys.FIELD_LABEL) ? this.defaultsFromMap(metaField.getValue(IMetaKeys.FIELD_LABEL) ?? new Map()) : undefined
+		const key = this.createModelKey(fullName, metaData.getModelId(), "label");
 		return {
 			type: "localizable",
 			value: undefined,
@@ -224,7 +224,7 @@ export class LocalizableUtil {
 			Object.entries(origDefaultValues).map(([locale, v]) => [locale, v ? LocalizableUtil.encodeDollar(v) : v]));
 
 		const encodedValue = addDotEscaping(value);
-		const key = `${this.createModelKey(f.getValue(IMetaKeys.FIELD_FULLNAME), metaData, "enumValues")}.${encodedValue}`;
+		const key = `${this.createModelKey(f.getValue(IMetaKeys.FIELD_FULLNAME), metaData.getModelId(), "enumValues")}.${encodedValue}`;
 		return {
 			key,
 			defaults: defaultValues
@@ -239,13 +239,12 @@ export class LocalizableUtil {
 		return value.replace(/\$/g, "$$$$");
 	}
 
-	public static createModelKey(fullName: string, metaData: IMetaDataValidierung, type: string): string {
-		const modelId = addDotEscaping(metaData.getModelId());
-		return `documentModel.${type}.${modelId}${this._extractDotSeparatedPath(fullName)}`;
+	public static createModelKey(fullName: string, modelId: string, type: string): string {
+		return `documentModel.${type}.${(addDotEscaping(modelId))}${this._extractDotSeparatedPath(fullName)}`;
 	}
 
-	public static createRuleErrorKey(ruleName: string, metaData: IMetaDataValidierung): string {
-		return this.createModelKey(ruleName, metaData, "ruleErrorMessage");
+	public static createRuleErrorKey(ruleName: string, modelId: string): string {
+		return this.createModelKey(ruleName, modelId, "ruleErrorMessage");
 	}
 
 	public static createFormalErrorKey(key: RuntimeFormalErrorEnum): string {
@@ -256,17 +255,12 @@ export class LocalizableUtil {
 		return `kernel.formalErrors.${key}`;
 	}
 
-	public static createFieldErrorKey(field: IIdentifier, metaData: IMetaDataValidierung) {
-		return LocalizableUtil._createFieldSpecialKey(field, metaData, "fieldErrorMessage");
+	public static createFieldErrorKey(fieldFullName: string, modelId: string) {
+		return LocalizableUtil.createModelKey(fieldFullName, modelId, "fieldErrorMessage");
 	}
 
-	public static createFieldRequiredErrorKey(field: IIdentifier, metaData: IMetaDataValidierung) {
-		return LocalizableUtil._createFieldSpecialKey(field, metaData, "fieldRequiredErrorMessage");
-	}
-
-	private static _createFieldSpecialKey(field: IIdentifier, metaData: IMetaDataValidierung, type: string) {
-		const fullName = metaData.getPfadName(metaData.getUniqueName(field.getName()));
-		return LocalizableUtil.createModelKey(fullName, metaData, type);
+	public static createFieldRequiredErrorKey(fieldFullName: string, modelId: string) {
+		return LocalizableUtil.createModelKey(fieldFullName, modelId, "fieldRequiredErrorMessage");
 	}
 
 	public static defaultsFromMap(texts: Map<string, string>): LocalizableDefaults {

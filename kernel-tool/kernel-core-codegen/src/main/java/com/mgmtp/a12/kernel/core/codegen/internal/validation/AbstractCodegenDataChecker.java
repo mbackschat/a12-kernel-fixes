@@ -126,7 +126,7 @@ public abstract class AbstractCodegenDataChecker implements IData {
 	 * suitable getInstance() method.<br/>
 	 * Uses reflection with no compile-time dependency to the requested class, in order to enable the
 	 * {@link #A12_KERNEL_BOOTSTRAP_VALIDATORS_DISABLE_MM_VALIDATION} mechanism.
-	 * @param fqn e.g. {@code com.mgmtp.a12.kernel.mmvalidators.extmpinternal.codegen_mm_common_v2.Factory_codegen_mm_common_v2}
+	 * @param fqn e.g. {@code com.mgmtp.a12.kernel.mmvalidators.extmpinternal.codegen.mm_common_v2.Factory_mm_common_v2}
 	 */
 	protected static IGeneratedCodeAccessFactory getGenCodeAccessFactoryReflection(String fqn) {
 		try {

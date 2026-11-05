@@ -53,9 +53,14 @@ public class DateFragmentTypeWrapper extends FieldTypeWrapper<DateFragmentType> 
 		return fieldType.getFormatOfFragment();
 	}
 
+	/**
+	 * @deprecated isYoungerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute  will be
+	 * removed with A12K-4439.
+	 */
+	@Deprecated(since = "31.2.0")
 	@Override
 	public boolean isYoungerThan1900Check() {
-		return fieldType.isYoungerThan1900Check();
+		return false;
 	}
 
 	@Override

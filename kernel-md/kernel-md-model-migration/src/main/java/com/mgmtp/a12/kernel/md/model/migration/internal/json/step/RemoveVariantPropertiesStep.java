@@ -34,7 +34,6 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 import java.util.List;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
@@ -55,8 +54,7 @@ public class RemoveVariantPropertiesStep {
 	}
 
 	@SuppressWarnings("Unused")
-	public static void execute(@NonNull JsonNode model,  MigrationLogger migrationLogger,   MigrationCache cache,
-			 ICustomMigrationConfig customMigConfig) {
+	public static void execute(@NonNull JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		removeVariantPropertiesFromElements(ModelJsonUtil.extractAllElements(model, ModelJsonUtil.TYPE_RULE),
 				ModelJsonUtil.TYPE_RULE);
 		removeVariantPropertiesFromElements(ModelJsonUtil.extractAllElements(model, ModelJsonUtil.TYPE_FIELD),

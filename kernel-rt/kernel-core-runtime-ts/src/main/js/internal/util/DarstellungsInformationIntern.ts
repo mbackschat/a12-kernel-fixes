@@ -54,7 +54,6 @@ export class DarstellungsInformationIntern {
 	private _dataFormats: DataFormats | null;
 	private _wahrWert: string | undefined;
 	private _falschWert: string | undefined;
-	private _doConvertZahl: boolean;
 	private _doConvertCustomFieldTypesAlways: boolean;
 	private _doConvertCustomFieldTypes: Set<string>;
 	private _decimalPlacesOptional: boolean;
@@ -89,10 +88,9 @@ export class DarstellungsInformationIntern {
 		this._dezimalTrenner[0] = dezimalTrennerIntern;
 		this._dezimalTrenner[1] = dezimalTrennerIntern;
 		if (!info) {
-			this._infoDatum = new DarstellungsInfoDatum(baseYear, timeZone);
+			this._infoDatum = new DarstellungsInfoDatum();
 			this._doConvertCustomFieldTypesAlways = false;
 			this._doConvertCustomFieldTypes = new Set();
-			this._doConvertZahl = false;
 			this._falschWert = undefined;
 			this._wahrWert = undefined;
 			this._decimalPlacesOptional = false;
@@ -109,9 +107,6 @@ export class DarstellungsInformationIntern {
 		const dezTrenner: string | undefined = info.decimalSeparator;
 		if (dezTrenner != undefined) {
 			this._dezimalTrenner[1] = dezTrenner.charAt(0);
-			this._doConvertZahl = true;
-		} else {
-			this._doConvertZahl = false;
 		}
 		this._checkSeparators(dezTrenner);
 
@@ -130,7 +125,7 @@ export class DarstellungsInformationIntern {
 		this._decimalPlacesOptional = info.decimalPlacesOptional ?? false;
 
 		// Konvertierungsinformation zu Datumsdarstellungen wird in eine eigene Klasse ausgelagert
-		this._infoDatum = new DarstellungsInfoDatum(baseYear, timeZone, info);
+		this._infoDatum = new DarstellungsInfoDatum(info);
 	}
 
 	private _checkCustomFieldTypeConversion(): void {
@@ -288,10 +283,6 @@ export class DarstellungsInformationIntern {
 			this._dataFormats?.formatCharacters ?? defaultDataFormats.formatCharacters,
 			rangeSeparator
 		);
-	}
-
-	public get doConvertZahl(): boolean {
-		return this._doConvertZahl;
 	}
 
 	public get decimalPlacesOptional(): boolean {

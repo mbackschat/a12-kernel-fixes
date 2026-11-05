@@ -43,6 +43,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils;
@@ -122,10 +123,16 @@ public class ValidationModelConverter {
 		final ElementContainerImpl result = new ElementContainerImpl();
 		final Locale conditionLanguage = documentModel.getContent().getDocumentModelConfig().getConditionLanguage();
 
-		this.modelLanguages = documentModel.getHeader().getLocales();
+		this.modelLanguages = ListUtils.emptyIfNull(documentModel.getHeader().getLocales());
 		this.mlh = new ConditionMultiLanguageHandler(conditionLanguage, new A12SpecificSettings(modelLanguages));
 		this.typeDefs = documentModel.getContent().getTypeDefinitions().stream()
-				.collect(Collectors.toMap(IFieldTypeDefinition::getId, Function.identity()));
+				.collect(Collectors.toMap(IFieldTypeDefinition::getId, Function.identity(), (a, b) -> {
+					// multiple typedefs with the same id are not supported and should never occur
+					// we do not support them (here we don't want to even check if they are maybe equal,
+					// because this should not occur in the fist place)
+					// -> fail with a descriptive message:
+					throw new IllegalArgumentException("Duplicate Typedef for id '" + b.getId() + "'");
+				}));
 		this.problemReporter = problemReporter;
 
 		// Conversion is done in two phases
@@ -317,7 +324,7 @@ public class ValidationModelConverter {
 				ruleIndices,
 				statement,
 				computation.getErrorMessage(),
-				computation.getName(),
+				computation.getErrorCode().orElseGet(computation::getName),
 				// we are sure that computations have severity 'ERROR' (see EXT-18536)
 				com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule.RuleSeverityType.ERROR,
 				computation.getComputedField().getRelativePath(),
@@ -343,7 +350,7 @@ public class ValidationModelConverter {
 				computation.getComputationAlternatives(),
 				computedField.get(),
 				ElementUtils.getPath(computation.getParent()),
-				computation.getErrorCodesToSuppress())
+				computation.getAdditionalParserInformation().orElse(null))
 				.join();
 	}
 
@@ -363,7 +370,20 @@ public class ValidationModelConverter {
 				com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule.RuleSeverityType.valueOf(rule.getSeverity().name()),
 				rule.getErrorEntity().getRelativePath(),
 				emptyMapIfNull(rule.getAnnotations()),
-				rule.getId());
+				rule.getId(),
+				rule.getFilterForPossiblyCausingEntities().isPresent(),
+				rule.getFilterForPossiblyCausingEntities().map(filter ->
+						filter.getEntitiesEnabledAsPossibleCauseIfFilled().stream()
+								.map(IDocumentModelObjectReference::getRelativePath)
+								.map(ElementPathUtils::mapDmRelPathToDorRelPath)
+								.toList()
+				).orElse(List.of()),
+				rule.getFilterForPossiblyCausingEntities().map(filter ->
+						filter.getEntitiesEnabledAsPossibleCauseIfNotFilled().stream()
+								.map(IDocumentModelObjectReference::getRelativePath)
+								.map(ElementPathUtils::mapDmRelPathToDorRelPath)
+								.toList()
+				).orElse(List.of()));
 	}
 
 	private static String joinPath(final IElement elementType,

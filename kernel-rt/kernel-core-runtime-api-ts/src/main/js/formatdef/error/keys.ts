@@ -31,6 +31,7 @@
  */
 export const DIVISION_BY_ZERO_INVALID = "DIVISION_BY_ZERO_INVALID";
 export const ERROR_DURING_DATA_CHECK_EVAL = "ERROR_DURING_DATA_CHECK_EVAL";
+// TODO A12K-4439: DATUM_ADDITIONAL_CHECK and DATUM_BEREICH_DATUM_ADDITIONAL_CHECK should be deleted in 32.0.0
 export enum RuntimeFormalErrorEnum {
 	KEIN_FEHLER,
 
@@ -104,6 +105,8 @@ export enum RuntimeFormalErrorEnum {
 	// Datum
 	DATUM_FORMAT,
 	DATUM,
+    /* @deprecated(since = "31.2.0") DATUM_ADDITIONAL_CHECK is no longer evaluated and its value is therefore irrelevant. This
+     attribute will be removed with A12K-4439. */
 	DATUM_ADDITIONAL_CHECK,
 	DATUM_TAG_FEHLER,
 	DATUM_MONAT_FEHLER,
@@ -123,6 +126,8 @@ export enum RuntimeFormalErrorEnum {
 	DATUM_BEREICH_FORMAT,
 	DATUM_BEREICH_NICHT_GUELTIG,
 	DATUM_BEREICH_DATUM,
+    /* @deprecated(since = "31.2.0") DATUM_BEREICH_DATUM_ADDITIONAL_CHECK is no longer evaluated and its value is therefore
+     irrelevant. This attribute will be removed with A12K-4439. */
 	DATUM_BEREICH_DATUM_ADDITIONAL_CHECK,
 	DATUM_BEREICH_START_TAG_FEHLER,
 	DATUM_BEREICH_START_MONAT_FEHLER,

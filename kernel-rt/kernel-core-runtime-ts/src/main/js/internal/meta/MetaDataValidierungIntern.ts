@@ -41,6 +41,7 @@ import { Constants } from "../util/Constants.js";
 import { IAnnotationNamesInternal } from "../util/IAnnotationNamesInternal.js";
 import { IMetaKeysInternal } from "../util/IMetaKeysInternal.js";
 import type { LocalizableDefaults } from "../util/LocalizableUtil.js";
+import type { RtIdentifierTemplate } from "../util/RtIdentifierTemplate.js";
 import type { RtInternalIdentifier } from "../util/RtInternalIdentifier.js";
 
 import { EntityUtil } from "../util/EntityUtil.js";
@@ -261,6 +262,20 @@ export class MetaDataValidierungIntern implements IMetaDataValidierung {
 	): HashSet<RtInternalIdentifier> {
 		const metaRegel: IMetaRule = this._metaModel.getValue(IMetaKeys.MODEL_META_RULE, ruleName);
 		return metaRegel.getValue(IMetaKeysInternal.REGEL_REFFELDIDS_AUSLASSUNG_INTERN);
+	}
+
+	public getReferencedEntitiesWithoutReplacement(
+		ruleName: string
+	): HashSet<RtIdentifierTemplate> {
+		const metaRegel: IMetaRule = this._metaModel.getValue(IMetaKeys.MODEL_META_RULE, ruleName);
+		return metaRegel.getValue(IMetaKeysInternal.REGEL_REFENTITYIDS_INTERN);
+	}
+
+	public getReferencedOmissionEntitiesWithoutReplacement(
+		ruleName: string
+	): HashSet<RtIdentifierTemplate> {
+		const metaRegel: IMetaRule = this._metaModel.getValue(IMetaKeys.MODEL_META_RULE, ruleName);
+		return metaRegel.getValue(IMetaKeysInternal.REGEL_REFENTITYIDS_AUSLASSUNG_INTERN);
 	}
 
 	public isExplicitlyMandatory(uniqueName: string): boolean {

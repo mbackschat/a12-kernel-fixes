@@ -42,11 +42,11 @@ public class GeneratorConstants {
 	 */
 	// WARNING: Don't change this line. Updated by versionupdate script
 	// Don't remove 'new String(..)' to prevent constant inlining (at compile-time).
-	public static final String GENCODE_JAVA_GROOVY_RUNTIME_VERSION = new String("31.1");
+	public static final String GENCODE_JAVA_GROOVY_RUNTIME_VERSION = new String("31.3");
 
 	// WARNING: Don't change this line. Updated by versionupdate script
 	// Don't remove 'new String(..)' to prevent constant inlining (at compile-time).
-	public static final String GENCODE_TYPESCRIPT_RUNTIME_VERSION = new String("31.1");
+	public static final String GENCODE_TYPESCRIPT_RUNTIME_VERSION = new String("31.3");
 
 
 	private GeneratorConstants() {

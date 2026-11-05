@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.mgmtp.a12.kernel.core.service.internal.errortext.FehlertextErrorLookup;
@@ -161,7 +162,7 @@ public class DocumentUniquenessCriteriaRule extends DocumentModelConsistencyRule
 		}
 
 		// Ensure there is one error message defined per Document Model Locale.
-		for (Locale locale : documentModel.getHeader().getLocales()) {
+		for (Locale locale : ListUtils.emptyIfNull(documentModel.getHeader().getLocales())) {
 			if (StringUtils.isEmpty(documentUniquenessCriterion.getErrorMessage().get(locale))) {
 				pr.reportProblem(new DocumentModelConsistencyProblem(
 						documentModel.getHeader().getId(), documentUniquenessCriterion,

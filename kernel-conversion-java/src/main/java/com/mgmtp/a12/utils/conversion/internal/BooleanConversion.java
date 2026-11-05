@@ -103,7 +103,7 @@ public class BooleanConversion {
 		// null is already handled
 		if (!(value instanceof Boolean)) {
 			throw new IllegalArgumentException(
-					"The type of the value (" + value.getClass().getSimpleName() + ") is not a boolean");
+					"The type of the value (" + value.getClass().getName() + ") is not a Boolean");
 		}
 		if ((boolean) value) {
 			return Optional.of(BooleanConversion.getTrueValue(destDataFormats));

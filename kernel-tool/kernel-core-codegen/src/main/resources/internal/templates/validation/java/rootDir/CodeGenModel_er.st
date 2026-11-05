@@ -15,9 +15,9 @@ import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IResult;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IValidator;
-import com.mgmtp.a12.kernel.core.rt._31_1.internal.core.CalculationCommand;
-import com.mgmtp.a12.kernel.core.rt._31_1.internal.core.ValidationCommand;
-import com.mgmtp.a12.kernel.core.rt._31_1.internal.core.IMetaDataValidierung;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.core.CalculationCommand;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.core.ValidationCommand;
+import com.mgmtp.a12.kernel.core.rt._31_3.internal.core.IMetaDataValidierung;
 
 public class ERValidator_<t.name>
 	implements IValidator, ICalculator {

@@ -54,9 +54,6 @@ public class CodeGenDateRangeTypeImpl extends CodeGenFeldTypBasis {
 	private String interpretationOfYear;
 	private String jahresinterpretation;
 
-	//wird auf TRUE gesetzt, wenn  auf Datum > 1900 geprüft werden soll
-	@Setter @Getter private boolean zusatzPruefung;
-
 	private Locale aktuelleSprache;
 	private ProgrammingLanguage lang;
 
@@ -83,8 +80,6 @@ public class CodeGenDateRangeTypeImpl extends CodeGenFeldTypBasis {
 				jahresinterpretation = "Folgejahr";
 				break;
 		}
-
-		this.zusatzPruefung = dateRangeType.isAdditionalCheck();
 	}
 
 	public String getFormat() {
@@ -133,7 +128,7 @@ public class CodeGenDateRangeTypeImpl extends CodeGenFeldTypBasis {
 	 * @return Hashcode des Typs
 	 */
 	public int hashCode() {
-		return hashCodeHelperAdd(37 * CodeGenDateTypeImpl.transformFormat(dateRangeformat).hashCode(), zusatzPruefung ? 1 : 0);
+		return hashCodeHelperAdd(37 * CodeGenDateTypeImpl.transformFormat(dateRangeformat).hashCode(), 0);
 	}
 
 	/**
@@ -155,7 +150,7 @@ public class CodeGenDateRangeTypeImpl extends CodeGenFeldTypBasis {
 		CodeGenDateRangeTypeImpl o = (CodeGenDateRangeTypeImpl) other;
 
 		return (CodeGenDateTypeImpl.transformFormat(dateRangeformat)
-				.equals(CodeGenDateTypeImpl.transformFormat(o.dateRangeformat)) && zusatzPruefung == o.zusatzPruefung);
+				.equals(CodeGenDateTypeImpl.transformFormat(o.dateRangeformat)));
 	}
 
 	public void setSprache(Locale aktuelleSprache) {

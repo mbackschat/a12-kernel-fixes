@@ -26,10 +26,10 @@
       "kernel-rt/kernel-core-runtime-ts"
     ],
     "@com.mgmtp.a12.kernel/kernel-md-facade/*": [
-      "kernel-md/kernel-md-facade"
+      "kernel-md-facade"
     ],
     "@com.mgmtp.a12.kernel/kernel-md-facade": [
-      "kernel-md/kernel-md-facade"
+      "kernel-md-facade"
     ]
   },
   "compilerOptions": {
@@ -48,7 +48,7 @@
     "entryPointStrategy": "packages",
     "entryPoints": [
       "kernel-rt/kernel-core-runtime-api-ts",
-      "kernel-md/kernel-md-facade"
+      "kernel-md-facade"
     ],
     "exclude": [
       "**/kernel-core-runtime-ts/**",

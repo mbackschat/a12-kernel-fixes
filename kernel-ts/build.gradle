@@ -10,7 +10,7 @@ description = "central configuration for typescript subprojects"
 
 def npmWorkingDir = file("${parent.projectDir}")
 
-String osName = System.getProperty("os.name").toLowerCase()
+String osName = providers.systemProperty("os.name").get().toLowerCase()
 project.ext.npm_executable = osName.contains("windows") ? "npm.cmd" : "npm"
 project.ext.npx_executable = osName.contains("windows") ? "npx.cmd" : "npx"
 
@@ -69,6 +69,7 @@ tasks.named('clean') {
 }
 
 tasks.register('getJsDependencies', Exec) {
+    notCompatibleWithConfigurationCache("passes jsDeps via task object")
     group = 'verification'
     workingDir npmWorkingDir
 

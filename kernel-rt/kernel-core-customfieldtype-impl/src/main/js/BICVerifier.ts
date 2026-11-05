@@ -133,6 +133,7 @@ export class BICVerifier implements ICustomFieldValidator {
 		BICVerifier._BIC_LAENDER.add("MD"); // Moldawien
 		BICVerifier._BIC_LAENDER.add("ME"); // Montenegro
 		BICVerifier._BIC_LAENDER.add("MK"); // Nordmazedonien
+		BICVerifier._BIC_LAENDER.add("RS"); // Serbien
 	})();
 
 	private constructor() {

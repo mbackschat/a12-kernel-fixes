@@ -33,6 +33,7 @@ package com.mgmtp.a12.kernel.md.model.internal.service.reduction;
 
 import static com.mgmtp.a12.kernel.md.model.internal.service.utils.WrappedProblemWithSeverityLimitAndOrigin.forwardAsNonError;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
@@ -41,6 +42,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.Validate;
 
 import com.mgmtp.a12.kernel.core.base.utils.internal.Consumer2ProblemReporter;
@@ -58,7 +60,10 @@ import com.mgmtp.a12.kernel.md.model.a12internal.LocalizedTextMapBuilder;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.ConfirmType;
 import com.mgmtp.a12.kernel.md.model.a12internal.fieldtypes.FieldType;
 import com.mgmtp.a12.kernel.md.model.a12internal.services.DocumentModelService;
+import com.mgmtp.a12.kernel.md.model.a12internal.visitor.DocumentModelVisitor;
+import com.mgmtp.a12.kernel.md.model.a12internal.visitor.DocumentModelWalker;
 import com.mgmtp.a12.kernel.md.model.api.ILocalizedTextMap;
+import com.mgmtp.a12.kernel.md.model.api.visitor.DocumentModelWalker.VisitProcess;
 import com.mgmtp.a12.kernel.md.model.internal.service.mapping.ElementContainerImpl;
 import com.mgmtp.a12.kernel.md.model.internal.service.mapping.Entity;
 import com.mgmtp.a12.kernel.md.model.internal.service.mapping.Rule;
@@ -105,7 +110,23 @@ public class DocumentModelReduceService {
 				documentModel, elementIdsInResult, forwardAsNonError(notificationReceiver));
 
 		createConfirmFields(directlyReferencedRootGroups, reducedDm);
+		removeSortInformation(reducedDm);
 		return Optional.of(reducedDm);
+	}
+
+	/**
+	 * Removes sort information from every rootgroup and (nested) group of the reduced
+	 * {@link DocumentModel}, so that {@link Group#getSortFields()} returns an empty list throughout.
+	 * Sort information is noise in a reduced DM and is therefore stripped.
+	 */
+	private void removeSortInformation(DocumentModel reducedDm) {
+		new DocumentModelWalker().acceptDocumentModel(reducedDm, new DocumentModelVisitor() {
+			@Override
+			public VisitProcess visitGroup(Group group) {
+				group.setSortFields(new ArrayList<>());
+				return VisitProcess.CONTINUE_TRAVERSAL;
+			}
+		});
 	}
 
 	private void addReferencedEntitiesInRules(Set<String> selectedElementIds, Set<String> elementIdsInResult,
@@ -165,7 +186,7 @@ public class DocumentModelReduceService {
 					Group group = (Group) elem;
 					FieldType confirmType = ConfirmType.builder().build();
 					LocalizedTextMapBuilder builder = new LocalizedTextMapBuilder();
-					reducedDm.getHeader().getLocales().forEach(locale -> {
+					ListUtils.emptyIfNull(reducedDm.getHeader().getLocales()).forEach(locale -> {
 						if (Locale.GERMAN.getLanguage().equals(locale.getLanguage())) {
 							builder.add(locale, "Vordruck angegeben");
 						} else {

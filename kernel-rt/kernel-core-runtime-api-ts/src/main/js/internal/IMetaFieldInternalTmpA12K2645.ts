@@ -53,8 +53,7 @@ export interface IMetaFieldInternalTmpA12K2645 extends IMetaField { // this is o
  *            from internal to
  *            the external representation or vice versa.
  * @param customFieldTypeFactory
- *            required for the conversion of custom field types if required by `representationInfo` (either
- *            via {@link DataFormats.convertCustomFieldTypesAll} or {@link DataFormats.convertCustomFieldTypesList})
+ *            required for the conversion of custom field types
  *
  * @return the converted value.
  * @throws Error

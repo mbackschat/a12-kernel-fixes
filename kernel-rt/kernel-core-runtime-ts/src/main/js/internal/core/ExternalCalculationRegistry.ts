@@ -48,17 +48,13 @@ import { RtExternalIdentifier } from "../util/RtExternalIdentifier.js";
 
 import { RuntimeUtils } from "../util/RuntimeUtils.js";
 
-
 import { EntityUtil } from "../util/EntityUtil.js";
 
 import type { IFormatDefinition } from "../formatdef/IFormatDefinition.js";
 
-import { ErgebnisImpl } from "../util/ErgebnisImpl.js";
-
-
 import type { CalculationController } from "./CalculationController.js";
 import type { IMetaDataValidierung } from "./IMetaDataValidierung.js";
-
+import { ResultBaseImpl } from "./ResultBaseImpl.js";
 
 /**
  * Stores and validates the {@link IExternalCalculation}s (and changed field instances) passed to
@@ -404,7 +400,7 @@ class InputProcessor extends AbstractProcessor {
     ): boolean {
         const idExtern = new RtExternalIdentifier(this.fullName, id.getIndices());
         const initialDisplayValue = this._initialValues.get(id) ?? "";
-        const initialValueCheck = calculationController.formalChecker.checkAndConvertFieldValue(id, idExtern, initialDisplayValue, new ErgebnisImpl());
+        const initialValueCheck = calculationController.formalChecker.checkAndConvertFieldValue(id, idExtern, initialDisplayValue, new ResultBaseImpl());
         const initialInternalValue = initialValueCheck.internalXmlValue ?? null;
 
         // Note: we can't easily distinguish between unfilled and invalid initial values because the check here only

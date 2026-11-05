@@ -37,7 +37,7 @@ import { ValidationDateParser } from "@com.mgmtp.a12.utils/utils-localization/a1
 
 import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 import type { IResult, ValidationMode } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
-import { ErrorType, HashSet, IMetaKeys } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
+import { ErrorType, HashSet, IMetaKeys, SeverityType } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 import type { FormatDefinitionDatum } from "../formatdef/FormatDefinitionDatum.js";
 import type { FormatDefinitionDatumBereich } from "../formatdef/FormatDefinitionDatumBereich.js";
@@ -46,6 +46,7 @@ import type { IFormatDefinition } from "../formatdef/IFormatDefinition.js";
 import { FehlerHandler } from "../formatdef/error/FehlerHandler.js";
 import type { ValidationLogger } from "../logging/ValidationLogger.js";
 import type { DarstellungsInformationIntern } from "../util/DarstellungsInformationIntern.js";
+import { ErrorCause } from "../util/ErrorCause.js";
 import { IFormaleFehlerConstants } from "../util/IFormaleFehlerConstants.js";
 import { LocalizableUtil } from "../util/LocalizableUtil.js";
 import type { RtExternalIdentifier } from "../util/RtExternalIdentifier.js";
@@ -58,11 +59,11 @@ import { VkString } from "../util/VkString.js";
 
 import { BigDecimalUtils } from "./BigDecimalUtils.js";
 import type { CalculationCache } from "./CalculationCache.js";
-import { CollectingResultImpl } from "./CollectingResultImpl.js";
 import type { FormalChecker } from "./FormalChecker.js";
 import type { IMetaDataValidierung } from "./IMetaDataValidierung.js";
 import type { IValidatorIntern } from "./IValidatorIntern.js";
 import { MainValidatorController } from "./MainValidatorController.js";
+import { ResultBaseImpl } from "./ResultBaseImpl.js";
 import { RuntimeController } from "./RuntimeController.js";
 
 export class CalculationController extends RuntimeController {
@@ -154,21 +155,31 @@ export class CalculationController extends RuntimeController {
 		// Evaluate the preliminary rules for this index field. Checks uniqueness and requiredness.
 		const invalidInstances = formallyInvalidInstances.slice();
 		const indexFieldUniqueName = this.metaData.getUniqueName(indexFieldFullName);
-		const result = new CollectingResultImpl();
+		const result = new ResultBaseImpl();
 		this._validatePreliminaryRulesForField(indexFieldUniqueName, result);
-		for (const errorMessage of result.errorMessages) {
-			const errorIdIntern = new RtInternalIdentifier(indexFieldUniqueName, errorMessage.entityId.getIndices());
+		const errorMessages = result.getV1AndV2Messages()
+			.filter(({ v1Message }) => v1Message.level == SeverityType.ERROR);
+		for (const { v1Message, v2Message } of errorMessages) {
+			const errorIdIntern = new RtInternalIdentifier(indexFieldUniqueName, v1Message.entityId.getIndices());
 			if (calculatedInstances.has(errorIdIntern)) {
 				// do not report errors for the non-calculated index fields for now --> will be handled in a second step
 				this.pruefErgebnis.addError(
-					errorMessage.ruleName,
-					errorMessage.id,
-					errorMessage.entityId,
-					errorMessage.message,
+					v1Message.ruleName,
+					v1Message.id,
+					v1Message.entityId,
+					v1Message.message,
 					ErrorType.VALUE_ERROR, // always consider invalid calculated value as value error
-					errorMessage.referencedFields,
+					v1Message.referencedFields,
 					new Set(),
-					errorMessage.unknowns,
+					v1Message.unknowns,
+				);
+				this.pruefErgebnis.addMessageV2(
+					v2Message.ruleName,
+					v2Message.errorCode,
+					v2Message.message,
+					ErrorType.VALUE_ERROR,
+					SeverityType.ERROR,
+					v2Message.possiblyCausingEntities
 				);
 			}
 			invalidInstances.push(errorIdIntern);
@@ -233,16 +244,25 @@ export class CalculationController extends RuntimeController {
 	 */
 	public addBerechnungsFehler(idIntern: RtInternalIdentifier): void {
 		const idExtern = this.validationCache.convert2Extern(idIntern);
+		const message = [this._createLocalizableForErroneousCalculation(idIntern)];
 		this.pruefErgebnis.addError(
 			IFormaleFehlerConstants.FORMALE_PRUEFUNG,
 			IFormaleFehlerConstants.BERECHNUNG_WERT_FEHLER,
 			idExtern,
-			[this._createLocalizableForErroneousCalculation(idIntern)],
+			message,
 			ErrorType.VALUE_ERROR,
 			// as any is needed since Set is implemented by utils and has to be fixed there ... new methods need to be implemented as well
 			new HashSet<RtExternalIdentifier>([idExtern]) as any,
 			new HashSet<RtExternalIdentifier>() as any,
 			new HashSet<RtExternalIdentifier>() as any
+		);
+		this.pruefErgebnis.addMessageV2(
+			IFormaleFehlerConstants.FORMALE_PRUEFUNG,
+			IFormaleFehlerConstants.BERECHNUNG_WERT_FEHLER,
+			message,
+			ErrorType.VALUE_ERROR,
+			SeverityType.ERROR,
+			ErrorCause.createSingleFieldCause(idExtern)
 		);
 	}
 

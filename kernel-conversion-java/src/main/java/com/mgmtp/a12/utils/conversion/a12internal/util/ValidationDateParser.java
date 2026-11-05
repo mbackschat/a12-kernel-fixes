@@ -34,10 +34,11 @@ package com.mgmtp.a12.utils.conversion.a12internal.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
@@ -47,6 +48,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -68,6 +70,43 @@ public class ValidationDateParser {
 	private static final String TWO_DIGIT_OPT_PATTERN = "[0-9]{1,2}";
 	private static final String FOUR_DIGIT_PATTERN = "[0-9]{4}";
 	private static final String AM_PM_PATTERN = "(AM|PM)";
+	/**
+	 * The DateTimeFormatter from {@link #buildParseFormatter} is somewhat expensive to construct (1.5x slowdown vs cached for some
+	 * validation test cases), so it seems mildly-worth caching. But here in ValidationDateParser we are not sure if patterns and/or
+	 * ZoneIds may be user-supplied and how many different combinations are possible, so we don't want to statically and permanently
+	 * cache all of them. For complexity reasons we also don't want a "smarter" cache like LRU (which would also demand a somewhat
+	 * arbitrary size parameter).
+	 * <p/>
+	 * So for now we _hardcode_ which patterns and zoneIds to cache vs not-cache.
+	 * <p/>
+	 * The date / time patterns that can occur in the vk internal string representation (xml values) are a limited set and for
+	 * those patterns, evaluations can be very frequent (~O(data^2) e.g. with filter conditions, vs just O(data) for regular data
+	 * conversion). So we cache DateTimeFormatter for those, but not for other (potential user-supplied) patterns.
+	 */
+	// tested against drift vs MM_Field in TestValidationDateParser.testCachedPatternsMatchThoseFromMMField
+	static final Set<String> patternsToCache = Set.of( // the xml values of /Data/Field/FieldType/DateType/format in MM_Field
+			"dd.MM.yyyy",
+			"dd.MM.",
+			"MM",
+			"yyyyMMdd",
+			"yyyy-MM-dd",
+			"ddMM",
+			"yyyy",
+			"MMdd",
+			"yyyyMM",
+			"yyyy-MM-dd'T'HH:mm:ss",
+			"HH:mm:ss",
+			"yyyy-MM",
+			"MM-dd"
+	);
+	static final Set<ZoneId> timeZonesToCache = Set.of(
+			ZoneId.of("Europe/Berlin"),
+			ZoneId.of("UTC"), // apparently this is _not_ equal to ZoneOffset.UTC
+			ZoneOffset.UTC
+			// only Europe/Berlin and UTC seem supported e.g. in SME workspace settings, so this seems fine (and worst-case, the
+			// mild performance benefit of caching is lost)
+	);
+	private static final Map<FormatterParams, DateTimeFormatter> CACHED_PARSE_FORMATTERS = new ConcurrentHashMap<>();
 
 	private ValidationDateParser() {
 		throw new IllegalStateException("Utility class");
@@ -115,30 +154,22 @@ public class ValidationDateParser {
 		if (checkSyntax && !isSyntacticallyCorrect(value, checkFormat)) {
 			throw new DateTimeParseException("Not syntactically valid.", value, 0);
 		}
-		DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-				.parseStrict()
-				.appendPattern(checkFormat)
-				.parseDefaulting(ChronoField.ERA, 1)
-				.parseDefaulting(ChronoField.YEAR_OF_ERA, 1970)
-				.parseDefaulting(ChronoField.MONTH_OF_YEAR, 1)
-				.parseDefaulting(ChronoField.DAY_OF_MONTH, 1)
-				// We cannot use defaulting for hours since we allow for H and h patterns, which would have to be detected first
-				.toFormatter()
-				.withResolverStyle(ResolverStyle.STRICT)
-				.withZone(timeZone.toZoneId());
+		ZoneId zoneId = timeZone.toZoneId();
+		DateTimeFormatter formatter = getParseFormatter(checkFormat, zoneId);
 		try {
-			TemporalAccessor temporalAccessor = formatter.
-					parseBest(value,
-							ZonedDateTime::from,
-							// Since we cannot default hours, we have to be able to parse dates without time
-							LocalDate::from);
-			Instant instant = switch (temporalAccessor) {
-				case ZonedDateTime zd -> zd.toInstant();
-				case LocalDate localDate -> localDate.atStartOfDay().atZone(timeZone.toZoneId()).toInstant();
-				default -> throw new IllegalArgumentException("Unsupported temporal type: " + temporalAccessor.getClass());
-			};
+			// it seems that .isSupported(ChronoField.INSTANT_SECONDS) _probably_ is exactly true iff Instant.from() succeeds,
+			// but this seems not entirely clear from the docs. If we falsely attempt Instant.from, we are actually 'safe'
+			// because that delegates to the supposedly-correct old SimpleDateFormat code path. If we'd falsely _not_ attempt
+			// Instant.from, we'd wrongly apply atStartOfDay() though (but that appears to be impossible with at least my jdk's impl
+			// of Instant::from, which queries temporal.getLong(INSTANT_SECONDS) unless the temporalAccessor already is an Instant)
+			TemporalAccessor parsed = formatter.parse(value);
+			Instant instant = parsed.isSupported(ChronoField.INSTANT_SECONDS)
+					? Instant.from(parsed)
+					// Since we cannot default hours, we have to be able to parse dates without time.
+					// LocalDate.from(parsed) cannot fail (supposedly): era, year, month and day are always parseDefaulting'ed above.
+					: LocalDate.from(parsed).atStartOfDay(zoneId).toInstant();
 			return Date.from(instant);
-		} catch (DateTimeParseException e) {
+		} catch (DateTimeException e) {
 			// We try the old parser only to keep the old behavior in edge cases
 			Date result = tryParseWithSimpleDateFormat(value, checkFormat, timeZone);
 			if (result != null) {
@@ -147,6 +178,36 @@ public class ValidationDateParser {
 				throw e;
 			}
 		}
+	}
+
+	private static DateTimeFormatter getParseFormatter(String checkFormat, ZoneId zoneId) {
+		FormatterParams key = new FormatterParams(checkFormat, zoneId);
+		boolean doCache = patternsToCache.contains(key.checkFormat) && timeZonesToCache.contains(key.zoneId);
+		if (doCache) {
+			return CACHED_PARSE_FORMATTERS.computeIfAbsent(key, ValidationDateParser::buildParseFormatter);
+		} else {
+			return buildParseFormatter(key);
+		}
+	}
+
+	private record FormatterParams(String checkFormat, ZoneId zoneId) {}
+
+	/**
+	 * DO NOT USE THIS DIRECTLY, use {@link #getParseFormatter instead}
+	 */
+	private static DateTimeFormatter buildParseFormatter(FormatterParams params) {
+		return new DateTimeFormatterBuilder()
+				.parseStrict()
+				.appendPattern(params.checkFormat)
+				// NOTE: setting these defaults might not be correct for all formats, similar to how it doesn't work for hours when both H and h (and maybe k and K) are permitted.
+				.parseDefaulting(ChronoField.ERA, 1)
+				.parseDefaulting(ChronoField.YEAR_OF_ERA, 1970)
+				.parseDefaulting(ChronoField.MONTH_OF_YEAR, 1)
+				.parseDefaulting(ChronoField.DAY_OF_MONTH, 1)
+				// We cannot use defaulting for hours since we allow for H and h patterns, which would have to be detected first
+				.toFormatter(Locale.US) // what is this locale even used for - is it ok to hardcode it?
+				.withResolverStyle(ResolverStyle.STRICT)
+				.withZone(params.zoneId);
 	}
 
 	/*

@@ -36,9 +36,9 @@ sourceSets {
 
 dependencies {
     antlr(libs.antlr4VersionForWeb) {// should match the javascript antlr runtime version
-        exclude group: 'com.ibm.icu', module: 'icu4j' // icu4j seems unneded at runtime of the antlr tool https://github.com/antlr/antlr4/issues/4900
+        exclude group: 'com.ibm.icu', module: 'icu4j'
+        // icu4j seems unneded at runtime of the antlr tool https://github.com/antlr/antlr4/issues/4900
     }
-
 
 }
 
@@ -68,15 +68,15 @@ tasks.register('copy_grammarFiles', Copy) {
 // for now we generate into a subfolder of src/main/js instead of build,
 // because otherwise I don't know how to get tsc & node to resolve relative
 // imports between the generated and non-generated sources.
-def antlrOutDirRaw = "src/main/js/internal/gen"
+def antlrOutDir = file("src/main/js/internal/gen")
 generateGrammarSource {
     dependsOn(tasks.named('copy_grammarFiles'))
     doFirst {
-        new File(antlrOutDirRaw).mkdirs()
+        antlrOutDir.mkdirs()
     }
-    outputDirectory(file(antlrOutDirRaw))
+    outputDirectory(antlrOutDir)
     arguments += ["-package", "com.mgmtp.a12.kernel.core.parser.internal.grammar.gen",
-                  "-lib", antlrOutDirRaw,
+                  "-lib", antlrOutDir.path,
                   "-encoding", "utf-8",
                   "-Dlanguage=TypeScript",
                   "-no-visitor",
@@ -86,7 +86,7 @@ generateGrammarSource {
                 ['GrammarOnly_ConditionParser.ts', 'AbstractConditionParser'],
                 ['Base_ConditionLexer.ts', 'AbstractConditionLexer']]
         for (source_toreplace in updates) {
-            def fileToProcess = file(new File(antlrOutDirRaw, source_toreplace[0]))
+            def fileToProcess = new File(antlrOutDir, source_toreplace[0])
             def content = fileToProcess.text.replaceAll(
                     // TODO a a check that alerts us the next time that the regex fails to match!
                     "(import ${source_toreplace[1]} from.*)\\.\\/(${source_toreplace[1]}.js)([\'\"])",

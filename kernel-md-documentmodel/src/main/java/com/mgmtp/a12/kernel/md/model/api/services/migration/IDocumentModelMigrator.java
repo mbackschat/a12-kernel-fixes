@@ -53,10 +53,10 @@ public interface IDocumentModelMigrator {
 	 * 		information of the referenced {@link IDocumentModel}s.
 	 * 		The collection must not be {@code null} or empty or contain {@code null} as collection item.
 	 * @param targetVersion
-	 * 		Version of the returned {@link IDocumentModel}s. The value passed must be included
-	 * 		in the list provided by {@link #getSupportedTargetVersions()} or {@code null} if
-	 * 		you want to migrate to the latest version. If this is not the case, a
-	 *        {@link IllegalArgumentException} is thrown.
+	 * 		Version of the returned {@link IDocumentModel}s. Pass {@code null} if you want to
+	 * 		migrate to the last element in the list provided by {@link #getSupportedTargetVersions()}. If you pass another value,
+	 * 		the value must be included in the list, otherwise a {@link IllegalArgumentException} is thrown.
+	 *
 	 * @return a collection with the migration results, see also {@link IDocumentModelMigratorResult}. Is never {@code null} nor
 	 * 		empty.
 	 */
@@ -64,14 +64,15 @@ public interface IDocumentModelMigrator {
 
 	/**
 	 * @return the list of target versions to which this service can migrate JSON representations of
-	 * 		the
-	 *        {@link IDocumentModel}s. Never {@code null}. If there are no supported target
+	 * 		the {@link IDocumentModel}s. Never {@code null}. If there are no supported target
 	 * 		versions, the list is empty.<br>
 	 * 		<b>Attention:</b> these versions are not kernel versions. These are versions of the
 	 *        {@link IDocumentModel} that
 	 * 		are compatible with specific kernel versions. Versions of internal intermediate
 	 * 		states are not included here
 	 * 		(these occur when several migration steps are necessary within a development cycle).
+	 * 		If this is a forward migrator, the list is ordered from oldest to newest, in case of a backwards migrator,
+	 * 		from newest to oldest supported target version.
 	 */
 	@NonNull List<String> getSupportedTargetVersions();
 

@@ -51,10 +51,12 @@ import com.mgmtp.a12.kernel.md.model.a12internal.visitor.DocumentModelVisitor;
 import com.mgmtp.a12.kernel.md.model.api.visitor.DocumentModelWalker.VisitProcess;
 import com.mgmtp.a12.kernel.md.model.internal.service.DocumentModelExpandError;
 
+import lombok.NonNull;
+
 public class EntityReferenceResolverVisitor extends DocumentModelVisitor {
 
 	protected Map<String, FieldTypeDefinition> fieldTypeDefinitionsById;
-	private Map<String, IEntity> entitiesByFullName;
+	private final Map<String, IEntity> entitiesByFullName;
 	private final IProblemReporter problemReporter;
 
 	public EntityReferenceResolverVisitor(Map<String, IEntity> entitiesByFullName,
@@ -83,50 +85,77 @@ public class EntityReferenceResolverVisitor extends DocumentModelVisitor {
 
 	@Override
 	public VisitProcess visitRule(final Rule rule) {
-		addDocumentModelObjectToRef(rule.getErrorEntity(), rule, "error entity");
+		addDocumentModelObjectToRef(rule.getErrorEntity(), rule, rule, IEntity.class, "error entity");
+		rule.getFilterForPossiblyCausingEntities().ifPresent(filterForPossiblyCausingEntities -> {
+			filterForPossiblyCausingEntities.getEntitiesEnabledAsPossibleCauseIfFilled().forEach(dmo ->
+					addDocumentModelObjectToRef(dmo, rule, rule.getParent(), IEntity.class,
+							"entities enabled as possible cause if filled"));
+			filterForPossiblyCausingEntities.getEntitiesEnabledAsPossibleCauseIfNotFilled().forEach(dmo ->
+					addDocumentModelObjectToRef(dmo, rule, rule.getParent(), IEntity.class,
+							"entities enabled as possible cause if not filled"));
+		});
 		return VisitProcess.CONTINUE_TRAVERSAL;
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> void addDocumentModelObjectToRef(IDocumentModelObjectReference<T> entityRef, Element element, String origin) {
-		if (entityRef == null || StringUtils.isEmpty(entityRef.getRelativePath())) {
-			reportMissingReference(element, origin);
-		} else {
-			String fullNameOfReferencedEntity = ElementUtils.resolveRelativePath(element, entityRef.getRelativePath());
-			Object entity = entitiesByFullName.get(fullNameOfReferencedEntity);
-			if (entity == null) {
-				reportUnresolvableReference(entityRef.getRelativePath(), element, origin);
-			}
-			// note: intentionally sets the referenced object to null/empty if it could not be resolved
-			entityRef.setDocumentModelObject((T) entity);
+	private <T> void addDocumentModelObjectToRef(
+			IDocumentModelObjectReference<T> entityRef,
+			@NonNull Element referenceHolder,
+			@NonNull Element referenceBase,
+			@NonNull Class<T> classOfReferencedEntity,
+			@NonNull String origin
+	) {
+		if (entityRef == null) { // This is an error case that breaks some @NonNull promises (e.g. Computation#computedField).
+			reportMissingReference(referenceHolder, origin);
+			return;
 		}
+		String fullNameOfReferencedEntity = ElementUtils.resolveRelativePath(referenceBase, entityRef.getRelativePath());
+		IEntity entity = entitiesByFullName.get(fullNameOfReferencedEntity);
+		if (entity == null) {
+			reportUnresolvableReference(entityRef.getRelativePath(), referenceHolder, origin);
+		} else if (!classOfReferencedEntity.isAssignableFrom(entity.getClass())) {
+			reportIncompatibleReference(entity, referenceHolder, classOfReferencedEntity, origin);
+			entity = null;
+		}
+		// note: intentionally sets the referenced object to null if it could not be resolved
+		entityRef.setDocumentModelObject((T) entity);
 	}
 
 	@Override
 	public VisitProcess visitComputation(final Computation computation) {
-		addDocumentModelObjectToRef(computation.getComputedField(), computation, "computed field");
+		addDocumentModelObjectToRef(computation.getComputedField(), computation, computation, Field.class, "computed field");
 		return VisitProcess.CONTINUE_TRAVERSAL;
 	}
 
 	@Override
 	public VisitProcess visitGroup(final Group group) {
-		group.getIndexField().ifPresent(indexField -> addDocumentModelObjectToRef(indexField, group, "index field"));
-		group.getSortFields().forEach(sortField -> addDocumentModelObjectToRef(sortField.getField(), group, "sort field"));
+		group.getIndexField().ifPresent(indexField ->
+				addDocumentModelObjectToRef(indexField, group, group, Field.class, "index field"));
+		group.getSortFields().forEach(sortField ->
+				addDocumentModelObjectToRef(sortField.getField(), group, group, Field.class, "sort field"));
 		return VisitProcess.CONTINUE_TRAVERSAL;
 	}
 
-	private void reportUnresolvableReference(String relativePath, Element baseElement, String origin) {
-		String message = DocumentModelExpandError.UNRESOLVABLE_REFERENCE_MSG.getMessage(origin, "", relativePath);
-		problemReporter.reportProblem(new MVKCoreError(message, baseElement));
+	private void reportUnresolvableReference(String relativePath, Element referenceHolder, String origin) {
+		String message = DocumentModelExpandError.UNRESOLVABLE_REFERENCE_MSG.getMessage(origin, "relativePath=" + relativePath);
+		problemReporter.reportProblem(new MVKCoreError(message, referenceHolder));
 	}
 
 	private void reportUnresolvableTypeReference(String id, Element baseElement) {
-		String message = DocumentModelExpandError.UNRESOLVABLE_REFERENCE_MSG.getMessage("type definition", "id", id);
+		String message = DocumentModelExpandError.UNRESOLVABLE_REFERENCE_MSG.getMessage("type definition", "id=" + id);
 		problemReporter.reportProblem(new MVKCoreError(message, baseElement));
 	}
 
 	private void reportMissingReference(Element element, String origin) {
 		String message = DocumentModelExpandError.MISSING_REFERENCE_MSG.getMessage(origin, ElementUtils.getPath(element));
 		problemReporter.reportProblem(new MVKCoreError(message, element));
+	}
+
+	private void reportIncompatibleReference(IEntity referencedEntity, Element referenceHolder,
+			Class<?> expectedClassOfReferencedEntity, String origin) {
+		String message = DocumentModelExpandError.INCOMPATIBLE_REFERENCE_MSG.getMessage(
+				origin, ElementUtils.getPath(referenceHolder), expectedClassOfReferencedEntity.getSimpleName(),
+				referencedEntity.getClass().getSimpleName());
+		problemReporter.reportProblem(new MVKCoreError(message, referenceHolder));
 	}
 }

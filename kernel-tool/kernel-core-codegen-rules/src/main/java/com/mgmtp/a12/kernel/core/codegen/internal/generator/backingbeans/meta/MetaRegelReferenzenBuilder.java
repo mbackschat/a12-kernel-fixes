@@ -59,7 +59,6 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.ICondition;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.IEntityListCondition;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.utils.FindAnyAst;
 import com.mgmtp.a12.kernel.core.service.internal.RuleParser;
-import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter;
 
 /**
@@ -108,7 +107,7 @@ public class MetaRegelReferenzenBuilder {
 
 		Set<IEntityId> refEntities;
 		Set<IEntityId> refOmissionEntities;
-		if (!hasCustomRefEntities(ruleInfo)) {
+		if (!ruleInfo.hasCustomRefEntities()) {
 			refEntities = re.getReferencedEntityIds4RefEntity(isA12Model);
 			refOmissionEntities = re.getReferencedEntityIds4RefOmissionEntity(isA12Model, true);
 			assert refEntities.stream().map(ei -> ei.getFullName() + Arrays.toString(ei.getIndices())).collect(Collectors.toSet())
@@ -192,11 +191,6 @@ public class MetaRegelReferenzenBuilder {
 			}
 		}
 		return entityIds;
-	}
-
-	private static boolean hasCustomRefEntities(IRule rule) {
-		return !rule.getCustomRefErrorEntitiesIfFilled().isEmpty()
-				|| !rule.getCustomRefErrorEntitiesIfNotFilled().isEmpty();
 	}
 
 	public static int getLevelToStartDuplicateSearch(String ruleFullname, ICondition condition, boolean isHModel) {

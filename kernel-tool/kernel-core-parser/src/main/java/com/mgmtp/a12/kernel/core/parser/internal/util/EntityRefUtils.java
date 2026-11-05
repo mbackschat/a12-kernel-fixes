@@ -363,7 +363,7 @@ public class EntityRefUtils {
 	public static List<IEntity> getAllContainedEntitiesAndCheckNotEmpty(EntityRef ref, Lenient_ConditionParser parser,
 			EntitySpecContext ctx, ExpandMode expandMode) {
 		switch (expandMode) {
-			case NO_EXPAND:
+			case NO_EXPAND, NO_EXPAND_OR_RG_REPLACEMENT:
 				return Collections.singletonList(ref.getEntity());
 			case EXPAND_AND_ADD_GROUPS:
 				List<IEntity> result = new ArrayList<>();

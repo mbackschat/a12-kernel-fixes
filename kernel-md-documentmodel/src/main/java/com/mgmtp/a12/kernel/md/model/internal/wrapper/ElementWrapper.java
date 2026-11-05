@@ -33,6 +33,7 @@
 package com.mgmtp.a12.kernel.md.model.internal.wrapper;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.mgmtp.a12.kernel.md.model.a12internal.Element;
 import com.mgmtp.a12.kernel.md.model.api.IElement;
@@ -72,6 +73,11 @@ public class ElementWrapper implements IElement {
 	@Override
 	public @NonNull ILocalizedTextMap getExternalDescription() {
 		return element.getExternalDescription();
+	}
+
+	@Override
+	public Optional<String> getChangeNote() {
+		return element.getChangeNote();
 	}
 
 	@Override

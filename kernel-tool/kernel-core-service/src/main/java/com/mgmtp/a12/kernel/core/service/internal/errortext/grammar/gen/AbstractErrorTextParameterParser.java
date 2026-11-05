@@ -38,6 +38,7 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
 
+import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.EntitySpecContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.FieldContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.GroupIndexContext;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.IdNameContext;
@@ -129,6 +130,9 @@ public abstract class AbstractErrorTextParameterParser extends Parser {
 	}
 
 	protected void checkRelUp(RelUpContext context) {
+	}
+
+	protected void checkEntitySpec(EntitySpecContext ctx) {
 	}
 
 	protected void addRegelKontextEntityToReferencedEntities(RegelKontextEntityContext ctx) {

@@ -271,4 +271,12 @@ public class CommonUtils {
 		}
 		return LocaleUtils.toLocale(localeString);
 	}
+
+	/**
+	 * Converts a {@link Locale} to its full locale code string (e.g. {@code "de_DE"}).
+	 * Inverse of {@link #toLocale(String)}.
+	 */
+	public static String localeToCode(@NonNull Locale locale) {
+		return locale.toString();
+	}
 }

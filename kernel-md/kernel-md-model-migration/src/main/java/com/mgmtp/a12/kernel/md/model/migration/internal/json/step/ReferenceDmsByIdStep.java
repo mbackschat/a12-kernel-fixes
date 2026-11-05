@@ -36,7 +36,6 @@ import java.util.Objects;
 import java.util.stream.StreamSupport;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.IdReferenceConverter;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
@@ -52,8 +51,7 @@ public final class ReferenceDmsByIdStep {
 	private ReferenceDmsByIdStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		if (!ModelJsonUtil.referencesOtherDm(model)) {
 			return;
 		}

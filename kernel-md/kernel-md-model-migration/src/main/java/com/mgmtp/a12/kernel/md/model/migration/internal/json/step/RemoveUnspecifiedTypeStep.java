@@ -36,7 +36,6 @@ import static com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUt
 import java.util.List;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationInfo;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
@@ -51,7 +50,7 @@ import tools.jackson.databind.node.ObjectNode;
  * {@code _take_reference_configuration} annotation so that decoration joining still works.
  * A warning is also added to the field's internalDescription.
  */
-public class RemoveUnspecifiedTypeStep  {
+public class RemoveUnspecifiedTypeStep {
 
 	private static final String UNSPECIFIED_TYPE = "UnspecifiedType";
 	private static final String STRING_TYPE = "StringType";
@@ -59,12 +58,10 @@ public class RemoveUnspecifiedTypeStep  {
 	public static final String WARNING_TEXT =
 			"WARNING: This field previously used UnspecifiedType which has been removed. Please review and assign the correct field type.";
 
-	private RemoveUnspecifiedTypeStep( ) {
+	private RemoveUnspecifiedTypeStep() {
 	}
 
-	public  static  void execute(@NonNull JsonNode model,  MigrationLogger migrationLogger,   MigrationCache cache,
-	ICustomMigrationConfig customMigConfig){
-
+	public static void execute(@NonNull JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 
 		List<JsonNode> fields = ModelJsonUtil.extractAllFields(model);
 		for (JsonNode fieldElement : fields) {
@@ -79,16 +76,15 @@ public class RemoveUnspecifiedTypeStep  {
 			String typeName = fieldTypeNode.get(ModelJsonUtil.FIELD_FIELD_TYPE_TYPE).asString();
 			if (UNSPECIFIED_TYPE.equals(typeName)) {
 				replaceUnspecifiedType((ObjectNode) fieldContent, (ObjectNode) fieldElement);
-				migrationLogger.addInfo(new MigrationInfo()
-						.withElementId(fieldElement.get(ModelJsonUtil.FIELD_ID) != null ?
+				migrationLogger.addInfo(new MigrationInfo(WARNING_TEXT,
+						fieldElement.get(ModelJsonUtil.FIELD_ID) != null ?
 								fieldElement.get(ModelJsonUtil.FIELD_ID).asString() :
-								"unknown")
-						.withMessage(WARNING_TEXT));
+								"unknown"));
 			}
 		}
 	}
 
-	private static  void replaceUnspecifiedType(ObjectNode fieldContent, ObjectNode fieldElement) {
+	private static void replaceUnspecifiedType(ObjectNode fieldContent, ObjectNode fieldElement) {
 		// Replace fieldType with StringType
 		ObjectNode newFieldType = MAPPER.createObjectNode();
 		newFieldType.put(ModelJsonUtil.FIELD_FIELD_TYPE_TYPE, STRING_TYPE);

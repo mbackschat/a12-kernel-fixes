@@ -31,11 +31,10 @@
  */
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
-import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
+import java.util.List;
 
-import tools.jackson.databind.JsonNode;
+import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
+import com.mgmtp.a12.kernel.md.model.migration.internal.DmToMigrate;
 
 /**
  * A no-op migration step that is used to simply update the schema version without changing anything
@@ -47,8 +46,7 @@ public final class NoMigrationNecessaryStep {
 	private NoMigrationNecessaryStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(List<DmToMigrate> dmsToMigrate, ICustomMigrationConfig customMigConfig) {
 		// do nothing :)
 	}
 }

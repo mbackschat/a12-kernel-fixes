@@ -32,7 +32,6 @@
 package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
@@ -42,15 +41,15 @@ import tools.jackson.databind.JsonNode;
  * The content node "documentUniquenessCriteria" has to be removed for backwards migration, as its presence is not tolerated by
  * a previous JSON deserializer
  */
-public class RemoveUniquenessCriteriaBackwardStep  {
+public class RemoveUniquenessCriteriaBackwardStep {
 
-	private RemoveUniquenessCriteriaBackwardStep( ) {
+	private RemoveUniquenessCriteriaBackwardStep() {
 
 	}
+
 	@SuppressWarnings("Unused")
-	public static void execute (JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
-		ModelJsonUtil.tryRemoveElementFromObject(  model,"/content/documentUniquenessCriteria");
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
+		ModelJsonUtil.tryRemoveElementFromObject(model, "/content/documentUniquenessCriteria");
 	}
 
 }

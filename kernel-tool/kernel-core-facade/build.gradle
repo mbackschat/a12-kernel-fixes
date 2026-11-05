@@ -1,11 +1,9 @@
 plugins {
     alias libs.plugins.kernelJavaConventions
     alias libs.plugins.lombok
-
 }
 
 description = "service facade for services commonly used by tools"
-
 
 dependencies {
     api project(':kernel-internal-core-parser')
@@ -25,4 +23,3 @@ dependencies {
 
 
 }
-

@@ -37,6 +37,7 @@ import java.util.Collections;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.CheckEntityListenUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.CheckEntityUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.CheckSetExpressionUtil;
+import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
 import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorTypesEnum;
 import com.mgmtp.a12.kernel.core.parser.internal.error.ParserErrorTypesEnumForHModel;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.Base_ConditionLexer;
@@ -87,6 +88,7 @@ public class CheckEntitySpecImpl extends CheckEntitySpecLenientImpl {
 
 	@Override
 	protected CheckEntityUtils checkCommon(GrammarOnly_ConditionParser.EntitySpecContext ctx, EntityRef ref) {
+		rejectReferenceEndingOnTechnicalRoot(ctx, ref);
 		super.checkCommon(ctx, ref);
 		CheckEntityUtils checker = new CheckEntityUtils(fullParser);
 		checkOuter(ctx);
@@ -102,6 +104,15 @@ public class CheckEntitySpecImpl extends CheckEntitySpecLenientImpl {
 		}
 
 		return checker;
+	}
+
+	// A12K-4276: climbing to the technical root ("/") is allowed as a turning point into a sibling root group ("../../RG2/x"),
+	// but a path ending on it ("../..") is not a valid reference target.
+	private void rejectReferenceEndingOnTechnicalRoot(GrammarOnly_ConditionParser.EntitySpecContext ctx, EntityRef ref) {
+		if (ref != null && ref.getEntity() != null && EntityUtils.isTechnicalRootPath(ref.getEntity().getFullName())) {
+			String errMessage = getErrorMessage(ParserErrorTypesEnum.MVK_TOO_MANY_PARENT_GROUPS);
+			throw createMVKParserError(ctx, errMessage);
+		}
 	}
 
 	protected void checkOuter(GrammarOnly_ConditionParser.EntitySpecContext ctx) {

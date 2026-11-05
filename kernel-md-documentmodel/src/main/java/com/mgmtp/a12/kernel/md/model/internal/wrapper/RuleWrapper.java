@@ -32,11 +32,12 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.wrapper;
 
+import java.io.Serial;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import com.mgmtp.a12.kernel.md.model.a12internal.Field;
-import com.mgmtp.a12.kernel.md.model.a12internal.Group;
 import com.mgmtp.a12.kernel.md.model.a12internal.Rule;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModelObjectReference;
 import com.mgmtp.a12.kernel.md.model.api.IEntity;
@@ -44,17 +45,17 @@ import com.mgmtp.a12.kernel.md.model.api.ILocalizedTextMap;
 import com.mgmtp.a12.kernel.md.model.api.IRule;
 import com.mgmtp.a12.kernel.md.utils.NoNeedToAdaptSerialVersionUID;
 
-import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 public class RuleWrapper extends ElementWrapper implements IRule {
 
-	@NoNeedToAdaptSerialVersionUID
+	@NoNeedToAdaptSerialVersionUID @Serial
 	private static final long serialVersionUID = 1L;
 
-	private Rule rule;
+	private final @NonNull Rule rule;
 
-	@Builder
 	public RuleWrapper(@NonNull Rule rule) {
 		super(rule);
 		this.rule = rule;
@@ -62,19 +63,7 @@ public class RuleWrapper extends ElementWrapper implements IRule {
 
 	@Override
 	public @NonNull IDocumentModelObjectReference<IEntity> getErrorEntity() {
-		com.mgmtp.a12.kernel.md.model.a12internal.IDocumentModelObjectReference<com.mgmtp.a12.kernel.md.model.a12internal.IEntity> errorEntity = rule.getErrorEntity();
-		return new DocumentModelObjectReferenceWrapper<>(
-				errorEntity.getRelativePath(),
-				errorEntity.getDocumentModelObject().map(dmo -> {
-					if (dmo instanceof Group group) {
-						return new GroupWrapper(group);
-					} else if (dmo instanceof Field field) {
-						return new FieldWrapper(field);
-					} else {
-						return null;
-					}
-				}).orElse(null)
-		);
+		return DocumentModelObjectReferenceWrapper.wrapEntity(rule.getErrorEntity());
 	}
 
 	@Override
@@ -102,11 +91,40 @@ public class RuleWrapper extends ElementWrapper implements IRule {
 		return rule.getGuiPatterns();
 	}
 
+	@RequiredArgsConstructor
+	@EqualsAndHashCode
+	public static class FilterForPossiblyCausingEntitiesWrapper implements IFilterForPossiblyCausingEntities {
+
+		@NoNeedToAdaptSerialVersionUID @Serial
+		private static final long serialVersionUID = 1L;
+
+		private final @NonNull Rule.FilterForPossiblyCausingEntities filterForPossiblyCausingEntities;
+
+		@Override
+		public @NonNull List<IDocumentModelObjectReference<IEntity>> getEntitiesEnabledAsPossibleCauseIfFilled() {
+			return filterForPossiblyCausingEntities.getEntitiesEnabledAsPossibleCauseIfFilled().stream()
+					.map(DocumentModelObjectReferenceWrapper::wrapEntity)
+					.collect(Collectors.toList());
+		}
+
+		@Override
+		public @NonNull List<IDocumentModelObjectReference<IEntity>> getEntitiesEnabledAsPossibleCauseIfNotFilled() {
+			return filterForPossiblyCausingEntities.getEntitiesEnabledAsPossibleCauseIfNotFilled().stream()
+					.map(DocumentModelObjectReferenceWrapper::wrapEntity)
+					.collect(Collectors.toList());
+		}
+	}
+
+	@Override
+	public @NonNull Optional<IFilterForPossiblyCausingEntities> getFilterForPossiblyCausingEntities() {
+		return rule.getFilterForPossiblyCausingEntities().map(FilterForPossiblyCausingEntitiesWrapper::new);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((rule == null) ? 0 : rule.hashCode());
+		result = prime * result + rule.hashCode();
 		return result;
 	}
 
@@ -122,11 +140,7 @@ public class RuleWrapper extends ElementWrapper implements IRule {
 			return false;
 		}
 		RuleWrapper other = (RuleWrapper) obj;
-		if (rule == null) {
-			if (other.rule != null) {
-				return false;
-			}
-		} else if (!rule.equals(other.rule)) {
+		if (!rule.equals(other.rule)) {
 			return false;
 		}
 		return true;

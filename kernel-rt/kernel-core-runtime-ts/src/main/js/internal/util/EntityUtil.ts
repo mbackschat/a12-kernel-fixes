@@ -142,6 +142,16 @@ export class EntityUtil {
 	}
 
 	/**
+	 * @param uniqueName 	the unique name of an entity (a group unique name starts with a leading
+	 * 		slash, a field unique name does not).
+	 * @return `true` if the unique name denotes a root group (a group with exactly one path segment).
+	 */
+	public static uniqueNameIsRootGroup(uniqueName: string): boolean {
+		return uniqueName.startsWith(this.SEPARATOR_CHAR)
+			&& !uniqueName.substring(1).includes(this.SEPARATOR_CHAR);
+	}
+
+	/**
 	 * helper method to build a fullName or a relative name
 	 *
 	 * @return concatenates path and toAdd, or simply returns toAdd if path is empty.

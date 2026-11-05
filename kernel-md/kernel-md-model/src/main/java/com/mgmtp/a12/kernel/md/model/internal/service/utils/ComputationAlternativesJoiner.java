@@ -57,15 +57,12 @@ import lombok.NonNull;
 public class ComputationAlternativesJoiner {
 	private static final String GATE_TEMPLATE_ENGLISH = "FieldFilled(%s) And ";
 	private static final String GATE_TEMPLATE_GERMAN = "FeldAngegeben(%s) Und ";
-	private static final String PREAMBLE_ENGLISH = "@SuppressWarning(%s)\n";
-	private static final String PREAMBLE_GERMAN = "@UnterdrueckeWarnung(%s)\n";
 	private static final String AND_OP_ENGLISH = "And";
 	private static final String AND_OP_GERMAN = "Und";
 	private static final String OR_OP_ENGLISH = "Or";
 	private static final String OR_OP_GERMAN = "Oder";
 
 	private final String gateTemplate;
-	private final String preamble;
 	private final String andOp;
 	private final String orOp;
 
@@ -73,7 +70,7 @@ public class ComputationAlternativesJoiner {
 	private final String commonPrecondition;
 	private final @NonNull List<IComputationAlternative> alternatives;
 	private final @NonNull String computedFieldReference;
-	private final @NonNull List<String> errorCodesToSuppress;
+	private final String additionalParserInformation;
 
 	/**
 	 * @param alternatives
@@ -82,21 +79,20 @@ public class ComputationAlternativesJoiner {
 	 * 		the computed field.
 	 * @param computationParentPath
 	 * 		the parent path of the corresponding computation
-	 * @param errorCodesToSuppress
-	 * 		the error codes that should be suppressed with @SuppressWarning.
+	 * @param additionalParserInformation
+	 * 		the complete preamble text (e.g. {@code @SuppressWarning(...)}) to prepend, or {@code null}/blank if none.
 	 */
 	public ComputationAlternativesJoiner(@NonNull ConditionMultiLanguageHandler mlh, String commonPrecondition,
 			@NonNull List<IComputationAlternative> alternatives, @NonNull IField computedField,
-			@NonNull String computationParentPath, @NonNull List<String> errorCodesToSuppress) {
+			@NonNull String computationParentPath, String additionalParserInformation) {
 		this.mlh = mlh;
 		this.commonPrecondition = commonPrecondition;
 		this.alternatives = alternatives;
 		this.computedFieldReference = determineComputedFieldReference(computedField, computationParentPath);
-		this.errorCodesToSuppress = errorCodesToSuppress;
+		this.additionalParserInformation = additionalParserInformation;
 
 		boolean isConditionLangEnglish = mlh.getLanguageUsedInConditionText().getLanguage().equals(Locale.US.getLanguage());
 		this.gateTemplate = isConditionLangEnglish ? GATE_TEMPLATE_ENGLISH : GATE_TEMPLATE_GERMAN;
-		this.preamble = isConditionLangEnglish ? PREAMBLE_ENGLISH : PREAMBLE_GERMAN;
 		this.andOp = isConditionLangEnglish ? AND_OP_ENGLISH : AND_OP_GERMAN;
 		this.orOp = isConditionLangEnglish ? OR_OP_ENGLISH : OR_OP_GERMAN;
 	}
@@ -128,13 +124,12 @@ public class ComputationAlternativesJoiner {
 	}
 
 	private StringWithFragmentsOriginMap createPreamble() {
-		String preambleText;
-		if (errorCodesToSuppress.isEmpty()) {
-			preambleText = "";
-		} else {
-			preambleText = String.format(preamble, String.join(",", errorCodesToSuppress));
+		if (additionalParserInformation == null || additionalParserInformation.isBlank()) {
+			return StringWithFragmentsOriginMap.ofConst("");
 		}
-		return StringWithFragmentsOriginMap.ofConst(preambleText);
+		return StringWithFragmentsOriginMap.ofSingleOrigin(additionalParserInformation,
+				ComputationAlternativeFragmentOriginRef.forAdditionalParserInformation())
+				.concat("\n");
 	}
 
 	private StringWithFragmentsOriginMap createFullComputation() {
@@ -213,7 +208,8 @@ public class ComputationAlternativesJoiner {
 	}
 
 	private static StringWithFragmentsOriginMap stringWithSourceMapForCommonPrecondition(String srcString) {
-		return StringWithFragmentsOriginMap.ofSingleOrigin(srcString, new ComputationAlternativeFragmentOriginRef(-1, true));
+		return StringWithFragmentsOriginMap.ofSingleOrigin(srcString,
+				new ComputationAlternativeFragmentOriginRef(ComputationAlternativeFragmentOriginRef.COMMON_PRECONDITION_IDX, true));
 	}
 
 	private static StringWithFragmentsOriginMap stringWithSourceMapForCompAlt(
@@ -229,5 +225,33 @@ public class ComputationAlternativesJoiner {
 	}
 
 	public record ComputationAlternativeFragmentOriginRef(@Getter int alternativeIdx, boolean isPrecondition) {
+		/** Sentinel {@link #alternativeIdx()} marking the computation's common precondition (not a real alternative). */
+		public static final int COMMON_PRECONDITION_IDX = -1;
+		/**
+		 * Sentinel {@link #alternativeIdx()} marking the computation's additional parser information (the preamble, e.g.
+		 * <code>@SuppressWarning(...)</code>), which is not a real alternative.
+		 */
+		public static final int ADDITIONAL_PARSER_INFORMATION_IDX = -2;
+
+		/**
+		 * @return an origin ref for the computation's additional parser information (the preamble).
+		 */
+		public static ComputationAlternativeFragmentOriginRef forAdditionalParserInformation() {
+			return new ComputationAlternativeFragmentOriginRef(ADDITIONAL_PARSER_INFORMATION_IDX, false);
+		}
+
+		/**
+		 * @return <code>true</code> iff this origin ref describes the common precondition.
+		 */
+		public boolean isCommonPrecondition() {
+			return alternativeIdx == COMMON_PRECONDITION_IDX && isPrecondition;
+		}
+
+		/**
+		 * @return <code>true</code> iff this origin ref describes the additional parser information (the preamble).
+		 */
+		public boolean isAdditionalParserInformation() {
+			return alternativeIdx == ADDITIONAL_PARSER_INFORMATION_IDX;
+		}
 	}
 }

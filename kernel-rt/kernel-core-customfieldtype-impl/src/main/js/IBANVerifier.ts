@@ -250,6 +250,7 @@ export class IBANVerifier implements ICustomFieldValidator {
 		IBANVerifier._LAENDER_X_PATTERN.set("MD", new RegExp("^(?:MD[0-9]{2}[a-zA-Z0-9]{2}[a-zA-Z0-9]{18})$")); // Moldawien
 		IBANVerifier._LAENDER_X_PATTERN.set("ME", new RegExp("^(?:ME[0-9]{2}[0-9]{3}[0-9]{13}[0-9]{2})$")); // Montenegro
 		IBANVerifier._LAENDER_X_PATTERN.set("MK", new RegExp("^(?:MK[0-9]{2}[0-9]{3}[a-zA-Z0-9]{10}[0-9]{2})$")); // Nordmazedonien
+		IBANVerifier._LAENDER_X_PATTERN.set("RS", new RegExp("^(?:RS[0-9]{2}[0-9]{3}[0-9]{13}[0-9]{2})$")); // Serbien
 	})();
 
 	private constructor() {

@@ -32,7 +32,7 @@ This chapter describes how to generate executable code from the already modeled 
 *Demarcations:*
 
 * For information on modeling the mapping, please refer to the relevant documentation for modelers.
-* There is only executable mapping code for server-side use.
+* There is only executable mapping code for server-side use for both Java and Groovy.
 
 == Obtaining an IMappingService
 
@@ -70,7 +70,7 @@ command `gradle build`.
 The description of how to use the mapping code assumes that the mapping code has
 been generated and compiled according to the previous chapter and is now
 available in the runtime classpath of the application.
-The `MappingServiceFactory`
+The class `MappingServiceFactory`
 (link:./assets/doc/java/com/mgmtp/a12/kernel/mapping/facade/MappingServiceFactory.html[javadoc])
 provides an instance of the `IMappingService`
 (link:./assets/doc/java/com/mgmtp/a12/kernel/mapping/rt/api/IMappingService.html[javadoc])

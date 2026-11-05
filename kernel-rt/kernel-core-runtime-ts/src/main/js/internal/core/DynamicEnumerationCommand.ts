@@ -36,7 +36,6 @@ import { HashSet, IMetaKeys } from "@com.mgmtp.a12.kernel/kernel-core-runtime-ap
 
 import { ErrorType } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
-import { ErgebnisImpl } from "../util/ErgebnisImpl.js";
 import { FeldUtil } from "../util/FeldUtil.js";
 import type { RtInternalIdentifier } from "../util/RtInternalIdentifier.js";
 
@@ -44,6 +43,7 @@ import { CheckCommand } from "./CheckCommand.js";
 import { DynamicEnumerationController } from "./DynamicEnumerationController.js";
 import type { IDynEnumsIntern } from "./IDynEnumsIntern.js";
 import type { IMetaDataValidierung } from "./IMetaDataValidierung.js";
+import { ResultBaseImpl } from "./ResultBaseImpl.js";
 
 export class DynamicEnumerationCommand extends CheckCommand {
 	private _enumCalc: IDynEnumsIntern | undefined;
@@ -53,7 +53,7 @@ export class DynamicEnumerationCommand extends CheckCommand {
 		this._enumCalc = metaData.getDynamicEnumerationCalculator();
 	}
 	public calcEnumValues(field: IIdentifier, operands: IData): Pair<string, string>[] {
-		const validationResult: ErgebnisImpl = new ErgebnisImpl();
+		const validationResult = new ResultBaseImpl();
 
 		this._validationCache.setDaten(operands);
 

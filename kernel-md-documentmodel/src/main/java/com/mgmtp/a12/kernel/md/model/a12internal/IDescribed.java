@@ -33,6 +33,7 @@
 package com.mgmtp.a12.kernel.md.model.a12internal;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 import com.mgmtp.a12.kernel.md.model.api.ILocalizedTextMap;
 
@@ -66,5 +67,17 @@ public interface IDescribed extends Serializable {
 	 *        {@link ILocalizedTextMap} to unset.
 	 */
 	void setExternalDescription(ILocalizedTextMap externalDescription);
+
+	/**
+	 * @return the change note documenting why changes to this object were done. Empty if none was
+	 * 		defined.
+	 */
+	Optional<String> getChangeNote();
+
+	/**
+	 * @param changeNote
+	 * 		the new change note. May be {@code null} to unset.
+	 */
+	void setChangeNote(String changeNote);
 
 }

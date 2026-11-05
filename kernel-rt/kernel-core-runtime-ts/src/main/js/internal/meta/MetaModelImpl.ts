@@ -44,6 +44,7 @@ import { EntityUtil } from "../util/EntityUtil.js";
 import { FeldUtil } from "../util/FeldUtil.js";
 import { IMetaKeysInternal } from "../util/IMetaKeysInternal.js";
 import { RtExternalIdentifier } from "../util/RtExternalIdentifier.js";
+import type { RtIdentifierTemplate } from "../util/RtIdentifierTemplate.js";
 import { RtInternalIdentifier } from "../util/RtInternalIdentifier.js";
 import { SemanticIndexSpec } from "../util/SemanticIndexSpec.js";
 import type { TrieNode } from "../util/TrieNode.js";
@@ -444,7 +445,22 @@ export class MetaModelImpl
 				}
 			}
 		}
-		return new MetaRegel(this, r, refIdentifierIntern, refIdentifierAuslassungIntern);
+		// Referenced entities (may contain groups) for the V2 possibly-causing-entities API. These are
+		// already RtIdentifierTemplates produced by the code generator, so no unique-name resolution is
+		// needed.
+		const refEntity: HashSet<RtIdentifierTemplate> = new HashSet<RtIdentifierTemplate>(r.refEntity);
+		const refOmissionEntity: HashSet<RtIdentifierTemplate> = new HashSet<RtIdentifierTemplate>(
+			r.refOmissionEntity
+		);
+
+		return new MetaRegel(
+			this,
+			r,
+			refIdentifierIntern,
+			refIdentifierAuslassungIntern,
+			refEntity,
+			refOmissionEntity
+		);
 	}
 
 	private _createExternalIdentifierWithPathName(

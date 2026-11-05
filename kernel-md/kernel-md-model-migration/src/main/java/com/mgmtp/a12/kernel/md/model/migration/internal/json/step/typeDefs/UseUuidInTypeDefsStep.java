@@ -42,11 +42,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
+import com.mgmtp.a12.kernel.md.model.migration.internal.CustomMigrationConfigForTests;
+import com.mgmtp.a12.kernel.md.model.migration.internal.DmToMigrate;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
+import com.mgmtp.a12.kernel.md.model.migration.internal.utils.DmsTopologicalSorter;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
 import tools.jackson.databind.JsonNode;
@@ -63,17 +64,26 @@ public final class UseUuidInTypeDefsStep {
 	private UseUuidInTypeDefsStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
-		String docModelId = ModelJsonUtil.extractModelId(model);
+	public static void execute(List<DmToMigrate> dmsToMigrate, ICustomMigrationConfig customMigConfig) {
+
+		//To avoid complicated test cases, we need to access a test specfic map, to pre initialize the cache here
+		Map<String, String> customTypeDefUuidsByUniqueId = customMigConfig instanceof CustomMigrationConfigForTests customMigrationConfig
+				? customMigrationConfig.typeDefUuidsByUniqueIdForTest()
+				: Map.of();
+		MigrationCache cache = new MigrationCache(customTypeDefUuidsByUniqueId);
+		DmsTopologicalSorter.forEachDmSorted(dmsToMigrate, (dm, dmsById) ->
+				dm.migrationResult().catchAndReportErrorsDuring(() -> migrateDm(dm, dmsById, cache)));
+	}
+
+	private static void migrateDm(DmToMigrate dm, Map<String, List<DmToMigrate>> dmsById, MigrationCache cache) {
+		String docModelId = ModelJsonUtil.extractModelId(dm.jsonNode());
 
 		// ################## local typeDefs ##################
-		updateLocalTypeDefs(model, docModelId, cache);
+		updateLocalTypeDefs(dm, docModelId, cache);
 
-		Collection<JsonNode> typeDefTypes = ModelJsonUtil.extractTypeDefTypes(model);
+		Collection<JsonNode> typeDefTypes = ModelJsonUtil.extractTypeDefTypes(dm.jsonNode());
 		if (typeDefTypes.isEmpty()) {
 			// no references to typeDefs -> nothing to update
-			cache.addDocModelById(docModelId, model);
 			return;
 		}
 
@@ -82,46 +92,39 @@ public final class UseUuidInTypeDefsStep {
 
 		// are all TD-refs resolved -> nothing else to migrate
 		if (unresolvedTypeDefTypes.isEmpty()) {
-			cache.addDocModelById(docModelId, model);
 			return;
 		}
 
 		// ################## included typeDefs ##################
-		IncludedTypeDefsExtractionResult extractionResult = collectTypeDefUuidsByIncludedIds(model, cache);
-		Optional<MigrationException> extractionException = extractionResult.getException();
-		if (extractionException.isPresent()) {
-			cache.addDocModelById(docModelId, model);
-			throw extractionException.get();
+		IncludedTypeDefsExtractionResult extractionResult = collectTypeDefUuidsByIncludedIds(dm.jsonNode(), dmsById, cache);
+		Optional<MigrationError> extractionError = extractionResult.getError();
+		if (extractionError.isPresent()) {
+			throw new MigrationException(extractionError.get());
 		}
 		List<String> unresolvableTypeDefTypes = updateIncludedTypeDefsAndGetUnresolved(unresolvedTypeDefTypes,
 				extractionResult.getTypeDefUuidsByIncludedId());
 		if (!unresolvableTypeDefTypes.isEmpty()) {
-			cache.addDocModelById(docModelId, model);
-			throw new MigrationException(new MigrationError(MigrationErrorType.TYPE_DEF_MISSING)
-					.withMessage("Following type definitions [" + String.join(", ", unresolvableTypeDefTypes)
+			throw new MigrationException(new MigrationError(MigrationErrorType.TYPE_DEF_MISSING,
+					"Following type definitions [" + String.join(", ", unresolvableTypeDefTypes)
 							+ "] cannot be resolved. " +
 							"This could be because there might be DMs that are referenced but cannot be resolved."));
 		}
-		cache.addDocModelById(docModelId, model);
 	}
 
 	/**
 	 * Update all the local typeDefs (typeDefs which are definied in the document model to migrate) with an uuid and add it to the
 	 * caches
-	 *
-	 * @param model
-	 * 		the document model to migrate
 	 */
-	private static void updateLocalTypeDefs(JsonNode model, String docModelId, MigrationCache cache) {
-		Set<JsonNode> typeDefs = ModelJsonUtil.extractTypeDefs(model);
+	private static void updateLocalTypeDefs(DmToMigrate dm, String docModelId, MigrationCache cache) {
+		Set<JsonNode> typeDefs = ModelJsonUtil.extractTypeDefs(dm.jsonNode());
 
 		for (JsonNode typeDef : typeDefs) {
 			String typeDefId = ModelJsonUtil.getTypeDefId(typeDef);
 			String uniqueId = createUniqueId(docModelId, typeDefId);
 
 			if (cache.containsTypeDefUniqueId(uniqueId)) {
-				throw new MigrationException(new MigrationError(MigrationErrorType.TYPE_DEF_ID_COLLISION_FOR_NONUNIQE_DM_ID)
-						.withMessage("Type definition ids must be unique within the scope of a document model id, but multiple " +
+				throw new MigrationException(new MigrationError(MigrationErrorType.TYPE_DEF_ID_COLLISION_FOR_NONUNIQE_DM_ID,
+						"Type definition ids must be unique within the scope of a document model id, but multiple " +
 								"type definitions appear to exist for document model id '" + docModelId + "' and type definition id '" + typeDefId + "'. " +
 								"It is likely that this problem is related to the presence of multiple document models with the " +
 								"same id."));
@@ -179,13 +182,8 @@ public final class UseUuidInTypeDefsStep {
 		return Optional.ofNullable(cache.getTypeDefUuid(uniqueId));
 	}
 
-	// TODO[A12K-4202] fix the migration to loop over versions in the outer loop and dms in the inner loop,
-	//   so that each migration step will only ever get its single expected input version as input
-	public static String getModelRefOrAlias(JsonNode unexpandedIncludingGroup, boolean after2860) {
-		return after2860 ?
-				ModelJsonUtil.getModelReference(unexpandedIncludingGroup)
-				: //until 2840 there was a model alias  directly under the group
-				ModelJsonUtil.getModelAlias(unexpandedIncludingGroup);
+	private static MigrationError toMigrationError(MigrationErrorType type, String message) {
+		return new MigrationError(type, message);
 	}
 
 	/**
@@ -196,87 +194,98 @@ public final class UseUuidInTypeDefsStep {
 	 *
 	 * @return a map of typeDef uuid to typeDef included id
 	 */
-	private static IncludedTypeDefsExtractionResult collectTypeDefUuidsByIncludedIds(JsonNode model, MigrationCache cache
-			//TODO[A12K-4202]: refactor for cognitive complexity
-	) {
-		Collection<JsonNode> includingGroups = ModelJsonUtil.extractUnexpandedIncludingGroups(model);
+	private static IncludedTypeDefsExtractionResult collectTypeDefUuidsByIncludedIds(JsonNode model,
+			Map<String, List<DmToMigrate>> dmsById, MigrationCache cache) {
+		Collection<JsonNode> includingGroups = ModelJsonUtil.extractUnexpandedIncludingGroupsByModelAlias(model);
 		String docModelId = ModelJsonUtil.extractModelId(model);
-
-		var afterModalAliasChange = ModelJsonUtil.extractModelVersion(model).compareTo("28.6.0") > 0;
-		//TODO[A12K-4202] : actually we want to change the iteration loop:
-		// Is: outer loop -> topological Sort, inner loop -> dmVersion
-		// better: outer loop ->dmVersion , inner loop ->  topological Sort
+		Map<String, String> includedDmReferenceByAlias = ModelJsonUtil.createIncludedDmReferenceByAlias(model, false);
 
 		IncludedTypeDefsExtractionResult result = new IncludedTypeDefsExtractionResult();
-
-		Map<String, String> includedDmReferenceByAlias =
-				afterModalAliasChange ? null : ModelJsonUtil.createIncludedDmReferenceByAlias(model, false);
-
 		for (JsonNode includingGroup : includingGroups) {
-
-			String refOrAlias = getModelRefOrAlias(includingGroup, afterModalAliasChange);
-
-			var reference = afterModalAliasChange ? refOrAlias : includedDmReferenceByAlias.get(refOrAlias);
-			String groupId = ModelJsonUtil.extractGroupId(includingGroup);
-			if (reference == null) {
-				return new IncludedTypeDefsExtractionResult(MigrationErrorType.UNKNOWN_REFERENCED_MODEL,
-						"For the referenced document model '" + refOrAlias + "' in the include with the id '"
-								+ groupId + "', there is no corresponding model reference in header.");
+			var error =
+					processIncludingGroup(includingGroup, includedDmReferenceByAlias, docModelId, dmsById, cache, result);
+			if (error.isPresent()) {
+				return new IncludedTypeDefsExtractionResult(error.get());
 			}
+		}
+		return result;
+	}
 
-			List<JsonNode> includedDmCandidates = cache.getDocModels(reference);
-			// If no model with the referenced id is found, we'll still continue (and only fail if a referenced typedef
-			// cannot be resolved (which might be a result of the non-resolvable DM reference)
-			// If ids are ambiguous, there might be more than one match
-			for (JsonNode includedDm : includedDmCandidates) { // multiple candidates should not normally occur, but we might be able to continue anyway...
-				// first gather the local typeDefs in includedDm
-				for (JsonNode typeDef : ModelJsonUtil.extractTypeDefs(includedDm)) {
-					// already migrated
-					String typeDefUuid = ModelJsonUtil.getTypeDefId(typeDef);
-
-					if (!cache.containsTypeDefUuid(typeDefUuid)) {
-						return new IncludedTypeDefsExtractionResult(MigrationErrorType.TYPE_DEF_MISSING,
-								"Type definition with id '" + typeDefUuid + "' in included document model with id  '" + refOrAlias
-										+ "' cannot be resolved, please make sure to migrate the entire workspace at once.");
-					}
-					String uniqueId = cache.getTypeDefUniqueId(typeDefUuid);
-					String typeDefId = getTypeDefId(uniqueId, reference);
-					String typeDefIdViaIncluded = createUniqueId(groupId, typeDefId);
-					if (result.containsKey(typeDefIdViaIncluded) && !result.get(typeDefIdViaIncluded).equals(typeDefUuid)) {
-						return new IncludedTypeDefsExtractionResult(MigrationErrorType.TYPE_DEF_ID_COLLISION_FOR_NONUNIQE_DM_ID,
-								"Type definition ids must be unique within the scope of a document model id, but multiple typedefs appear "
-										+ "to exist for document model id '" + docModelId + "' and type definition id '"
-										+ typeDefId + "'. It is likely that this problem is related to the presence " +
-										"of multiple document models with the same id.");
-					}
-					result.put(typeDefIdViaIncluded, typeDefUuid);
-				}
-
-				// gather transitively included typeDefs
-				IncludedTypeDefsExtractionResult tmpResult = collectTypeDefUuidsByIncludedIds(includedDm, cache);
-				if (tmpResult.getException().isPresent()) {
-					return tmpResult;
-				}
-				for (var entry : tmpResult.getTypeDefUuidsByIncludedId().entrySet()) {
-					String typeDefIdViaTransitiveInclude = entry.getKey();
-					String typeDefUuid = entry.getValue();
-
-					String typeDefIdViaInclude = createUniqueId(groupId, typeDefIdViaTransitiveInclude);
-					if (result.containsKey(typeDefIdViaInclude) && !result.get(typeDefIdViaInclude).equals(typeDefUuid)) {
-						return new IncludedTypeDefsExtractionResult(MigrationErrorType.INCLUDED_TYPE_DEF_ID_COLLISION,
-								"Cannot unambiguously resolve id of included type definition " + typeDefIdViaInclude +
-										": candidates are " + typeDefUuid + " and " + result.get(typeDefIdViaInclude) +
-										". This is likely due to invalid " + "data where multiple document models have the" +
-										" same id");
-					}
-
-					result.put(typeDefIdViaInclude, typeDefUuid);
-				}
-			}
-
+	private static Optional<MigrationError> processIncludingGroup(JsonNode includingGroup,
+			Map<String, String> includedDmReferenceByAlias, String docModelId, Map<String, List<DmToMigrate>> dmsById,
+			MigrationCache cache, IncludedTypeDefsExtractionResult result) {
+		String refOrAlias = ModelJsonUtil.getModelAlias(includingGroup);
+		String groupId = ModelJsonUtil.extractGroupId(includingGroup);
+		var reference = includedDmReferenceByAlias.get(refOrAlias);
+		if (reference == null) {
+			return Optional.of(toMigrationError(MigrationErrorType.UNKNOWN_REFERENCED_MODEL,
+					"For the referenced document model '" + refOrAlias + "' in the include with the id '"
+							+ groupId + "', there is no corresponding model reference in header."));
 		}
 
-		return result;
+		// If no model with the referenced id is found, we'll still continue (and only fail if a referenced typedef
+		// cannot be resolved (which might be a result of the non-resolvable DM reference)
+		// If ids are ambiguous, there might be more than one match - multiple candidates should not normally occur,
+		// but we might be able to continue anyway...
+		for (DmToMigrate includedDm : dmsById.getOrDefault(reference, List.of())) {
+			var error = gatherLocalTypeDefs(includedDm.jsonNode(), groupId, refOrAlias, reference, docModelId, cache, result);
+			if (error.isPresent()) {
+				return error;
+			}
+			error = gatherTransitivelyIncludedTypeDefs(includedDm.jsonNode(), groupId, dmsById, cache, result);
+			if (error.isPresent()) {
+				return error;
+			}
+		}
+		return Optional.empty();
+	}
+
+	private static Optional<MigrationError> gatherLocalTypeDefs(JsonNode includedDm, String groupId,
+			String refOrAlias, String reference, String docModelId, MigrationCache cache, IncludedTypeDefsExtractionResult result) {
+		for (JsonNode typeDef : ModelJsonUtil.extractTypeDefs(includedDm)) {
+			// already migrated
+			String typeDefUuid = ModelJsonUtil.getTypeDefId(typeDef);
+			if (!cache.containsTypeDefUuid(typeDefUuid)) {
+				return Optional.of(toMigrationError(MigrationErrorType.TYPE_DEF_MISSING,
+						"Type definition with id '" + typeDefUuid + "' in included document model with id  '" + refOrAlias
+								+ "' cannot be resolved, please make sure to migrate the entire workspace at once."));
+			}
+			String uniqueId = cache.getTypeDefUniqueId(typeDefUuid);
+			String typeDefId = getTypeDefId(uniqueId, reference);
+			String typeDefIdViaIncluded = createUniqueId(groupId, typeDefId);
+			if (result.containsKey(typeDefIdViaIncluded) && !result.get(typeDefIdViaIncluded).equals(typeDefUuid)) {
+				return Optional.of(toMigrationError(MigrationErrorType.TYPE_DEF_ID_COLLISION_FOR_NONUNIQE_DM_ID,
+						"Type definition ids must be unique within the scope of a document model id, but multiple typedefs appear "
+								+ "to exist for document model id '" + docModelId + "' and type definition id '"
+								+ typeDefId + "'. It is likely that this problem is related to the presence " +
+								"of multiple document models with the same id."));
+			}
+			result.put(typeDefIdViaIncluded, typeDefUuid);
+		}
+		return Optional.empty();
+	}
+
+	private static Optional<MigrationError> gatherTransitivelyIncludedTypeDefs(JsonNode includedDm,
+			String groupId, Map<String, List<DmToMigrate>> dmsById, MigrationCache cache, IncludedTypeDefsExtractionResult result) {
+		//recursive call
+		IncludedTypeDefsExtractionResult tmpResult = collectTypeDefUuidsByIncludedIds(includedDm, dmsById, cache);
+		if (tmpResult.getError().isPresent()) {
+			return tmpResult.getError();
+		}
+		for (var entry : tmpResult.getTypeDefUuidsByIncludedId().entrySet()) {
+			String typeDefIdViaTransitiveInclude = entry.getKey();
+			String typeDefUuid = entry.getValue();
+			String typeDefIdViaInclude = createUniqueId(groupId, typeDefIdViaTransitiveInclude);
+			if (result.containsKey(typeDefIdViaInclude) && !result.get(typeDefIdViaInclude).equals(typeDefUuid)) {
+				return Optional.of(toMigrationError(MigrationErrorType.INCLUDED_TYPE_DEF_ID_COLLISION,
+						"Cannot unambiguously resolve id of included type definition " + typeDefIdViaInclude +
+								": candidates are " + typeDefUuid + " and " + result.get(typeDefIdViaInclude) +
+								". This is likely due to invalid " + "data where multiple document models have the" +
+								" same id"));
+			}
+			result.put(typeDefIdViaInclude, typeDefUuid);
+		}
+		return Optional.empty();
 	}
 
 	/**
@@ -318,11 +327,11 @@ public final class UseUuidInTypeDefsStep {
 	public static class IncludedTypeDefsExtractionResult {
 
 		private Map<String, String> typeDefUuidsByIncludedId = new HashMap<>();
-		private MigrationException exception;
+		private MigrationError error;
 
-		IncludedTypeDefsExtractionResult(MigrationErrorType errorType, String errorMsg) {
+		IncludedTypeDefsExtractionResult(MigrationError error) {
 			this.typeDefUuidsByIncludedId = new HashMap<>();
-			this.exception = new MigrationException(new MigrationError(errorType).withMessage(errorMsg));
+			this.error = error;
 		}
 
 		IncludedTypeDefsExtractionResult() {
@@ -336,8 +345,8 @@ public final class UseUuidInTypeDefsStep {
 			return typeDefUuidsByIncludedId;
 		}
 
-		Optional<MigrationException> getException() {
-			return Optional.ofNullable(exception);
+		Optional<MigrationError> getError() {
+			return Optional.ofNullable(error);
 		}
 
 		String get(String key) {
@@ -347,6 +356,57 @@ public final class UseUuidInTypeDefsStep {
 		boolean containsKey(String key) {
 			return typeDefUuidsByIncludedId.containsKey(key);
 		}
+	}
+
+	private static class MigrationCache {
+		/**
+		 * Since type definitions should have a corresponding uuid, we cache the type definition uuids based on the original unique
+		 * id (model id + local type def id).
+		 */
+		private final Map<String, String> typeDefUuidsByUniqueId = new HashMap<>();
+		/**
+		 * like the previous ona, only the other way around.
+		 */
+		private final Map<String, String> typeDefUniqueIdsByUuid = new HashMap<>();
+
+		/**
+		 * Intended to be used in tests to get deterministic results.
+		 */
+		private Map<String, String> customTypeDefUuidsByUniqueId = new HashMap<>();
+
+		public MigrationCache(Map<String, String> customTypeDefUuidsByUniqueId) {
+			this.customTypeDefUuidsByUniqueId = customTypeDefUuidsByUniqueId;
+		}
+
+		public void addTypeDefUuidByUniqueId(String uniqueId, String uuid) {
+			this.typeDefUuidsByUniqueId.put(uniqueId, uuid);
+			this.typeDefUniqueIdsByUuid.put(uuid, uniqueId);
+		}
+
+		public String getTypeDefUuid(String uniqueId) {
+			return typeDefUuidsByUniqueId.get(uniqueId);
+		}
+
+		public boolean containsTypeDefUniqueId(String uniqueId) {
+			return typeDefUuidsByUniqueId.containsKey(uniqueId);
+		}
+
+		public String getTypeDefUniqueId(String uuid) {
+			return typeDefUniqueIdsByUuid.get(uuid);
+		}
+
+		public boolean containsTypeDefUuid(String uuid) {
+			return typeDefUniqueIdsByUuid.containsKey(uuid);
+		}
+
+		public boolean containsCustomTypeDefUuid(String uniqueId) {
+			return customTypeDefUuidsByUniqueId.containsKey(uniqueId);
+		}
+
+		public String getCustomTypeDefUuid(String uniqueId) {
+			return customTypeDefUuidsByUniqueId.get(uniqueId);
+		}
+
 	}
 
 }

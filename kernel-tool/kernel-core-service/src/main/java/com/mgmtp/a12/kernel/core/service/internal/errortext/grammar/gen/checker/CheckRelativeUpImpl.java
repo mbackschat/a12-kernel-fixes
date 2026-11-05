@@ -38,6 +38,7 @@ import static com.mgmtp.a12.kernel.core.service.internal.errortext.FehlertextErr
 import java.util.Map;
 
 import com.mgmtp.a12.kernel.core.parser.internal.check.util.EntityUtils;
+import com.mgmtp.a12.kernel.core.parser.internal.check.util.TechnicalRootEntity;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.util.EntityIdFormatterUtil;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.FullChecks_ErrorTextParameterParser;
 import com.mgmtp.a12.kernel.core.service.internal.errortext.grammar.gen.GrammarOnly_ErrorTextParameterParser.EntitySpecContext;
@@ -82,12 +83,16 @@ public class CheckRelativeUpImpl {
 		String groupPath;
 		try {
 			groupPath = EntityUtils.relPath2AbsPath(rulePath, relPath);
-		} catch (EntityUtils.RelativeBeyondRootException e) {
+		} catch (EntityUtils.RelativeBeyondDocumentRootException e) {
 			// this can happen even if checkRelUp has not failed, because relative upward paths with a single upward steps
 			// have no relUp
 			throw errorComposer.composeError(ERROR_TEXT_PARAMETER_TOO_MANY_PARENT_GROUPS, ctx.getText());
 		}
-		IEntity entity = ec.get(groupPath);
+		// A12K-4276: mirror the condition side - the turning point may be the technical DocumentModelRoot ("/") to descend into a
+		// sibling root group ("../../RG2/x"). It has no container entity, so bind it to a virtual one; ending on it is rejected in
+		// FullChecks_ErrorTextParameterParser.checkEntitySpec.
+		boolean isTechnicalRoot = EntityUtils.isTechnicalRootPath(groupPath);
+		IEntity entity = isTechnicalRoot ? TechnicalRootEntity.INSTANCE : ec.get(groupPath);
 		if (entity == null) {//case should not happen
 			throw new IllegalArgumentException("Group not found from relative path specification: " + ctx.getText());
 		}

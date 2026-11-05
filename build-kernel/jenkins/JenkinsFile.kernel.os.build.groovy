@@ -41,7 +41,7 @@ pipeline {
 
     tools {
         jdk 'OpenJDK21'
-        nodejs 'Node22'
+        nodejs 'Node24'
         gradle 'Gradle9'
     }
 
@@ -59,8 +59,7 @@ pipeline {
             steps {
                 script {
                     util.buildEnvironment {
-                        sh "gradle build -PtestIgnoreFailuresProp=false " +
-                                '-Dorg.gradle.jvmargs="-XX:+HeapDumpOnOutOfMemoryError"'
+                        sh "gradle npm_test && gradle check -x npm_test -Dorg.gradle.jvmargs=\"-XX:+HeapDumpOnOutOfMemoryError\""
                     }
                 }
             }
@@ -70,7 +69,7 @@ pipeline {
     post {
         always {
             script {
-                junit '**/*TEST*.xml'
+                util.publishAllTestReports()
             }
         }
     }

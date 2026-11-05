@@ -32,6 +32,7 @@
 
 package com.mgmtp.a12.kernel.md.model.internal.impl;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Optional;
 
@@ -47,11 +48,10 @@ import lombok.NonNull;
 @AllArgsConstructor
 public class DocumentModelObjectReferenceImpl<T extends Serializable> implements IDocumentModelObjectReference<T> {
 
-	@NoNeedToAdaptSerialVersionUID
+	@NoNeedToAdaptSerialVersionUID @Serial
 	private static final long serialVersionUID = 1L;
 
-	@NonNull
-	private String relativePath;
+	private @NonNull String relativePath;
 	@EqualsAndHashCode.Exclude
 	private T documentModelObject;
 

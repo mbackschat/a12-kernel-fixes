@@ -339,10 +339,8 @@ public class EntityIdFormatterUtil {
 			return true;
 		} else {
 			assert notationType == RELATIVE : notationType;
-			// root groups can be turning points (1), but a turning point of level -1 (e.g. for changing to other root groups) is not
-			// allowed (see the RelativeBeyondRootException case in CheckRelativeUpImpl.check):
-			// (1) Not to be confused with: root-group _explicit_ turning points are disallowed in entitypathrelativizer in order to
-			//     have the resulting conditions play nice with includes
+			// A12K-4276: the turning point may climb up to the technical DocumentModelRoot (level -1) so a relative path can reach a
+			// sibling root group ("../../RG2/x"); see CheckRelUpImpl.MIN_LEVEL_FOR_UPWARD_PATHS.
 			return relPathConstraints.turingPointLevel() >= CheckRelUpImpl.MIN_LEVEL_FOR_UPWARD_PATHS;
 		}
 	}

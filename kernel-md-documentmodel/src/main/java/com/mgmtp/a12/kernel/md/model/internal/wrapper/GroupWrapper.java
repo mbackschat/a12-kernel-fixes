@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.mgmtp.a12.kernel.md.model.a12internal.Field;
 import com.mgmtp.a12.kernel.md.model.a12internal.Group;
 import com.mgmtp.a12.kernel.md.model.a12internal.Group.IncludeConfig;
 import com.mgmtp.a12.kernel.md.model.a12internal.Group.SortField;
@@ -67,11 +66,7 @@ public class GroupWrapper extends ElementWrapper implements IGroup {
 
 		@Override
 		public @NonNull IDocumentModelObjectReference<IField> getField() {
-			com.mgmtp.a12.kernel.md.model.a12internal.IDocumentModelObjectReference<Field> field = sortField.getField();
-			return new DocumentModelObjectReferenceWrapper<>(
-					field.getRelativePath(),
-					field.getDocumentModelObject().map(FieldWrapper::new).orElse(null)
-			);
+			return DocumentModelObjectReferenceWrapper.wrapField(sortField.getField());
 		}
 
 		@Override
@@ -132,10 +127,7 @@ public class GroupWrapper extends ElementWrapper implements IGroup {
 
 	@Override
 	public Optional<IDocumentModelObjectReference<IField>> getIndexField() {
-		return group.getIndexField().map(indexField ->
-				new DocumentModelObjectReferenceWrapper<>(
-						indexField.getRelativePath(),
-						indexField.getDocumentModelObject().map(FieldWrapper::new).orElse(null)));
+		return group.getIndexField().map(DocumentModelObjectReferenceWrapper::wrapField);
 	}
 
 	@Override

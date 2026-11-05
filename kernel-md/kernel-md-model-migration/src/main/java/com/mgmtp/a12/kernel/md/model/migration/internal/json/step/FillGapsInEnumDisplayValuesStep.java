@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Locale;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
@@ -57,8 +56,7 @@ public final class FillGapsInEnumDisplayValuesStep {
 	private FillGapsInEnumDisplayValuesStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		List<JsonNode> enumTypeNodes = model.findValues("EnumerationType");
 		for (JsonNode enumType : enumTypeNodes) {
 			JsonNode values = enumType.path(ModelJsonUtil.ENUMERATION_VALUES);

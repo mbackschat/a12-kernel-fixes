@@ -49,6 +49,7 @@ import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.bedingung.Entity
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.bedingung.EntityListConditionImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.EntityListOperationImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.EntityListOperationWithValueImpl;
+import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.operation.SetOpOperationImpl;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IEntityId;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IEntityIdList;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IParseTreeEntity;
@@ -58,6 +59,7 @@ import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.IEntityList
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IEntityListOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IEntityListOperationWithValue;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.IOperation;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.operation.ISetOpOperation;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.EntityListConditionName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.EntityListOperationName;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.types.LogOp;
@@ -162,6 +164,15 @@ public class ExpandService extends ParseTreeCopier {
 		IOperation konstante = opStack.pop();
 
 		opStack.push(new EntityListOperationWithValueImpl(op, entityList, konstante));
+	}
+
+	@Override public void endVisit(ISetOpOperation op) {
+		IEntityId entity = entityStack.pop();
+		if (entity.getFilterCondition() != null) {
+			entity = entity.withFilterCondition(ExpandService.expandBedingung(entity.getFilterCondition(), ec, expandMode));
+		}
+		IOperation setOp = opStack.pop();
+		opStack.push(new SetOpOperationImpl(op.getOperatorName(), entity, setOp));
 	}
 
 	/**

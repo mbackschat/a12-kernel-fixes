@@ -80,19 +80,16 @@ import lombok.NonNull;
  * The validation of the <b>Bundessteuernummer</b> in ELSTER format (also called technical or internal format) is largely identical
  * to the validation algorithm for tax numbers in Bavaria (see also {@link SteuernummerVerifier}).
  * <p>
- * The validation of the BZSt tax number in ELSTER format consists of the following parts:<br>
+ * The validation of the BZSt tax number in ELSTER format consists of the following parts:
  * <ul>
  * <li>Is the BZSt tax number formally valid?</li>
  * <li>Does the check digit calculation method yield the correct check digit?</li>
  * </ul>
- * </p>
  * <p>
  * In the formal check, the BZSt tax number must match the following regular expression:
  * <code>91160[0-9]{8}</code>
- * </p>
  * <p>
  * Finally, the BZSt tax number is also verified using a check digit calculation method.
- * </p>
  * </li>
  * <li>
  * To validate the <b>Bundessteuernummer in display format</b>, it is converted to ELSTER format and only then

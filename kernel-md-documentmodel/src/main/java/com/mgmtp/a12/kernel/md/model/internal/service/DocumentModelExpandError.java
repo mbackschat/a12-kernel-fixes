@@ -40,14 +40,19 @@ public enum DocumentModelExpandError {
 			"Cannot expand include because included model [=%s] does not support all locales of the base model."),
 	SELF_RECURSION("Cycle detected while expanding, %s was already visited%s"),
 	NOT_EXACTLY_ONE_ROOT_GROUP(
-			"Cannot expand include because included model [=%s] does not contain exactly one root group."),
+			"Cannot expand include because included model [=%s] does not contain exactly one root group "
+					+ "and includeLevel = SINGLE_RG."),
 	NO_MODEL_REFERENCE("The corresponding model reference of the including group '%s' in [=%s] is not specified."),
 	UNRESOLVABLE_REFERENCE_MSG(
-			"Cannot successfully expand model because the %s could not be resolved (unambiguously). [%s=%s]"),
+			"Cannot successfully expand model because the %s could not be resolved (unambiguously). [%s]"),
 	MISSING_REFERENCE_MSG(
 			"Cannot successfully expand model because the %s has an empty reference."),
+	INCOMPATIBLE_REFERENCE_MSG(
+			"Cannot successfully expand model because the %s referenced by %s is expected to be of type %s but was %s."),
 	REFERENCED_MODEL_NOT_RESOLVED("Cannot open included document model '%s'."),
-	REPEATABLE_ROOT_GROUP("Cannot expand include because the root group of the included model [=%s] is repeatable.");
+	REPEATABLE_ROOT_GROUP(
+			"Cannot expand include because the root group of the included model [=%s] is repeatable "
+					+ "and includeLevel = SINGLE_RG.");
 
 	private String messageFormat;
 

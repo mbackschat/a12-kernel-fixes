@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.mgmtp.a12.kernel'
-version = '33.0.2'
+version = '33.2.1'
 description = 'kernel-core-runtime-api'
 
 // update kernelCoreRuntimeApiVersion in kernel's libs.versions.toml accordingly, after this api version has been released

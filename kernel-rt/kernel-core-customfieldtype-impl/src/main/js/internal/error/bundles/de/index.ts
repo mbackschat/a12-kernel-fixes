@@ -108,6 +108,22 @@ set(
 	"Sie haben ein ung" + unescape("%FC") + "ltiges Aktenzeichen angegeben."
 );
 set(
+	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_FORMAT_FEHLER],
+	"Sie haben eine ung" + unescape("%FC") + "ltige Ermittlungsnummer angegeben."
+);
+set(
+	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_FINANZAMT_FEHLER],
+	"Sie haben eine ung" + unescape("%FC") + "ltige Ermittlungsnummer angegeben."
+);
+set(
+	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_UNTERSCHEIDUNGSNUMMER_FEHLER],
+	"Sie haben eine ung" + unescape("%FC") + "ltige Ermittlungsnummer angegeben."
+);
+set(
+	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.ESSTERMNR_PRUEFZIFFER_FEHLER],
+	"Sie haben eine ung" + unescape("%FC") + "ltige Ermittlungsnummer angegeben."
+);
+set(
 	CustomFieldTypeErrorEnum[CustomFieldTypeErrorEnum.STRING_ZU_KURZ],
 	"Das Feld muss mindestens $minLength$ Zeichen enthalten."
 );

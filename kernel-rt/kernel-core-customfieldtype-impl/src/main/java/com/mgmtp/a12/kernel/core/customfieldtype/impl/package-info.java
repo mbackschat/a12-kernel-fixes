@@ -53,6 +53,5 @@
  * 			<li>{@link com.mgmtp.a12.kernel.core.customfieldtype.impl.EWAzVerifier}</li>
  * 			<li>{@link com.mgmtp.a12.kernel.core.customfieldtype.impl.LaenderkuerzelVerifier}</li>
  *     </ul>
- * </ul>
  */
 package com.mgmtp.a12.kernel.core.customfieldtype.impl;

@@ -31,6 +31,7 @@
  */
 package com.mgmtp.a12.kernel.md.model.internal.betterbuilders.ft;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -62,6 +63,14 @@ public class EnumerationTypeBuilder extends FieldTypeBuilder<EnumerationTypeBuil
 								EnumerationType.EnumValue.builder().value("a")
 										.label(new LocalizedTextMapImpl(Map.of(Locale.US, "A")))
 										.build())));
+	}
+
+	public static EnumerationTypeBuilder builderFromListForTests(String... values) {
+		return EnumerationTypeBuilder.builder()
+				.modify(wb -> wb.values(Arrays.stream(values).map(value ->
+								EnumerationType.EnumValue.builder().value(value)
+										.label(new LocalizedTextMapImpl(Map.of(Locale.US, value.toUpperCase(Locale.US)))).build())
+						.toList()));
 	}
 
 	@Override protected EnumerationTypeBuilder self() {

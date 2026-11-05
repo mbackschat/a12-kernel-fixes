@@ -37,13 +37,13 @@ import static com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUt
 import java.util.List;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationError;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationErrorType;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.exception.MigrationException;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
+import lombok.NonNull;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -52,8 +52,8 @@ public final class AddRequirednessConfigStep {
 	private AddRequirednessConfigStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(@NonNull JsonNode model, @NonNull MigrationLogger migrationLogger,
+			@NonNull ICustomMigrationConfig customMigConfig) {
 		// remove Group.required
 		List<JsonNode> groupNodes = ModelJsonUtil.extractAllGroups(model);
 		groupNodes.stream()
@@ -68,19 +68,18 @@ public final class AddRequirednessConfigStep {
 		fields.stream()
 				.map(f -> new ModelJsonUtil.JsonNodeWithPath(f.node().get(ModelJsonUtil.TYPE_FIELD), f.path()))
 				.filter(f -> f.node().has(ModelJsonUtil.REQUIRED))
-				.forEach(f -> removeRequiredAndAddRequirednessConfig(f, modelId, customMigConfig));
+				.forEach(f -> removeRequiredAndAddRequirednessConfig(f, modelId, migrationLogger, customMigConfig));
 	}
 
-	private static void removeRequiredAndAddRequirednessConfig(ModelJsonUtil.JsonNodeWithPath field, String modelId,
-			ICustomMigrationConfig customMigConfig) {
+	private static void removeRequiredAndAddRequirednessConfig(ModelJsonUtil.JsonNodeWithPath field,
+			String modelId, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		String fieldPath = field.path().toString();
 		String requirednessMode = customMigConfig.getRequirednessMode(modelId, fieldPath);
 		if (requirednessMode == null ||
 				(!requirednessMode.equals(ICustomMigrationConfig.DEFAULT_REQUIREDNESS_MODE) && !requirednessMode.equals(
 						ICustomMigrationConfig.REQUIREDNESS_MODE_RELATIVE_TO_PARENT))) {
-			throw new MigrationException(new MigrationError(MigrationErrorType.CONFIG_INVALID)
-					.withMessage(
-							"The configuration of the requiredness mode for the field '" + fieldPath + "' in the DM '" + modelId + "' is invalid (=" + requirednessMode + ")."));
+			throw new MigrationException(new MigrationError(MigrationErrorType.CONFIG_INVALID,
+					"The configuration of the requiredness mode for the field '" + fieldPath + "' in the DM '" + modelId + "' is invalid (=" + requirednessMode + ")."));
 		}
 		ObjectNode fieldObj = (ObjectNode) field.node();
 		fieldObj.remove(ModelJsonUtil.REQUIRED);

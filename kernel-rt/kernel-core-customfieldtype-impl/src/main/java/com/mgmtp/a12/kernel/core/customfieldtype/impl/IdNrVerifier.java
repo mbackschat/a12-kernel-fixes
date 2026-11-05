@@ -65,13 +65,12 @@ import lombok.NonNull;
  * may also appear three times instead of just twice. The digits of the remaining 7 positions
  * must then not repeat, analogous to the double occurrence rule.</li>
  * </ul>
- * </p>
  * <p>
  * To distinguish between the previous tax number and the identification number, no identification
  * number with leading digits 0, 1, 2, or 3 will be issued for a certain transition period.
  * </p>
- * <b>Examples:</b>
  * <table style="border: 1px solid black; border-collapse: separate; border-spacing: 0.2em;">
+ * <caption>Examples</caption>
  * <tr>
  * <th style="border: 1px solid black; padding: 0.2em 0.5em;">ID number without check digit</th>
  * <th style="border: 1px solid black; padding: 0.2em 0.5em;">Check digit</th>

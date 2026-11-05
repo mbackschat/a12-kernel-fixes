@@ -54,13 +54,24 @@ public interface ICodeGeneratorConfigV1_2 extends IValidationCodeGeneratorConfig
 	/**
 	 * implementations must make sure to return an object of a subclass that is at least as specific as the object on which the
 	 * method was called.
+	 *
+	 * @param newPackageName the new package prefix, or {@code null} to revert to the default-package behavior. See {@link IValidationCodeGeneratorConfig#getPackageName()} for details.
 	 */
 	ICodeGeneratorConfigV1_2 withPackageName(String newPackageName);
 
+	/**
+	 * @param packageName base package prefix for generated code, or {@code null} to defer to the kernel default.
+	 *                    See {@link com.mgmtp.a12.kernel.md.model.api.services.IValidationCodeGeneratorConfig#getPackageName()}
+	 *                    for full semantics of the absent-package case.
+	 */
 	static ICodeGeneratorConfigV1_2 of(String packageName, ProgrammingLanguage programmingLanguage) {
 		return CodeGeneratorConfigV1_2Impl.of(packageName, () -> programmingLanguage);
 	}
 
+	/**
+	 * Like {@link #of(String, ProgrammingLanguage)}, with a lazily-evaluated programming language.
+	 * {@code null} is accepted for {@code packageName} with the same semantics.
+	 */
 	static ICodeGeneratorConfigV1_2 ofLazyProgrammingLanguage(String packageName,
 			Supplier<ProgrammingLanguage> programmingLanguageLazy) {
 		return CodeGeneratorConfigV1_2Impl.of(packageName, programmingLanguageLazy);

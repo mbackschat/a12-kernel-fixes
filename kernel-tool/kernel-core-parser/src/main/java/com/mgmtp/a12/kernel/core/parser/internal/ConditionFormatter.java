@@ -31,21 +31,10 @@
  */
 package com.mgmtp.a12.kernel.core.parser.internal;
 
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Token;
 
 import com.mgmtp.a12.kernel.core.parser.internal.error.MVKParserProblemManager;
-import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.Base_ConditionLexer;
-import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.Full_ConditionLexer;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.languages.ConditionMultiLanguageHandler;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.util.formatter.FormatterVisitor;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IParseTreeEntity;
@@ -63,17 +52,6 @@ import com.mgmtp.a12.model.notification.Severity;
  * Implementation of {@link IConditionFormatter}.
  */
 public class ConditionFormatter implements IConditionFormatter {
-
-	/* This pattern matches sub-comments. We split the comments at each ;; into sub-comments because we want each potential comment
-	 * individually in case we have a mismatch regarding lexer terminals, e.g. because of ;; in string literals.
-	 * See #getAllSubCommentPositions for further details.
-	 * For multiline comments the intra comment line breaks are removed as start of the next part.
-	 *
-	 * The trivial regex would be "\s*;;[^\r\n]*", which does not split at occurrences of ;;.
-	 * The negative lookahead "(?!\s*;;)" does the remaining splitting. The "\s*" in it is used to be able to remove the whitespace
-	 * in front of any sub-comment even if the previous sub-comment was ignored.
-	 */
-	private static final Pattern COMMENT_PATTERN = Pattern.compile("\\s*(;;((?!\\s*;;)[^\\r\\n])*)");
 
 	private final IServiceConfiguration serviceConfiguration;
 	private final IProjectSpecificSettings pss;
@@ -137,14 +115,8 @@ public class ConditionFormatter implements IConditionFormatter {
 
 	@Override
 	public String stripComments(IRule rule) {
-		String conditionText = rule.getErrorConditionText();
-
-		Set<Integer> commentPositions = getAllSubCommentPositions(conditionText, rule);
-
-		// We combine pattern matching with lexer terminals to have nice whitespace handling.
-		Matcher m = COMMENT_PATTERN.matcher(conditionText);
-		// Only replace the regex, if the ;; is in a lexer comment.
-		return m.replaceAll(r -> commentPositions.contains(r.start(1)) ? "" : r.group()).trim();
+		return ConditionCommentStripper.stripComments(rule.getErrorConditionText(),
+				serviceConfiguration.getModelSpecificSettings().getLanguageUsedInConditionText(), pss);
 	}
 
 	@Override
@@ -209,43 +181,5 @@ public class ConditionFormatter implements IConditionFormatter {
 	private ConditionMultiLanguageHandler getSameLangMlh() {
 		return new ConditionMultiLanguageHandler(
 				serviceConfiguration.getModelSpecificSettings().getLanguageUsedInConditionText(), pss);
-	}
-
-	/**
-	 * To be able to remove comments after string literals containing <code>;;</code>, the COMMENT_PATTERN splits the comments at
-	 * every occurrence of <code>;;</code> to be able to throw away all mismatched <code>;;</code> occurrences separately if
-	 * necessary.
-	 * Get the comment positions as defined by the lexer and all positions of ;; inside (sub comment positions). These are exactly
-	 * the positions, we want to remove comment parts found by the pattern.
-	 */
-	private Set<Integer> getAllSubCommentPositions(String conditionText, Object originForErrorsInLexer) {
-		CharStream input = CharStreams.fromString(conditionText);
-		Full_ConditionLexer lexer = new Full_ConditionLexer(input);
-		lexer.initLexer(originForErrorsInLexer, serviceConfiguration.getModelSpecificSettings().getLanguageUsedInConditionText(),
-				pss);
-		CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-
-		tokenStream.seek(0);
-		Set<Integer> commentPositions = new HashSet<>();
-		Token token = tokenStream.LT(1);
-		while (token.getType() != Token.EOF) {
-			if (token.getType() == Base_ConditionLexer.Comment) {
-				commentPositions.addAll(getSubCommentStartPositions(token));
-			}
-			tokenStream.consume();
-			token = tokenStream.LT(1);
-		}
-		return commentPositions;
-	}
-
-	private Set<Integer> getSubCommentStartPositions(Token token) {
-		Set<Integer> result = new HashSet<>();
-		int tokenPos = token.getStartIndex();
-		String tokenText = token.getText();
-		int idx = -1;
-		while ((idx = tokenText.indexOf(";;", idx + 1)) >= 0) {
-			result.add(tokenPos + idx);
-		}
-		return result;
 	}
 }

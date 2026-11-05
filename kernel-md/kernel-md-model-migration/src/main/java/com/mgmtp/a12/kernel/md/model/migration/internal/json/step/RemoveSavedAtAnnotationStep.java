@@ -34,7 +34,6 @@ package com.mgmtp.a12.kernel.md.model.migration.internal.json.step;
 import java.util.Iterator;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
 
@@ -54,8 +53,7 @@ public final class RemoveSavedAtAnnotationStep {
 	private RemoveSavedAtAnnotationStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		removeSavedAtAnnotationIfExists(model.path(HEADER).get(ANNOTATIONS));
 	}
 
@@ -73,7 +71,8 @@ public final class RemoveSavedAtAnnotationStep {
 				}
 			}
 		} else {
-			throw MigrationUtils.contentNotSupportedException("The document model header attribute 'annotations' is not a json array object.");
+			throw MigrationUtils.contentNotSupportedException(
+					"The document model header attribute 'annotations' is not a json array object.");
 		}
 	}
 }

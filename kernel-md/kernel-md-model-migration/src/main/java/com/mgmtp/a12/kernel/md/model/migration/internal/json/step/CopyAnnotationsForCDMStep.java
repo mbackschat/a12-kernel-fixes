@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
@@ -54,8 +53,7 @@ public class CopyAnnotationsForCDMStep {
 	private CopyAnnotationsForCDMStep() {
 	}
 
-	public static void execute(@NonNull JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(@NonNull JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		JsonNode header = model.get(ModelJsonUtil.HEADER);
 		JsonNode annotations = header.get(ModelJsonUtil.ANNOTATIONS);
 

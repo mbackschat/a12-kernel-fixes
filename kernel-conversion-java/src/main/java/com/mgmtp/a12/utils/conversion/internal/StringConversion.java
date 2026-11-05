@@ -53,7 +53,7 @@ public class StringConversion {
 	public static String convertStringTypeToString(Object value) {
 		if (!(value instanceof String strVal)) {
 			throw new IllegalArgumentException(
-					"The type of the value (" + value.getClass().getSimpleName() + ") is not a string"
+					"The type of the value (" + value.getClass().getName() + ") is not a String"
 			);
 		}
 		return strVal;

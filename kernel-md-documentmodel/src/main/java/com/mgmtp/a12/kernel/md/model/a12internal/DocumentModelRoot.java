@@ -58,7 +58,7 @@ public class DocumentModelRoot extends Group {
 				new LocalizedTextMapBuilder().build(),
 				new ArrayList<>(),
 				new LocalizedTextMapBuilder().build(),
-				1, null, null, new ArrayList<>(), null);
+				1, null, null, new ArrayList<>(), null, null);
 	}
 
 }

@@ -45,7 +45,6 @@ import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.ExpandMode;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.impl.EntityIdImpl;
 import com.mgmtp.a12.kernel.core.parser.internal.parsebaum.util.EntityIdFormatterUtil;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IEntityId;
-import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.IParseTreeEntity;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.PathNotationConfig;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.ICondition;
 import com.mgmtp.a12.kernel.core.parsetree.a12internal.ast.ASTVisitor;
@@ -56,12 +55,14 @@ import com.mgmtp.a12.kernel.core.utils.internal.ProblemReporterProxy;
 public class EntityPathsRelativizer {
 
 	/**
-	 * For DocumentModels or DVLs with a single, non-repeatable root group,<br/>
-	 * this method computes a list of {@link TextUpdate}s that describe how to convert the entity paths in the rule's condition so
+	 * This method computes a list of {@link TextUpdate}s that describe how to convert the entity paths in the rule's condition so
 	 * that they are relative and do not contain the root group's name.<br/>
 	 * i.e. Absolute paths are converted to relative paths, and relative paths with explicit turning points (e.g. "../..RG1/f")
 	 * that reach a root group are converted to relative paths without explicit turning points (e.g. "../../f").
 	 * Relative paths that do not reach the root group are not converted.
+	 * <p/>
+	 * For a consistent input DM the relativized result stays consistent. For a reference that crosses to a sibling root group the
+	 * method emits a relative path that reaches above the root group (e.g. "../../RG2/x"), which is valid, too.
 	 * <p/>
 	 * The given rule is not changed - to apply the conversion, the returned {@link TextUpdate}s must be applied to the rule's
 	 * condition by the caller.
@@ -74,7 +75,7 @@ public class EntityPathsRelativizer {
 		Objects.requireNonNull(pr);
 
 		ProblemReporterProxy prProxy = new ProblemReporterProxy(pr);
-		ICondition condition = parserService.parseAndCheckCondition(iRule, prProxy, ExpandMode.NO_EXPAND);
+		ICondition condition = parserService.parseAndCheckCondition(iRule, prProxy, ExpandMode.NO_EXPAND_OR_RG_REPLACEMENT);
 
 		if (condition == null) {
 			return List.of();
@@ -110,7 +111,6 @@ public class EntityPathsRelativizer {
 					new ConditionMultiLanguageHandler(
 							parserService.getModelSpecificSettings().getLanguageUsedInConditionText(),
 							parserService.getProjectSpecificSettings()));
-
 
 			if (!origName.equals(newNameInclStars)) {
 				int oldBegin = entityIdImpl.getStartIdxInCondition();
@@ -201,19 +201,18 @@ public class EntityPathsRelativizer {
 	}
 
 	private static PathNotationConfig makePathNotationConfigForRelativizedPath(IEntityId p, String ruleFullName) {
-		boolean hasWildCardAtRootGroup = p.getIndices()[0] == IParseTreeEntity.WILDCARD;
-		if (hasWildCardAtRootGroup) { // otherwise relativeUpwardReferenceLevels will be greater than ruleGroupLevel (for abspaths)
-			throw new IllegalArgumentException("Only DocumentModels with a single, non-repeatable root group are allowed for " +
-					"includes, therefore wildcards at root groups are not allowed here");
-		}
-
+		// A12K-4276: a wildcard at the root group level is carried through as a downward segment ("../../RG2*/x");
+		// getRequiredRelativeUpwardReferenceLevels places the turning point above it.
 		EntityIdFormatterUtil.RequiredRelUpLevels relUpRequirements =
 				EntityIdFormatterUtil.getRequiredRelativeUpwardReferenceLevels(p, EntityUtils.getParentPath(ruleFullName));
 		// in case the turning point is a non-root group, we can keep the explicit turning point
 		// e.g. rule group /G1/G2/G3 (level=2, 0-based) und path ..G2/G3b*/f1 (levels=1)
 		// Note that this requirement is stricter than the condition in EntityIdFormatterUtil#isPathNotationTypeLegalInCondition:
-		//   while a root-group turning point is ok in general, it is not suitable for models that are to be used as includes,
-		//   because the root group name is overridden after expansion of the include
+		//   while a root-group turning point is ok in general, it is not suitable for models that are to be used as (SINGLE_RG) includes,
+		//   because the root group name is overridden after expansion of the include.
+		//   (in MODEL_ROOT includes, a root-group level explicit turning point would actually be ok, but
+		//    we don't add a case distinction for this here since the potential advantage would be purely
+		//    cosmetic and minimal)
 		boolean canKeepExplicitTurningPoint = relUpRequirements.turingPointLevel() > 0;
 
 		PathNotationConfig rpiOrig = p.getPathNotationConfig();

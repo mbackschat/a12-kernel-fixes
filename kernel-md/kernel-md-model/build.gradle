@@ -1,15 +1,9 @@
-
 plugins {
     alias libs.plugins.kernelJavaConventions
     alias libs.plugins.lombok
-
-
 }
 
 description = "Implementation for services for working with document models"
-
-configurations {
-}
 
 dependencies {
     api libs.baseModelApi
@@ -27,6 +21,7 @@ dependencies {
     api project(':kernel-md-document-v2')
     api project(':kernel-md-serializer')
     api project(':kernel-internal-core-parsetree-api')
+    api libs.kernelCtModelHeader1Typings
 
     compileOnly libs.baseModelUtils // Only annotations
 
@@ -34,7 +29,6 @@ dependencies {
     implementation project(':kernel-internal-core-codegen')
     implementation libs.commonsCollections4
     implementation libs.kernelCoreRuntimeApi
-    implementation libs.kernelCtModelHeader1Typings
     implementation libs.jacksonDatabind
     implementation libs.slf4jApi
 
@@ -42,4 +36,3 @@ dependencies {
 
 
 }
-

@@ -32,49 +32,20 @@
 
 package com.mgmtp.a12.kernel.md.model.a12internal.services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
-import com.mgmtp.a12.kernel.md.model.api.services.migration.IDocumentModelMigratorResult;
 import com.mgmtp.a12.kernel.md.model.migration.internal.DocumentModelMigratorImpl;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationResultType;
-import com.mgmtp.a12.kernel.md.model.migration.internal.json.DocumentModelMigratorResultImpl;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
-import tools.jackson.databind.JsonNode;
+import lombok.NonNull;
 
 /**
  * This service offers migration of document models.
  */
 @OnlyForUsage
 public class DocumentModelMigrator {
-
-	private final Map<String, String> customTypeDefUuidsByUniqueId;
-
-	public DocumentModelMigrator() {
-		this(new HashMap<>());
-	}
-
-	/**
-	 * @param customTypeDefUuidsByUniqueId
-	 * 		Intended to be used in tests to get deterministic results.
-	 */
-	DocumentModelMigrator(Map<String, String> customTypeDefUuidsByUniqueId) {
-		this.customTypeDefUuidsByUniqueId = customTypeDefUuidsByUniqueId;
-	}
-
-	public record FailableDocModelsById(LinkedHashMap<String, JsonNode> docModelsById,
-										List<IDocumentModelMigratorResult> migrationResults) {
-		public boolean hasMigrationErrors() {
-			return !migrationResults.isEmpty();
-		}
-	}
 
 	/**
 	 * @param models
@@ -85,49 +56,18 @@ public class DocumentModelMigrator {
 	 * @return a collection with the migration results, see also {@link MigrationResult}. Is never {@code null} or empty. The order
 	 * 		of results may not match the order of the given {@code models}.
 	 */
-	public List<MigrationResult> migrate(List<String> models) {
-		FailableDocModelsById loadedDMs = DocumentModelMigratorImpl.createDocModelsById(models);
-
-		if (loadedDMs.hasMigrationErrors()) {
-			return loadedDMs.migrationResults().stream().map(result ->
-							new MigrationResult(null, result.getDocumentModelId(), MigrationResult.Status.ERROR,
-									result.getException().map(Throwable::getMessage)))
-					.toList();
-		}
-
-		LinkedHashMap<String, JsonNode> modelJsonsById = loadedDMs.docModelsById();
-		Map<String, String> modelsById = getModelsById(models, modelJsonsById.keySet());
-
-		DocumentModelMigratorImpl internalMigrator = DocumentModelMigratorImpl.createForwardMigrator(
-				new MigrationCache(customTypeDefUuidsByUniqueId), null);
-		List<MigrationResult> results = new ArrayList<>();
-		for (IDocumentModelMigratorResult result : internalMigrator.migrate(modelJsonsById, null)) {
-			DocumentModelMigratorResultImpl internalResult = (DocumentModelMigratorResultImpl) result;
-			String docModelId = internalResult.getDocumentModelId();
-			MigrationResult.Status resultType = mapResultType(internalResult.getType());
-			String resultModel = resultType == MigrationResult.Status.SUCCESS
-					? internalResult.getMigratedDocumentModel().orElseThrow()
-					: modelsById.get(docModelId);
-			Optional<String> errorMessage = internalResult.getException().map(Exception::getMessage);
-
-			results.add(new MigrationResult(resultModel, docModelId, resultType, errorMessage));
-		}
-
-		return results;
-	}
-
-	/**
-	 * Create a map from model id to input string. Relies on the Set provided via {@code modelIdsInSameOrder}
-	 * being iterable in the same order as {@code models}.
-	 */
-	private static Map<String, String> getModelsById(List<String> models, Set<String> modelIdsInSameOrder) {
-		Map<String, String> modelsById = new HashMap<>();
-		int modelIndex = 0;
-		for (String docModelId : modelIdsInSameOrder) {
-			modelsById.put(docModelId, models.get(modelIndex));
-			modelIndex++;
-		}
-		return modelsById;
+	public @NonNull List<@NonNull MigrationResult> migrate(@NonNull List<@NonNull String> models) {
+		return DocumentModelMigratorImpl.createForwardMigrator(null).migrateInternal(models, null).stream()
+				.map(result -> {
+					String docModelId = result.getDocumentModelId();
+					MigrationResult.Status resultType = mapResultType(result.getType());
+					String resultModel = resultType == MigrationResult.Status.SUCCESS
+							? result.getMigratedDocumentModel().orElseThrow()
+							: result.getOriginalInputString();
+					Optional<String> errorMessage = result.getException().map(Exception::getMessage);
+					return new MigrationResult(resultModel, docModelId, resultType, errorMessage);
+				})
+				.toList();
 	}
 
 	private static MigrationResult.Status mapResultType(MigrationResultType type) {

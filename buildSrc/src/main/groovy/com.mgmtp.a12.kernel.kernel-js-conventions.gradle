@@ -10,7 +10,7 @@ ext { // make this available to the subproject build scripts
     npm_testDir = "$npm_buildDir/test"
     npm_testResourcesOutDir = "$npm_testDir/resources"
 
-    String osName = System.getProperty("os.name").toLowerCase()
+    String osName = providers.systemProperty("os.name").get().toLowerCase()
     isWindows = {
         return osName.contains("windows")
     }
@@ -26,14 +26,14 @@ ext { // make this available to the subproject build scripts
 
     npm_reportDir = layout.buildDirectory.dir('npm_reports').get()
     npm_lintOutput = "$npm_reportDir/TEST-eslint-report.xml"
-    npm_testOutput = "$npm_reportDir/TEST-${A12_kernel_group_id}-${project.name}.xml"
+    npm_testOutput = "$npm_reportDir/TEST-${providers.gradleProperty('A12_kernel_group_id').get()}-${project.name}.xml"
     npm_cyclonedxOutput_unfiltered = "cyclonedx-unfiltered.json"
     npm_cyclonedxOutput = "cyclonedx.json"
 
     npm_MetaInfDir = "META-INF"
 
     npm_packDir = layout.buildDirectory.dir('libs').get()
-    npm_packOutput = "${A12_kernel_group_id}-${project.name}-${A12_kernel_version()}.tgz"
+    npm_packOutput = "${providers.gradleProperty('A12_kernel_group_id').get()}-${project.name}-${A12_kernel_version()}.tgz"
 
     npm_groupName = "npm"
 
@@ -42,9 +42,9 @@ ext { // make this available to the subproject build scripts
 
     addBuildTaskDependency = { Task self, String... projectNames ->
         projectNames.each { String projectName ->
-            self.inputs.files(project(projectName).tasks.named { it == 'npm_build' })
-            self.mustRunAfter(project(projectName).tasks.named { it == 'npm_assemble' })
-            self.mustRunAfter(project(projectName).tasks.named { it == 'npm_prepareTest' })
+            self.inputs.files(project(projectName).tasks.named('npm_build').map { it.outputs.files })
+            self.mustRunAfter(project(projectName).tasks.named('npm_assemble'))
+            self.mustRunAfter(project(projectName).tasks.named('npm_prepareTest'))
         }
     }
 }
@@ -83,7 +83,7 @@ tasks.register('npm_cleanNodeModules', Delete) {
 tasks.register('npm_install') {
     group = npm_groupName
 
-    dependsOn project(':kernel-ts').tasks.named { it == 'npm_install' }
+    dependsOn project(':kernel-ts').tasks.named('npm_install')
 }
 
 tasks.register('npm_lint', Exec) {
@@ -120,7 +120,8 @@ tasks.named('npm_lint') {
 
 tasks.register('npm_compile', Exec) {
     group = npm_groupName
-    inputs.files(tasks.named('npm_install'))
+    // npm_install has no outputs; reference it as a pure ordering dependency (config-cache safe)
+    dependsOn(tasks.named('npm_install'))
 
     inputs.file('tsconfig.json')
     inputs.file('package.json')
@@ -146,10 +147,12 @@ static boolean isJsOptionSet(Object config, String key) {
 tasks.register('npm_prepareTest') {
     group = npm_groupName
     inputs.files(tasks.named('npm_build'))
+    mustRunAfter tasks.named('npm_assemble')
 
     setOutputsFromInputs(it)
 }
-
+//npm_test is currently disabled for OS-Builds, because we filtered the relevant tests
+def disableNpm_test = true
 tasks.register('npm_test', Exec) {
     group = npm_groupName
     mustRunAfter tasks.named('npm_assemble')
@@ -157,21 +160,24 @@ tasks.register('npm_test', Exec) {
     inputs.files(tasks.named('npm_prepareTest'))
     outputs.file(npm_testOutput)
 
+    if(disableNpm_test){
+        enabled=false
+    }
     commandLine "$npm_executable", "run", "test"
 
     ignoreExitValue true
 
-    hideExecTaskOutputUnlessFailure(it, !testIgnoreFailuresProp.toBoolean())
+    hideExecTaskOutputUnlessFailure(it, !providers.gradleProperty('testIgnoreFailuresProp').get().toBoolean())
 
-    // store the configuration for later use
-    def jsConfig = project.ext
+    boolean useCustomTestOutput = isJsOptionSet(project.ext, "useCustomTestOutput")
+    File testOutputFile = file(npm_testOutput)
     doLast {
         // if the project uses a custom test output, then don't check
-        if (!isJsOptionSet(jsConfig, "useCustomTestOutput")) {
+        if (!useCustomTestOutput) {
             // if no test output file exists, then something went wrong with the tests,
             // but jenkins does not have an error, because there is no output file to check
-            if (!file(npm_testOutput).exists()) {
-                throw new GradleException("There is no test output file ('${npm_testOutput}')")
+            if (!testOutputFile.exists()) {
+                throw new GradleException("There is no test output file ('${testOutputFile}')")
             }
         }
     }
@@ -181,7 +187,7 @@ tasks.register('npm_cyclonedx', Exec) {
     group = npm_groupName
     dependsOn tasks.named('npm_install')
 
-    inputs.files(project(':kernel-ts').tasks.named { it == 'npm_cyclonedx_prepare_workaround' })
+    inputs.files(project(':kernel-ts').tasks.named('npm_cyclonedx_prepare_workaround').map { it.outputs.files })
     outputs.file(npm_cyclonedxOutput_unfiltered)
 
     commandLine "${npx_executable}", "@cyclonedx/cyclonedx-npm", "--output-file", npm_cyclonedxOutput_unfiltered
@@ -189,6 +195,8 @@ tasks.register('npm_cyclonedx', Exec) {
     hideExecTaskOutputUnlessFailure(it)
 }
 
+import com.mgmtp.a12.kernel.gradle.BuildReportUtils
+import com.mgmtp.a12.kernel.gradle.SonarTsConfigUtils
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
@@ -220,7 +228,15 @@ tasks.register('npm_publish', Exec) {
     group = "publishing"
     inputs.files(tasks.named('npm_assemble'))
 
-    commandLine "${npm_executable}", "publish"
+    // in node24 we need to add a tag for "non-release" versions
+    // as we currently do not really need to provide special versions like "rc", "alpha", ...
+    // it is fine to just see if we have a final release version.
+    // Our current patterns are always X.Y.Z-<SOMETHING>, so when finding a "-" should be sufficient.
+    if (A12_kernel_version().contains('-')) {
+        commandLine "${npm_executable}", "publish", "--tag", "dev"
+    } else {
+        commandLine "${npm_executable}", "publish"
+    }
 
     hideExecTaskOutputUnlessFailure(it)
 }
@@ -229,6 +245,9 @@ tasks.named('clean') {
     dependsOn(tasks.named('npm_clean'))
 }
 
+tasks.named('check') {
+    dependsOn(tasks.named('npm_test'))
+}
 
 tasks.named('check') {
     dependsOn(tasks.named('npm_lint'))

@@ -136,30 +136,31 @@ public interface IRule {
 	}
 
 	/**
-	 * @return the <em>relative paths</em> (e.g. "G11/f1", "../G2/f2", "../../RG2/G2", "f4") of the modeler-defined
-	 * 		"angabe-fehlerentities",
-	 * 		or the empty list if the default automatic calculation of the possiblyCausingEntities should be used for this rule.
+	 * @return {@code true} if the custom ref entities should be used. Defaults to {@code true} if either
+	 *        {@link #getCustomRefErrorEntitiesIfFilled()} or {@link #getCustomRefErrorEntitiesIfNotFilled()} is not empty.
 	 */
-	default List<String> getCustomRefErrorEntitiesIfFilled() {
-		// the customRefErroEntities are currently not supported in A12
-		// in order to prevent an (a12internal) breaking change that forces
-		// other A12 components to add meaningless emtpy impls, we
-		// provide this default impl here:
-		return List.of();
+	default boolean hasCustomRefEntities() {
+		return !getCustomRefErrorEntitiesIfFilled().isEmpty()
+				|| !getCustomRefErrorEntitiesIfNotFilled().isEmpty();
 	}
-
-	;
 
 	/**
 	 * @return the <em>relative paths</em> (e.g. "G11/f1", "../G2/f2", "../../RG2/G2", "f4") of the modeler-defined
-	 * 		"nichtangabe-fehlerfelder",
-	 * 		* or the empty list if the default automatic calculation of the possiblyCausingEntities should be used for this rule.
+	 * 		"angabe-fehlerentities". Only used if {@link #hasCustomRefEntities()} is {@code true}, otherwise the default automatic
+	 * 		calculation of the possiblyCausingEntities is used for this rule.
+	 * 		<p>
+	 * 		Note: This must be in the DOR representation of relative paths (see
+	 *        {@link com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils#mapDmRelPathToDorRelPath(String)})
 	 */
-	default List<String> getCustomRefErrorEntitiesIfNotFilled() {
-		// the customRefErroEntities are currently not supported in A12
-		// in order to prevent an (a12internal) breaking change that forces
-		// other A12 components to add meaningless emtpy impls, we
-		// provide this default impl here:
-		return List.of();
-	}
+	List<String> getCustomRefErrorEntitiesIfFilled();
+
+	/**
+	 * @return the <em>relative paths</em> (e.g. "G11/f1", "../G2/f2", "../../RG2/G2", "f4") of the modeler-defined
+	 * 		"nichtangabe-fehlerfelder". Only used if {@link #hasCustomRefEntities()} is {@code true}, otherwise the default automatic
+	 * 		calculation of the possiblyCausingEntities is used for this rule.
+	 * 		<p>
+	 * 		Note: This must be in the DOR representation of relative paths (see
+	 *        {@link com.mgmtp.a12.kernel.core.base.utils.internal.ElementPathUtils#mapDmRelPathToDorRelPath(String)})
+	 */
+	List<String> getCustomRefErrorEntitiesIfNotFilled();
 }

@@ -38,7 +38,6 @@ import static com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUt
 import java.util.Locale;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
 
@@ -55,8 +54,7 @@ public final class AddConditionLanguageStep {
 	private AddConditionLanguageStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		Locale conditionLanguage = getConditionLanguage(model, customMigConfig);
 		JsonNode modelConfig = ModelJsonUtil.extractDmConfig(model);
 		ObjectNode node = MAPPER.createObjectNode();

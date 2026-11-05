@@ -1,0 +1,22 @@
+plugins {
+    alias libs.plugins.kernelJavaConventions
+    alias libs.plugins.lombok
+}
+
+dependencies {
+    api libs.baseModelConsistency
+    api libs.dataservicesWcfApi
+
+    implementation libs.baseModelApi // Severity, Header
+    implementation libs.kernelMmCombinationModel1Typings
+    implementation libs.kernelMmMappingModel2Typings
+    implementation project(':kernel-md-facade')
+    implementation project(':kernel-internal-md-model')
+    implementation project(':kernel-md-document-v2')
+    implementation project(':kernel-md-documentmodel')
+    implementation project(':kernel-md-serializer')
+    implementation project(':kernel-internal-base-utils')
+    implementation project(':kernel-internal-core-parser')
+    implementation project(':kernel-internal-core-tool-api')
+
+}

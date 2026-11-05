@@ -40,10 +40,10 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
 import lombok.NonNull;
 
 /**
- * Models a {@link IDocumentModel} object which is referenced relative to the reference holder.
+ * Models a reference to another object inside this {@link IDocumentModel}.
  * <p>
- * Provides access to the relative path of the object (based off of the reference holder) and to the object itself if and only if it
- * was succesfully retrieved.
+ * Provides access to the relative path of the object (based off of a reference base specified by the concrete usage) and to the
+ * object itself if and only if it was successfully retrieved.
  *
  * @param <T>
  * 		specific type of the referenced {@link IDocumentModel} object.
@@ -51,18 +51,14 @@ import lombok.NonNull;
 @OnlyForUsage
 public interface IDocumentModelObjectReference<T> extends Serializable {
 	/**
-	 * @return the relative path to referenced {@link IDocumentModel} object from the reference holder. May not be {@code null}.
-	 * 		<p/>
-	 * 		Note: if the reference holder is a group, the path will be relative to the fullname of the group. It the reference holder
-	 * 		is a rule, computation or field, the path will be relative to the fullname of that rule, computation or field (i.e. it will
-	 * 		not be relative to the parent group of the field, as one might potentially expect).
+	 * @return the relative path to referenced {@link IDocumentModel} object from the reference base (e.g. {@code "G11/f1"},
+	 *        {@code "../G2/f2"}, {@code "../../RG2/G2"}, {@code "f4"}). May not be {@code null}.
 	 */
 	@NonNull String getRelativePath();
 
 	/**
-	 * @return the {@link IDocumentModel} object which is referenced. It is empty if the
-	 * 		object itself has not been retrieved yet (e.g. before expanding the document model)
-	 * 		or could not been retrieved (e.g. the object does not exist).
+	 * @return the {@link IDocumentModel} object which is referenced. It is empty if the object itself has not been retrieved yet
+	 * 		(e.g. before expanding the document model) or could not be retrieved (e.g. the object does not exist).
 	 */
 	Optional<T> getDocumentModelObject();
 

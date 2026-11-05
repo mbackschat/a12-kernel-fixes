@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
@@ -54,8 +53,7 @@ public final class ChangeAnnotationStructureStep {
 	private ChangeAnnotationStructureStep() {
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 		JsonNode typeDefsNode = model.findValue(ModelJsonUtil.TYPE_DEFS);
 		if (typeDefsNode != null) {
 			if (!typeDefsNode.isArray()) {

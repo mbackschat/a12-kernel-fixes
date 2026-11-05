@@ -35,11 +35,13 @@ import { defaultResourceProvider } from "@com.mgmtp.a12.kernel/kernel-core-runti
 
 import type { IIdentifier, IResult } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 import {
-	ErrorType
+	ErrorType,
+	SeverityType
 } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts/a12internal";
 
 import { RuntimeFormalErrorEnum } from "@com.mgmtp.a12.kernel/kernel-core-runtime-api-ts";
 
+import { ErrorCause } from "../../util/ErrorCause.js";
 import type { LocalizableDefaults } from "../../util/LocalizableUtil.js";
 import { LocalizableUtil } from "../../util/LocalizableUtil.js";
 import { ValidType } from "../../util/ValidType.js";
@@ -107,6 +109,14 @@ export abstract class FehlerHandler {
 				referencedFields,
 				new Set<IIdentifier>(),
 				new Set<IIdentifier>()
+			);
+			erg.addMessageV2(
+				IFormaleFehlerConstants.FORMALE_PRUEFUNG,
+				errorKey,
+				fehlertext,
+				ErrorType.VALUE_ERROR,
+				SeverityType.ERROR,
+				ErrorCause.createSingleFieldCause(id)
 			);
 		}
 		return ValidType.Invalid;

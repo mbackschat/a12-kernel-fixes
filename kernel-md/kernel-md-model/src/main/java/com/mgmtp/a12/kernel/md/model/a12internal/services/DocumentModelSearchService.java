@@ -50,6 +50,11 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
  * <p>
  * <b>Attention:</b> This class needs to be re-instantiated whenever the {@link DocumentModel} is
  * changed because the content of the {@link DocumentModel} is cached internally.
+ * <p>
+ * Note: this class does not currently offer equivalents for all methods that
+ * {@link IDocumentModelSearchService} offers, because it is probably quite trivial to use that
+ * service and wrap/unwrap IElements where needed, and the extra code here would be very
+ * repetitive.
  */
 @OnlyForUsage
 public class DocumentModelSearchService {

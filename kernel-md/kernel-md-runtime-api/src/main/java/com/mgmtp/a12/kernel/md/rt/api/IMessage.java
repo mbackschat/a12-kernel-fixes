@@ -32,13 +32,17 @@
 package com.mgmtp.a12.kernel.md.rt.api;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IData;
 import com.mgmtp.a12.kernel.core.rt.a12internal.validation.IIdentifier;
 import com.mgmtp.a12.kernel.md.document.apiV2.PartiallyKnownDocumentMultiPointer;
 import com.mgmtp.a12.kernel.md.model.api.IRule;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
+
+import lombok.NonNull;
 
 /**
  * Generic error message container for {@link IDocumentValidationResult}s.
@@ -47,8 +51,8 @@ import com.mgmtp.a12.model.utils.OnlyForUsage;
 public interface IMessage {
 
 	/**
-	 * Provides differentiation of validation errors in value and omission.
-	 * An omission error is present, if a rule can be satisfied by filling one or more additional
+	 * Differentiates validation errors into omission errors and value errors.
+	 * An omission error is present if a rule can be satisfied by filling one or more additional
 	 * fields.
 	 * Otherwise, it is a value error.
 	 */
@@ -94,42 +98,80 @@ public interface IMessage {
 	 *        {@link IData#identifierToString(IIdentifier)} can be implemented appropriately. If substitution of sensitive characters
 	 * 		is not necessary, the caller won't need to change the error text before presentation to the end user.
 	 */
-	String getErrorText();
-
-	PartiallyKnownDocumentMultiPointer getErrorFieldPointer();
+	@NonNull String getErrorText();
 
 	/**
-	 * @return field instances as {@link PartiallyKnownDocumentMultiPointer}s that might have caused the error. Note that the
-	 * 		returned pointers may contain wildcard indices (repetitions with value 0)
+	 * @return the pointer to the error field, i.e. the field the error is reported on
 	 */
-	Collection<PartiallyKnownDocumentMultiPointer> getReferencedFieldsPointers();
+	@NonNull PartiallyKnownDocumentMultiPointer getErrorFieldPointer();
 
 	/**
-	 * @return field instances as {@link PartiallyKnownDocumentMultiPointer}s that might be responsible for generating omission errors.
-	 * 		Note that the returned pointers may contain wildcard indices (repetitions with
-	 * 		value 0)
+	 * @return field instances as {@link PartiallyKnownDocumentMultiPointer}s that are referenced by the rule and thus
+	 * 		possibly responsible for it firing. This includes the fields returned by
+	 *        {@link #getRefOmissionErrorResponsiblePointers()}. Note that the returned pointers may contain wildcard indices
+	 * 		(repetitions with value 0).
+	 * 		<p>
+	 * 		Note: This does not take
+	 *        {@link IRule.IFilterForPossiblyCausingEntities#getEntitiesEnabledAsPossibleCauseIfFilled()} and
+	 *        {@link IRule.IFilterForPossiblyCausingEntities#getEntitiesEnabledAsPossibleCauseIfNotFilled()} into account.
 	 */
-	Collection<PartiallyKnownDocumentMultiPointer> getRefOmissionErrorResponsiblePointers();
+	@NonNull Collection<PartiallyKnownDocumentMultiPointer> getReferencedFieldsPointers();
 
 	/**
-	 * @return whether it is a value error or an omission error
+	 * @return field instances as {@link PartiallyKnownDocumentMultiPointer}s that might be responsible for an omission
+	 * 		error, i.e. fields that were not specified and that, if given additionally, may satisfy the rule. Note that the
+	 * 		returned pointers may contain wildcard indices (repetitions with value 0).
+	 * 		<p>
+	 * 		Note: This does not take
+	 *        {@link IRule.IFilterForPossiblyCausingEntities#getEntitiesEnabledAsPossibleCauseIfFilled()} and
+	 *        {@link IRule.IFilterForPossiblyCausingEntities#getEntitiesEnabledAsPossibleCauseIfNotFilled()} into account.
 	 */
-	MessageType getMessageType();
+	@NonNull Collection<PartiallyKnownDocumentMultiPointer> getRefOmissionErrorResponsiblePointers();
+
+	/**
+	 * @return whether it is a {@link MessageType#VALUE_ERROR} or an {@link MessageType#OMISSION_ERROR}
+	 */
+	@NonNull MessageType getMessageType();
 
 	/**
 	 * @return whether it is an error, a hint or an info
 	 */
-	Severity getSeverity();
+	@NonNull Severity getSeverity();
 
 	/**
 	 * @return the path to the {@link IRule} that caused the error
 	 * 		or an {@link java.util.Optional#empty()} in case of formal errors
 	 */
-	Optional<String> getRulePath();
+	@NonNull Optional<String> getRulePath();
 
 	/**
 	 * @return the error code as defined in the validation rule
 	 */
-	String getErrorCode();
+	@NonNull String getErrorCode();
+
+	/**
+	 * Returns the entities that possibly caused the error, gathered into groups so that they can be prioritized.
+	 * <p>
+	 * If {@link IRule#getFilterForPossiblyCausingEntities()} was provided in the corresponding rule, the entity instances
+	 * determined as a possible cause for this rule firing are filtered: <ul>
+	 * <li>filled entity instances are removed as possible causes if their entity is not contained in
+	 * {@link IRule.IFilterForPossiblyCausingEntities#getEntitiesEnabledAsPossibleCauseIfFilled()}</li>
+	 * <li>unfilled entity instances are removed as possible causes if their entity is not contained in
+	 * {@link IRule.IFilterForPossiblyCausingEntities#getEntitiesEnabledAsPossibleCauseIfNotFilled()}</li>
+	 * </ul>
+	 * <p>
+	 * The current implementation groups the possible causes as followed:
+	 * <ul><li>For {@link MessageType#OMISSION_ERROR} the first group will consist of entity instances that are not filled. The
+	 * second group will consist of the entities that are filled.</li>
+	 * <li>For {@link MessageType#VALUE_ERROR} all possibly causing entities will be returned as a single group.</li>
+	 * </ul>
+	 * <p>
+	 * Future implementations may create other or more groups. But we always try to follow the rule: Fields of the earlier groups
+	 * should be more probable to cause the errors from a technical point of view.
+	 * <p>
+	 * Note that the returned pointers may contain wildcard indices (repetitions with value 0) or unknown indices (repetitions with
+	 * value -5).
+	 */
+	@NonNull List<Set<PartiallyKnownDocumentMultiPointer>> getGroupsOfPossiblyCausingEntities();
 
 }

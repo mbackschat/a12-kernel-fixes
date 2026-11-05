@@ -501,6 +501,29 @@ a|    * Changing the serialization of A12 Document require no migration.
 
 == Migration Instructions
 
+=== 2026.06-ext2
+
+* Kernel version: 31.3.0
+* Minimum compatible Document Model version: 29.4.0
+* Latest Document Model version: 29.8.0
+    * [A12K-4095] - A migration from 29.4.0 to 29.5.0 was added (no model transformation) for the new optional `errorCode` on `Computation`.
+    * [A12K-4329] - A migration from 29.5.0 to 29.6.0 was added (no model transformation) for the new optional `changeNote` on described model objects.
+    * [A12K-2361] - A migration from 29.6.0 to 29.7.0 was added (no model transformation) for the new optional `filterForPossiblyCausingEntities` on `Rule`.
+    * [A12K-4372] - A migration from 29.7.0 to 29.8.0 was added that rewrites a `Computation`'s `errorCodesToSuppress` list into the new free-text `additionalParserInformation` field (e.g. `["A","B"]` becomes `@SuppressWarning(A,B)`, respecting the model's condition language). The *backward* migration fails with a clear error if `additionalParserInformation` holds anything other than a plain suppress preamble.
+    * [A12K-4647] - A *backward* migration from 29.8.0 to 29.7.0 was added that rewrites relative paths that reach the model root (introduced with A12K-4275) to absolute paths.
+
+==== Deprecation
+
+===== Java
+
+* [A12K-4372] - The method `IComputation#getErrorCodesToSuppress()` is deprecated. Use `IComputation#getAdditionalParserInformation()` instead. It returns the complete condition preamble (e.g. `@SuppressWarning(MVK_INVALID_COMPARE_DEC_PLACES)`) instead of a list of error codes.
+* [A12K-2361] - The factory method `PartiallyKnownDocumentMultiPointer.of(String, int[])` is deprecated. Use `PartiallyKnownDocumentMultiPointer.of(String, List<Integer>)` instead. The automatic migration script adds a comment at each usage.
+* [A12K-4073] - The method `isYoungerThan1900Check()` of `IDateFragmentType`, `IDateRangeType` and `IDateType` is deprecated without replacement because the attribute is no longer evaluated. Remove all calls of this method. The automatic migration script adds a comment at each call.
+
+===== TS
+
+* [A12K-4073] - The values `DATUM_ADDITIONAL_CHECK` and `DATUM_BEREICH_DATUM_ADDITIONAL_CHECK` of `RuntimeFormalErrorEnum` are deprecated without replacement because they are no longer evaluated. Remove all usages of these values.
+
 === 2026.06
 
 CAUTION: Please have a look at link:/docs/overall/migration_guide/index.html[Migration to latest A12] chapter for an explanation of general steps on how to upgrade before starting with the component migration to 2026.06.
@@ -518,78 +541,7 @@ CAUTION: Please have a look at link:/docs/overall/migration_guide/index.html[Mig
       annotation named `cdm.queryRoot`, all model references with purpose `include` are copied with purpose `composedData` and
       appended to the existing model references.
     * [A12K-4250] - A migration from 29.3.0 to 29.4.0 was added to remove fieldtype annotations from Document Models.
-
-==== Automatic Migration
-
-The OpenRewrite recipe `com.mgmtp.a12.kernel.31.UpgradeMajor` automates the following Java source changes.
-See link:/docs/overall/migration_guide/index.html[Migration to latest A12] for setup and execution instructions.
-There is no automatic migration for TypeScript changes in this release.
-
-===== [A12K-3856] `IDocumentModelMigrator#getOldestSupportedSourceVersion` renamed to `getFirstSupportedSourceVersion`
-
-*Migration:* <<rewrite, Rewrite>>
-
-*Result:* Renames all calls to and overrides of `getOldestSupportedSourceVersion()` to `getFirstSupportedSourceVersion()`.
-
-[source,java]
-----
-// before
-String version = migrator.getOldestSupportedSourceVersion();
-
-// after
-String version = migrator.getFirstSupportedSourceVersion();
-----
-
-===== [A12K-3986] Variant parameter removed from service API calls
-
-*Migration:* <<rewrite, Rewrite>>
-
-*Result:* Removes the `variant` argument from calls to `IDocumentRtService#createModelCodeIdentifier`, `ICodeGeneratorConfigV1_2#of`, and `ICodeGeneratorConfigV1_2#ofLazyProgrammingLanguage`.
-Removes `getVariant()` override implementations from `IDocumentServiceConfig` and `IValidationCodeGeneratorConfig` classes.
-Removes imports that become unused as a result.
-
-[source,java]
-----
-// before
-service.createModelCodeIdentifier(documentModel, variant);
-
-// after
-service.createModelCodeIdentifier(documentModel);
-----
-
-===== [A12K-3986] Removed variant API call sites annotated
-
-*Migration:* <<rewrite, Rewrite>>
-
-*Result:* Flags remaining usages of the removed variant APIs with a comment naming the required replacement — the actual code removal cannot be automated and must be done manually.
-Affected APIs: `IField#getVariantFilter`, `IComputation#getVariantFilter`, `IRule#getVariantFilter`, `IRule#getVariantErrorMessages`, `IDocumentModelService#extractUsedVariants`, `IDocumentModelIdProvider#getDocumentModelId` (two-argument overload), `IValidationCodeGeneratorConfig#getVariant`.
-
-[source,java]
-----
-// before
-String filter = field.getVariantFilter();
-
-// after
-// Variant support has been removed. `IField#getVariantFilter` no longer exists.
-String filter = field.getVariantFilter();
-----
-
-===== [A12K-4021] `IDocumentModelService#expand` call sites annotated
-
-*Migration:* <<rewrite, Rewrite>>
-
-*Result:* Flags remaining calls to `IDocumentModelService#expand` with a comment naming the A12 Workspace Conversion replacement — the actual migration cannot be automated and must be done manually.
-
-[source,java]
-----
-// before
-service.expand(model, resolver);
-
-// after
-// Use the `MM_CombinationModel` and `CombinationModelService#expand` instead.
-service.expand(model, resolver);
-----
-
+ 
 ==== Breaking Changes
 
 ===== Java modules
@@ -743,6 +695,7 @@ These typings are normally only used internally by Kernel. If your code referenc
 * [A12K-4106] - The class `DocumentRtCustomExtensionService` has been removed (deprecated in 2025.06-ext4 under A12K-3464). Provide your implementations via `GeneratedCodeRtConfig.customFieldTypeFactory` and `GeneratedCodeRtConfig.customConditionFactory` instead.
 * [A12K-3898] - The `create` method taking an `IFadat` parameter has been removed from `BundessteuernummerVerifier`. Use the parameterless `create()` instead, as `IFadat` is not required.
 
+
 ==== Removal of variant support
 
 * [A12K-3986] - Variant support has been removed from Kernel. This includes variant filters on fields, rules, and computations, variant-specific error messages on rules, and the variant parameter in service configurations and code generation.
@@ -764,6 +717,7 @@ If your code uses `IValidationCodeGeneratorConfig#getVariant`, remove the overri
 ===== Java
 
 ===== TS
+
 
 [#model_migration_tool]
 === Model Migration Tool

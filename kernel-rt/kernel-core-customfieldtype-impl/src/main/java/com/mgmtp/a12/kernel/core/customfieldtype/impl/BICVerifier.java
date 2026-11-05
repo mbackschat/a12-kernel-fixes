@@ -144,6 +144,7 @@ public class BICVerifier implements ICustomFieldValidator {
 		bicLaender.add("MD"); // Moldova
 		bicLaender.add("ME"); // Montenegro
 		bicLaender.add("MK"); // North Macedonia
+		bicLaender.add("RS"); // Serbia
 
 		BIC_LAENDER = Collections.unmodifiableSet(bicLaender);
 	}

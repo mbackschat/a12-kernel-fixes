@@ -84,7 +84,7 @@ public interface IDocumentModelConfig extends Serializable {
 
 	/**
 	 * The language used in the rule condition text (comments are not affected) and also for the reserved terms when defining
-	 * parameters in the rule error message, e.g. ".value".</br>
+	 * parameters in the rule error message, e.g. ".value".<br>
 	 * <b>Note: </b>Currently, only {@link Locale#US} and {@link Locale#GERMANY} are supported.
 	 *
 	 * @return the language used in the rule condition text (comments are not affected) and also for the reserved terms when

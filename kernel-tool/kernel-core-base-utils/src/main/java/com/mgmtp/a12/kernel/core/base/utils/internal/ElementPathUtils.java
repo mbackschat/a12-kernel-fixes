@@ -43,6 +43,8 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
+import lombok.NonNull;
+
 public class ElementPathUtils {
 	public static final String SEPARATOR = "/";
 	public static final char SEPARATOR_CHAR = '/';
@@ -178,7 +180,7 @@ public class ElementPathUtils {
 	 *
 	 * @return whether the given {@code path} is an absolute path
 	 */
-	public static boolean isAbsolutePath( String path){
+	public static boolean isAbsolutePath(String path) {
 		return path.startsWith(SEPARATOR);
 	}
 
@@ -277,6 +279,55 @@ public class ElementPathUtils {
 		relPathParts.addAll(absPathParts.subList(commonAncestorLevel + 1, absPathParts.size()));
 
 		return String.join(SEPARATOR, relPathParts);
+	}
+
+	/**
+	 * Maps a relative path from the DOR representation to the DM representation (as understood everywhere else here, e.g. by
+	 * {@link #relPath} and {@link #absPath}).
+	 * <p>
+	 * The two representations only differ in 2 cases:
+	 * <ul>
+	 * <li>a self reference is mapped from {@code "./"} to {@code ""}</li>
+	 * <li>an ancestor references loses its trailing slash, e.g. {@code "../../"} is mapped to {@code "../.."}</li>
+	 * </ul>
+	 * This mapping is idempotent: passing a path that is already in the DM representation is returned unchanged.
+	 *
+	 * @param dorRelPath
+	 * 		the relative path in the DOR representation, must not be {@code null}.
+	 * @return the equivalent relative path in the DM representation.
+	 */
+	public static @NonNull String mapDorRelPathToDmRelPath(@NonNull String dorRelPath) {
+		if (("./").equals(dorRelPath)) { // self reference
+			return "";
+		}
+		if (dorRelPath.endsWith(SEPARATOR)) { // ancestor reference
+			return dorRelPath.substring(0, dorRelPath.length() - SEPARATOR.length());
+		}
+		return dorRelPath;
+	}
+
+	/**
+	 * Maps a relative path from the DM representation to the DOR representation.
+	 * <p>
+	 * The two representations only differ in 2 cases:
+	 * <ul>
+	 * <li>a self reference is mapped from {@code ""} to {@code "./"}</li>
+	 * <li>an ancestor references is appended with a  trailing slash, e.g. {@code "../.."} is mapped to {@code "../../"}</li>
+	 * </ul>
+	 * This mapping is idempotent: passing a path that is already in the DOR representation is returned unchanged.
+	 *
+	 * @param dmRelPath
+	 * 		the relative path in the DM representation, must not be {@code null}.
+	 * @return the equivalent relative path in the DOR representation.
+	 */
+	public static @NonNull String mapDmRelPathToDorRelPath(@NonNull String dmRelPath) {
+		if (dmRelPath.isEmpty()) { // self reference
+			return "./";
+		}
+		if (dmRelPath.endsWith("..")) { // ancestor reference
+			return dmRelPath + SEPARATOR;
+		}
+		return dmRelPath;
 	}
 
 	/**

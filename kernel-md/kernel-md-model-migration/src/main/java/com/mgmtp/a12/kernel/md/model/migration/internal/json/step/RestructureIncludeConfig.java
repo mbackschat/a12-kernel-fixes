@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.mgmtp.a12.kernel.md.model.api.services.migration.config.ICustomMigrationConfig;
-import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationCache;
 import com.mgmtp.a12.kernel.md.model.migration.internal.MigrationLogger;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.MigrationUtils;
 import com.mgmtp.a12.kernel.md.model.migration.internal.utils.ModelJsonUtil;
@@ -67,8 +66,7 @@ public final class RestructureIncludeConfig {
 				));
 	}
 
-	public static void execute(JsonNode model, MigrationLogger migrationLogger, MigrationCache cache,
-			ICustomMigrationConfig customMigConfig) {
+	public static void execute(JsonNode model, MigrationLogger migrationLogger, ICustomMigrationConfig customMigConfig) {
 
 		Map<String, @NonNull String> modelReferencesByAlias =
 				extractModelReferencesForHandledPurposes(model)
@@ -76,7 +74,7 @@ public final class RestructureIncludeConfig {
 								RestructureIncludeConfig::getModelAlias,
 								RestructureIncludeConfig::getModelReference));
 
-		ModelJsonUtil.extractUnexpandedIncludingGroups(model)
+		ModelJsonUtil.extractUnexpandedIncludingGroupsByModelAlias(model)
 				.forEach(it ->
 						moveToIncludeConfig((ObjectNode) it.get(ModelJsonUtil.TYPE_GROUP), modelReferencesByAlias));
 
@@ -160,12 +158,14 @@ public final class RestructureIncludeConfig {
 			Map<String, @NonNull String> modelReferencesByAlias) {
 		JsonNode modelAliasNode = groupNode.get(ModelJsonUtil.MODEL_ALIAS);
 		if (modelAliasNode == null || !modelAliasNode.isString()) {
-			throw MigrationUtils.contentNotSupportedException("The document model contains erroneous '" + ModelJsonUtil.MODEL_ALIAS + "'.");
+			throw MigrationUtils.contentNotSupportedException(
+					"The document model contains erroneous '" + ModelJsonUtil.MODEL_ALIAS + "'.");
 		}
 
 		var alias = modelAliasNode.asString();
 		if (!modelReferencesByAlias.containsKey(alias)) {
-			throw MigrationUtils.contentNotSupportedException("The document model contains unresolved '" + ModelJsonUtil.MODEL_ALIAS + " " + alias + "'.");
+			throw MigrationUtils.contentNotSupportedException(
+					"The document model contains unresolved '" + ModelJsonUtil.MODEL_ALIAS + " " + alias + "'.");
 		}
 
 		String modelReference = modelReferencesByAlias.get(alias);

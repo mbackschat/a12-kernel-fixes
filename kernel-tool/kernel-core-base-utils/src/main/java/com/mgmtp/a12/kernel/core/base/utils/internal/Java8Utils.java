@@ -69,6 +69,8 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import lombok.NonNull;
+
 /**
  * A collection of useful java 8 Helperfunctions.
  */
@@ -294,12 +296,12 @@ public class Java8Utils {
 	 * 		the zipper function combining the two streams to a new Object
 	 * @return a stream of the target type of the zipper.
 	 */
-	public static <A, B, C> Stream<C> zip(Stream<? extends A> a,
-			Stream<? extends B> b,
-			BiFunction<? super A, ? super B, ? extends C> zipper) {
-		Objects.requireNonNull(zipper);
-		var aSpliterator = Objects.requireNonNull(a).spliterator();
-		var bSpliterator = Objects.requireNonNull(b).spliterator();
+	public static <A, B, C> Stream<C> zip(
+			@NonNull Stream<? extends A> a,
+			@NonNull Stream<? extends B> b,
+			@NonNull BiFunction<? super A, ? super B, ? extends C> zipper) {
+		var aSpliterator = a.spliterator();
+		var bSpliterator = b.spliterator();
 
 		// Zipping looses DISTINCT and SORTED characteristics
 		int characteristics = aSpliterator.characteristics() & bSpliterator.characteristics() &

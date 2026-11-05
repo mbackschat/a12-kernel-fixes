@@ -62,6 +62,6 @@ public class ValidationCodeGenDataChecker extends AbstractValidationCodegenDataC
 
 	public static IGeneratedCodeAccessFactory getMMCommonFactory() {
 		return getGenCodeAccessFactoryReflection(
-				"com.mgmtp.a12.kernel.mmvalidators.extmpinternal.codegen_mm_common_v2.Factory_codegen_mm_common_v2");
+				"com.mgmtp.a12.kernel.mmvalidators.extmpinternal.codegen.mm_common_v2.Factory_mm_common_v2");
 	}
 }

@@ -32,12 +32,16 @@
 
 package com.mgmtp.a12.kernel.md.model.api.services;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 
+import com.mgmtp.a12.kernel.md.model.api.IComputation;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.model.api.IElement;
 import com.mgmtp.a12.kernel.md.model.api.IField;
 import com.mgmtp.a12.kernel.md.model.api.IGroup;
+import com.mgmtp.a12.kernel.md.model.api.IRule;
 import com.mgmtp.a12.model.utils.OnlyForUsage;
 
 import lombok.NonNull;
@@ -80,4 +84,65 @@ public interface IDocumentModelSearchService {
 	 *        {@link IGroup} or {@link IField} was found.
 	 */
 	Optional<String> getGroupOrFieldPathById(String id);
+
+	/**
+	 * Returns all {@link IElement}s of the document model, keyed by their id.
+	 */
+	Map<String, IElement> getAllElementsById();
+
+	/**
+	 * Returns all {@link IElement}s of the document model, keyed by their path.
+	 */
+	Map<String, IElement> getAllElementsByPath();
+
+	/**
+	 * @return an Optional with the {@link IGroup} at the given path, or empty if
+	 * there is no group (no element or a non-group element) at that path in
+	 * the DM.
+	 */
+	default Optional<IGroup> getGroupByPath(@NonNull String path) {
+		return getByPath(path, IGroup.class);
+	}
+
+	/**
+	 * @return an Optional with the {@link IField} at the given path, or empty if
+	 * there is no field (no element or a non-field element) at that path in
+	 * the DM.
+	 */
+	default Optional<IField> getFieldByPath(@NonNull String path) {
+		return getByPath(path, IField.class);
+	}
+
+	/**
+	 * @return an Optional with the {@link IRule} at the given path, or empty if
+	 * there is no rule (no element or a non-rule element) at that path in
+	 * the DM.
+	 */
+	default Optional<IRule> getRuleByPath(@NonNull String path) {
+		return getByPath(path, IRule.class);
+	}
+
+	/**
+	 * @return an Optional with the {@link IComputation} at the given path, or empty if
+	 * there is no computation (no element or a non-computation element) at that path in
+	 * the DM.
+	 */
+	default Optional<IComputation> getComputationByPath(@NonNull String path) {
+		return getByPath(path, IComputation.class);
+	}
+
+	/**
+	 * @return the {@link IGroup#getRepeatability()} of the group at the given path
+	 * ({@code 1} for non-repeatable groups), or an empty {@link OptionalInt} if
+	 * there is no group (no element or a non-group element) at that path in the DM.
+	 */
+	default OptionalInt getGroupRepeatability(@NonNull String path) {
+		return getGroupByPath(path)
+				.map(group -> OptionalInt.of(group.getRepeatability()))
+				.orElseGet(OptionalInt::empty);
+	}
+
+	private <T extends IElement> Optional<T> getByPath(@NonNull String path, @NonNull Class<T> type) {
+		return getByPath(path).filter(type::isInstance).map(type::cast);
+	}
 }

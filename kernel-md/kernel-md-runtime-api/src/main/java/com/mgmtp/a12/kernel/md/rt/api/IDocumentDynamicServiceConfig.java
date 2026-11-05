@@ -58,7 +58,7 @@ public interface IDocumentDynamicServiceConfig extends IDocumentServiceConfig {
 	 * Possible implementations (this list is not exhaustive):<ul>
 	 * <li>MD5 hash of the serialized DM (current default)</li>
 	 * <li>serialized String of the DM</li>
-	 * <li>internal DB id of the DM version (assumption: unique between all DMs & changes with every DM update)</li>
+	 * <li>internal DB id of the DM version (assumption: unique between all DMs &amp; changes with every DM update)</li>
 	 * <li>an unchanging string constant (makes it so existing cache entries will never be updated by Kernel)</li>
 	 * </ul>
 	 * <p>

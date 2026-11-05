@@ -52,7 +52,7 @@ The following tools are required in order to build this repository:
 | Tool   | Version |
 |--------|:-------:|
 | [JDK]  |  `21`   |
-| [Node] |  `22`   |
+| [Node] |  `24`   |
 | [npm]  |  `10`   |
 
 

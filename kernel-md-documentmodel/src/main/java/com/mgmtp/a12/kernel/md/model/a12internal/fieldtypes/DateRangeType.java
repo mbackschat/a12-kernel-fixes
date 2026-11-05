@@ -75,13 +75,10 @@ public class DateRangeType extends FieldType {
 	private @NonNull String format;
 
 	/**
-	 * @return {@code true} if a date before {@code 1900-01-01} should be considered as a wrong
-	 * 		input, otherwise {@code false}. The default value is {@code false}.
-	 * @param youngerThan1900Check
-	 * 		use {@code true} if a date before {@code 1900-01-01} should be considered as a
-	 * 		wrong input, otherwise {@code false}. See also
-	 *        {@link IDateRangeType#isYoungerThan1900Check()}
+	 * @deprecated youngerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute  will be
+	 * 		removed with A12K-4439.
 	 */
+	@Deprecated(since = "31.2.0")
 	private boolean youngerThan1900Check = false;
 
 	/**
@@ -106,9 +103,21 @@ public class DateRangeType extends FieldType {
 	 */
 	private String notInDCustomRangeSeparator;
 
+	/**
+	 * @deprecated youngerThan1900Check is no longer evaluated and its value is therefore irrelevant. This attribute  will be
+	 * 		removed with A12K-4439.
+	 */
+	@Deprecated(since = "31.2.0")
 	@Builder(builderClassName = "DateRangeTypeBuilder")
-	private DateRangeType(@NonNull String format, String rangeSeparator, boolean youngerThan1900Check,
-			InterpretationOfYear interpretationOfYear, String notInDCustomFormat, String notInDCustomRangeSeparator) {
+	private DateRangeType(
+			@NonNull String format,
+			String rangeSeparator,
+			@Deprecated(since = "31.2.0") // will be removed with A12K-4439
+			boolean youngerThan1900Check,
+			InterpretationOfYear interpretationOfYear,
+			String notInDCustomFormat,
+			String notInDCustomRangeSeparator
+	) {
 		this.format = format;
 		this.rangeSeparator = rangeSeparator;
 		this.youngerThan1900Check = youngerThan1900Check;
@@ -142,6 +151,7 @@ public class DateRangeType extends FieldType {
 	}
 
 	public static class DateRangeTypeBuilder {
+		@Deprecated(since = "31.2.0") // will be removed with A12K-4439
 		private boolean youngerThan1900Check = false; // We set the default value explicitly.
 		private String rangeSeparator = FieldTypeConstants.A12_DATE_RANGE_SEPARATOR; // Default separator
 	}

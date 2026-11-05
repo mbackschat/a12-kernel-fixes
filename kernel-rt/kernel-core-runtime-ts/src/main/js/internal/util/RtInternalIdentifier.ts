@@ -192,6 +192,51 @@ export class RtInternalIdentifier {
 		);
 	}
 
+	/**
+	 * Like {@link createFromTemplate}, but aggregation layers (repeatable ranges / `*`) are replaced
+	 * by `0` ({@link IIdentifier.ALL_INDICES}) instead of throwing.
+	 *
+	 * The resulting {@link RtInternalIdentifier} is not suitable for most processing in the runtime,
+	 * and only intended to be converted to an (external) `IIdentifier` that is passed as a
+	 * possibly-causing entity in `addMessageV2`.
+	 */
+	public static createFromTemplateReplaceAggregationsWith0DoNotProcessFurther(
+		template: RtIdentifierTemplate,
+		iterState: IterationState
+	): RtInternalIdentifier {
+		const indices: number[] = new Array<number>(template.getLayerSpec().length);
+		let hasSemanticIndex = false;
+
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		const usedIterationState = template.isOuter() ? iterState.getOuterState()! : iterState;
+		for (let i = 0; i < indices.length; i++) {
+			const layerSpec = template.getSingleLayerSpec(i);
+			if (layerSpec.getIdxEnd() !== layerSpec.getIdxStart()) {
+				// aggregation layer: represent it by the wildcard 0
+				indices[i] = IIdentifier.ALL_INDICES;
+				continue;
+			}
+			indices[i] = RtInternalIdentifier._calculateIdxFromLayerSpec(layerSpec, () =>
+				usedIterationState.getIndex(i)
+			);
+			if (indices[i] === IIdentifier.SEMANTIC_INDEX) {
+				hasSemanticIndex = true;
+			}
+		}
+		let semIdx = template.getSemanticIndex().createSemanticIndex(usedIterationState);
+		// If we have parallel iteration, there is no spec for semantic index
+		if (hasSemanticIndex && !semIdx) {
+			semIdx = new SemanticIndexSpec(usedIterationState.getValue());
+		}
+		return new RtInternalIdentifier(
+			template.getUniqueName(),
+			indices,
+			template.getCategory(),
+			semIdx,
+			usedIterationState
+		);
+	}
+
 	private static _calculateIdxFromLayerSpec(
 		layerSpec: RtIdentifierTemplateLayerSpec,
 		outerIdx: () => number

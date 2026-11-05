@@ -39,8 +39,9 @@ import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.FullChecks_Conditio
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.GrammarOnly_ConditionParser.RelUpContext;
 
 public class CheckRelUpImpl extends CheckImplAbstractClass {
-	public static final int MIN_LEVEL_FOR_UPWARD_PATHS = 0; // we don't allow to climb above root group (-> rel path to other root
-	// group is not possible)
+	// A12K-4276: climbing is allowed at most to the technical DocumentModelRoot (level -1, one level above the root groups),
+	// making paths into a sibling root group ("../../RG2/x") legal on par with the absolute form ("/RG2/x"). No further.
+	public static final int MIN_LEVEL_FOR_UPWARD_PATHS = -1;
 
 	public CheckRelUpImpl(FullChecks_ConditionParser parser) {
 		super(parser);

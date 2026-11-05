@@ -7,10 +7,10 @@ recipeList:
   # Remove IDocumentModelService#expand
   - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
       methodPattern: 'com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelService expand(com.mgmtp.a12.kernel.md.model.api.IDocumentModel, com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelReferenceResolver)'
-      comment: 'Use the `MM_CombinationModel` and `CombinationModelService#expand` instead.'
+      comment: 'This functionality is no longer available, use the WorkspaceConverter instead.'
   - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
       methodPattern: 'com.mgmtp.a12.kernel.md.model.a12internal.services.DocumentModelService expand(com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel, com.mgmtp.a12.kernel.md.model.a12internal.services.DocumentModelReferenceResolver)'
-      comment: 'Use the `MM_CombinationModel` and `CombinationModelService#expand` instead.'
+      comment: 'This functionality is no longer available, use the WorkspaceConverter instead.'
   - com.mgmtp.a12.kernel.rewrite.AddCommentToMethodInvocation:
       methodPattern: 'com.mgmtp.a12.kernel.md.model.a12internal.services.DocumentModelService expand(com.mgmtp.a12.kernel.md.model.a12internal.DocumentModel, com.mgmtp.a12.kernel.md.model.a12internal.services.DocumentModelReferenceResolver, com.mgmtp.a12.kernel.core.tool.a12internal.api.error.IProblemReporter)'
-      comment: 'Use the `MM_CombinationModel` and `CombinationModelService#expand` instead.'
+      comment: 'This functionality is no longer available, use the WorkspaceConverter instead.'

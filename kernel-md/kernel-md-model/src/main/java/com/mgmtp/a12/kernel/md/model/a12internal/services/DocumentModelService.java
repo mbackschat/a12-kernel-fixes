@@ -36,6 +36,7 @@ import static com.mgmtp.a12.kernel.md.model.internal.service.utils.ConsistencyCh
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -48,6 +49,7 @@ import com.mgmtp.a12.kernel.core.facade.a12internal.ServiceFactory;
 import com.mgmtp.a12.kernel.core.facade.internal.MVKService;
 import com.mgmtp.a12.kernel.core.parser.internal.ParserService;
 import com.mgmtp.a12.kernel.core.parser.internal.grammar.gen.Lenient_ConditionParser;
+import com.mgmtp.a12.kernel.core.parsetree.a12internal.api.condition.ICondition;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEC;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IEntity;
 import com.mgmtp.a12.kernel.core.tool.a12internal.api.ado.IRule;
@@ -74,6 +76,7 @@ import com.mgmtp.a12.kernel.md.model.a12internal.Rule;
 import com.mgmtp.a12.kernel.md.model.api.IComputation;
 import com.mgmtp.a12.kernel.md.model.api.IDocumentModel;
 import com.mgmtp.a12.kernel.md.model.api.IElement;
+import com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelService;
 import com.mgmtp.a12.kernel.md.model.internal.service.ExternalDocumentModelService;
 import com.mgmtp.a12.kernel.md.model.internal.service.consistency.rules.DocumentUniquenessCriteriaRule;
 import com.mgmtp.a12.kernel.md.model.internal.service.mapping.IRuleFromComputation;
@@ -148,7 +151,7 @@ public class DocumentModelService {
 
 	/**
 	 * For more information see
-	 * {@link IDocumentModelService#getPath(com.mgmtp.a12.kernel.md.model.api.IElement)}.
+	 * {@link com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelService#getPath(com.mgmtp.a12.kernel.md.model.api.IElement)}.
 	 */
 	public @NonNull String getPath(@NonNull Element element) {
 		return ElementUtils.getPath(element);
@@ -190,7 +193,7 @@ public class DocumentModelService {
 
 	/**
 	 * For more information see
-	 * {@link IDocumentModelService#checkConsistency(IDocumentModel, Consumer)}.
+	 * {@link com.mgmtp.a12.kernel.md.model.api.services.IDocumentModelService#checkConsistency(IDocumentModel, Consumer)}.
 	 * <p>
 	 * For the reported problems, {@link IProblem#getSource()} always returns {@code null} or an instance of one of the following:
 	 * <ul>
@@ -370,6 +373,25 @@ public class DocumentModelService {
 	}
 
 	/**
+	 * Like {@link #getCalculationServiceForModel(DocumentModel)}, but reusing an already created {@link IMVK_Service}
+	 * instead of deriving one from the {@link DocumentModel}.
+	 * <p/>
+	 * This saves time when several services are needed for the same {@link DocumentModel}: the {@link IMVK_Service}
+	 * (whose creation converts the whole model) can be built once, via
+	 * {@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}, and reused across all calls.
+	 *
+	 * @param service
+	 * 		the service for the document model, acquired via {@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}.
+	 * 		May not be {@code null}.
+	 * @return the {@link ICalculationService} instance for the model of the given {@link IMVK_Service}.
+	 */
+	public @NonNull ICalculationService getCalculationService(@NonNull IMVK_Service service) {
+		ElementContainer ec = getElementContainer(service);
+		return new ServiceFactory().getCalculationService(getMvkService(service).getServiceConfiguration(),
+				ec.getAllCalculations());
+	}
+
+	/**
 	 * Creates a reduced {@link DocumentModel} which, compared to the passed {@link DocumentModel}, contains only elements
 	 * contained
 	 * in the passed set and entities referenced by them. Referenced entities are
@@ -385,6 +407,10 @@ public class DocumentModelService {
 	 *     Example: For the rule condition
 	 *     "GroupFilled(/RG) and FieldNotFilled(/RG/G/F)" the existence of an instance of the root group "RG" can be controlled via the <i>Confirm</i> field.</li>
 	 * </ul>
+	 * Additionally, sort information ({@code sortFields}) is removed from every rootgroup and group in the reduced DM
+	 * (i.e. {@code getSortFields()} returns an empty list throughout). On one hand, sort information may reference a field that is
+	 * not included in the reduced Document Model, thereby making the Document Model invalid. On the other hand,
+	 * sort information are not relevant for the only current use case of this method, the AdHoc test.
 	 *
 	 * @param completeDm
 	 * 		the {@link DocumentModel} from which the reduced DM should be created. May not be {@code null}.
@@ -412,13 +438,33 @@ public class DocumentModelService {
 	}
 
 	/**
-	 * Tries to parse a computation. If problems occur during parsing, {@link OriginInComputationFragment#of(IProblem)} can be used
+	 * Checks a computation as a whole, i.e. its fragments, the combined computation statement, its calculation rule and its
+	 * error texts.
+	 * <p/>
+	 * Tries to parse the computation. If problems occur during parsing, {@link OriginInComputationFragment#of(IProblem)} can be used
 	 * to get information about the origin of the problem within the computation (if the problem can be attributed to a
 	 * computation precondition or operation).
+	 * <p/>
+	 * The checks build on each other and run in sequence up to the first failing parse: if a computation fragment cannot be
+	 * parsed, the combined statement is not parsed again (it would only reproduce the same errors), and if the combined
+	 * statement cannot be parsed, the calculation rule is not checked (it has no condition to work with). The calculation
+	 * rule check and the error text check both run on a parseable condition, so a computation with a defect in each has both
+	 * reported.
+	 * <p/>
+	 * The error texts the computation specifies are checked as well. Only those are checked: a computation <em>without</em>
+	 * error texts is a valid state of the document model, because the missing texts are generated during code generation, which
+	 * generates a rule for each computation. This differs on purpose from
+	 * {@link #isValidRule(String, DocumentModel, IProblemReporter)}, where the error texts are mandatory and are therefore
+	 * checked for all locales of the model.
 	 * <p/>
 	 * For "incremental" checks of a Computation (e.g. while the user edits the preconditions or operations), this method can simply
 	 * be called repeatedly with the updated documentModel. Performance with large document models and high-frequency edits may
 	 * be less than ideal - if this becomes relevant in practice, please inform the kernel team.
+	 * <p/>
+	 * If several checks are run on the same {@link DocumentModel}, prefer the overload
+	 * {@link #isValidComputation(IMVK_Service, String, IProblemReporter)}: it lets you reuse a single
+	 * {@link IMVK_Service} (whose creation converts the whole model) instead of deriving it anew on every call. The service
+	 * can be obtained via {@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}.
 	 *
 	 * @param computationFullName
 	 * 		the fullName (path) of a computation within the documentModel
@@ -429,23 +475,48 @@ public class DocumentModelService {
 	 * 		origin of the problem within the computation.
 	 * @return {@code true} if no problems occurred during conversion to an {@link IEC} and subsequent parsing of the computation,
 	 * 		otherwise {@code false}.
+	 *
+	 * @implNote The warnings to suppress and any additional parser directives are taken from the computation's
+	 *        {@link IComputation#getAdditionalParserInformation() additionalParserInformation} (which is additionally
+	 * 		validated to be a valid preamble and nothing but a preamble). Use this overload instead of the deprecated
+	 *        {@link #isValidComputation(String, DocumentModel, IProblemReporter, List)}.
 	 */
 	public boolean isValidComputation(
-			String computationFullName,
-			DocumentModel documentModel,
-			IProblemReporter pr
+			@NonNull String computationFullName,
+			@NonNull DocumentModel documentModel,
+			@NonNull IProblemReporter pr
 	) {
-		return isValidComputation(computationFullName, documentModel, pr, Collections.emptyList());
+		return isValidComputationInternal(computationFullName, documentModel, pr, Collections.emptyList());
 	}
 
 	/**
-	 * Tries to parse a computation. If problems occur during parsing, {@link OriginInComputationFragment#of(IProblem)} can be used
+	 * Checks a computation as a whole, i.e. its fragments, the combined computation statement, its calculation rule and its
+	 * error texts.
+	 * <p/>
+	 * Tries to parse the computation. If problems occur during parsing, {@link OriginInComputationFragment#of(IProblem)} can be used
 	 * to get information about the origin of the problem within the computation (if the problem can be attributed to a
 	 * computation precondition or operation).
+	 * <p/>
+	 * The checks build on each other and run in sequence up to the first failing parse: if a computation fragment cannot be
+	 * parsed, the combined statement is not parsed again (it would only reproduce the same errors), and if the combined
+	 * statement cannot be parsed, the calculation rule is not checked (it has no condition to work with). The calculation
+	 * rule check and the error text check both run on a parseable condition, so a computation with a defect in each has both
+	 * reported.
+	 * <p/>
+	 * The error texts the computation specifies are checked as well. Only those are checked: a computation <em>without</em>
+	 * error texts is a valid state of the document model, because the missing texts are generated during code generation, which
+	 * generates a rule for each computation. This differs on purpose from
+	 * {@link #isValidRule(String, DocumentModel, IProblemReporter)}, where the error texts are mandatory and are therefore
+	 * checked for all locales of the model.
 	 * <p/>
 	 * For "incremental" checks of a Computation (e.g. while the user edits the preconditions or operations), this method can simply
 	 * be called repeatedly with the updated documentModel. Performance with large document models and high-frequency edits may
 	 * be less than ideal - if this becomes relevant in practice, please inform the kernel team.
+	 * <p/>
+	 * If several checks are run on the same {@link DocumentModel}, prefer the overload
+	 * {@link #isValidComputation(IMVK_Service, String, IProblemReporter, List)}: it lets you reuse a single
+	 * {@link IMVK_Service} (whose creation converts the whole model) instead of deriving it anew on every call. The service
+	 * can be obtained via {@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}.
 	 *
 	 * @param computationFullName
 	 * 		the fullName (path) of a computation within the documentModel
@@ -455,29 +526,147 @@ public class DocumentModelService {
 	 * 		an IProblemReporter. You can use {@link OriginInComputationFragment#of(IProblem)} to obtain details about the
 	 * 		origin of the problem within the computation.
 	 * @param errorCodesToSuppress
-	 * 		a list of error codes that should be suppressed.
+	 * 		a list of error codes that should be suppressed. These are applied in addition to the warnings derived from
+	 * 		the computation's {@link IComputation#getAdditionalParserInformation() additionalParserInformation}.
 	 * @return {@code true} if no problems occurred during conversion to an {@link IEC} and subsequent parsing of the computation,
 	 * 		otherwise {@code false}.
+	 *
+	 * @deprecated the suppression info now lives on the computation itself (its
+	 *        {@link IComputation#getAdditionalParserInformation() additionalParserInformation}); use
+	 *        {@link #isValidComputation(String, DocumentModel, IProblemReporter)} and let the computation carry the
+	 * 		preamble instead of passing an explicit list.
 	 */
+	@Deprecated(since = "31.2.0")
 	public boolean isValidComputation(
-			String computationFullName,
-			DocumentModel documentModel,
-			IProblemReporter pr,
+			@NonNull String computationFullName,
+			@NonNull DocumentModel documentModel,
+			@NonNull IProblemReporter pr,
+			@NonNull List<String> errorCodesToSuppress
+	) {
+		return isValidComputationInternal(computationFullName, documentModel, pr, errorCodesToSuppress);
+	}
+
+	private boolean isValidComputationInternal(
+			@NonNull String computationFullName,
+			@NonNull DocumentModel documentModel,
+			@NonNull IProblemReporter pr,
 			@NonNull List<String> errorCodesToSuppress
 	) {
 		ComputationRuleAndMvkService mvkServiceAndRule =
 				deriveCalculationRuleAndMvkServiceForDM(computationFullName, documentModel, pr);
 		MVKService mvkService = mvkServiceAndRule.mvkService;
 		ICalculationRule calculationRule = mvkServiceAndRule.calculationRuleForComputation;
+		if (mvkService == null || calculationRule == null) {
+			return false;
+		}
+		return checkComputation(mvkService, calculationRule, errorCodesToSuppress, pr);
+	}
 
-		return mvkService != null
-				&& calculationRule != null
-				&& hasValidComputationParts(
-				(IRuleFromComputation) calculationRule.getRule(), mvkService.createParserService(), new ProblemReporterProxy(pr),
-				errorCodesToSuppress)
-				&& mvkService.hasValidConditionText(calculationRule.getRule(), pr)
-				&& new ServiceFactory().getCalculationService(mvkService.getServiceConfiguration())
-				.checkCalculationRule(calculationRule, List.of(), pr);
+	/**
+	 * Like {@link #isValidComputation(String, DocumentModel, IProblemReporter)}, but reusing an already created
+	 * {@link IMVK_Service} instead of deriving one from the {@link DocumentModel}.
+	 * <p/>
+	 * This saves time when several checks are run on the same {@link DocumentModel}: the {@link IMVK_Service} (whose
+	 * creation converts the whole model) can be built once, via
+	 * {@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}, and reused across all calls.
+	 *
+	 * @param imvkService
+	 * 		the service for the document model that contains the computation, acquired via
+	 * 		{@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}
+	 * @param computationFullName
+	 * 		the fullName (path) of a computation within the documentModel
+	 * @param pr
+	 * 		an IProblemReporter. You can use {@link OriginInComputationFragment#of(IProblem)} to obtain details about the
+	 * 		origin of the problem within the computation.
+	 * @return {@code true} if no problems occurred during conversion to an {@link IEC} and subsequent parsing of the computation,
+	 * 		otherwise {@code false}.
+	 */
+	public boolean isValidComputation(
+			@NonNull IMVK_Service imvkService,
+			@NonNull String computationFullName,
+			@NonNull IProblemReporter pr
+	) {
+		return isValidComputation(imvkService, computationFullName, pr, Collections.emptyList());
+	}
+
+	/**
+	 * Like {@link #isValidComputation(String, DocumentModel, IProblemReporter, List)}, but reusing an already created
+	 * {@link IMVK_Service} instead of deriving one from the {@link DocumentModel}.
+	 * <p/>
+	 * This saves time when several checks are run on the same {@link DocumentModel}: the {@link IMVK_Service} (whose
+	 * creation converts the whole model) can be built once, via
+	 * {@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}, and reused across all calls.
+	 *
+	 * @param imvkService
+	 * 		the service for the document model that contains the computation, acquired via
+	 * 		{@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}
+	 * @param computationFullName
+	 * 		the fullName (path) of a computation within the documentModel
+	 * @param pr
+	 * 		an IProblemReporter. You can use {@link OriginInComputationFragment#of(IProblem)} to obtain details about the
+	 * 		origin of the problem within the computation.
+	 * @param errorCodesToSuppress
+	 * 		a list of error codes that should be suppressed.
+	 * @return {@code true} if no problems occurred during conversion to an {@link IEC} and subsequent parsing of the computation,
+	 * 		otherwise {@code false}.
+	 */
+	public boolean isValidComputation(
+			@NonNull IMVK_Service imvkService,
+			@NonNull String computationFullName,
+			@NonNull IProblemReporter pr,
+			@NonNull List<String> errorCodesToSuppress
+	) {
+		MVKService mvkService = getMvkService(imvkService);
+		Optional<ICalculationRule> calculationRule = findCalculationRuleByName(computationFullName, (ElementContainer) mvkService.getEc());
+		if (calculationRule.isEmpty()) {
+			pr.reportProblem(new MVKCoreError(
+					"No computation was found for fullName or the computation is invalid: " + computationFullName,
+					Severity.ERROR,
+					null));
+			return false;
+		}
+		return checkComputation(mvkService, calculationRule.get(), errorCodesToSuppress, pr);
+	}
+
+	/**
+	 * Runs the four computation check steps against an already resolved {@link MVKService} and {@link ICalculationRule}.
+	 * Shared by the {@link DocumentModel}-based and the {@link IMVK_Service}-based {@code isValidComputation} overloads.
+	 */
+	private static boolean checkComputation(
+			@NonNull MVKService mvkService,
+			@NonNull ICalculationRule calculationRule,
+			@NonNull List<String> errorCodesToSuppress,
+			@NonNull IProblemReporter pr
+	) {
+		IRuleFromComputation rule = (IRuleFromComputation) calculationRule.getRule();
+		ProblemReporter prInternal = new ProblemReporterProxy(pr);
+
+		// 1. check the computation fragments (common precondition, preconditions and operations)
+		boolean partsValid = hasValidComputationParts(
+				rule, mvkService.createParserService(), prInternal, errorCodesToSuppress);
+		if(!partsValid) {
+			return false;
+		}
+
+		// 2. check the combined computation statement (the computation fragments combined)
+		ICondition condition = mvkService.parseConditionNoExpand(rule, rule.getErrorConditionText(), prInternal);
+		if(condition==null || prInternal.hasProblemOccurred(Severity.ERROR)) {
+			return false;
+		}
+
+		// 3. the calculation rule, reusing the condition of step 2 instead of parsing the statement a second time.
+		boolean calculationValid = new ServiceFactory().getCalculationService(mvkService.getServiceConfiguration())
+				.checkCalculationRule(calculationRule, condition, pr);
+
+		// 4. check the error texts that the computation specifies.
+		// Only those are checked: a computation without error texts is valid - missing texts are generated later, during code
+		// generation, when a rule is generated for each computation.
+		Collection<Locale> specifiedLocales = rule.getErrorMessages().keySet();
+		boolean errorTextValid = specifiedLocales.isEmpty()
+				|| mvkService.hasValidErrorText(rule, mvkService.expandCondition(condition),
+				specifiedLocales, false, pr);
+
+		return calculationValid && errorTextValid;
 	}
 
 	private ComputationRuleAndMvkService deriveCalculationRuleAndMvkServiceForDM(
@@ -497,10 +686,19 @@ public class DocumentModelService {
 			return new ComputationRuleAndMvkService(null, mvkService);
 		}
 
-		ICalculationRule calculationRule = findCalculationRuleByName(
-				computationFullName, (ElementContainer) mvkService.getEc(),
-				prProxy, documentModel);
-		return new ComputationRuleAndMvkService(calculationRule, mvkService);
+		Optional<ICalculationRule> calculationRule = findCalculationRuleByName(
+				computationFullName, (ElementContainer) mvkService.getEc());
+		if (calculationRule.isEmpty()) {
+			// this might be a case for an illegalargumentexception, but we cannot rule out that
+			// the computation does indeed exist but has errors which were not correctly attributed to the selected computation
+			// during getMvkServiceForModel
+			pr.reportProblem(new MVKCoreError(
+					"No computation was found for fullName or the computation is invalid: " + computationFullName,
+					Severity.ERROR,
+					documentModel));
+		}
+
+		return new ComputationRuleAndMvkService(calculationRule.orElse(null), mvkService);
 	}
 
 	record ComputationRuleAndMvkService(
@@ -525,12 +723,96 @@ public class DocumentModelService {
 		return imvkService.hasValidErrorText(findIRule(imvkService, rule), locales, extendProblemMessage, pr);
 	}
 
-	private static @NonNull ElementContainer getElementContainer(@NonNull IMVK_Service imvkService) {
-		if (!(imvkService instanceof MVKService mvkService) || !(mvkService.getEc() instanceof ElementContainer ec)) {
-			throw new IllegalArgumentException(
-					"IMVK_Service must be acquired via 'DocumentModelService#getMvkServiceForModel'. Custom implementations are not allowed.");
+	/**
+	 * Checks a rule as a whole, i.e. its condition text, its error texts and its custom error entities - see
+	 * {@link IRuleConsistencyCheck#hasValidConditionText(IRule, IProblemReporter)},
+	 * {@link IRuleConsistencyCheck#hasValidErrorText(IRule, Collection, boolean, IProblemReporter)} and
+	 * {@link IRuleConsistencyCheck#hasValidCustomErrorEntities(IRule, IProblemReporter)}.
+	 * <p/>
+	 * The condition text is parsed first. If it cannot be parsed, the check stops there: the remaining checks all re-parse
+	 * the same condition internally, so they would only reproduce the parse failure and report follow-up problems (the error
+	 * text check would additionally report a redundant "the condition is invalid, so the error text could not be checked"
+	 * summary). Once the condition parses, the error text and custom error entity checks both run and report, so a rule with a
+	 * defect in both has both reported. The error texts are checked for the locales of the document model, i.e. for the
+	 * languages the model declares that it supports, so a locale for which the rule has no error text is a problem.
+	 * <p/>
+	 * If several checks are run on the same {@link DocumentModel}, prefer the overload
+	 * {@link #isValidRule(IMVK_Service, String, DocumentModel, IProblemReporter)}: it lets you reuse a single
+	 * {@link IMVK_Service} (whose creation converts the whole model) instead of deriving it anew on every call. The service
+	 * can be obtained via {@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}.
+	 *
+	 * @param ruleFullName
+	 * 		the fullName (path) of a rule within the documentModel
+	 * @param documentModel
+	 * 		the documentModel that contains the rule, the rule's referenced fields, etc.
+	 * @param pr
+	 * 		an IProblemReporter the problems of all checks are reported to
+	 * @return {@code true} if all checks consider the rule valid, otherwise {@code false}
+	 */
+	public boolean isValidRule(@NonNull String ruleFullName, @NonNull DocumentModel documentModel, @NonNull IProblemReporter pr) {
+		return isValidRule(getMvkServiceForModel(documentModel, pr), ruleFullName, documentModel, pr);
+	}
+
+	/**
+	 * Like {@link #isValidRule(String, DocumentModel, IProblemReporter)}, but reusing an already created
+	 * {@link IMVK_Service} instead of deriving one from the {@link DocumentModel}.
+	 * <p/>
+	 * This saves time when several checks are run on the same {@link DocumentModel}: the {@link IMVK_Service} (whose
+	 * creation converts the whole model) can be built once, via
+	 * {@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}, and reused across all calls.
+	 *
+	 * @param imvkService
+	 * 		the service for the document model that contains the rule, acquired via
+	 * 		{@link #getMvkServiceForModel(DocumentModel, IProblemReporter)}
+	 * @param ruleFullName
+	 * 		the fullName (path) of a rule within the documentModel
+	 * @param documentModel
+	 * 		the documentModel that contains the rule, the rule's referenced fields, etc.
+	 * @param pr
+	 * 		an IProblemReporter the problems of all checks are reported to
+	 * @return {@code true} if all checks consider the rule valid, otherwise {@code false}
+	 */
+	public boolean isValidRule(
+			@NonNull IMVK_Service imvkService,
+			@NonNull String ruleFullName,
+			@NonNull DocumentModel documentModel,
+			@NonNull IProblemReporter pr) {
+		IRule iRule = findIRuleByPath(ruleFullName, getElementContainer(imvkService));
+		// the locales the service was configured with are the ones of the document model, see
+		// DocumentModelServiceUtils#createServiceConfiguration
+		Collection<Locale> locales = imvkService.getProjectSpecificSettings().getProjectLanguageSettings().keySet();
+
+		// Parse the condition once (NO_EXPAND, like hasValidConditionText, which routes through the same
+		// parseBedingungInternal(NO_EXPAND)) so the parsed condition can be reused by the checks below. A reported error means
+		// the condition text is invalid, mirroring hasValidConditionText's "valid = no error problem" semantics. If it cannot
+		// be parsed we stop here: the remaining checks would only re-parse the same invalid condition internally and add
+		// follow-up problems (the error text check even reports a redundant "condition invalid" summary).
+		ProblemReporterProxy conditionPr = new ProblemReporterProxy(pr);
+		ICondition condition = imvkService.parseBedingungNoExpand(iRule, conditionPr);
+		if (condition == null || conditionPr.hasErrorOccurred()) {
+			return false;
 		}
-		return ec;
+
+		// the error text check needs the condition (to resolve referenced fields and iteration) in its expanded form, which
+		// expandCondition derives from the parsed condition without parsing the text a second time. Passing it in reuses the
+		// parse above instead of the internal re-parse the (rule, locales, ...) overload would do.
+		boolean validErrorText = imvkService.hasValidErrorText(iRule, imvkService.expandCondition(condition), locales, false, pr);
+		// note: for a rule of a document model this check cannot report anything at the moment, because the mapped rule returns
+		// no custom ref error entities (see the Rule of the mapping package). It is called nevertheless, so that it takes
+		// effect as soon as they are supported.
+		boolean validCustomErrorEntities = imvkService.hasValidCustomErrorEntities(iRule, pr);
+
+		return validErrorText && validCustomErrorEntities;
+	}
+
+	// IMVK_Service is @OnlyForUsage, so MVKService is its only implementation, and instances handed to this service are
+	// created by getMvkServiceForModel, whose element container is always an ElementContainer. The casts below are safe.
+	private static @NonNull MVKService getMvkService(@NonNull IMVK_Service imvkService) {
+		return (MVKService) imvkService;
+	}
+
+	private static @NonNull ElementContainer getElementContainer(@NonNull IMVK_Service imvkService) {
+		return (ElementContainer) getMvkService(imvkService).getEc();
 	}
 
 	private static @NonNull IRule findIRule(@NonNull IMVK_Service imvkService, @NonNull Rule rule) {
@@ -560,24 +842,10 @@ public class DocumentModelService {
 	/**
 	 * @return the matching calculation or null if no calculation with calculationFullName exists
 	 */
-	private static ICalculationRule findCalculationRuleByName(String calculationFullName,
-			ElementContainer ec, IProblemReporter pr, DocumentModel originForProblems) {
-
-		Optional<ICalculationRule> calculationRuleOpt =
-				ec.getAllCalculations().stream()
+	private static Optional<ICalculationRule> findCalculationRuleByName(String calculationFullName, ElementContainer ec) {
+		return ec.getAllCalculations().stream()
 						.filter(c -> c.getRule().getFullName().equals(calculationFullName))
 						.findAny();
-
-		if (calculationRuleOpt.isEmpty()) { // this might be a case for an illegalargumentexception, but we cannot rule out that
-			// the computation does indeed exist but has errors which were not correctly attributed to the selected computation
-			// during getMvkServiceForModel
-			pr.reportProblem(new MVKCoreError(
-					"No computation was found for fullName or the computation is invalid: " + calculationFullName,
-					Severity.ERROR,
-					originForProblems));
-			return null;
-		}
-		return calculationRuleOpt.get();
 	}
 
 	private static boolean hasValidComputationParts(
@@ -586,15 +854,42 @@ public class DocumentModelService {
 			ProblemReporter pr,
 			@NonNull List<String> errorCodesToSuppress
 	) {
-		ruleFromComputation.getOriginalComputation().getCommonPrecondition().ifPresent(precondText -> parserService.checkSnippet(
+		IComputation computation = ruleFromComputation.getOriginalComputation();
+
+		// The warnings to suppress while checking the individual fragment snippets. Any explicitly passed list is honoured
+		// (deprecated overload); the new overload passes an empty list and relies solely on the field parsed below.
+		Set<String> suppressedWarnings = new LinkedHashSet<>(errorCodesToSuppress);
+
+		// Validate the additionalParserInformation field (a preamble) in isolation: the strict parser (CheckPreambleImpl)
+		// enforces the supported-warning whitelist, and 'preambleSnippet' (preamble EOF) enforces that the field is a
+		// preamble and nothing but a preamble. Problems are attributed to the field's own origin. Whitespace-only is
+		// treated as absent. The suppressed warnings are taken from the parsed preamble itself (not re-derived via the
+		// deprecated getErrorCodesToSuppress()), so the snippet checks below suppress exactly what the preamble declares.
+		Optional<String> additionalParserInformation =
+				computation.getAdditionalParserInformation().filter(text -> !text.isBlank());
+		if (additionalParserInformation.isPresent()) {
+			PreambleCheckResult preambleResult =
+					checkAdditionalParserInformation(ruleFromComputation, additionalParserInformation.get(), parserService, pr);
+			if (!preambleResult.parsedSuccessfully()) {
+				// The preamble did not parse, so the directives it was meant to declare (e.g. which warnings to suppress)
+				// are unknown. Checking the remaining fragments (common precondition, alternatives, operations) would then
+				// surface follow-up errors for exactly the warnings the author wanted suppressed, masking the real problem.
+				// Report only the preamble error (already reported above) and stop here.
+				return false;
+			}
+			suppressedWarnings.addAll(preambleResult.suppressedWarnings());
+		}
+
+		computation.getCommonPrecondition().ifPresent(precondText -> parserService.checkSnippet(
 				ruleFromComputation,
 				precondText,
 				Lenient_ConditionParser::bedingungSnippet,
 				p -> pr.reportProblem(wrapWithFragmentAsOrigin(p, -1, true, precondText)),
-				// the errors to suppress are not yet set in the parser and CheckPreambleImpl is not used
-				parser -> errorCodesToSuppress.forEach(parser::addSuppressedWarning)));
+				// the preamble is not part of a snippet (bedingungSnippet has no preamble), so the suppressed warnings
+				// derived above must be registered on the parser explicitly
+				parser -> suppressedWarnings.forEach(parser::addSuppressedWarning)));
 		List<IComputation.IComputationAlternative> computationAlternatives =
-				ruleFromComputation.getOriginalComputation().getComputationAlternatives();
+				computation.getComputationAlternatives();
 		for (int i = 0; i < computationAlternatives.size(); i++) {
 			final int alternativeIndex = i;
 			var computationAlternative = computationAlternatives.get(i);
@@ -605,17 +900,57 @@ public class DocumentModelService {
 									precondText,
 									Lenient_ConditionParser::bedingungSnippet,
 									p -> pr.reportProblem(wrapWithFragmentAsOrigin(p, alternativeIndex, true, precondText)),
-									// the errors to suppress are not yet set in the parser and CheckPreambleImpl is not used
-									parser -> errorCodesToSuppress.forEach(parser::addSuppressedWarning)));
+									parser -> suppressedWarnings.forEach(parser::addSuppressedWarning)));
 			var operationText = computationAlternative.getOperation();
 			parserService.checkSnippet(
 					ruleFromComputation,
 					operationText,
 					Lenient_ConditionParser::operationSnippet,
 					p -> pr.reportProblem(wrapWithFragmentAsOrigin(p, alternativeIndex, false, operationText)),
-					parser -> errorCodesToSuppress.forEach(parser::addSuppressedWarning));
+					parser -> suppressedWarnings.forEach(parser::addSuppressedWarning));
 		}
 		return !pr.hasProblemOccurred(Severity.ERROR);
+	}
+
+	/**
+	 * Parses the computation's {@code additionalParserInformation} in isolation (as a {@code preambleSnippet}) and reports
+	 * any problems against the field's origin ({@link OriginInComputationFragment#isAdditionalParserInformation()}).
+	 *
+	 * @return whether the preamble parsed without error and the warnings it suppresses (the latter only meaningful when
+	 * 		the preamble parsed successfully).
+	 */
+	private static PreambleCheckResult checkAdditionalParserInformation(
+			IRuleFromComputation ruleFromComputation,
+			String additionalParserInformation,
+			ParserService parserService,
+			ProblemReporter pr
+	) {
+		// capture the parser so the warnings it registers while parsing the preamble can be read afterwards
+		// (the parserInit consumer runs before parsing, so we read getSuppressedWarnings() only once checkSnippet returns)
+		Lenient_ConditionParser[] parserHolder = new Lenient_ConditionParser[1];
+		boolean[] parseFailed = { false };
+		parserService.checkSnippet(
+				ruleFromComputation,
+				additionalParserInformation,
+				Lenient_ConditionParser::preambleSnippet,
+				p -> {
+					IProblem problem = wrapWithAdditionalParserInformationOrigin(p, additionalParserInformation);
+					if (problem.getSeverity() == Severity.ERROR) {
+						parseFailed[0] = true;
+					}
+					pr.reportProblem(problem);
+				},
+				parser -> parserHolder[0] = parser);
+		Set<String> suppressedWarnings =
+				parserHolder[0] == null ? Set.of() : new LinkedHashSet<>(parserHolder[0].getSuppressedWarnings());
+		return new PreambleCheckResult(!parseFailed[0], suppressedWarnings);
+	}
+
+	/**
+	 * The outcome of validating a computation's {@code additionalParserInformation} preamble: whether it parsed without
+	 * error, and the warnings it suppresses (only meaningful when {@link #parsedSuccessfully()} is {@code true}).
+	 */
+	private record PreambleCheckResult(boolean parsedSuccessfully, Set<String> suppressedWarnings) {
 	}
 
 	private static IProblem wrapWithFragmentAsOrigin(IProblem p, int alternativeIndex, boolean isPrecondition, String fragmenText) {
@@ -624,6 +959,15 @@ public class DocumentModelService {
 				p,
 				Severity.ERROR, // maxSeverity = ERROR has the effect of not changing the severity
 				OriginInComputationFragment.of(fragmenText, alternativeIndex, isPrecondition,
+						p.getLine(), p.getSourceStart(), p.getLineEnd(), p.getSourceEnd()));
+	}
+
+	private static IProblem wrapWithAdditionalParserInformationOrigin(IProblem p, String fragmentText) {
+		// replace the origin and keep the other attributes unchanged
+		return new WrappedProblemWithSeverityLimitAndOrigin(
+				p,
+				Severity.ERROR, // maxSeverity = ERROR has the effect of not changing the severity
+				OriginInComputationFragment.ofAdditionalParserInformation(fragmentText,
 						p.getLine(), p.getSourceStart(), p.getLineEnd(), p.getSourceEnd()));
 	}
 

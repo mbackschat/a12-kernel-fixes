@@ -3,10 +3,6 @@
 	"text": "Kann eine Bedingung oder der Teil einer Bedingung nicht in der A12-Regelsprache formuliert werden, so kann _ApplikationsBedingung_ verwendet werden. Jede Applikationsbedingung hat einen Namen. Die Prüfung muss vom aufrufenden Verfahren implementiert werden.",
 	"title": "ApplikationsBedingung _Name_)"
     },
-	"MaximalAngegebenerZeilenindex": {
-	"text": "Liefert den maximal angegebenen Zeilen-Index aus der FeldListe.",
-	"title": "MaximalAngegebenerZeilenindex(_FeldListe_)"
-    },
 	"Gueltig": {
 	"text": "Wenn der Parameter _VordefinierterTyp_ angegeben ist, wird geprüft, ob _feld_ einen gültigen Wert im Sinne des _VordefinierterTyp_ hat. Ansonsten wird geprüft, ob _feld_ ein gültiges Datum ist.",
 	"title": "Gueltig(_feld_, _VordefinierterTyp_)"
@@ -15,57 +11,9 @@
 	"text": "Wenn der Parameter _VordefinierterTyp_ angegeben ist, wird geprüft, ob _feld_ einen ungültigen Wert im Sinne des _VordefinierterTyp_ hat. Ansonsten wird geprüft, ob _feld_ ein ungültiges Datum ist.",
 	"title": "Ungueltig(_feld_, _VordefinierterTyp_)"
     },
-	"ZeilenNichtAufsteigend": {
-	"text": "Wahr, wenn für die aktuelle Zeile ein Wert für eines der Felder angegeben wurde, aber in der vorherigen Zeile wurde kein Feld angegeben.",
-	"title": "ZeilenNichtAufsteigend(_feld_)"
-    },
-	"ZeileNichtEindeutig": {
-	"text": "Wahr, wenn zu der zu prüfenden Zeile mindestens ein Wert angegeben wurde und es eine andere Zeile mit den jeweils gleichen Werten gibt.",
-	"title": "ZeileNichtEindeutig(_feldliste_)"
-    },	
-    "ZeilenLueckenlos": {
-	"text": "Wahr, wenn es in der Feldliste mindestens ein Feld gibt, bei dem für jede Zeile mit einem angegebenen Wert auch die vorherige Zeile einen angegebenen Wert hat.",
-	"title": "ZeilenLueckenlos(_feldliste_)"
-    },
-	"UsbNichtFortlaufend": {
-	"text": "Wahr, wenn für ein Feld eines USB-Vordrucks auf einer USB-Wiederholung (>1) ein Wert angegeben ist, aber für kein auf dem Vorgänger USB (vorhergehende USB-Wiederholung) ein Wert angegeben ist (auf keiner Wiederholung (LfdNr) des USB-Vordrucks).",
-	"title": "UsbNichtFortlaufend(_Vordruck_)"
-    },
-	"VordruckNichtFortlaufend": {
-	"text": "Wahr, wenn für ein Feld auf dem Vordruck mit einer laufenden Nummer ein Wert angegeben ist, aber für kein Feld auf dem Vorgänger-Vordruck (vorhergehende laufende Nummer) ein Wert angegeben ist.",
-	"title": "VordruckNichtFortlaufend(_Vordruck_)"
-    },
-	"AnzahlAngegebenerVordrucke": {
-	"text": "Liefert für einen Vordruck die Anzahl, wie oft der Vordruck angegeben wurde.",
-	"title": "AnzahlAngegebenerVordrucke(_Vordruck_)"
-    },
-	"VordruckAngegeben": {
-	"text": "Wahr, wenn für mindestens ein Feld auf dem spezifizierten Vordruck ein Wert angegeben ist.",
-	"title": "VordruckAngegeben(_Vordruck_)"
-    },	
-	"VordruckNichtAngegeben": {
-	"text": "Wahr, wenn für kein Feld auf dem spezifizierten Vordruck ein Wert angegeben ist.",
-	"title": "VordruckNichtAngegeben(_Vordruck_)"
-    },
-	"MindestensEinVordruckAngegeben": {
-	"text": "Wahr, wenn für mindestens ein Feld auf einem der spezifizierten Vordrucke ein Wert angegeben ist. ",
-	"title": "MindestensEinVordruckAngegeben(_Vordruck_)"
-    },	
-	"KeinVordruckAngegeben": {
-	"text": "Wahr, wenn für kein Feld auf keinem der spezifizierten Vordrucke ein Wert angegeben ist.",
-	"title": "KeinVordruckAngegeben(_Vordruck_)"
-    },	
-	"AnzahlAngegebeneUsb": {
-	"text": "Liefert die Anzahl der verschiedenen USBs, für die mindestens ein Feld in den zu prüfenden Daten angegeben wurde.",
-	"title": "AnzahlAngegebeneUsb"
-    },
 	"WertAlsDatum": {
 	"text": "Liefert je nach _tagesSpezifikation_ für ein teilbekanntes Datum das entsprechende konkrete Datum zurück.",
 	"title": "WertAlsDatum(_tagesSpezifikation_)"
-    },
-    "AktuelleVordruckNummer": {
-	"text": "Liefert die aktuelle Vordrucknummer von _Feld_.",
-	"title": "AktuelleVordruckNummer(_Feld_)"
     },
 	"Wahr": {
 	"text": "Der Boolsche Wert _Wahr_ als Konstante.",
@@ -297,7 +245,7 @@
     },
   "SummeVonTermen": {
     "text": "Für einen iterierenden Term wird für jede Wiederholung der Wert berechnet und diese Werte werden aufsummiert.",
-    "title": "SummeVonProdukten(_Pfad_, _Term_)"
+    "title": "SummeVonTermen(_Pfad_, _Term_)"
   },
     "DifferenzInJahren": {
 	"text": "Liefert die Differenz zwischen zwei Datumsangaben in Jahren.",

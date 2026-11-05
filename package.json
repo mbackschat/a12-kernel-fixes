@@ -1,6 +1,6 @@
 {
   "name": "root",
-  "version": "31.1.1",
+  "version": "31.3.1",
   "private": true,
   "scripts": {
     "clean": "npm run clean:build_files ; npm run clean:node_modules",
@@ -10,21 +10,21 @@
   },
   "devDependencies": {
     "@com.mgmtp.a12.devtools/tsconfig": "^2.0.0",
-    "typedoc": "^0.28.19"
+    "typedoc": "^0.28.20"
   },
   "overrides": {
     "xmlbuilder2": "^4.0.1",
     "@cyclonedx/cyclonedx-library": "^9.0.0",
-    "serialize-javascript": "^7.0.5",
-    "ws": "^8.21.0",
+    "serialize-javascript": "^7.0.7",
     "brace-expansion": "^5.0.9",
     "diff": "^8.0.3"
   },
   "workspaces": [
-    "kernel-md/kernel-md-facade",
+    "kernel-md-facade",
     "kernel-rt/kernel-core-runtime-api-ts",
     "kernel-rt/kernel-core-runtime-ts",
     "kernel-ts/eslint-config",
+    "kernel-ts/codemod",
     "kernel-tool/kernel-core-parser-web",
     "kernel-rt/kernel-core-customfieldtype-impl"
   ]

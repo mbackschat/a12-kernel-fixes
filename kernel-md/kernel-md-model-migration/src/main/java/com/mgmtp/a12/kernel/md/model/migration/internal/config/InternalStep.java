@@ -50,11 +50,21 @@ public record InternalStep(
 		return new InternalStepBuilder().oldVersion(oldVersion).newVersion(newVersion);
 	}
 
-	public @NonNull String getTargetVersion(boolean isForwardMigration){
-		return isForwardMigration? newVersion : oldVersion;
+	public static class InternalStepBuilder {
+		public InternalStepBuilder forwardMigrationPerDm(@NonNull MigrationStep.PerDmImplementation migrationFunc) {
+			return forwardMigration(MigrationStep.wrapPerDmImplementation(migrationFunc));
+		}
+
+		public InternalStepBuilder backwardMigrationPerDm(@NonNull MigrationStep.PerDmImplementation migrationFunc) {
+			return backwardMigration(MigrationStep.wrapPerDmImplementation(migrationFunc));
+		}
 	}
 
-	public @NonNull String  getSourceVersion(boolean isForwardMigration){
-		 return isForwardMigration?   oldVersion : newVersion;
+	public @NonNull String getTargetVersion(boolean isForwardMigration) {
+		return isForwardMigration ? newVersion : oldVersion;
+	}
+
+	public @NonNull String getSourceVersion(boolean isForwardMigration) {
+		return isForwardMigration ? oldVersion : newVersion;
 	}
 }

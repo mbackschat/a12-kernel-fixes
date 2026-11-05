@@ -110,7 +110,7 @@ public class KontextListenBedingungCreator {
 			return;
 		}
 		switch (tc.getExpandMode()) {
-			case NO_EXPAND:
+			case NO_EXPAND, NO_EXPAND_OR_RG_REPLACEMENT:
 				createOnly(ctx, tc);
 				break;
 			case EXPAND, EXPAND_AND_ADD_GROUPS:
@@ -200,7 +200,8 @@ public class KontextListenBedingungCreator {
 	 * @param tc
 	 */
 	private static void createOnly(KontextListenBedingungContext ctx, ParseTreeCreator tc) {
-		if (EntityListUtil.referencesRootGroup(ctx.entityListe(), tc.getParser())) {
+		if (tc.getExpandMode() != ExpandMode.NO_EXPAND_OR_RG_REPLACEMENT &&
+				EntityListUtil.referencesRootGroup(ctx.entityListe(), tc.getParser())) {
 			// group conditions that reference a root group (only allowed in A12 models) are internally treated as root group conditions
 			assert tc.getParser().isA12Model() && (ctx.entityListe().entitySpec().size() == 1);
 
@@ -254,8 +255,8 @@ public class KontextListenBedingungCreator {
 			case GrammarOnly_ConditionParser.KONTEXT_NICHT_ANGEGEBEN, GrammarOnly_ConditionParser.KEIN_KONTEXT_ANGEGEBEN ->
 					RootGroupConditionName.KeinVordruckAngegeben;
 			case GrammarOnly_ConditionParser.ALLE_KONTEXTE_ANGEGEBEN,
-				 GrammarOnly_ConditionParser.KONTEXTE_NICHT_GEMEINSAM_ANGEGEBEN,
-				 GrammarOnly_ConditionParser.NICHT_ALLE_ODER_KEIN_KONTEXT_ANGEGEBEN ->
+			     GrammarOnly_ConditionParser.KONTEXTE_NICHT_GEMEINSAM_ANGEGEBEN,
+			     GrammarOnly_ConditionParser.NICHT_ALLE_ODER_KEIN_KONTEXT_ANGEGEBEN ->
 					throw new IllegalArgumentException("internal error: '" + t.getText() + "' not allowed with root group");
 			default -> throw new IllegalArgumentException(CreatorUtils.getUnknownTokenErrorMessage(t));
 		};

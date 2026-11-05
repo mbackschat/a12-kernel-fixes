@@ -89,7 +89,6 @@ export enum FehlerBereich {
 export class FormatDefinitionDatum implements IFormatDefinition {
 	protected _format: string;
 	protected _metaFormat: string;
-	private _zusatzPruefung: boolean;
 	private _teilBekanntArt: DatumTeilbekanntArt;
 	protected _laenge: number;
 	protected _feldTyp: string;
@@ -99,7 +98,6 @@ export class FormatDefinitionDatum implements IFormatDefinition {
 	protected _internalDataFormats: DataFormats;
 
 	private _dateFromCache: HashMap<string, TimeZonedDate> = new HashMap();
-	private _dateFromForAdditionalCheckCache: HashMap<string, TimeZonedDate> = new HashMap();
 
 	protected dateInvalid(d: Date, timeZone: string): boolean {
 		let dateFrom = this._dateFromCache.get(timeZone);
@@ -110,14 +108,6 @@ export class FormatDefinitionDatum implements IFormatDefinition {
 		return this._dateInvalid(d, timeZone, dateFrom); // begin of the gregorian calendar
 	}
 
-	protected dateInvalidForAdditionalCheck(d: Date, timeZone: string): boolean {
-		let dateFrom = this._dateFromForAdditionalCheckCache.get(timeZone);
-		if (!dateFrom) {
-			dateFrom = TimeZonedDate.createFromString("01.01.1900", "dd.MM.yyyy", timeZone);
-			this._dateFromForAdditionalCheckCache.set(timeZone, dateFrom);
-		}
-		return this._dateInvalid(d, timeZone, dateFrom);
-	}
 
 	private _dateInvalid(d: Date, timeZone: string, dateFrom: TimeZonedDate): boolean {
 		const m: TimeZonedDate = TimeZonedDate.createFromDate(d, timeZone);
@@ -128,9 +118,8 @@ export class FormatDefinitionDatum implements IFormatDefinition {
 	 * Konstruktor wird beim Einlesen der Formatdaten beim Initialisieren der
 	 * Checker-Klasse aufgerufen.
 	 */
-	constructor(format: string, zusatzPruefung: boolean, teilbekanntheit: DatumTeilbekanntArt) {
+	constructor(format: string, teilbekanntheit: DatumTeilbekanntArt) {
 		this._format = format;
-		this._zusatzPruefung = zusatzPruefung;
 		this._teilBekanntArt = teilbekanntheit;
 
 		this._metaFormat = format.replace(/d/gi, "T").replace(/y/gi, "J");
@@ -225,17 +214,6 @@ export class FormatDefinitionDatum implements IFormatDefinition {
 		}
 
 		const timeZone = param.getMetaData().getTimeZone();
-		// Falls Zusatzprüfung, prüfe das Datum.
-		if (this._zusatzPruefung) {
-			if (this.dateInvalidForAdditionalCheck(date, timeZone)) {
-				return this._createFehler(
-					param,
-					RuntimeFormalErrorEnum.DATUM_ADDITIONAL_CHECK,
-					IFormaleFehlerConstants.FEHLER_DATUM
-				);
-			}
-			return ValidType.Valid;
-		}
 
 		// check if date generally valid
 		if (this.dateInvalid(date, timeZone)) {
@@ -276,19 +254,6 @@ export class FormatDefinitionDatum implements IFormatDefinition {
 				);
 			} else {
 				return this._werfeAllgemeinenFormatFehler(param);
-			}
-		}
-		if (fullCheck && this._zusatzPruefung && year < 1900) {
-			if (fehlerBereich !== undefined && trenner !== undefined) {
-				return (this as any as FormatDefinitionDatumBereich)._createFehlerForDatumBereich(param, RuntimeFormalErrorEnum.DATUM_BEREICH_DATUM_ADDITIONAL_CHECK,
-					IFormaleFehlerConstants.FEHLER_DATUM_BEREICH_FORMAT // instead of IFormaleFehlerConstants.FEHLER_DATUM_BEREICH_DATUM
-				);
-			} else {
-				return this._createFehler(
-					param,
-					RuntimeFormalErrorEnum.DATUM_ADDITIONAL_CHECK,
-					IFormaleFehlerConstants.FEHLER_DATUM_FORMAT // instead of IFormaleFehlerConstants.FEHLER_DATUM like below
-				);
 			}
 		}
 		if (month > 12) {
@@ -417,10 +382,6 @@ export class FormatDefinitionDatum implements IFormatDefinition {
 		_dataFormats: DataFormats
 	): string {
 		return "";
-	}
-
-	public get isZusatzPruefung(): boolean {
-		return this._zusatzPruefung;
 	}
 
 	public get isTeilbekannt(): boolean {

@@ -1,31 +1,15 @@
 {
   "extends": "@com.mgmtp.a12.devtools/tsconfig",
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "**/__fixtures__/**"
-  ],
+  "include": ["src", "test"],
+  "exclude": ["test/fixtures"],
   "compilerOptions": {
     "outDir": "./lib",
-    "rootDir": "./src",
-		"module": "CommonJS",
-    "ignoreDeprecations": "6.0", // damit moduleResolution node bleiben kann
-		"moduleResolution": "node",
-    "declarationMap": false,
+    "rootDir": ".",
+    "target": "es6",
     "declaration": false,
-    "jsx": "react",
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "noEmitOnError": false,
-    "verbatimModuleSyntax": false,
+    "declarationMap": false,
     "skipLibCheck": true,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
-    "types": ["node", "jest"]
-  },
-  "ts-node": {
-    "transpileOnly": true
+    "resolveJsonModule": true,
+    "types": ["node"]
   }
 }

@@ -112,7 +112,7 @@ public class FeldIdListeUtil {
 			felder.add(id);
 
 			//if it is a group and expand mode is set.
-			if ((!id.isField()) && tc.getExpandMode() != ExpandMode.NO_EXPAND &&
+			if ((!id.isField()) && tc.getExpandMode() != ExpandMode.NO_EXPAND && tc.getExpandMode() != ExpandMode.NO_EXPAND_OR_RG_REPLACEMENT &&
 					tc.getExpandMode() != ExpandMode.EXPAND_PARTIALLY) {
 				felder.addAll(FeldIdCreator.expandEntityRef(ref, tc.getParser(), eCtx, tc.getExpandMode()));
 			}
