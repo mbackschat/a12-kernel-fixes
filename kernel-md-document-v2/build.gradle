@@ -6,6 +6,7 @@ plugins {
 description = "Document API V2 interfaces & impl. Some service impls are not contained, in order to keep dependencies minimal"
 
 configurations {
+    javadocOnly
 }
 
 dependencies {
@@ -29,3 +30,12 @@ dependencies {
 
 }
 
+// Its API docs link to the model API of kernel-md-documentmodel (which depends on this
+// module, so it cannot be a compile dependency); ext1 resolved those links this way.
+dependencies {
+    javadocOnly project(':kernel-md-documentmodel')
+}
+
+javadoc {
+    classpath += configurations.javadocOnly
+}
