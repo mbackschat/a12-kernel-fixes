@@ -18,7 +18,7 @@ mmStructuralMappingModel_1 = "5.0.561357"
 mmXmlSchemaContainer_1 = "6.0.561358"
 mmCommon_v2 = "21.3.561430"
 
-com-mgmtp-a12-dataservices-wcf-api = "0.3.0"
+com-mgmtp-a12-dataservices-wcf-api = "1.1.3"
 com-mgmtp-a12-base = "30.1.1"
 com-fasterxml-jackson-annotations = "2.22"
 tools-jackson = "3.2.4"
