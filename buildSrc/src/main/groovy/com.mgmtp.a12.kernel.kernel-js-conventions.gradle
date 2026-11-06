@@ -211,6 +211,7 @@ tasks.register('npm_assemble') {
 // the inputs are only an info for gradle for the up-to-date check
 // npm uses .npmignore file as a blacklist OR the whitelist "files" in package.json
 tasks.register('npm_pack', Exec) {
+    inputs.file('package.json')
     group = npm_groupName
     inputs.files(tasks.named('npm_assemble'))
     outputs.file("$npm_packDir/$npm_packOutput")

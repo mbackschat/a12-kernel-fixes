@@ -7,6 +7,7 @@ Source modifications (original modification dates):
 - 2026-11-06: reference the published WCF API 1.1.3.
 - 2026-11-06: use the exported a12types field-type-attributes variant.
 - 2026-11-06: point the package root export at the compiled entry point.
+- 2026-11-06: repack npm tarballs when package.json changes.
 
 This modification notice was added on 2026-11-16.
 
