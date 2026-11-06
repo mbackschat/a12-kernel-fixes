@@ -24,7 +24,6 @@
     "kernel-rt/kernel-core-runtime-api-ts",
     "kernel-rt/kernel-core-runtime-ts",
     "kernel-ts/eslint-config",
-    "kernel-ts/codemod",
     "kernel-tool/kernel-core-parser-web",
     "kernel-rt/kernel-core-customfieldtype-impl"
   ]
