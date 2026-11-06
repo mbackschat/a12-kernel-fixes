@@ -54,14 +54,14 @@ import com.mgmtp.a12.kernel.md.rt.api.DocumentProcessingConfig;
 import com.mgmtp.a12.kernel.md.rt.api.IDocumentValidationResult;
 import com.mgmtp.a12.kernel.md.rt.internal.service.Identifier;
 import com.mgmtp.a12.kernel.md.rt.internal.service.LowKernelApiUtils;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1.Data;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.DateFormat;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.DateRangeFormat;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.FalseValue;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.InterpretationOfYear;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.OptionalDateType;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.TrueValue;
-import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12.views._ct_field_type_attributes_1._data.Type;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12types.views._ct_field_type_attributes_1.Data;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12types.typedefs.DATE_FORMAT_2.DATE_FORMAT_2;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12types.typedefs.DATE_RANGE_FORMAT_2.DATE_RANGE_FORMAT_2;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12types.typedefs.FALSE_VALUE_2.FALSE_VALUE_2;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12types.typedefs.INTERPRETATION_OF_YEAR_2.INTERPRETATION_OF_YEAR_2;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12types.typedefs.OPTIONAL_DATE_TYPE_1.OPTIONAL_DATE_TYPE_1;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12types.typedefs.TRUE_VALUE_2.TRUE_VALUE_2;
+import com.mgmtp.a12.kernel.mmtypings.extmpinternal.ct_field_type_attributes_1_a12types.views._ct_field_type_attributes_1._data.Type;
 import com.mgmtp.a12.kernel.mmvalidators.extmpinternal.codegen.mm_smm_fieldtypechecks__0031.Factory_mm_smm_fieldtypechecks__0031;
 import com.mgmtp.a12.kernel.mmtypings.extmpinternal.mm_smm_fieldtypechecks_1_a12.views.MM_SMM_FieldTypeChecks_1;
 import com.mgmtp.a12.kernel.mmtypings.extmpinternal.mm_smm_fieldtypechecks_1_a12.views._mm_smm_fieldtypechecks_1._smm_fieldtypechecks.Source;
@@ -104,15 +104,15 @@ public class SMMFieldTypeCheckUtils {
 				return data
 						._with(Data._pointer().type(), Type.Escaped_Boolean)
 						._with(Data._pointer().trueValue(), booleanType.getNotInDCustomTrueValue()
-								.map(TrueValue::_of).orElse(TrueValue.Escaped_true))
+								.map(TRUE_VALUE_2::_of).orElse(TRUE_VALUE_2.Escaped_true))
 						._with(Data._pointer().falseValue(), booleanType.getNotInDCustomFalseValue()
-								.map(FalseValue::_of).orElse(FalseValue.Escaped_false));
+								.map(FALSE_VALUE_2::_of).orElse(FALSE_VALUE_2.Escaped_false));
 			}
 			case ConfirmType confirmType -> {
 				return data
 						._with(Data._pointer().type(), Type.Confirm)
 						._with(Data._pointer().trueValue(), confirmType.getNotInDCustomTrueValue()
-								.map(TrueValue::_of).orElse(TrueValue.Escaped_true));
+								.map(TRUE_VALUE_2::_of).orElse(TRUE_VALUE_2.Escaped_true));
 			}
 			case CustomFieldType customFieldType -> {
 				return data
@@ -124,35 +124,35 @@ public class SMMFieldTypeCheckUtils {
 			case DateFragmentType dateFragmentType -> {
 				return data
 						._with(Data._pointer().type(), Type.DateFragment)
-						._with(Data._pointer().dateFormat(), DateFormat._of(dateFragmentType.getNotInDCustomFormat().orElse(dateFragmentType.getFormatOfFragment())));
+						._with(Data._pointer().dateFormat(), DATE_FORMAT_2._of(dateFragmentType.getNotInDCustomFormat().orElse(dateFragmentType.getFormatOfFragment())));
 			}
 			case DateRangeType dateRangeType -> {
 				String dateFormat = dateRangeType.getNotInDCustomFormat().orElse(dateRangeType.getFormat());
 				String separator = dateRangeType.getNotInDCustomRangeSeparator().orElse(dateRangeType.getRangeSeparator());
 				return data
 						._with(Data._pointer().type(), Type.DateRange)
-						._with(Data._pointer().dateRangeFormat(), DateRangeFormat._of(dateFormat + separator + dateFormat))
+						._with(Data._pointer().dateRangeFormat(), DATE_RANGE_FORMAT_2._of(dateFormat + separator + dateFormat))
 						._with(Data._pointer().interpretationOfYear(), dateRangeType.getInterpretationOfYear()
 								.map(ioy -> switch (ioy) {
-									case FROM -> InterpretationOfYear.from;
-									case TO -> InterpretationOfYear.to;
-								}).orElse(InterpretationOfYear.standard));
+									case FROM -> INTERPRETATION_OF_YEAR_2.from;
+									case TO -> INTERPRETATION_OF_YEAR_2.to;
+								}).orElse(INTERPRETATION_OF_YEAR_2.standard));
 			}
 			case DateTimeType dateTimeType -> {
 				return data
 						._with(Data._pointer().type(), Type.DateTime)
-						._with(Data._pointer().dateFormat(), DateFormat._of(dateTimeType.getFormat()));
+						._with(Data._pointer().dateFormat(), DATE_FORMAT_2._of(dateTimeType.getFormat()));
 			}
 			case DateType dateType -> {
 				return data
 						._with(Data._pointer().type(), Type.Date)
 						._with(Data._pointer().dateFormat(),
-								DateFormat._of(dateType.getNotInDCustomFormat().orElse(dateType.getFormat())))
+								DATE_FORMAT_2._of(dateType.getNotInDCustomFormat().orElse(dateType.getFormat())))
 						._with(Data._pointer().optionalDateType(), switch (dateType.getDatePrecision()) {
-							case FULL -> OptionalDateType.FULL;
-							case DAY_OPTIONAL -> OptionalDateType.DAY_OPTIONAL;
-							case MONTH_OPTIONAL -> OptionalDateType.MONTH_OPTIONAL;
-							case YEAR_OPTIONAL -> OptionalDateType.YEAR_OPTIONAL;
+							case FULL -> OPTIONAL_DATE_TYPE_1.FULL;
+							case DAY_OPTIONAL -> OPTIONAL_DATE_TYPE_1.DAY_OPTIONAL;
+							case MONTH_OPTIONAL -> OPTIONAL_DATE_TYPE_1.MONTH_OPTIONAL;
+							case YEAR_OPTIONAL -> OPTIONAL_DATE_TYPE_1.YEAR_OPTIONAL;
 						});
 			}
 			case EnumerationType enumerationType -> {
@@ -193,7 +193,7 @@ public class SMMFieldTypeCheckUtils {
 			case TimeType timeType -> {
 				return data
 						._with(Data._pointer().type(), Type.Time)
-						._with(Data._pointer().dateFormat(), DateFormat._of(timeType.getFormat()));
+						._with(Data._pointer().dateFormat(), DATE_FORMAT_2._of(timeType.getFormat()));
 			}
 			case TypeDefType typeDefType -> throw new IllegalArgumentException(
 					"Encountered an unexpanded type definition (%s). The Document Model must be expanded."

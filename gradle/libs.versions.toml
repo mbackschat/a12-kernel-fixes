@@ -49,8 +49,8 @@ a12KernelRuntimeArtifactId = { module = "com.mgmtp.a12.kernel:kernel-core-runtim
 kernelCoreRuntimeApi = { module = "com.mgmtp.a12.kernel:kernel-core-runtime-api", version.ref = "kernelCoreRuntimeApiVersion" }
 kernelCoreCustomfieldtypeApi = { module = "com.mgmtp.a12.kernel:kernel-core-customfieldtype-api", version.ref = "kernelCoreCustomfieldtypeApiVersion" }
 
-kernelCtFieldTypeAttributes1Typings = { module = "com.mgmtp.a12.kernel:mmtypings-extmpinternal-ct_field_type_attributes-1-a12", version.ref = "ctFIELD_TYPE_ATTRIBUTES_1" }
-kernelCtFieldTypeAttributes1A12Dmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-ct_field_type_attributes-1-a12", version.ref = "ctFIELD_TYPE_ATTRIBUTES_1" }
+kernelCtFieldTypeAttributes1Typings = { module = "com.mgmtp.a12.kernel:mmtypings-extmpinternal-ct_field_type_attributes-1-a12types", version.ref = "ctFIELD_TYPE_ATTRIBUTES_1" }
+kernelCtFieldTypeAttributes1A12Dmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-ct_field_type_attributes-1-a12types", version.ref = "ctFIELD_TYPE_ATTRIBUTES_1" }
 kernelCtModelHeader1Typings = { module = "com.mgmtp.a12.kernel:mmtypings-ct_model_header-1", version.ref = "ctMODEL_HEADER_1" }
 kernelCtSelection1Typings = { module = "com.mgmtp.a12.kernel:mmtypings-ct_selection-v1", version.ref = "ctSELECTION_v1" }
 kernelMmCombinationModel1CodegenValidators = { module = "com.mgmtp.a12.kernel:mmvalidators-extmpinternal-mm_combinationmodel-1-codegen", version.ref = "mmCombinationModel_1" }
