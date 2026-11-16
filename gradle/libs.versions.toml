@@ -7,7 +7,6 @@ ctFIELD_TYPE_ATTRIBUTES_1 = "4.1.561347"
 ctMODEL_HEADER_1 = "3.7.561346"
 ctSELECTION_v1 = "2.8.560020"
 mmCombinationModel_1 = "2.13.561410"
-mmDependencyModel_1 = "1.4.560022"
 mmField_1 = "15.10.561439"
 mmMappingModel_2 = "5.2.561369"
 mmPackage_1 = "6.1.561350"
@@ -57,10 +56,6 @@ kernelMmCombinationModel1CodegenValidators = { module = "com.mgmtp.a12.kernel:mm
 kernelMmCombinationModel1NoneDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_combinationmodel-1-none", version.ref = "mmCombinationModel_1" }
 kernelMmCombinationModel1CodegenDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_combinationmodel-1-codegen", version.ref = "mmCombinationModel_1" }
 kernelMmCombinationModel1Typings = { module = "com.mgmtp.a12.kernel:mmtypings-mm_combinationmodel-1", version.ref = "mmCombinationModel_1" }
-kernelMmDependencyModel1CodegenValidators = { module = "com.mgmtp.a12.kernel:mmvalidators-extmpinternal-mm_dependencymodel-1-codegen", version.ref = "mmDependencyModel_1" }
-kernelMmDependencyModel1NoneDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_dependencymodel-1-none", version.ref = "mmDependencyModel_1" }
-kernelMmDependencyModel1CodegenDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_dependencymodel-1-codegen", version.ref = "mmDependencyModel_1" }
-kernelMmDependencyModel1Typings = { module = "com.mgmtp.a12.kernel:mmtypings-extmpinternal-mm_dependencymodel-1-codegen", version.ref = "mmDependencyModel_1" }
 kernelMmCommonV2CodegenValidators = { module = "com.mgmtp.a12.kernel:mmvalidators-extmpinternal-mm_common-v2-codegen", version.ref = "mmCommon_v2" }
 kernelMmMappingModel2CodegenValidators = { module = "com.mgmtp.a12.kernel:mmvalidators-extmpinternal-mm_mappingmodel-2-codegen", version.ref = "mmMappingModel_2" }
 kernelMmMappingModel2NoneDmjsons = { module = "com.mgmtp.a12.kernel:mmdmjsons-extmpinternal-mm_mappingmodel-2-none", version.ref = "mmMappingModel_2" }

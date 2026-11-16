@@ -33,10 +33,6 @@ dependencies {
     runtimeOnly libs.kernelMmStructuralMappingModel1NoneDmjsons
     runtimeOnly libs.kernelMmStructuralMappingModel1CodegenDmjsons
 
-    api libs.kernelMmDependencyModel1Typings
-    implementation libs.kernelMmDependencyModel1CodegenValidators
-    runtimeOnly libs.kernelMmDependencyModel1NoneDmjsons
-    runtimeOnly libs.kernelMmDependencyModel1CodegenDmjsons
 
     implementation libs.kernelMmSmmFieldTypeChecks1Typings
     implementation libs.kernelMmSmmFieldTypeChecks1CodegenValidators

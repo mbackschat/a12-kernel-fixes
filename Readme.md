@@ -1,6 +1,6 @@
 # Fork modification notice
 
-This is a modified A12 release, distributed under [EUPL-1.2](licenses/EUPL-1.2.txt). The latest source modification is dated 2026-11-06. See [NOTICE](NOTICE) for the dated changes and preserved upstream notices. This notice was added on 2026-11-16.
+This is a modified A12 release, distributed under [EUPL-1.2](licenses/EUPL-1.2.txt). The latest source modification is dated 2026-11-16. See [NOTICE](NOTICE) for the dated changes and preserved upstream notices. This notice was added on 2026-11-16.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://www.mgm-tp.com/global-content/cd/logos/a12/app-icons/dark/A12-Dark.svg" />

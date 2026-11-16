@@ -10,6 +10,7 @@ Source modifications (original modification dates):
 - 2026-11-06: repack npm tarballs when package.json changes.
 - 2026-11-06: drop the kernel codemod from the root npm workspace.
 - 2026-11-06: restore the Javadoc classpath for model API links.
+- 2026-11-16: omit the unavailable DependencyModel subsystem.
 
 This modification notice was added on 2026-11-16.
 
